@@ -191,32 +191,39 @@
   .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
 
-  /* ---------- print ---------- */
+  /* ---------- print (디에디트 견적서 양식) ---------- */
   #printArea{display:none}
   @media print{
     body{background:#fff}
     #loginView,#appView,.toast{display:none!important}
     #printArea{display:block!important}
-    @page{margin:18mm 15mm}
+    @page{margin:16mm 14mm}
   }
-  .p-wrap{max-width:740px;margin:0 auto;color:#111;font-size:13px}
-  .p-title{text-align:center;font-size:27px;font-weight:800;letter-spacing:14px;text-indent:14px;margin-bottom:8px}
-  .p-no{text-align:center;color:#555;font-size:12px;margin-bottom:26px}
-  .p-meta{display:flex;justify-content:space-between;gap:24px;margin-bottom:20px;align-items:flex-end}
-  .p-to .to-name{font-size:17px;font-weight:700;border-bottom:2px solid #111;padding:0 6px 5px 2px;margin-bottom:8px;min-width:200px}
-  .p-to .to-line{font-size:12.5px;color:#333;padding:1px 2px}
-  .p-supplier{border:1px solid #999;border-radius:6px;padding:10px 14px;min-width:300px}
-  .p-supplier .srow{display:flex;gap:10px;font-size:12px;padding:2px 0}
-  .p-supplier .srow .k{color:#666;min-width:62px;font-weight:600}
-  .p-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 0}
-  .p-tbl th{border:1px solid #888;background:#F3F4F6;padding:8px;font-weight:650}
-  .p-tbl td{border:1px solid #BBB;padding:8px}
-  .p-tbl .num{text-align:right;font-variant-numeric:tabular-nums}
-  .p-tbl .c{text-align:center}
-  .p-tbl tfoot td{font-weight:650;background:#FAFAFA}
-  .p-tbl tfoot .grand td{font-size:14px;font-weight:750;background:#F3F4F6}
-  .p-memo{margin-top:16px;font-size:12.5px;color:#333;white-space:pre-wrap}
-  .p-memo .k{font-weight:650;margin-bottom:3px}
+  .p-wrap{max-width:760px;margin:0 auto;color:#111;font-size:13px;line-height:1.45}
+  .p-head{display:flex;justify-content:space-between;gap:36px;align-items:flex-start;margin-bottom:34px}
+  .p-title{font-size:34px;font-weight:800;letter-spacing:-0.02em;margin-bottom:22px}
+  .p-to-name{font-size:19px;font-weight:750;margin-bottom:16px}
+  .p-info{min-width:260px}
+  .p-info .irow{display:flex;gap:14px;padding:5px 2px;border-bottom:1px dotted #999;font-size:12.5px}
+  .p-info .irow .k{font-weight:700;min-width:64px}
+  .p-supplier{min-width:340px;flex:0 0 44%}
+  .p-supplier .shead{background:#DFDFDF;font-weight:750;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
+  .p-supplier .srow{display:flex;gap:12px;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
+  .p-supplier .srow .k{font-weight:700;min-width:66px}
+  .p-grand{display:flex;justify-content:space-between;align-items:center;background:#DFDFDF;padding:9px 14px;margin-bottom:14px}
+  .p-grand .k{font-weight:750;font-size:15px}
+  .p-grand .k small{font-weight:500;font-size:11.5px;margin-left:4px}
+  .p-grand .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+  .p-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  .p-tbl th{background:#DFDFDF;padding:7px 10px;font-weight:750;text-align:left;border-bottom:1px dotted #888}
+  .p-tbl th.num,.p-tbl td.num{text-align:right}
+  .p-tbl td{padding:12px 10px;border-bottom:1px dotted #AAA;font-variant-numeric:tabular-nums}
+  .p-tbl tfoot td{background:#DFDFDF;font-weight:750;border-bottom:none;padding:8px 10px}
+  .p-etc{margin-top:26px}
+  .p-etc .k{background:#DFDFDF;font-weight:750;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
+  .p-etc .memo{white-space:pre-wrap;font-size:12.5px;color:#222;padding:8px 2px;border-bottom:1px dotted #AAA}
+  .p-etc .blank{height:30px;border-bottom:1px dotted #AAA}
+  .p-etc .end{border-bottom:1.5px solid #111}
 </style>
 </head>
 <body>
@@ -438,7 +445,10 @@
               <div class="field"><label>사업자번호</label><input id="st_biz" placeholder="000-00-00000"></div>
               <div class="field"><label>연락처</label><input id="st_phone"></div>
             </div>
-            <div class="field"><label>이메일</label><input id="st_email"></div>
+            <div class="grid2">
+              <div class="field"><label>이메일</label><input id="st_email"></div>
+              <div class="field"><label>계좌번호</label><input id="st_bank" placeholder="예: 신한은행 110-000-000000"></div>
+            </div>
             <div class="field"><label>주소</label><input id="st_address"></div>
             <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
           </div>
@@ -850,7 +860,7 @@ function nextQuoteNo(date){
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
-           lines:[blankLine()], memo:"" };
+           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"" };
 }
 function blankLine(){ return { item_id:"", name:"", spec:"", unit:"", qty:1, price:0 }; }
 function quoteTotals(q){
@@ -906,14 +916,17 @@ function renderQtDetail(){
   const coOpts=db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}" ${c.id===e.company_id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
   form.innerHTML=`
-    <div class="grid3">
+    <div class="grid2">
       <div class="field"><label>견적일자</label><input type="date" id="fq_date" value="${escapeAttr(e.date)}"></div>
       <div class="field"><label>거래처 *</label>
         <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
       </div>
+    </div>
+    <div class="grid2">
       <div class="field"><label>상태</label>
         <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
       </div>
+      <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일"></div>
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
@@ -938,6 +951,7 @@ function renderQtDetail(){
   document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; };
   document.getElementById("fq_co").onchange=ev=>{ e.company_id=ev.target.value; };
   document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
+  document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
   bindQtLines(e);
@@ -1038,50 +1052,68 @@ async function deleteQuote(id){
   await saveTable("quotes",db.quotes);
 }
 
+function koreanDate(iso){
+  if(!iso) return "";
+  const [y,m,d]=iso.split("-").map(Number);
+  return `${y}년 ${m}월 ${d}일`;
+}
+
 function printQuote(q){
   const s=db.settings||{};
   const c=coById(q.company_id)||{};
   const t=quoteTotals(q);
-  const rows=q.lines.map((l,i)=>`
+  const qtySum=q.lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
+  const rows=q.lines.map(l=>{
+    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    return `
     <tr>
-      <td class="c">${i+1}</td>
       <td>${escapeHtml(l.name)}</td>
-      <td class="c">${escapeHtml(l.spec||"")}</td>
-      <td class="c">${escapeHtml(l.unit||"")}</td>
+      <td>${escapeHtml(l.spec||"")}</td>
       <td class="num">${fmt(l.qty)}</td>
       <td class="num">${fmt(l.price)}</td>
-      <td class="num">${fmt((Number(l.qty)||0)*(Number(l.price)||0))}</td>
-    </tr>`).join("");
+      <td class="num">${fmt(supply)}</td>
+      <td class="num">${fmt(Math.round(supply*0.1))}</td>
+    </tr>`;}).join("");
   document.getElementById("printArea").innerHTML=`
   <div class="p-wrap">
-    <div class="p-title">견 적 서</div>
-    <div class="p-no">${escapeHtml(q.no)} · ${escapeHtml(q.date)}</div>
-    <div class="p-meta">
-      <div class="p-to">
-        <div class="to-name">${escapeHtml(c.name||coName(q.company_id))} 귀중</div>
-        ${c.contact?`<div class="to-line">담당: ${escapeHtml(c.contact)} 님</div>`:""}
-        <div class="to-line">아래와 같이 견적합니다.</div>
+    <div class="p-head">
+      <div class="p-info">
+        <div class="p-title">견적서</div>
+        <div class="p-to-name">${escapeHtml(c.name||coName(q.company_id))}</div>
+        <div class="irow"><span class="k">견적일</span><span>${escapeHtml(koreanDate(q.date))}</span></div>
+        ${q.valid?`<div class="irow"><span class="k">유효기간</span><span>${escapeHtml(q.valid)}</span></div>`:""}
       </div>
       <div class="p-supplier">
-        <div class="srow"><span class="k">상호</span><span>${escapeHtml(s.name||"")}${s.ceo?` (대표: ${escapeHtml(s.ceo)})`:""}</span></div>
-        <div class="srow"><span class="k">사업자번호</span><span>${escapeHtml(s.biz_no||"")}</span></div>
-        <div class="srow"><span class="k">연락처</span><span>${escapeHtml([s.phone,s.email].filter(Boolean).join(" · "))}</span></div>
+        <div class="shead">공급자</div>
+        <div class="srow"><span class="k">상호</span><span>${escapeHtml(s.name||"")}</span></div>
+        <div class="srow"><span class="k">등록번호</span><span>${escapeHtml(s.biz_no||"")}</span></div>
         <div class="srow"><span class="k">주소</span><span>${escapeHtml(s.address||"")}</span></div>
+        ${s.bank?`<div class="srow"><span class="k">계좌번호</span><span>${escapeHtml(s.bank)}</span></div>`:""}
+        <div class="srow"><span class="k">전화</span><span>${escapeHtml(s.phone||"")}</span></div>
       </div>
+    </div>
+    <div class="p-grand">
+      <span class="k">견적금액 <small>(공급가액 + 세액)</small></span>
+      <span class="v">₩${fmt(t.total)}</span>
     </div>
     <table class="p-tbl">
       <thead><tr>
-        <th style="width:34px">No</th><th>품명</th><th style="width:110px">규격</th><th style="width:52px">단위</th>
-        <th style="width:60px">수량</th><th style="width:90px">단가</th><th style="width:110px">공급가액</th>
+        <th>품명</th><th style="width:110px">규격</th><th class="num" style="width:66px">수량</th>
+        <th class="num" style="width:96px">단가</th><th class="num" style="width:110px">공급가액</th><th class="num" style="width:86px">세액</th>
       </tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot>
-        <tr><td colspan="6" class="num">공급가액</td><td class="num">${fmt(t.supply)}</td></tr>
-        <tr><td colspan="6" class="num">부가세 (10%)</td><td class="num">${fmt(t.vat)}</td></tr>
-        <tr class="grand"><td colspan="6" class="num">합계 금액</td><td class="num">₩ ${fmt(t.total)}</td></tr>
-      </tfoot>
+      <tfoot><tr>
+        <td>합계</td><td></td><td class="num">${fmt(qtySum)}</td><td></td>
+        <td class="num">${fmt(t.supply)}</td><td class="num">${fmt(t.vat)}</td>
+      </tr></tfoot>
     </table>
-    ${q.memo?`<div class="p-memo"><div class="k">비고</div>${escapeHtml(q.memo)}</div>`:""}
+    <div class="p-etc">
+      <div class="k">기타</div>
+      ${q.memo?`<div class="memo">${escapeHtml(q.memo)}</div>`:""}
+      <div class="blank"></div>
+      <div class="blank"></div>
+      <div class="blank end"></div>
+    </div>
   </div>`;
   window.print();
 }
@@ -1231,6 +1263,7 @@ function renderSettings(){
   document.getElementById("st_biz").value=s.biz_no||"";
   document.getElementById("st_phone").value=s.phone||"";
   document.getElementById("st_email").value=s.email||"";
+  document.getElementById("st_bank").value=s.bank||"";
   document.getElementById("st_address").value=s.address||"";
 }
 async function saveSettings(){
@@ -1240,6 +1273,7 @@ async function saveSettings(){
     biz_no:document.getElementById("st_biz").value.trim(),
     phone:document.getElementById("st_phone").value.trim(),
     email:document.getElementById("st_email").value.trim(),
+    bank:document.getElementById("st_bank").value.trim(),
     address:document.getElementById("st_address").value.trim(),
   };
   await saveTable("settings",db.settings);
