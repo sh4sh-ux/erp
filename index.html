@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ERP · 거래처 관리</title>
+<title>ERP · 업무 관리</title>
 <style>
   :root{
     --ink:#0B1220; --ink-2:#5A6577; --ink-3:#8A94A6;
@@ -11,7 +11,8 @@
     --line:#E5E9EF; --line-2:#EEF1F5;
     --primary:#0A84FF; --primary-soft:rgba(10,132,255,.10);
     --danger:#FF3B30; --danger-soft:rgba(255,59,48,.10);
-    --ok:#34C759;
+    --ok:#34C759; --ok-soft:rgba(52,199,89,.12);
+    --warn-c:#FF9F0A; --warn-soft:rgba(255,159,10,.14);
     --shadow:0 1px 2px rgba(11,18,32,.04),0 10px 30px rgba(11,18,32,.07);
     --shadow-sm:0 1px 2px rgba(11,18,32,.05);
     --r:16px; --r-sm:10px;
@@ -54,13 +55,10 @@
   .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:520;color:var(--ink-2);transition:.14s;width:100%;text-align:left}
   .nav-item:hover{background:var(--paper);color:var(--ink)}
   .nav-item.on{background:var(--primary-soft);color:var(--primary)}
-  .nav-item.soon{opacity:.5;cursor:default}
-  .nav-item.soon:hover{background:none}
-  .nav-item .tag{margin-left:auto;font-size:10px;font-weight:600;color:var(--ink-3);background:var(--paper);padding:2px 6px;border-radius:5px}
   .nav-item svg{width:18px;height:18px;flex:0 0 auto}
 
   .main{padding:26px 28px;overflow:auto}
-  .page-head{display:flex;align-items:center;margin-bottom:22px}
+  .page-head{display:flex;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
   .page-head h2{font-size:22px;font-weight:680;letter-spacing:-0.02em}
   .page-head .count{margin-left:10px;font-size:13px;color:var(--ink-3);background:var(--card);border:1px solid var(--line);padding:3px 10px;border-radius:99px}
   .page-head .sp{flex:1}
@@ -86,10 +84,18 @@
   .li-body{min-width:0;flex:1}
   .li-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .li-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .li-right{text-align:right;flex:0 0 auto}
+  .li-amt{font-size:13px;font-weight:640;font-variant-numeric:tabular-nums}
   .pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;flex:0 0 auto}
   .pill.buy{background:#FFF1E6;color:#C05617}
   .pill.sell{background:#E7F6EC;color:#1E7A3E}
-  .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px}
+  .pill.st-draft{background:var(--paper);color:var(--ink-2)}
+  .pill.st-sent{background:var(--primary-soft);color:var(--primary)}
+  .pill.st-won{background:var(--ok-soft);color:#1E7A3E}
+  .pill.st-lost{background:var(--danger-soft);color:var(--danger)}
+  .pill.in{background:var(--ok-soft);color:#1E7A3E}
+  .pill.out{background:var(--warn-soft);color:#B26A00}
+  .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.7}
 
   /* ---------- detail form ---------- */
   .detail{padding:22px 24px}
@@ -101,20 +107,116 @@
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
   .field textarea{resize:vertical;min-height:64px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:560px){.grid2,.grid3{grid-template-columns:1fr}}
   .form-actions{display:flex;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line-2)}
-  .btn{padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.14s}
+  .btn{padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;transition:.14s;display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .btn.save{background:var(--primary);color:#fff;flex:1}
   .btn.save:hover{filter:brightness(1.05)}
   .btn.del{background:var(--danger-soft);color:var(--danger)}
   .btn.del:hover{background:var(--danger);color:#fff}
   .btn.ghost{background:var(--paper);color:var(--ink-2)}
+  .btn.ghost:hover{color:var(--ink)}
+
+  /* ---------- quote line editor ---------- */
+  .qlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
+  .qline{display:grid;grid-template-columns:minmax(0,1.6fr) 64px 110px 110px 30px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .qline:last-child{border-bottom:none}
+  .qline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+  .qline input,.qline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
+  .qline input:focus,.qline select:focus{border-color:var(--primary)}
+  .qline input.num{text-align:right;font-variant-numeric:tabular-nums}
+  .qline .amt{text-align:right;font-weight:640;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .qline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
+  .qline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .btn-line-add{width:100%;padding:9px;border:1.5px dashed var(--line);border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:600;transition:.14s}
+  .btn-line-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+  .qtotals{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding:16px 4px 2px;font-size:14px}
+  .qtotals .row{display:flex;gap:16px}
+  .qtotals .row .k{color:var(--ink-2)}
+  .qtotals .row .v{min-width:130px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .qtotals .row.grand .k{font-weight:700}
+  .qtotals .row.grand .v{font-size:17px;font-weight:750;color:var(--primary)}
+
+  /* ---------- table ---------- */
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{text-align:left;font-size:11.5px;color:var(--ink-3);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .tbl td{padding:11px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .tbl .sub{color:var(--ink-3);font-size:12px}
+  .tbl .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
+  .tbl .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .tbl-wrap{overflow-x:auto}
+
+  /* ---------- payments ---------- */
+  .pay-add{display:grid;grid-template-columns:130px minmax(0,1.2fr) 92px 110px 130px minmax(0,1fr) auto;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line-2);align-items:center}
+  @media(max-width:1100px){.pay-add{grid-template-columns:1fr 1fr;padding:14px}}
+  .pay-add input,.pay-add select{padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%}
+  .pay-add input:focus,.pay-add select:focus{border-color:var(--primary)}
+  .pay-add input.num{text-align:right}
+  .btn-sm{background:var(--primary);color:#fff;font-weight:600;font-size:13.5px;padding:9px 16px;border-radius:9px;white-space:nowrap}
+  .btn-sm:hover{filter:brightness(1.05)}
+  .month-input{padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--card);font-size:13.5px;outline:none}
+
+  /* ---------- stats / dashboard ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm)}
+  .stat .k{font-size:12px;color:var(--ink-3);font-weight:600}
+  .stat .v{font-size:21px;font-weight:720;letter-spacing:-0.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .v.pos{color:#1E7A3E}
+  .stat .v.neg{color:var(--danger)}
+  .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
+  @media(max-width:980px){.dash-grid{grid-template-columns:1fr}}
+  .card-head{padding:16px 18px 0;display:flex;align-items:center;gap:8px}
+  .card-head h3{font-size:15px;font-weight:660}
+  .legend{margin-left:auto;display:flex;gap:12px;font-size:11.5px;color:var(--ink-3)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+  .chart{display:flex;gap:14px;align-items:flex-end;height:170px;padding:16px 18px 14px}
+  .cgroup{flex:1;display:flex;flex-direction:column;align-items:center;height:100%}
+  .cbars{display:flex;gap:5px;align-items:flex-end;flex:1;width:100%;justify-content:center}
+  .cbar{width:15px;border-radius:5px 5px 2px 2px;min-height:2px;transition:.3s}
+  .cbar.in{background:var(--ok)}
+  .cbar.out{background:var(--warn-c)}
+  .clabel{font-size:11px;color:var(--ink-3);margin-top:7px}
+  .recent{padding:8px 8px 10px}
+  .recent-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:13.5px}
+  .recent-item:hover{background:var(--paper)}
+  .recent-item .d{color:var(--ink-3);font-size:12px;margin-left:auto;flex:0 0 auto}
+  .recent-item .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* ---------- toast ---------- */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:520;box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:100;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ---------- print ---------- */
+  #printArea{display:none}
+  @media print{
+    body{background:#fff}
+    #loginView,#appView,.toast{display:none!important}
+    #printArea{display:block!important}
+    @page{margin:18mm 15mm}
+  }
+  .p-wrap{max-width:740px;margin:0 auto;color:#111;font-size:13px}
+  .p-title{text-align:center;font-size:27px;font-weight:800;letter-spacing:14px;text-indent:14px;margin-bottom:8px}
+  .p-no{text-align:center;color:#555;font-size:12px;margin-bottom:26px}
+  .p-meta{display:flex;justify-content:space-between;gap:24px;margin-bottom:20px;align-items:flex-end}
+  .p-to .to-name{font-size:17px;font-weight:700;border-bottom:2px solid #111;padding:0 6px 5px 2px;margin-bottom:8px;min-width:200px}
+  .p-to .to-line{font-size:12.5px;color:#333;padding:1px 2px}
+  .p-supplier{border:1px solid #999;border-radius:6px;padding:10px 14px;min-width:300px}
+  .p-supplier .srow{display:flex;gap:10px;font-size:12px;padding:2px 0}
+  .p-supplier .srow .k{color:#666;min-width:62px;font-weight:600}
+  .p-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 0}
+  .p-tbl th{border:1px solid #888;background:#F3F4F6;padding:8px;font-weight:650}
+  .p-tbl td{border:1px solid #BBB;padding:8px}
+  .p-tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+  .p-tbl .c{text-align:center}
+  .p-tbl tfoot td{font-weight:650;background:#FAFAFA}
+  .p-tbl tfoot .grand td{font-size:14px;font-weight:750;background:#F3F4F6}
+  .p-memo{margin-top:16px;font-size:12.5px;color:#333;white-space:pre-wrap}
+  .p-memo .k{font-weight:650;margin-bottom:3px}
 </style>
 </head>
 <body>
@@ -157,69 +259,204 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="nav-sec">관리</div>
-      <button class="nav-item on">
+      <button class="nav-item" data-view="companies">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
         거래처
       </button>
-      <button class="nav-item soon">
+      <button class="nav-item" data-view="items">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-        품목 <span class="tag">준비중</span>
+        품목
       </button>
-      <button class="nav-item soon">
+      <button class="nav-item" data-view="quotes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
-        견적서 <span class="tag">준비중</span>
+        견적서
       </button>
-      <button class="nav-item soon">
+      <button class="nav-item" data-view="payments">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-        수금/지급 <span class="tag">준비중</span>
+        수금/지급
       </button>
       <div class="nav-sec">분석</div>
-      <button class="nav-item soon">
+      <button class="nav-item" data-view="dash">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        대시보드 <span class="tag">준비중</span>
+        대시보드
+      </button>
+      <div class="nav-sec">설정</div>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        공급자 정보
       </button>
     </aside>
 
     <main class="main">
-      <div class="page-head">
-        <h2>거래처</h2>
-        <span class="count" id="coCount">0곳</span>
-        <div class="sp"></div>
-      </div>
 
-      <div class="cols">
-        <!-- list -->
-        <div class="card">
-          <div class="list-head">
-            <div class="search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input id="searchInput" placeholder="상호·담당자 검색">
+      <!-- ========== 거래처 ========== -->
+      <section class="view" id="view-companies">
+        <div class="page-head">
+          <h2>거래처</h2>
+          <span class="count" id="coCount">0곳</span>
+          <div class="sp"></div>
+        </div>
+        <div class="cols">
+          <div class="card">
+            <div class="list-head">
+              <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input id="coSearch" placeholder="상호·담당자 검색">
+              </div>
+              <button class="btn-add" id="coNewBtn" title="새 거래처">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
             </div>
-            <button class="btn-add" id="newBtn" title="새 거래처">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
+            <div class="list" id="coList"></div>
           </div>
-          <div class="list" id="list"></div>
+          <div class="card">
+            <div class="detail-empty" id="coEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+              <div>왼쪽에서 거래처를 선택하거나<br><b>+</b> 버튼으로 새로 등록하세요.</div>
+            </div>
+            <div class="detail hidden" id="coForm"></div>
+          </div>
         </div>
+      </section>
 
-        <!-- detail -->
-        <div class="card" id="detailCard">
-          <div class="detail-empty" id="detailEmpty">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
-            <div>왼쪽에서 거래처를 선택하거나<br><b>+</b> 버튼으로 새로 등록하세요.</div>
-          </div>
-          <div class="detail hidden" id="detailForm"></div>
+      <!-- ========== 품목 ========== -->
+      <section class="view hidden" id="view-items">
+        <div class="page-head">
+          <h2>품목</h2>
+          <span class="count" id="itCount">0개</span>
+          <div class="sp"></div>
         </div>
-      </div>
+        <div class="cols">
+          <div class="card">
+            <div class="list-head">
+              <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input id="itSearch" placeholder="품명·규격 검색">
+              </div>
+              <button class="btn-add" id="itNewBtn" title="새 품목">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <div class="list" id="itList"></div>
+          </div>
+          <div class="card">
+            <div class="detail-empty" id="itEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+              <div>왼쪽에서 품목을 선택하거나<br><b>+</b> 버튼으로 새로 등록하세요.</div>
+            </div>
+            <div class="detail hidden" id="itForm"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 견적서 ========== -->
+      <section class="view hidden" id="view-quotes">
+        <div class="page-head">
+          <h2>견적서</h2>
+          <span class="count" id="qtCount">0건</span>
+          <div class="sp"></div>
+        </div>
+        <div class="cols">
+          <div class="card">
+            <div class="list-head">
+              <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input id="qtSearch" placeholder="견적번호·거래처 검색">
+              </div>
+              <button class="btn-add" id="qtNewBtn" title="새 견적서">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <div class="list" id="qtList"></div>
+          </div>
+          <div class="card">
+            <div class="detail-empty" id="qtEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/></svg>
+              <div>왼쪽에서 견적서를 선택하거나<br><b>+</b> 버튼으로 새로 작성하세요.</div>
+            </div>
+            <div class="detail hidden" id="qtForm"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 수금/지급 ========== -->
+      <section class="view hidden" id="view-payments">
+        <div class="page-head">
+          <h2>수금/지급</h2>
+          <div class="sp"></div>
+          <input type="month" class="month-input" id="payMonth">
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">이달 수금</div><div class="v pos" id="paySumIn">0원</div></div>
+          <div class="stat"><div class="k">이달 지급</div><div class="v" id="paySumOut">0원</div></div>
+          <div class="stat"><div class="k">차액</div><div class="v" id="paySumNet">0원</div></div>
+        </div>
+        <div class="card">
+          <div class="pay-add">
+            <input type="date" id="payDate">
+            <select id="payCo"></select>
+            <select id="payKind"><option>수금</option><option>지급</option></select>
+            <select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select>
+            <input type="number" inputmode="numeric" class="num" id="payAmt" placeholder="금액">
+            <input id="payMemo" placeholder="메모 (선택)">
+            <button class="btn-sm" id="payAddBtn">추가</button>
+          </div>
+          <div class="tbl-wrap"><table class="tbl" id="payTbl"></table></div>
+        </div>
+      </section>
+
+      <!-- ========== 대시보드 ========== -->
+      <section class="view hidden" id="view-dash">
+        <div class="page-head"><h2>대시보드</h2><div class="sp"></div></div>
+        <div class="stats" id="dashStats"></div>
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <h3>월별 수금·지급</h3>
+              <div class="legend"><span><i style="background:var(--ok)"></i>수금</span><span><i style="background:var(--warn-c)"></i>지급</span></div>
+            </div>
+            <div class="chart" id="dashChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>최근 활동</h3></div>
+            <div class="recent" id="dashRecent"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 설정(공급자 정보) ========== -->
+      <section class="view hidden" id="view-settings">
+        <div class="page-head"><h2>공급자 정보</h2><div class="sp"></div></div>
+        <div class="card" style="max-width:640px">
+          <div class="detail">
+            <p style="font-size:13px;color:var(--ink-2);margin-bottom:18px">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
+            <div class="grid2">
+              <div class="field"><label>상호 *</label><input id="st_name" placeholder="예: 스마트무역"></div>
+              <div class="field"><label>대표자</label><input id="st_ceo"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>사업자번호</label><input id="st_biz" placeholder="000-00-00000"></div>
+              <div class="field"><label>연락처</label><input id="st_phone"></div>
+            </div>
+            <div class="field"><label>이메일</label><input id="st_email"></div>
+            <div class="field"><label>주소</label><input id="st_address"></div>
+            <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 </div>
+
+<!-- ==================== PRINT ==================== -->
+<div id="printArea"></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 /* =====================================================================
-   설정 — Dropbox 앱 콘솔에서 발급받은 App key를 아래에 붙여넣으세요.
+   설정 — Dropbox 앱 콘솔에서 발급받은 App key
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
@@ -333,48 +570,99 @@ const Table = {
     const txt=await dbxDownload(`${DATA_DIR}/${name}.json`);
     return txt ? JSON.parse(txt) : [];
   },
-  async save(name,rows){
-    await dbxUpload(`${DATA_DIR}/${name}.json`, JSON.stringify(rows,null,2));
+  async loadObj(name){
+    const txt=await dbxDownload(`${DATA_DIR}/${name}.json`);
+    return txt ? JSON.parse(txt) : {};
+  },
+  async save(name,data){
+    await dbxUpload(`${DATA_DIR}/${name}.json`, JSON.stringify(data,null,2));
   }
 };
 
-/* =====================================================================
-   거래처(companies) 모듈
-   ===================================================================== */
-let companies=[];
-let selectedId=null;
-let filter="";
+const db = { companies:[], items:[], quotes:[], payments:[], settings:{} };
 
-async function loadCompanies(){
+async function loadAll(){
   toast("불러오는 중…",true);
   try{
-    companies=await Table.load("companies");
-    renderList(); renderDetail();
-    toast("");
+    const [c,i,q,p,s]=await Promise.all([
+      Table.load("companies"), Table.load("items"), Table.load("quotes"),
+      Table.load("payments"), Table.loadObj("settings")
+    ]);
+    db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.settings=s;
+    renderCurrentView();
+    toast("불러왔습니다");
   }catch(e){ toast("불러오기 실패: "+e.message); }
 }
 
-async function saveCompanies(){
+async function saveTable(name,data){
   toast("저장 중…",true);
-  try{ await Table.save("companies",companies); toast("저장했습니다"); }
+  try{ await Table.save(name,data); toast("저장했습니다"); }
   catch(e){ toast("저장 실패: "+e.message); }
 }
 
+/* ---------- 공통 헬퍼 ---------- */
+function escapeHtml(s){ return (s??"").toString().replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
+function fmt(n){ return Number(n||0).toLocaleString("ko-KR"); }
+function won(n){ return fmt(n)+"원"; }
+function localDate(d=new Date()){ const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function localMonth(d=new Date()){ return localDate(d).slice(0,7); }
 function initials(name){ return (name||"?").trim().slice(0,2); }
+function coName(id){ const c=db.companies.find(x=>x.id===id); return c ? c.name : "(삭제된 거래처)"; }
+function coById(id){ return db.companies.find(x=>x.id===id); }
 
-function renderList(){
-  const q=filter.trim().toLowerCase();
-  const rows=companies
+let toastTimer=null;
+function toast(msg,loading){
+  const t=document.getElementById("toast");
+  if(!msg){ t.classList.remove("show"); return; }
+  t.innerHTML=(loading?'<span class="spin"></span> ':'')+escapeHtml(msg);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  if(!loading) toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+function showKeyWarn(){
+  const w=document.getElementById("keyWarn");
+  w.classList.remove("hidden");
+  w.innerHTML="⚠️ App key가 아직 입력되지 않았습니다. 코드 상단의 <b>DROPBOX_APP_KEY</b>에 Dropbox 앱 콘솔의 App key를 붙여넣어 주세요.";
+}
+
+/* ---------- 뷰 전환 ---------- */
+let currentView="companies";
+const renderers={
+  companies(){ renderCoList(); renderCoDetail(); },
+  items(){ renderItList(); renderItDetail(); },
+  quotes(){ renderQtList(); renderQtDetail(); },
+  payments(){ renderPay(); },
+  dash(){ renderDash(); },
+  settings(){ renderSettings(); }
+};
+function switchView(v){
+  currentView=v;
+  document.querySelectorAll(".view").forEach(el=>el.classList.add("hidden"));
+  document.getElementById("view-"+v).classList.remove("hidden");
+  document.querySelectorAll(".nav-item").forEach(el=>el.classList.toggle("on",el.dataset.view===v));
+  renderCurrentView();
+}
+function renderCurrentView(){ renderers[currentView](); }
+
+/* =====================================================================
+   거래처(companies)
+   ===================================================================== */
+let coSel=null, coFilter="";
+
+function renderCoList(){
+  const q=coFilter.trim().toLowerCase();
+  const rows=db.companies
     .filter(c=>!q || (c.name||"").toLowerCase().includes(q) || (c.contact||"").toLowerCase().includes(q))
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
-  document.getElementById("coCount").textContent=companies.length+"곳";
-  const list=document.getElementById("list");
+  document.getElementById("coCount").textContent=db.companies.length+"곳";
+  const list=document.getElementById("coList");
   if(rows.length===0){
-    list.innerHTML=`<div class="empty">${companies.length? "검색 결과가 없습니다." : "아직 등록된 거래처가 없습니다.<br>+ 버튼으로 첫 거래처를 추가해 보세요."}</div>`;
+    list.innerHTML=`<div class="empty">${db.companies.length? "검색 결과가 없습니다." : "아직 등록된 거래처가 없습니다.<br>+ 버튼으로 첫 거래처를 추가해 보세요."}</div>`;
     return;
   }
   list.innerHTML=rows.map(c=>`
-    <div class="list-item ${c.id===selectedId?'on':''}" data-id="${c.id}">
+    <div class="list-item ${c.id===coSel?'on':''}" data-id="${c.id}">
       <div class="avatar">${escapeHtml(initials(c.name))}</div>
       <div class="li-body">
         <div class="li-name">${escapeHtml(c.name||"(이름 없음)")}</div>
@@ -383,7 +671,7 @@ function renderList(){
       ${c.type==="매입"?'<span class="pill buy">매입</span>':c.type==="매출"?'<span class="pill sell">매출</span>':''}
     </div>`).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
-    el.onclick=()=>{ selectedId=el.dataset.id; renderList(); renderDetail(); };
+    el.onclick=()=>{ coSel=el.dataset.id; renderCoList(); renderCoDetail(); };
   });
 }
 
@@ -391,13 +679,13 @@ function blankCompany(){
   return { id:null, name:"", biz_no:"", type:"매출", contact:"", phone:"", email:"", address:"", memo:"" };
 }
 
-function renderDetail(){
-  const empty=document.getElementById("detailEmpty");
-  const form=document.getElementById("detailForm");
-  const c = selectedId==="__new__" ? blankCompany() : companies.find(x=>x.id===selectedId);
+function renderCoDetail(){
+  const empty=document.getElementById("coEmpty");
+  const form=document.getElementById("coForm");
+  const c = coSel==="__new__" ? blankCompany() : db.companies.find(x=>x.id===coSel);
   if(!c){ empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
   empty.classList.add("hidden"); form.classList.remove("hidden");
-  const isNew = selectedId==="__new__";
+  const isNew = coSel==="__new__";
   form.innerHTML=`
     <div class="field"><label>상호 *</label><input id="f_name" value="${escapeAttr(c.name)}" placeholder="예: 한빛유통"></div>
     <div class="grid2">
@@ -417,15 +705,15 @@ function renderDetail(){
     <div class="field"><label>주소</label><input id="f_address" value="${escapeAttr(c.address)}"></div>
     <div class="field"><label>메모</label><textarea id="f_memo" placeholder="특이사항, 결제조건 등">${escapeHtml(c.memo)}</textarea></div>
     <div class="form-actions">
-      <button class="btn save" id="btnSave">${isNew?"등록":"저장"}</button>
-      ${isNew?'<button class="btn ghost" id="btnCancel">취소</button>':'<button class="btn del" id="btnDel">삭제</button>'}
+      <button class="btn save" id="coSaveBtn">${isNew?"등록":"저장"}</button>
+      ${isNew?'<button class="btn ghost" id="coCancelBtn">취소</button>':'<button class="btn del" id="coDelBtn">삭제</button>'}
     </div>`;
-  document.getElementById("btnSave").onclick=()=>submitForm(c,isNew);
-  if(isNew) document.getElementById("btnCancel").onclick=()=>{ selectedId=null; renderList(); renderDetail(); };
-  else document.getElementById("btnDel").onclick=()=>deleteCompany(c.id);
+  document.getElementById("coSaveBtn").onclick=()=>submitCompany(c,isNew);
+  if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ coSel=null; renderCoList(); renderCoDetail(); };
+  else document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
 }
 
-async function submitForm(c,isNew){
+async function submitCompany(c,isNew){
   const name=document.getElementById("f_name").value.trim();
   if(!name){ toast("상호를 입력하세요"); return; }
   const data={
@@ -440,37 +728,521 @@ async function submitForm(c,isNew){
   };
   if(isNew){
     const row={ id:crypto.randomUUID(), ...data, created_at:new Date().toISOString() };
-    companies.push(row); selectedId=row.id;
+    db.companies.push(row); coSel=row.id;
   }else{
     Object.assign(c,data);
   }
-  renderList(); renderDetail();
-  await saveCompanies();
+  renderCoList(); renderCoDetail();
+  await saveTable("companies",db.companies);
 }
 
 async function deleteCompany(id){
   if(!confirm("이 거래처를 삭제할까요? 되돌릴 수 없습니다.")) return;
-  companies=companies.filter(c=>c.id!==id);
-  selectedId=null; renderList(); renderDetail();
-  await saveCompanies();
+  db.companies=db.companies.filter(c=>c.id!==id);
+  coSel=null; renderCoList(); renderCoDetail();
+  await saveTable("companies",db.companies);
 }
 
-/* ---------- helpers ---------- */
-function escapeHtml(s){ return (s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
-function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
-let toastTimer=null;
-function toast(msg,loading){
-  const t=document.getElementById("toast");
-  if(!msg){ t.classList.remove("show"); return; }
-  t.innerHTML=(loading?'<span class="spin"></span> ':'')+escapeHtml(msg);
-  t.classList.add("show");
-  clearTimeout(toastTimer);
-  if(!loading) toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+/* =====================================================================
+   품목(items)
+   ===================================================================== */
+let itSel=null, itFilter="";
+
+function renderItList(){
+  const q=itFilter.trim().toLowerCase();
+  const rows=db.items
+    .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.spec||"").toLowerCase().includes(q))
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
+  document.getElementById("itCount").textContent=db.items.length+"개";
+  const list=document.getElementById("itList");
+  if(rows.length===0){
+    list.innerHTML=`<div class="empty">${db.items.length? "검색 결과가 없습니다." : "아직 등록된 품목이 없습니다.<br>+ 버튼으로 첫 품목을 추가해 보세요."}</div>`;
+    return;
+  }
+  list.innerHTML=rows.map(i=>`
+    <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
+      <div class="avatar">${escapeHtml(initials(i.name))}</div>
+      <div class="li-body">
+        <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}</div>
+        <div class="li-sub">${escapeHtml([i.spec,i.unit].filter(Boolean).join(" · ")||"—")}</div>
+      </div>
+      <div class="li-right">
+        <div class="li-amt">${i.sell_price?won(i.sell_price):""}</div>
+        ${i.buy_price?`<div class="li-sub">매입 ${won(i.buy_price)}</div>`:""}
+      </div>
+    </div>`).join("");
+  list.querySelectorAll(".list-item").forEach(el=>{
+    el.onclick=()=>{ itSel=el.dataset.id; renderItList(); renderItDetail(); };
+  });
 }
-function showKeyWarn(){
-  const w=document.getElementById("keyWarn");
-  w.classList.remove("hidden");
-  w.innerHTML="⚠️ App key가 아직 입력되지 않았습니다. 코드 상단의 <b>DROPBOX_APP_KEY</b>에 Dropbox 앱 콘솔의 App key를 붙여넣어 주세요.";
+
+function blankItem(){
+  return { id:null, name:"", spec:"", unit:"EA", buy_price:0, sell_price:0, memo:"" };
+}
+
+function renderItDetail(){
+  const empty=document.getElementById("itEmpty");
+  const form=document.getElementById("itForm");
+  const i = itSel==="__new__" ? blankItem() : db.items.find(x=>x.id===itSel);
+  if(!i){ empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
+  empty.classList.add("hidden"); form.classList.remove("hidden");
+  const isNew = itSel==="__new__";
+  form.innerHTML=`
+    <div class="field"><label>품명 *</label><input id="fi_name" value="${escapeAttr(i.name)}" placeholder="예: A4 복사용지"></div>
+    <div class="grid2">
+      <div class="field"><label>규격</label><input id="fi_spec" value="${escapeAttr(i.spec)}" placeholder="예: 80g, 500매"></div>
+      <div class="field"><label>단위</label><input id="fi_unit" value="${escapeAttr(i.unit)}" placeholder="EA, BOX, kg…"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>매입단가</label><input type="number" inputmode="numeric" id="fi_buy" value="${i.buy_price||""}" placeholder="0"></div>
+      <div class="field"><label>매출단가</label><input type="number" inputmode="numeric" id="fi_sell" value="${i.sell_price||""}" placeholder="0"></div>
+    </div>
+    <div class="field"><label>메모</label><textarea id="fi_memo" placeholder="특이사항 등">${escapeHtml(i.memo)}</textarea></div>
+    <div class="form-actions">
+      <button class="btn save" id="itSaveBtn">${isNew?"등록":"저장"}</button>
+      ${isNew?'<button class="btn ghost" id="itCancelBtn">취소</button>':'<button class="btn del" id="itDelBtn">삭제</button>'}
+    </div>`;
+  document.getElementById("itSaveBtn").onclick=()=>submitItem(i,isNew);
+  if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; renderItList(); renderItDetail(); };
+  else document.getElementById("itDelBtn").onclick=()=>deleteItem(i.id);
+}
+
+async function submitItem(i,isNew){
+  const name=document.getElementById("fi_name").value.trim();
+  if(!name){ toast("품명을 입력하세요"); return; }
+  const data={
+    name,
+    spec:document.getElementById("fi_spec").value.trim(),
+    unit:document.getElementById("fi_unit").value.trim(),
+    buy_price:Number(document.getElementById("fi_buy").value)||0,
+    sell_price:Number(document.getElementById("fi_sell").value)||0,
+    memo:document.getElementById("fi_memo").value.trim(),
+  };
+  if(isNew){
+    const row={ id:crypto.randomUUID(), ...data, created_at:new Date().toISOString() };
+    db.items.push(row); itSel=row.id;
+  }else{
+    Object.assign(i,data);
+  }
+  renderItList(); renderItDetail();
+  await saveTable("items",db.items);
+}
+
+async function deleteItem(id){
+  if(!confirm("이 품목을 삭제할까요? 되돌릴 수 없습니다.")) return;
+  db.items=db.items.filter(i=>i.id!==id);
+  itSel=null; renderItList(); renderItDetail();
+  await saveTable("items",db.items);
+}
+
+/* =====================================================================
+   견적서(quotes)
+   ===================================================================== */
+let qtSel=null, qtFilter="", qtEditing=null;
+const QT_STATUS=["작성중","발송","수주","취소"];
+const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "취소":"st-lost" };
+
+function nextQuoteNo(date){
+  const ymd=(date||localDate()).replace(/-/g,"");
+  const prefix=`Q-${ymd}-`;
+  const seq=db.quotes.filter(q=>(q.no||"").startsWith(prefix)).length+1;
+  return prefix+seq;
+}
+function blankQuote(){
+  return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
+           lines:[blankLine()], memo:"" };
+}
+function blankLine(){ return { item_id:"", name:"", spec:"", unit:"", qty:1, price:0 }; }
+function quoteTotals(q){
+  const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
+  const vat=Math.round(supply*0.1);
+  return { supply, vat, total:supply+vat };
+}
+
+function renderQtList(){
+  const q=qtFilter.trim().toLowerCase();
+  const rows=db.quotes
+    .filter(x=>!q || (x.no||"").toLowerCase().includes(q) || coName(x.company_id).toLowerCase().includes(q))
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.no||"").localeCompare(a.no||""));
+  document.getElementById("qtCount").textContent=db.quotes.length+"건";
+  const list=document.getElementById("qtList");
+  if(rows.length===0){
+    list.innerHTML=`<div class="empty">${db.quotes.length? "검색 결과가 없습니다." : "아직 작성한 견적서가 없습니다.<br>+ 버튼으로 첫 견적서를 만들어 보세요."}</div>`;
+    return;
+  }
+  list.innerHTML=rows.map(x=>{
+    const t=quoteTotals(x);
+    return `
+    <div class="list-item ${x.id===qtSel?'on':''}" data-id="${x.id}">
+      <div class="li-body">
+        <div class="li-name">${escapeHtml(coName(x.company_id))}</div>
+        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}</div>
+      </div>
+      <div class="li-right">
+        <div class="li-amt">${won(t.total)}</div>
+        <span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>
+      </div>
+    </div>`;}).join("");
+  list.querySelectorAll(".list-item").forEach(el=>{
+    el.onclick=()=>{ qtSel=el.dataset.id; qtEditing=null; renderQtList(); renderQtDetail(); };
+  });
+}
+
+function renderQtDetail(){
+  const empty=document.getElementById("qtEmpty");
+  const form=document.getElementById("qtForm");
+  if(qtSel==="__new__"){
+    if(!qtEditing) qtEditing=blankQuote();
+  }else if(qtSel){
+    const src=db.quotes.find(x=>x.id===qtSel);
+    if(!src){ qtSel=null; }
+    else if(!qtEditing || qtEditing.id!==qtSel) qtEditing=JSON.parse(JSON.stringify(src));
+  }
+  if(!qtSel){ qtEditing=null; empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
+  empty.classList.add("hidden"); form.classList.remove("hidden");
+  const isNew = qtSel==="__new__";
+  const e=qtEditing;
+  const t=quoteTotals(e);
+  const coOpts=db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+    .map(c=>`<option value="${c.id}" ${c.id===e.company_id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+  form.innerHTML=`
+    <div class="grid3">
+      <div class="field"><label>견적일자</label><input type="date" id="fq_date" value="${escapeAttr(e.date)}"></div>
+      <div class="field"><label>거래처 *</label>
+        <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
+      </div>
+      <div class="field"><label>상태</label>
+        <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div class="field"><label>품목</label>
+      <div class="qlines">
+        <div class="qline head"><span>품목</span><span>수량</span><span>단가</span><span style="text-align:right">금액</span><span></span></div>
+        ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
+      </div>
+      <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
+    </div>
+    <div class="qtotals">
+      <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
+      <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
+      <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
+    </div>
+    <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea></div>
+    <div class="form-actions">
+      <button class="btn save" id="qtSaveBtn">${isNew?"등록":"저장"}</button>
+      ${isNew?"":`<button class="btn ghost" id="qtPrintBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        인쇄</button>`}
+      ${isNew?'<button class="btn ghost" id="qtCancelBtn">취소</button>':'<button class="btn del" id="qtDelBtn">삭제</button>'}
+    </div>`;
+  document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; };
+  document.getElementById("fq_co").onchange=ev=>{ e.company_id=ev.target.value; };
+  document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
+  document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
+  document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
+  bindQtLines(e);
+  document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
+  if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; renderQtList(); renderQtDetail(); };
+  else{
+    document.getElementById("qtDelBtn").onclick=()=>deleteQuote(qtSel);
+    document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing);
+  }
+}
+
+function qtLineHtml(l,idx){
+  const itemOpts=db.items.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+    .map(i=>`<option value="${i.id}" ${i.id===l.item_id?"selected":""}>${escapeHtml(i.name)}${i.spec?` (${escapeHtml(i.spec)})`:""}</option>`).join("");
+  const nameCell = l.item_id==="__free__"
+    ? `<input data-f="name" data-idx="${idx}" value="${escapeAttr(l.name)}" placeholder="품명 직접 입력">`
+    : `<select data-f="item" data-idx="${idx}">
+        <option value="">— 품목 선택 —</option>${itemOpts}
+        <option value="__free__">✏️ 직접 입력</option>
+      </select>`;
+  const amt=(Number(l.qty)||0)*(Number(l.price)||0);
+  return `<div class="qline" data-idx="${idx}">
+    ${nameCell}
+    <input type="number" inputmode="numeric" class="num" data-f="qty" data-idx="${idx}" value="${l.qty??""}" min="0">
+    <input type="number" inputmode="numeric" class="num" data-f="price" data-idx="${idx}" value="${l.price||""}" placeholder="0">
+    <span class="amt" data-amt="${idx}">${fmt(amt)}</span>
+    <button class="rm" data-rm="${idx}" title="행 삭제">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>`;
+}
+
+function bindQtLines(e){
+  const form=document.getElementById("qtForm");
+  form.querySelectorAll('[data-f="item"]').forEach(el=>{
+    el.onchange=()=>{
+      const idx=Number(el.dataset.idx);
+      const v=el.value;
+      const l=e.lines[idx];
+      if(v==="__free__"){ l.item_id="__free__"; l.name=""; l.spec=""; l.unit=""; }
+      else if(v){
+        const it=db.items.find(x=>x.id===v);
+        l.item_id=v; l.name=it.name; l.spec=it.spec; l.unit=it.unit;
+        if(it.sell_price) l.price=it.sell_price;
+      }else{ Object.assign(l,blankLine()); }
+      renderQtDetail();
+    };
+  });
+  form.querySelectorAll('[data-f="name"]').forEach(el=>{
+    el.oninput=()=>{ e.lines[Number(el.dataset.idx)].name=el.value; };
+  });
+  form.querySelectorAll('[data-f="qty"],[data-f="price"]').forEach(el=>{
+    el.oninput=()=>{
+      const idx=Number(el.dataset.idx);
+      e.lines[idx][el.dataset.f]=Number(el.value)||0;
+      const l=e.lines[idx];
+      form.querySelector(`[data-amt="${idx}"]`).textContent=fmt((Number(l.qty)||0)*(Number(l.price)||0));
+      const t=quoteTotals(e);
+      document.getElementById("fq_supply").textContent=won(t.supply);
+      document.getElementById("fq_vat").textContent=won(t.vat);
+      document.getElementById("fq_total").textContent=won(t.total);
+    };
+  });
+  form.querySelectorAll("[data-rm]").forEach(el=>{
+    el.onclick=()=>{
+      e.lines.splice(Number(el.dataset.rm),1);
+      if(e.lines.length===0) e.lines.push(blankLine());
+      renderQtDetail();
+    };
+  });
+}
+
+async function submitQuote(isNew){
+  const e=qtEditing;
+  if(!e.company_id){ toast("거래처를 선택하세요"); return; }
+  e.lines=e.lines.filter(l=>(l.name||"").trim() && (Number(l.qty)||0)>0);
+  if(e.lines.length===0){ toast("품목을 1개 이상 입력하세요 (품목·수량 확인)"); e.lines=[blankLine()]; renderQtDetail(); return; }
+  if(isNew){
+    e.id=crypto.randomUUID();
+    e.no=nextQuoteNo(e.date);
+    e.created_at=new Date().toISOString();
+    db.quotes.push(e);
+    qtSel=e.id;
+  }else{
+    const idx=db.quotes.findIndex(x=>x.id===e.id);
+    if(idx>=0) db.quotes[idx]=e;
+  }
+  qtEditing=null;
+  renderQtList(); renderQtDetail();
+  await saveTable("quotes",db.quotes);
+}
+
+async function deleteQuote(id){
+  if(!confirm("이 견적서를 삭제할까요? 되돌릴 수 없습니다.")) return;
+  db.quotes=db.quotes.filter(x=>x.id!==id);
+  qtSel=null; qtEditing=null;
+  renderQtList(); renderQtDetail();
+  await saveTable("quotes",db.quotes);
+}
+
+function printQuote(q){
+  const s=db.settings||{};
+  const c=coById(q.company_id)||{};
+  const t=quoteTotals(q);
+  const rows=q.lines.map((l,i)=>`
+    <tr>
+      <td class="c">${i+1}</td>
+      <td>${escapeHtml(l.name)}</td>
+      <td class="c">${escapeHtml(l.spec||"")}</td>
+      <td class="c">${escapeHtml(l.unit||"")}</td>
+      <td class="num">${fmt(l.qty)}</td>
+      <td class="num">${fmt(l.price)}</td>
+      <td class="num">${fmt((Number(l.qty)||0)*(Number(l.price)||0))}</td>
+    </tr>`).join("");
+  document.getElementById("printArea").innerHTML=`
+  <div class="p-wrap">
+    <div class="p-title">견 적 서</div>
+    <div class="p-no">${escapeHtml(q.no)} · ${escapeHtml(q.date)}</div>
+    <div class="p-meta">
+      <div class="p-to">
+        <div class="to-name">${escapeHtml(c.name||coName(q.company_id))} 귀중</div>
+        ${c.contact?`<div class="to-line">담당: ${escapeHtml(c.contact)} 님</div>`:""}
+        <div class="to-line">아래와 같이 견적합니다.</div>
+      </div>
+      <div class="p-supplier">
+        <div class="srow"><span class="k">상호</span><span>${escapeHtml(s.name||"")}${s.ceo?` (대표: ${escapeHtml(s.ceo)})`:""}</span></div>
+        <div class="srow"><span class="k">사업자번호</span><span>${escapeHtml(s.biz_no||"")}</span></div>
+        <div class="srow"><span class="k">연락처</span><span>${escapeHtml([s.phone,s.email].filter(Boolean).join(" · "))}</span></div>
+        <div class="srow"><span class="k">주소</span><span>${escapeHtml(s.address||"")}</span></div>
+      </div>
+    </div>
+    <table class="p-tbl">
+      <thead><tr>
+        <th style="width:34px">No</th><th>품명</th><th style="width:110px">규격</th><th style="width:52px">단위</th>
+        <th style="width:60px">수량</th><th style="width:90px">단가</th><th style="width:110px">공급가액</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr><td colspan="6" class="num">공급가액</td><td class="num">${fmt(t.supply)}</td></tr>
+        <tr><td colspan="6" class="num">부가세 (10%)</td><td class="num">${fmt(t.vat)}</td></tr>
+        <tr class="grand"><td colspan="6" class="num">합계 금액</td><td class="num">₩ ${fmt(t.total)}</td></tr>
+      </tfoot>
+    </table>
+    ${q.memo?`<div class="p-memo"><div class="k">비고</div>${escapeHtml(q.memo)}</div>`:""}
+  </div>`;
+  window.print();
+}
+
+/* =====================================================================
+   수금/지급(payments)
+   ===================================================================== */
+function payCoOptions(){
+  return db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+    .map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+}
+
+function renderPay(){
+  const monthEl=document.getElementById("payMonth");
+  if(!monthEl.value) monthEl.value=localMonth();
+  const dateEl=document.getElementById("payDate");
+  if(!dateEl.value) dateEl.value=localDate();
+  const coEl=document.getElementById("payCo");
+  const cur=coEl.value;
+  coEl.innerHTML=`<option value="">— 거래처 —</option>`+payCoOptions();
+  if(cur) coEl.value=cur;
+
+  const month=monthEl.value;
+  const rows=db.payments
+    .filter(p=>(p.date||"").startsWith(month))
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.created_at||"").localeCompare(a.created_at||""));
+  const sumIn=rows.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const sumOut=rows.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const net=sumIn-sumOut;
+  document.getElementById("paySumIn").textContent=won(sumIn);
+  document.getElementById("paySumOut").textContent=won(sumOut);
+  const netEl=document.getElementById("paySumNet");
+  netEl.textContent=(net>0?"+":"")+won(net);
+  netEl.className="v "+(net>0?"pos":net<0?"neg":"");
+
+  const tbl=document.getElementById("payTbl");
+  if(rows.length===0){
+    tbl.innerHTML=`<tr><td><div class="empty">이 달의 내역이 없습니다.<br>위 입력줄에서 수금/지급 내역을 추가해 보세요.</div></td></tr>`;
+    return;
+  }
+  tbl.innerHTML=`
+    <thead><tr><th>날짜</th><th>거래처</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th>메모</th><th></th></tr></thead>
+    <tbody>${rows.map(p=>`
+      <tr>
+        <td style="white-space:nowrap">${escapeHtml((p.date||"").slice(5))}</td>
+        <td>${escapeHtml(coName(p.company_id))}</td>
+        <td><span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span></td>
+        <td class="sub">${escapeHtml(p.method||"")}</td>
+        <td class="num">${won(p.amount)}</td>
+        <td class="sub">${escapeHtml(p.memo||"")}</td>
+        <td><button class="rm" data-id="${p.id}" title="삭제">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button></td>
+      </tr>`).join("")}</tbody>`;
+  tbl.querySelectorAll(".rm").forEach(el=>{
+    el.onclick=()=>deletePayment(el.dataset.id);
+  });
+}
+
+async function addPayment(){
+  const date=document.getElementById("payDate").value;
+  const company_id=document.getElementById("payCo").value;
+  const kind=document.getElementById("payKind").value;
+  const method=document.getElementById("payMethod").value;
+  const amount=Number(document.getElementById("payAmt").value)||0;
+  const memo=document.getElementById("payMemo").value.trim();
+  if(!date){ toast("날짜를 선택하세요"); return; }
+  if(!company_id){ toast("거래처를 선택하세요"); return; }
+  if(amount<=0){ toast("금액을 입력하세요"); return; }
+  db.payments.push({ id:crypto.randomUUID(), date, company_id, kind, method, amount, memo, created_at:new Date().toISOString() });
+  document.getElementById("payAmt").value="";
+  document.getElementById("payMemo").value="";
+  document.getElementById("payMonth").value=date.slice(0,7);
+  renderPay();
+  await saveTable("payments",db.payments);
+}
+
+async function deletePayment(id){
+  if(!confirm("이 내역을 삭제할까요?")) return;
+  db.payments=db.payments.filter(p=>p.id!==id);
+  renderPay();
+  await saveTable("payments",db.payments);
+}
+
+/* =====================================================================
+   대시보드(dash)
+   ===================================================================== */
+function renderDash(){
+  const month=localMonth();
+  const inMonth=db.payments.filter(p=>(p.date||"").startsWith(month));
+  const sumIn=inMonth.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const sumOut=inMonth.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const net=sumIn-sumOut;
+  const stCount=s=>db.quotes.filter(q=>q.status===s).length;
+
+  document.getElementById("dashStats").innerHTML=`
+    <div class="stat"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div></div>
+    <div class="stat"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div></div>
+    <div class="stat"><div class="k">이달 차액</div><div class="v ${net>0?"pos":net<0?"neg":""}">${(net>0?"+":"")+won(net)}</div></div>
+    <div class="stat"><div class="k">거래처 / 품목</div><div class="v">${db.companies.length}곳 · ${db.items.length}개</div></div>
+    <div class="stat"><div class="k">견적 (발송/수주)</div><div class="v">${stCount("발송")}건 · ${stCount("수주")}건</div></div>`;
+
+  // 최근 6개월 차트
+  const months=[];
+  const now=new Date();
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push({ key:localMonth(d), label:(d.getMonth()+1)+"월" });
+  }
+  const data=months.map(m=>{
+    const rows=db.payments.filter(p=>(p.date||"").startsWith(m.key));
+    return {
+      ...m,
+      inSum:rows.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0),
+      outSum:rows.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0)
+    };
+  });
+  const max=Math.max(1,...data.map(d=>Math.max(d.inSum,d.outSum)));
+  document.getElementById("dashChart").innerHTML=data.map(d=>`
+    <div class="cgroup">
+      <div class="cbars">
+        <div class="cbar in" style="height:${Math.round(d.inSum/max*100)}%" title="수금 ${won(d.inSum)}"></div>
+        <div class="cbar out" style="height:${Math.round(d.outSum/max*100)}%" title="지급 ${won(d.outSum)}"></div>
+      </div>
+      <div class="clabel">${d.label}</div>
+    </div>`).join("");
+
+  // 최근 활동
+  const acts=[
+    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", html:
+      `<span class="pill ${QT_STATUS_CLASS[q.status]||'st-draft'}">견적</span><span class="t">${escapeHtml(coName(q.company_id))} · ${won(quoteTotals(q).total)}</span>` })),
+    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", html:
+      `<span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span><span class="t">${escapeHtml(coName(p.company_id))} · ${won(p.amount)}</span>` }))
+  ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||"")).slice(0,8);
+  document.getElementById("dashRecent").innerHTML = acts.length
+    ? acts.map(a=>`<div class="recent-item">${a.html}<span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
+    : `<div class="empty">아직 활동 내역이 없습니다.</div>`;
+}
+
+/* =====================================================================
+   설정(공급자 정보)
+   ===================================================================== */
+function renderSettings(){
+  const s=db.settings||{};
+  document.getElementById("st_name").value=s.name||"";
+  document.getElementById("st_ceo").value=s.ceo||"";
+  document.getElementById("st_biz").value=s.biz_no||"";
+  document.getElementById("st_phone").value=s.phone||"";
+  document.getElementById("st_email").value=s.email||"";
+  document.getElementById("st_address").value=s.address||"";
+}
+async function saveSettings(){
+  db.settings={
+    name:document.getElementById("st_name").value.trim(),
+    ceo:document.getElementById("st_ceo").value.trim(),
+    biz_no:document.getElementById("st_biz").value.trim(),
+    phone:document.getElementById("st_phone").value.trim(),
+    email:document.getElementById("st_email").value.trim(),
+    address:document.getElementById("st_address").value.trim(),
+  };
+  await saveTable("settings",db.settings);
 }
 
 /* =====================================================================
@@ -491,19 +1263,30 @@ async function init(){
   // 이벤트 연결
   document.getElementById("connectBtn").onclick=startLogin;
   document.getElementById("logoutBtn").onclick=logout;
-  document.getElementById("refreshBtn").onclick=loadCompanies;
-  document.getElementById("newBtn").onclick=()=>{ selectedId="__new__"; renderList(); renderDetail(); };
-  document.getElementById("searchInput").oninput=(e)=>{ filter=e.target.value; renderList(); };
+  document.getElementById("refreshBtn").onclick=loadAll;
+  document.querySelectorAll(".nav-item").forEach(el=>{
+    el.onclick=()=>switchView(el.dataset.view);
+  });
+  document.getElementById("coNewBtn").onclick=()=>{ coSel="__new__"; renderCoList(); renderCoDetail(); };
+  document.getElementById("coSearch").oninput=e=>{ coFilter=e.target.value; renderCoList(); };
+  document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; renderItList(); renderItDetail(); };
+  document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
+  document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; renderQtList(); renderQtDetail(); };
+  document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
+  document.getElementById("payMonth").onchange=renderPay;
+  document.getElementById("payAddBtn").onclick=addPayment;
+  document.getElementById("stSaveBtn").onclick=saveSettings;
 
   // 로그인 상태 확인
   const token=await ensureToken();
   if(token){
     document.getElementById("loginView").classList.add("hidden");
     document.getElementById("appView").classList.remove("hidden");
+    switchView("companies");
     const acc=await dbxAccount();
     if(acc){ document.getElementById("tbUser").innerHTML=
       `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${escapeHtml(acc.name?.display_name||"")}`; }
-    await loadCompanies();
+    await loadAll();
   }
 }
 init();
