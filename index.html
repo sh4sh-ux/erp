@@ -143,7 +143,7 @@
   .vline input.num{text-align:right}
   .vline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .vline .rm:hover{background:var(--danger-soft);color:var(--danger)}
-  .cline{display:grid;grid-template-columns:minmax(0,1.3fr) 110px 70px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .cline{display:grid;grid-template-columns:minmax(0,1.2fr) 90px 100px 64px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .cline:last-child{border-bottom:none}
   .cline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
   .cline input,.cline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
@@ -151,6 +151,13 @@
   .cline input.num{text-align:right}
   .cline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .cline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .qline .dual{display:flex;gap:5px;min-width:0}
+  .qline .dual>*{flex:1;min-width:0}
+  .stock-add{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .stock-add input,.stock-add select{padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%}
+  .stock-add input:focus,.stock-add select:focus{border-color:var(--primary)}
+  .stock-add input.num{text-align:right}
+  .stock-add .span2{grid-column:span 2}
   .quick-row{display:flex;gap:8px;margin-bottom:8px}
   .quick-row input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none}
   .quick-row input:focus{border-color:var(--primary)}
@@ -307,6 +314,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
         품목
       </button>
+      <button class="nav-item" data-view="stock">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg>
+        재고
+      </button>
       <button class="nav-item" data-view="quotes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
         견적서
@@ -385,6 +396,36 @@
               <div>왼쪽에서 품목을 선택하거나<br><b>+</b> 버튼으로 새로 등록하세요.</div>
             </div>
             <div class="detail hidden" id="itForm"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 재고 ========== -->
+      <section class="view hidden" id="view-stock">
+        <div class="page-head"><h2>재고</h2><div class="sp"></div></div>
+        <div class="stats">
+          <div class="stat"><div class="k">재고 보유</div><div class="v" id="ivCount">0종</div></div>
+          <div class="stat"><div class="k">총 재고 수량</div><div class="v" id="ivTotal">0개</div></div>
+          <div class="stat"><div class="k">재고 소진 (0 이하)</div><div class="v" id="ivEmpty">0종</div></div>
+        </div>
+        <div class="cols" style="grid-template-columns:1fr 1.15fr">
+          <div class="card">
+            <div class="card-head"><h3>현재고</h3></div>
+            <div class="tbl-wrap"><table class="tbl" id="ivTbl"></table></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>입출고 기록</h3></div>
+            <div class="stock-add">
+              <input type="date" id="ivDate">
+              <select id="ivItem" class="span2"></select>
+              <select id="ivColor"></select>
+              <select id="ivSpec"></select>
+              <select id="ivKind"><option>입고</option><option>출고</option></select>
+              <input type="number" inputmode="numeric" class="num" id="ivQty" placeholder="수량">
+              <input id="ivMemo" placeholder="메모 (선택)">
+              <button class="btn-sm" id="ivAddBtn">추가</button>
+            </div>
+            <div class="tbl-wrap"><table class="tbl" id="ivHist"></table></div>
           </div>
         </div>
       </section>
@@ -622,16 +663,16 @@ const Table = {
   }
 };
 
-const db = { companies:[], items:[], quotes:[], payments:[], settings:{} };
+const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], settings:{} };
 
 async function loadAll(){
   toast("불러오는 중…",true);
   try{
-    const [c,i,q,p,s]=await Promise.all([
+    const [c,i,q,p,m,s]=await Promise.all([
       Table.load("companies"), Table.load("items"), Table.load("quotes"),
-      Table.load("payments"), Table.loadObj("settings")
+      Table.load("payments"), Table.load("stock_moves"), Table.loadObj("settings")
     ]);
-    db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.settings=s;
+    db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.stock_moves=m; db.settings=s;
     renderCurrentView();
     toast("불러왔습니다");
   }catch(e){ toast("불러오기 실패: "+e.message); }
@@ -674,6 +715,7 @@ let currentView="companies";
 const renderers={
   companies(){ renderCoList(); renderCoDetail(); },
   items(){ renderItList(); renderItDetail(); },
+  stock(){ renderStock(); },
   quotes(){ renderQtList(); renderQtDetail(); },
   payments(){ renderPay(); },
   dash(){ renderDash(); },
@@ -814,13 +856,15 @@ function setCompSums(i){
 function setSpecSummary(i){
   return (i.components||[]).map(c=>{
     const it=db.items.find(x=>x.id===c.item_id);
-    return `${it?it.name:"?"}${c.spec?`(${c.spec})`:""}×${c.qty}`;
+    const opt=[c.color,c.spec].filter(Boolean).join("·");
+    return `${it?it.name:"?"}${opt?`(${opt})`:""}×${c.qty}`;
   }).join(" + ");
 }
 function normalizeItem(i){
   if(!i.type) i.type="단품";
   if(!Array.isArray(i.variants)) i.variants=[];
   if(!Array.isArray(i.components)) i.components=[];
+  if(!Array.isArray(i.colors)) i.colors=[];
   return i;
 }
 
@@ -837,10 +881,12 @@ function renderItList(){
     return;
   }
   list.innerHTML=rows.map(i=>{
+    const parts=[];
+    if((i.colors||[]).length) parts.push(i.colors.join("·"));
+    if((i.variants||[]).length) parts.push(i.variants.map(v=>v.spec).join("·"));
     const sub = isSet(i)
       ? `구성 ${(i.components||[]).length}종 · ${setSpecSummary(i)||"—"}`
-      : (i.variants&&i.variants.length
-          ? i.variants.map(v=>v.spec).join(" · ")
+      : (parts.length ? parts.join("  |  ")
           : [i.spec,i.unit].filter(Boolean).join(" · ")||"—");
     const price = itemSell(i);
     return `
@@ -862,7 +908,7 @@ function renderItList(){
 
 function blankItem(){
   return { id:null, name:"", type:"단품", spec:"", unit:"EA", buy_price:0, sell_price:0,
-           variants:[], components:[], memo:"" };
+           colors:[], variants:[], components:[], memo:"" };
 }
 
 function renderItDetail(){
@@ -888,9 +934,12 @@ function renderItDetail(){
     body=`
     <div class="field"><label>구성품</label>
       <div class="vlines">
-        <div class="cline head"><span>품목</span><span>사이즈/옵션</span><span>수량</span><span></span></div>
+        <div class="cline head"><span>품목</span><span>색상</span><span>사이즈/옵션</span><span>수량</span><span></span></div>
         ${e.components.map((c,idx)=>{
           const it=db.items.find(x=>x.id===c.item_id);
+          const colorCell = it && (it.colors||[]).length
+            ? `<select data-cf="color" data-idx="${idx}">${it.colors.map(cn=>`<option ${cn===c.color?"selected":""}>${escapeHtml(cn)}</option>`).join("")}</select>`
+            : `<span class="hint" style="margin:0">—</span>`;
           const specCell = it && (it.variants||[]).length
             ? `<select data-cf="spec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===c.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
             : `<span class="hint" style="margin:0">${escapeHtml(it?.spec||"—")}</span>`;
@@ -899,6 +948,7 @@ function renderItDetail(){
               <option value="">— 품목 선택 —</option>
               ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${escapeHtml(o.name)}</option>`).join("")}
             </select>
+            ${colorCell}
             ${specCell}
             <input type="number" inputmode="numeric" class="num" data-cf="qty" data-idx="${idx}" value="${c.qty??1}" min="0">
             <button class="rm" data-crm="${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -920,6 +970,9 @@ function renderItDetail(){
     <div class="grid2">
       <div class="field"><label>매입단가 (기본)</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="0"></div>
       <div class="field"><label>매출단가 (기본)</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="0"></div>
+    </div>
+    <div class="field"><label>색상 <span style="font-weight:400;color:var(--ink-3)">(쉼표로 구분 — 예: BK, WH / 없으면 비워두세요)</span></label>
+      <input id="fi_colors" value="${escapeAttr((e.colors||[]).join(", "))}" placeholder="예: BK, WH, NV">
     </div>
     <div class="field"><label>사이즈/옵션 <span style="font-weight:400;color:var(--ink-3)">(의류 사이즈 등 — 없으면 비워두세요)</span></label>
       <div class="quick-row">
@@ -974,8 +1027,12 @@ function renderItDetail(){
         c.item_id=el.value;
         const it=db.items.find(x=>x.id===el.value);
         c.spec = it && (it.variants||[]).length ? it.variants[0].spec : "";
+        c.color = it && (it.colors||[]).length ? it.colors[0] : "";
         renderItDetail();
       };
+    });
+    form.querySelectorAll('[data-cf="color"]').forEach(el=>{
+      el.onchange=()=>{ e.components[Number(el.dataset.idx)].color=el.value; };
     });
     form.querySelectorAll('[data-cf="spec"]').forEach(el=>{
       el.onchange=()=>{ e.components[Number(el.dataset.idx)].spec=el.value; updateItSums(e); };
@@ -989,6 +1046,9 @@ function renderItDetail(){
   }else{
     document.getElementById("fi_spec").oninput=ev=>{ e.spec=ev.target.value; };
     document.getElementById("fi_unit").oninput=ev=>{ e.unit=ev.target.value; };
+    document.getElementById("fi_colors").oninput=ev=>{
+      e.colors=ev.target.value.split(",").map(s=>s.trim()).filter(Boolean);
+    };
     document.getElementById("fi_quickBtn").onclick=()=>{
       const raw=document.getElementById("fi_quick").value;
       const names=raw.split(",").map(s=>s.trim()).filter(Boolean);
@@ -1030,7 +1090,7 @@ async function submitItem(isNew){
     const sums=setCompSums(e);
     if(!Number(e.buy_price)) e.buy_price=sums.buy;
     if(!Number(e.sell_price)) e.sell_price=sums.sell;
-    e.variants=[];
+    e.variants=[]; e.colors=[];
   }else{
     e.variants=e.variants.filter(v=>(v.spec||"").trim());
     e.components=[];
@@ -1074,7 +1134,7 @@ function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
            valid:"견적일로부터 1주일", lines:[blankLine()], memo:"" };
 }
-function blankLine(){ return { item_id:"", name:"", spec:"", unit:"", qty:1, price:0 }; }
+function blankLine(){ return { item_id:"", name:"", color:"", spec:"", unit:"", qty:1, price:0 }; }
 function quoteTotals(q){
   const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
   const vat=Math.round(supply*0.1);
@@ -1185,9 +1245,12 @@ function qtLineHtml(l,idx){
         <option value="__free__">✏️ 직접 입력</option>
       </select>`;
   const it=db.items.find(x=>x.id===l.item_id);
-  const specCell = (it && (it.variants||[]).length)
+  const sizeCell = (it && (it.variants||[]).length)
     ? `<select data-f="vspec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===l.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
     : `<input data-f="spec" data-idx="${idx}" value="${escapeAttr(l.spec||"")}" placeholder="규격">`;
+  const specCell = (it && (it.colors||[]).length)
+    ? `<div class="dual"><select data-f="lcolor" data-idx="${idx}">${it.colors.map(cn=>`<option ${cn===l.color?"selected":""}>${escapeHtml(cn)}</option>`).join("")}</select>${sizeCell}</div>`
+    : sizeCell;
   const amt=(Number(l.qty)||0)*(Number(l.price)||0);
   return `<div class="qline" data-idx="${idx}">
     ${nameCell}
@@ -1212,6 +1275,7 @@ function bindQtLines(e){
       else if(v){
         const it=db.items.find(x=>x.id===v);
         l.item_id=v; l.name=it.name; l.unit=it.unit||"";
+        l.color=(it.colors&&it.colors[0])||"";
         if(isSet(it)){
           l.spec=setSpecSummary(it);
           l.price=itemSell(it);
@@ -1231,6 +1295,9 @@ function bindQtLines(e){
   });
   form.querySelectorAll('[data-f="spec"]').forEach(el=>{
     el.oninput=()=>{ e.lines[Number(el.dataset.idx)].spec=el.value; };
+  });
+  form.querySelectorAll('[data-f="lcolor"]').forEach(el=>{
+    el.onchange=()=>{ e.lines[Number(el.dataset.idx)].color=el.value; };
   });
   form.querySelectorAll('[data-f="vspec"]').forEach(el=>{
     el.onchange=()=>{
@@ -1268,6 +1335,7 @@ async function submitQuote(isNew){
   if(!e.company_id){ toast("거래처를 선택하세요"); return; }
   e.lines=e.lines.filter(l=>(l.name||"").trim() && (Number(l.qty)||0)>0);
   if(e.lines.length===0){ toast("품목을 1개 이상 입력하세요 (품목·수량 확인)"); e.lines=[blankLine()]; renderQtDetail(); return; }
+  const wasWon = !isNew && (db.quotes.find(x=>x.id===e.id)||{}).status==="수주";
   if(isNew){
     e.id=crypto.randomUUID();
     e.no=nextQuoteNo(e.date);
@@ -1281,6 +1349,35 @@ async function submitQuote(isNew){
   qtEditing=null;
   renderQtList(); renderQtDetail();
   await saveTable("quotes",db.quotes);
+  if(e.status==="수주" && !wasWon) await deductStockForQuote(e);
+}
+
+/* 수주 확정 → 재고 자동 출고 */
+async function deductStockForQuote(q){
+  if(!confirm(`수주 처리: 견적 ${q.no}의 수량만큼 재고에서 출고할까요?`)) return;
+  const now=new Date().toISOString();
+  const moves=[];
+  q.lines.forEach(l=>{
+    if(!l.item_id || l.item_id==="__free__") return;
+    const it=db.items.find(x=>x.id===l.item_id);
+    if(!it) return;
+    if(isSet(it)){
+      (it.components||[]).forEach(c=>{
+        moves.push({ id:crypto.randomUUID(), date:localDate(), item_id:c.item_id,
+          color:c.color||"", spec:c.spec||"", kind:"출고",
+          qty:(Number(c.qty)||0)*(Number(l.qty)||0),
+          memo:`견적 ${q.no} 수주 (세트: ${it.name})`, created_at:now });
+      });
+    }else{
+      moves.push({ id:crypto.randomUUID(), date:localDate(), item_id:l.item_id,
+        color:l.color||"", spec:l.spec||"", kind:"출고",
+        qty:Number(l.qty)||0, memo:`견적 ${q.no} 수주`, created_at:now });
+    }
+  });
+  if(!moves.length){ toast("재고와 연결된 품목이 없어 출고 기록이 없습니다"); return; }
+  db.stock_moves.push(...moves);
+  await saveTable("stock_moves",db.stock_moves);
+  toast(`출고 ${moves.length}건이 재고에 기록되었습니다`);
 }
 
 async function deleteQuote(id){
@@ -1310,7 +1407,7 @@ function printQuote(q){
     return `
     <tr>
       <td>${escapeHtml(l.name)}</td>
-      <td>${escapeHtml(l.spec||"")}</td>
+      <td>${escapeHtml([l.color,l.spec].filter(Boolean).join(" · "))}</td>
       <td class="num">${fmtb(l.qty)}</td>
       <td class="num">${fmtb(l.price)}</td>
       <td class="num">${fmtb(supply)}</td>
@@ -1368,6 +1465,111 @@ function printQuote(q){
     </div>
   </div>`;
   window.print();
+}
+
+/* =====================================================================
+   재고(stock_moves)
+   ===================================================================== */
+function stockKeyOf(m){ return [m.item_id,m.color||"",m.spec||""].join("|"); }
+function currentStocks(){
+  const map={};
+  (db.stock_moves||[]).forEach(m=>{
+    const k=stockKeyOf(m);
+    map[k]=(map[k]||0)+(m.kind==="출고"?-1:1)*(Number(m.qty)||0);
+  });
+  return map;
+}
+function updateIvCombo(){
+  const it=db.items.find(x=>x.id===document.getElementById("ivItem").value);
+  const colorEl=document.getElementById("ivColor");
+  const specEl=document.getElementById("ivSpec");
+  const hasC=!!(it&&(it.colors||[]).length), hasV=!!(it&&(it.variants||[]).length);
+  colorEl.innerHTML = hasC ? it.colors.map(c=>`<option>${escapeHtml(c)}</option>`).join("") : `<option value="">색상 —</option>`;
+  colorEl.disabled=!hasC;
+  specEl.innerHTML = hasV ? it.variants.map(v=>`<option>${escapeHtml(v.spec)}</option>`).join("") : `<option value="">사이즈 —</option>`;
+  specEl.disabled=!hasV;
+}
+function renderStock(){
+  const dateEl=document.getElementById("ivDate");
+  if(!dateEl.value) dateEl.value=localDate();
+  const itemEl=document.getElementById("ivItem");
+  const cur=itemEl.value;
+  itemEl.innerHTML=`<option value="">— 품목 —</option>`+db.items.filter(i=>!isSet(i))
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+    .map(i=>`<option value="${i.id}" ${i.id===cur?"selected":""}>${escapeHtml(i.name)}</option>`).join("");
+  updateIvCombo();
+
+  const map=currentStocks();
+  const combos=Object.entries(map).map(([k,qty])=>{
+    const [item_id,color,spec]=k.split("|");
+    const it=db.items.find(x=>x.id===item_id);
+    return { name: it?it.name:"(삭제된 품목)", color, spec, qty };
+  }).sort((a,b)=>a.name.localeCompare(b.name,"ko")||a.color.localeCompare(b.color)||a.spec.localeCompare(b.spec,"ko"));
+  document.getElementById("ivCount").textContent=combos.filter(c=>c.qty>0).length+"종";
+  document.getElementById("ivTotal").textContent=fmt(combos.reduce((s,c)=>s+Math.max(0,c.qty),0))+"개";
+  const emptyN=combos.filter(c=>c.qty<=0).length;
+  const emptyEl=document.getElementById("ivEmpty");
+  emptyEl.textContent=emptyN+"종";
+  emptyEl.className="v "+(emptyN?"neg":"");
+
+  const tbl=document.getElementById("ivTbl");
+  tbl.innerHTML = combos.length ? `
+    <thead><tr><th>품목</th><th>색상</th><th>사이즈</th><th style="text-align:right">현재고</th></tr></thead>
+    <tbody>${combos.map(c=>`
+      <tr>
+        <td>${escapeHtml(c.name)}</td>
+        <td class="sub">${escapeHtml(c.color||"—")}</td>
+        <td class="sub">${escapeHtml(c.spec||"—")}</td>
+        <td class="num" ${c.qty<=0?'style="color:var(--danger)"':""}>${fmt(c.qty)}</td>
+      </tr>`).join("")}</tbody>`
+    : `<tr><td><div class="empty">아직 재고 기록이 없습니다.<br>오른쪽에서 입고를 등록해 보세요.</div></td></tr>`;
+
+  const hist=(db.stock_moves||[]).slice()
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||""))
+    .slice(0,30);
+  const histTbl=document.getElementById("ivHist");
+  histTbl.innerHTML = hist.length ? `
+    <thead><tr><th>날짜</th><th>품목</th><th>구분</th><th style="text-align:right">수량</th><th>메모</th><th></th></tr></thead>
+    <tbody>${hist.map(m=>{
+      const it=db.items.find(x=>x.id===m.item_id);
+      const detail=[m.color,m.spec].filter(Boolean).join("·");
+      return `<tr>
+        <td style="white-space:nowrap">${escapeHtml((m.date||"").slice(5))}</td>
+        <td>${escapeHtml(it?it.name:"(삭제된 품목)")}${detail?` <span class="sub">${escapeHtml(detail)}</span>`:""}</td>
+        <td><span class="pill ${m.kind==="입고"?"in":"out"}">${escapeHtml(m.kind)}</span></td>
+        <td class="num">${fmt(m.qty)}</td>
+        <td class="sub">${escapeHtml(m.memo||"")}</td>
+        <td><button class="rm" data-id="${m.id}" title="삭제"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
+      </tr>`;}).join("")}</tbody>`
+    : `<tr><td><div class="empty">입출고 이력이 없습니다.</div></td></tr>`;
+  histTbl.querySelectorAll(".rm").forEach(el=>{ el.onclick=()=>deleteStockMove(el.dataset.id); });
+}
+async function addStockMove(){
+  const item_id=document.getElementById("ivItem").value;
+  const qty=Number(document.getElementById("ivQty").value)||0;
+  if(!item_id){ toast("품목을 선택하세요"); return; }
+  if(qty<=0){ toast("수량을 입력하세요"); return; }
+  db.stock_moves.push({
+    id:crypto.randomUUID(),
+    date:document.getElementById("ivDate").value||localDate(),
+    item_id,
+    color:document.getElementById("ivColor").value||"",
+    spec:document.getElementById("ivSpec").value||"",
+    kind:document.getElementById("ivKind").value,
+    qty,
+    memo:document.getElementById("ivMemo").value.trim(),
+    created_at:new Date().toISOString()
+  });
+  document.getElementById("ivQty").value="";
+  document.getElementById("ivMemo").value="";
+  renderStock();
+  await saveTable("stock_moves",db.stock_moves);
+}
+async function deleteStockMove(id){
+  if(!confirm("이 입출고 기록을 삭제할까요?")) return;
+  db.stock_moves=db.stock_moves.filter(m=>m.id!==id);
+  renderStock();
+  await saveTable("stock_moves",db.stock_moves);
 }
 
 /* =====================================================================
@@ -1561,6 +1763,8 @@ async function init(){
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
   document.getElementById("payMonth").onchange=renderPay;
   document.getElementById("payAddBtn").onclick=addPayment;
+  document.getElementById("ivItem").onchange=updateIvCombo;
+  document.getElementById("ivAddBtn").onclick=addStockMove;
   document.getElementById("stSaveBtn").onclick=saveSettings;
 
   // 로그인 상태 확인
