@@ -41,8 +41,10 @@
 
   /* ---------- app shell ---------- */
   .topbar{position:sticky;top:0;z-index:20;height:56px;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 20px}
-  .tb-brand{display:flex;align-items:center;gap:9px;font-weight:660;font-size:15px}
+  .tb-brand{display:flex;align-items:center;gap:9px;font-weight:660;font-size:15px;cursor:pointer;border-radius:9px;padding:4px 8px;margin-left:-8px;transition:.14s}
+  .tb-brand:hover{background:var(--paper)}
   .tb-brand .m{width:26px;height:26px;border-radius:8px;background:var(--primary);display:grid;place-items:center}
+  .tb-ver{font-size:11px;font-weight:500;color:var(--ink-3);margin-left:1px;padding-top:2px}
   .tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
   .tb-user{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:7px}
   .icon-btn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--ink-2);transition:.14s}
@@ -291,7 +293,7 @@
 <!-- ==================== APP ==================== -->
 <div id="appView" class="hidden">
   <div class="topbar">
-    <div class="tb-brand"><span class="m"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>ERP</div>
+    <div class="tb-brand" id="brandBtn" title="새로고침"><span class="m"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>ERP<span class="tb-ver" id="tbVer"></span></div>
     <div class="tb-right">
       <span class="tb-user" id="tbUser"></span>
       <button class="icon-btn" id="refreshBtn" title="Dropbox에서 새로고침">
@@ -492,7 +494,7 @@
 
       <!-- ========== 대시보드 ========== -->
       <section class="view hidden" id="view-dash">
-        <div class="page-head"><h2>대시보드</h2><span class="count" id="dashVer"></span><div class="sp"></div></div>
+        <div class="page-head"><h2>대시보드</h2><div class="sp"></div></div>
         <div class="stats" id="dashStats"></div>
         <div class="dash-grid">
           <div class="card">
@@ -573,7 +575,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.8";
+const APP_VERSION = "v1.9";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1686,7 +1688,6 @@ async function deletePayment(id){
    대시보드(dash)
    ===================================================================== */
 function renderDash(){
-  document.getElementById("dashVer").textContent=APP_VERSION;
   const month=localMonth();
   const inMonth=db.payments.filter(p=>(p.date||"").startsWith(month));
   const sumIn=inMonth.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
@@ -1884,6 +1885,8 @@ async function init(){
   }
 
   // 이벤트 연결
+  document.getElementById("tbVer").textContent=APP_VERSION;
+  document.getElementById("brandBtn").onclick=()=>location.reload();
   document.getElementById("connectBtn").onclick=startLogin;
   document.getElementById("logoutBtn").onclick=logout;
   document.getElementById("refreshBtn").onclick=loadAll;
