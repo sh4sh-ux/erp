@@ -329,6 +329,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         대시보드
       </button>
+      <button class="nav-item" data-view="sales">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+        매출 집계
+      </button>
       <div class="nav-sec">설정</div>
       <button class="nav-item" data-view="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -503,6 +507,31 @@
         </div>
       </section>
 
+      <!-- ========== 매출 집계 ========== -->
+      <section class="view hidden" id="view-sales">
+        <div class="page-head">
+          <h2>매출 집계</h2>
+          <div class="sp"></div>
+          <input type="date" class="month-input" id="slFrom">
+          <span style="color:var(--ink-3)">~</span>
+          <input type="date" class="month-input" id="slTo">
+          <select class="month-input" id="slCo"></select>
+          <select class="month-input" id="slStatus">
+            <option value="수주">수주만</option>
+            <option value="all">모든 상태</option>
+          </select>
+          <button class="btn-sm" id="slCsvBtn">CSV 내보내기</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">견적 건수</div><div class="v" id="slCount">0건</div></div>
+          <div class="stat"><div class="k">총 수량</div><div class="v" id="slQty">0</div></div>
+          <div class="stat"><div class="k">공급가액</div><div class="v" id="slSupply">0원</div></div>
+          <div class="stat"><div class="k">세액</div><div class="v" id="slVat">0원</div></div>
+          <div class="stat"><div class="k">합계</div><div class="v" id="slTotal">0원</div></div>
+        </div>
+        <div id="slBody"></div>
+      </section>
+
       <!-- ========== 설정(공급자 정보) ========== -->
       <section class="view hidden" id="view-settings">
         <div class="page-head"><h2>공급자 정보</h2><div class="sp"></div></div>
@@ -542,7 +571,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.5";
+const APP_VERSION = "v1.6";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -718,6 +747,7 @@ const renderers={
   quotes(){ renderQtList(); renderQtDetail(); },
   payments(){ renderPay(); },
   dash(){ renderDash(); },
+  sales(){ renderSales(); },
   settings(){ renderSettings(); }
 };
 function switchView(v){
@@ -1706,6 +1736,110 @@ function renderDash(){
 }
 
 /* =====================================================================
+   매출 집계(sales) — 수주 견적 기준 기간별 품목 집계
+   ===================================================================== */
+function salesData(){
+  const from=document.getElementById("slFrom").value;
+  const to=document.getElementById("slTo").value;
+  const co=document.getElementById("slCo").value;
+  const st=document.getElementById("slStatus").value;
+  const quotes=db.quotes.filter(q=>
+    (!from || (q.date||"")>=from) && (!to || (q.date||"")<=to) &&
+    (st==="all" || q.status==="수주") &&
+    (!co || q.company_id===co));
+  const groups={};   // company_id → { key → {name,color,spec,price,qty} }
+  quotes.forEach(q=>{
+    (q.lines||[]).forEach(l=>{
+      const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0].join("|");
+      const g=groups[q.company_id] ?? (groups[q.company_id]={});
+      const r=g[key] ?? (g[key]={name:l.name,color:l.color||"",spec:l.spec||"",price:Number(l.price)||0,qty:0});
+      r.qty+=Number(l.qty)||0;
+    });
+  });
+  return { groups, count:quotes.length };
+}
+
+function renderSales(){
+  const fromEl=document.getElementById("slFrom");
+  const toEl=document.getElementById("slTo");
+  if(!fromEl.value) fromEl.value=localMonth()+"-01";
+  if(!toEl.value) toEl.value=localDate();
+  const coEl=document.getElementById("slCo");
+  const cur=coEl.value;
+  coEl.innerHTML=`<option value="">전체 거래처</option>`+db.companies.slice()
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+    .map(c=>`<option value="${c.id}" ${c.id===cur?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+
+  const {groups,count}=salesData();
+  let totQty=0, totSupply=0, totVat=0;
+  const sections=Object.entries(groups)
+    .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
+    .map(([cid,g])=>{
+      const rows=Object.values(g).sort((a,b)=>a.name.localeCompare(b.name,"ko")||a.color.localeCompare(b.color)||a.spec.localeCompare(b.spec,"ko"));
+      let sQty=0, sSupply=0, sVat=0;
+      const trs=rows.map(r=>{
+        const supply=r.qty*r.price, vat=Math.round(supply*0.1);
+        sQty+=r.qty; sSupply+=supply; sVat+=vat;
+        return `<tr>
+          <td>${escapeHtml(r.name)}</td>
+          <td class="sub">${escapeHtml([r.color,r.spec].filter(Boolean).join(" · ")||"—")}</td>
+          <td class="num">${fmt(r.qty)}</td>
+          <td class="num">${fmt(r.price)}</td>
+          <td class="num">${fmt(supply)}</td>
+          <td class="num">${fmt(vat)}</td>
+        </tr>`;}).join("");
+      totQty+=sQty; totSupply+=sSupply; totVat+=sVat;
+      return `
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head" style="padding-bottom:4px">
+          <h3>${escapeHtml(coName(cid))}</h3>
+          <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b></span>
+        </div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>품명</th><th>색상·사이즈</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th></tr></thead>
+          <tbody>${trs}
+            <tr style="background:var(--paper)">
+              <td style="font-weight:700">소계</td><td></td>
+              <td class="num">${fmt(sQty)}</td><td></td>
+              <td class="num">${fmt(sSupply)}</td><td class="num">${fmt(sVat)}</td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>`;});
+
+  document.getElementById("slCount").textContent=count+"건";
+  document.getElementById("slQty").textContent=fmt(totQty);
+  document.getElementById("slSupply").textContent=won(totSupply);
+  document.getElementById("slVat").textContent=won(totVat);
+  document.getElementById("slTotal").textContent=won(totSupply+totVat);
+  document.getElementById("slBody").innerHTML = sections.length ? sections.join("")
+    : `<div class="card"><div class="empty">선택한 기간에 해당하는 ${document.getElementById("slStatus").value==="all"?"견적":"수주 건"}이 없습니다.<br>기간이나 필터를 조정해 보세요.</div></div>`;
+}
+
+function csvEsc(s){ s=(s??"").toString(); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function exportSalesCsv(){
+  const {groups}=salesData();
+  const lines=[["거래처","품명","색상","사이즈","수량","단가","공급가액","세액","합계"].join(",")];
+  Object.entries(groups)
+    .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
+    .forEach(([cid,g])=>{
+      Object.values(g).forEach(r=>{
+        const supply=r.qty*r.price, vat=Math.round(supply*0.1);
+        lines.push([csvEsc(coName(cid)),csvEsc(r.name),csvEsc(r.color),csvEsc(r.spec),r.qty,r.price,supply,vat,supply+vat].join(","));
+      });
+    });
+  if(lines.length===1){ toast("내보낼 내역이 없습니다"); return; }
+  const from=document.getElementById("slFrom").value, to=document.getElementById("slTo").value;
+  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`매출집계_${from}_${to}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("CSV 파일을 내려받았습니다");
+}
+
+/* =====================================================================
    설정(공급자 정보)
    ===================================================================== */
 function renderSettings(){
@@ -1763,6 +1897,8 @@ async function init(){
   document.getElementById("payAddBtn").onclick=addPayment;
   document.getElementById("ivItem").onchange=updateIvCombo;
   document.getElementById("ivAddBtn").onclick=addStockMove;
+  ["slFrom","slTo","slCo","slStatus"].forEach(id=>{ document.getElementById(id).onchange=renderSales; });
+  document.getElementById("slCsvBtn").onclick=exportSalesCsv;
   document.getElementById("stSaveBtn").onclick=saveSettings;
 
   // 로그인 상태 확인
