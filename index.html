@@ -573,7 +573,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.7";
+const APP_VERSION = "v1.8";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1892,7 +1892,7 @@ async function init(){
   });
   document.getElementById("coNewBtn").onclick=()=>{ coSel="__new__"; renderCoList(); renderCoDetail(); };
   document.getElementById("coSearch").oninput=e=>{ coFilter=e.target.value; renderCoList(); };
-  document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; renderItList(); renderItDetail(); };
+  document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); };
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
   document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; renderQtList(); renderQtDetail(); };
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
