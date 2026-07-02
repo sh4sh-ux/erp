@@ -93,6 +93,7 @@
   .pill.st-sent{background:var(--primary-soft);color:var(--primary)}
   .pill.st-won{background:var(--ok-soft);color:#1E7A3E}
   .pill.st-lost{background:var(--danger-soft);color:var(--danger)}
+  .pill.set{background:#EFE9FD;color:#6B46C1}
   .pill.in{background:var(--ok-soft);color:#1E7A3E}
   .pill.out{background:var(--warn-soft);color:#B26A00}
   .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.7}
@@ -120,7 +121,7 @@
 
   /* ---------- quote line editor ---------- */
   .qlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
-  .qline{display:grid;grid-template-columns:minmax(0,1.6fr) 64px 110px 110px 30px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .qline{display:grid;grid-template-columns:minmax(0,1.4fr) 104px 60px 100px 100px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .qline:last-child{border-bottom:none}
   .qline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
   .qline input,.qline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
@@ -131,6 +132,31 @@
   .qline .rm:hover{background:var(--danger-soft);color:var(--danger)}
   .btn-line-add{width:100%;padding:9px;border:1.5px dashed var(--line);border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:600;transition:.14s}
   .btn-line-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+
+  /* ---------- 품목 옵션(사이즈)·세트 구성품 편집 ---------- */
+  .vlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
+  .vline{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .vline:last-child{border-bottom:none}
+  .vline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+  .vline input,.vline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
+  .vline input:focus,.vline select:focus{border-color:var(--primary)}
+  .vline input.num{text-align:right}
+  .vline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
+  .vline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .cline{display:grid;grid-template-columns:minmax(0,1.3fr) 110px 70px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .cline:last-child{border-bottom:none}
+  .cline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
+  .cline input,.cline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
+  .cline input:focus,.cline select:focus{border-color:var(--primary)}
+  .cline input.num{text-align:right}
+  .cline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
+  .cline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .quick-row{display:flex;gap:8px;margin-bottom:8px}
+  .quick-row input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none}
+  .quick-row input:focus{border-color:var(--primary)}
+  .quick-row button{background:var(--paper);color:var(--ink-2);font-weight:600;font-size:13px;padding:0 16px;border-radius:9px;white-space:nowrap}
+  .quick-row button:hover{background:var(--primary-soft);color:var(--primary)}
+  .hint{font-size:12px;color:var(--ink-3);margin-top:6px}
   .qtotals{display:flex;flex-direction:column;align-items:flex-end;gap:5px;padding:16px 4px 2px;font-size:14px}
   .qtotals .row{display:flex;gap:16px}
   .qtotals .row .k{color:var(--ink-2)}
@@ -191,39 +217,46 @@
   .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
   @keyframes sp{to{transform:rotate(360deg)}}
 
-  /* ---------- print (디에디트 견적서 양식) ---------- */
+  /* ---------- print (견적서 — 그레이 포인트, 레이아웃 고정) ---------- */
   #printArea{display:none}
   @media print{
     body{background:#fff}
     #loginView,#appView,.toast{display:none!important}
     #printArea{display:block!important}
     @page{margin:16mm 14mm}
+    .p-wrap{display:flex;flex-direction:column;min-height:263mm}
   }
-  .p-wrap{max-width:760px;margin:0 auto;color:#111;font-size:13px;line-height:1.45}
-  .p-head{display:flex;justify-content:space-between;gap:36px;align-items:flex-start;margin-bottom:34px}
-  .p-title{font-size:34px;font-weight:800;letter-spacing:-0.02em;margin-bottom:22px}
-  .p-to-name{font-size:19px;font-weight:750;margin-bottom:16px}
-  .p-info{min-width:260px}
-  .p-info .irow{display:flex;gap:14px;padding:5px 2px;border-bottom:1px dotted #999;font-size:12.5px}
-  .p-info .irow .k{font-weight:700;min-width:64px}
-  .p-supplier{min-width:340px;flex:0 0 44%}
-  .p-supplier .shead{background:#DFDFDF;font-weight:750;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
-  .p-supplier .srow{display:flex;gap:12px;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
-  .p-supplier .srow .k{font-weight:700;min-width:66px}
-  .p-grand{display:flex;justify-content:space-between;align-items:center;background:#DFDFDF;padding:9px 14px;margin-bottom:14px}
-  .p-grand .k{font-weight:750;font-size:15px}
-  .p-grand .k small{font-weight:500;font-size:11.5px;margin-left:4px}
-  .p-grand .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+  #printArea,#printArea *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .p-wrap{max-width:760px;margin:0 auto;color:#111;font-size:13px;line-height:1.5}
+  .p-bottom{margin-top:auto}
+  .p-eyebrow{font-size:11px;font-weight:700;letter-spacing:.3em;color:#8A8F98;margin-bottom:4px}
+  .p-head{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;margin-bottom:24px}
+  .p-title{font-size:34px;font-weight:800;letter-spacing:-0.02em;margin-bottom:18px}
+  .p-to-name{font-size:17px;font-weight:750;margin-bottom:12px}
+  .p-info .irow{display:flex;gap:14px;font-size:12.5px;padding:3px 0;color:#333}
+  .p-info .irow .k{color:#8A8F98;font-weight:600;min-width:60px}
+  .p-supplier{flex:0 0 46%;background:#F4F5F7;border-radius:14px;padding:15px 18px;align-self:flex-start}
+  .p-supplier .shead{font-size:11px;font-weight:700;letter-spacing:.16em;color:#8A8F98;margin-bottom:7px}
+  .p-supplier .srow{display:flex;gap:12px;font-size:12px;padding:3px 0;min-height:22px}
+  .p-supplier .srow .k{color:#8A8F98;font-weight:600;min-width:62px;flex:0 0 auto}
+  .p-grand{display:flex;justify-content:space-between;align-items:center;background:#2F3338;color:#fff;border-radius:14px;padding:13px 20px;margin-bottom:20px}
+  .p-grand .k{font-weight:650;font-size:13px;opacity:.85}
+  .p-grand .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
   .p-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-  .p-tbl th{background:#DFDFDF;padding:7px 10px;font-weight:750;text-align:left;border-bottom:1px dotted #888}
+  .p-tbl th{background:#ECEDEF;color:#3A3F46;font-weight:700;padding:8px 11px;text-align:left;font-size:11.5px}
+  .p-tbl th:first-child{border-radius:9px 0 0 9px}
+  .p-tbl th:last-child{border-radius:0 9px 9px 0}
   .p-tbl th.num,.p-tbl td.num{text-align:right}
-  .p-tbl td{padding:12px 10px;border-bottom:1px dotted #AAA;font-variant-numeric:tabular-nums}
-  .p-tbl tfoot td{background:#DFDFDF;font-weight:750;border-bottom:none;padding:8px 10px}
-  .p-etc{margin-top:26px}
-  .p-etc .k{background:#DFDFDF;font-weight:750;font-size:12.5px;padding:5px 10px;border-bottom:1px dotted #999}
-  .p-etc .memo{white-space:pre-wrap;font-size:12.5px;color:#222;padding:8px 2px;border-bottom:1px dotted #AAA}
-  .p-etc .blank{height:30px;border-bottom:1px dotted #AAA}
-  .p-etc .end{border-bottom:1.5px solid #111}
+  .p-tbl td{padding:12px 11px;border-bottom:1px solid #ECEDEF;font-variant-numeric:tabular-nums}
+  .p-sum{display:flex;justify-content:space-between;align-items:center;background:#F4F5F7;border-radius:11px;padding:10px 16px;font-size:13px}
+  .p-sum .k{font-weight:750}
+  .p-sum .parts{display:flex;gap:26px;align-items:baseline}
+  .p-sum .parts b{font-weight:750}
+  .p-sum .total{font-weight:800;font-size:15px}
+  .p-etc{margin-top:22px}
+  .p-etc .k{font-size:11px;font-weight:700;letter-spacing:.16em;color:#8A8F98;margin-bottom:7px}
+  .p-etc .body{border:1px solid #E4E6E9;border-radius:11px;min-height:64px;padding:10px 13px;font-size:12.5px;color:#222;white-space:pre-wrap}
+  .p-foot{margin-top:14px;text-align:center;color:#9AA0A8;font-size:11px}
 </style>
 </head>
 <body>
@@ -754,14 +787,48 @@ async function deleteCompany(id){
 }
 
 /* =====================================================================
-   품목(items)
+   품목(items) — 단품(사이즈 옵션) / 세트(구성품)
    ===================================================================== */
-let itSel=null, itFilter="";
+let itSel=null, itFilter="", itEditing=null;
+
+function isSet(i){ return i && i.type==="세트"; }
+function variantOf(i,spec){ return (i.variants||[]).find(v=>v.spec===spec); }
+function itemSell(i,spec){
+  if(!i) return 0;
+  const v=variantOf(i,spec);
+  if(v && Number(v.sell_price)) return Number(v.sell_price);
+  if(Number(i.sell_price)) return Number(i.sell_price);
+  return isSet(i) ? setCompSums(i).sell : 0;
+}
+function setCompSums(i){
+  let buy=0, sell=0;
+  (i.components||[]).forEach(c=>{
+    const it=db.items.find(x=>x.id===c.item_id); if(!it) return;
+    const v=variantOf(it,c.spec);
+    const qty=Number(c.qty)||0;
+    buy += ((v&&Number(v.buy_price))||Number(it.buy_price)||0)*qty;
+    sell+= ((v&&Number(v.sell_price))||Number(it.sell_price)||0)*qty;
+  });
+  return {buy,sell};
+}
+function setSpecSummary(i){
+  return (i.components||[]).map(c=>{
+    const it=db.items.find(x=>x.id===c.item_id);
+    return `${it?it.name:"?"}${c.spec?`(${c.spec})`:""}×${c.qty}`;
+  }).join(" + ");
+}
+function normalizeItem(i){
+  if(!i.type) i.type="단품";
+  if(!Array.isArray(i.variants)) i.variants=[];
+  if(!Array.isArray(i.components)) i.components=[];
+  return i;
+}
 
 function renderItList(){
   const q=itFilter.trim().toLowerCase();
   const rows=db.items
-    .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.spec||"").toLowerCase().includes(q))
+    .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.spec||"").toLowerCase().includes(q)
+             || (i.variants||[]).some(v=>(v.spec||"").toLowerCase().includes(q)))
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
   document.getElementById("itCount").textContent=db.items.length+"개";
   const list=document.getElementById("itList");
@@ -769,71 +836,215 @@ function renderItList(){
     list.innerHTML=`<div class="empty">${db.items.length? "검색 결과가 없습니다." : "아직 등록된 품목이 없습니다.<br>+ 버튼으로 첫 품목을 추가해 보세요."}</div>`;
     return;
   }
-  list.innerHTML=rows.map(i=>`
+  list.innerHTML=rows.map(i=>{
+    const sub = isSet(i)
+      ? `구성 ${(i.components||[]).length}종 · ${setSpecSummary(i)||"—"}`
+      : (i.variants&&i.variants.length
+          ? i.variants.map(v=>v.spec).join(" · ")
+          : [i.spec,i.unit].filter(Boolean).join(" · ")||"—");
+    const price = itemSell(i);
+    return `
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
       <div class="avatar">${escapeHtml(initials(i.name))}</div>
       <div class="li-body">
         <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}</div>
-        <div class="li-sub">${escapeHtml([i.spec,i.unit].filter(Boolean).join(" · ")||"—")}</div>
+        <div class="li-sub">${escapeHtml(sub)}</div>
       </div>
       <div class="li-right">
-        <div class="li-amt">${i.sell_price?won(i.sell_price):""}</div>
-        ${i.buy_price?`<div class="li-sub">매입 ${won(i.buy_price)}</div>`:""}
+        <div class="li-amt">${price?won(price):""}</div>
+        ${isSet(i)?'<span class="pill set">세트</span>':(i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"")}
       </div>
-    </div>`).join("");
+    </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
-    el.onclick=()=>{ itSel=el.dataset.id; renderItList(); renderItDetail(); };
+    el.onclick=()=>{ itSel=el.dataset.id; itEditing=null; renderItList(); renderItDetail(); };
   });
 }
 
 function blankItem(){
-  return { id:null, name:"", spec:"", unit:"EA", buy_price:0, sell_price:0, memo:"" };
+  return { id:null, name:"", type:"단품", spec:"", unit:"EA", buy_price:0, sell_price:0,
+           variants:[], components:[], memo:"" };
 }
 
 function renderItDetail(){
   const empty=document.getElementById("itEmpty");
   const form=document.getElementById("itForm");
-  const i = itSel==="__new__" ? blankItem() : db.items.find(x=>x.id===itSel);
-  if(!i){ empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
+  if(itSel==="__new__"){
+    if(!itEditing) itEditing=blankItem();
+  }else if(itSel){
+    const src=db.items.find(x=>x.id===itSel);
+    if(!src){ itSel=null; }
+    else if(!itEditing || itEditing.id!==itSel) itEditing=normalizeItem(JSON.parse(JSON.stringify(src)));
+  }
+  if(!itSel){ itEditing=null; empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
   empty.classList.add("hidden"); form.classList.remove("hidden");
   const isNew = itSel==="__new__";
+  const e=itEditing;
+
+  let body="";
+  if(isSet(e)){
+    const opts=db.items.filter(x=>x.id!==e.id && !isSet(x))
+      .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
+    const sums=setCompSums(e);
+    body=`
+    <div class="field"><label>구성품</label>
+      <div class="vlines">
+        <div class="cline head"><span>품목</span><span>사이즈/옵션</span><span>수량</span><span></span></div>
+        ${e.components.map((c,idx)=>{
+          const it=db.items.find(x=>x.id===c.item_id);
+          const specCell = it && (it.variants||[]).length
+            ? `<select data-cf="spec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===c.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
+            : `<span class="hint" style="margin:0">${escapeHtml(it?.spec||"—")}</span>`;
+          return `<div class="cline">
+            <select data-cf="item" data-idx="${idx}">
+              <option value="">— 품목 선택 —</option>
+              ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${escapeHtml(o.name)}</option>`).join("")}
+            </select>
+            ${specCell}
+            <input type="number" inputmode="numeric" class="num" data-cf="qty" data-idx="${idx}" value="${c.qty??1}" min="0">
+            <button class="rm" data-crm="${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>`;}).join("")}
+      </div>
+      <button class="btn-line-add" id="fi_addComp">＋ 구성품 추가</button>
+      <div class="hint" id="fi_sums">구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}</div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>세트 매입가</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="비워두면 구성 합계 적용"></div>
+      <div class="field"><label>세트 판매가</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="비워두면 구성 합계 적용"></div>
+    </div>`;
+  }else{
+    body=`
+    <div class="grid2">
+      <div class="field"><label>규격 (기본)</label><input id="fi_spec" value="${escapeAttr(e.spec)}" placeholder="예: 80g, 500매"></div>
+      <div class="field"><label>단위</label><input id="fi_unit" value="${escapeAttr(e.unit)}" placeholder="EA, BOX, kg…"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>매입단가 (기본)</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="0"></div>
+      <div class="field"><label>매출단가 (기본)</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="0"></div>
+    </div>
+    <div class="field"><label>사이즈/옵션 <span style="font-weight:400;color:var(--ink-3)">(의류 사이즈 등 — 없으면 비워두세요)</span></label>
+      <div class="quick-row">
+        <input id="fi_quick" placeholder="쉼표로 한 번에 추가 — 예: 30inch, 34inch, 36inch">
+        <button id="fi_quickBtn">생성</button>
+      </div>
+      ${e.variants.length?`
+      <div class="vlines">
+        <div class="vline head"><span>옵션명</span><span>매입단가</span><span>매출단가</span><span></span></div>
+        ${e.variants.map((v,idx)=>`
+          <div class="vline">
+            <input data-vf="spec" data-idx="${idx}" value="${escapeAttr(v.spec)}" placeholder="예: 30inch">
+            <input type="number" inputmode="numeric" class="num" data-vf="buy_price" data-idx="${idx}" value="${v.buy_price||""}" placeholder="기본값">
+            <input type="number" inputmode="numeric" class="num" data-vf="sell_price" data-idx="${idx}" value="${v.sell_price||""}" placeholder="기본값">
+            <button class="rm" data-vrm="${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>`).join("")}
+      </div>`:""}
+      <button class="btn-line-add" id="fi_addVar">＋ 옵션 추가</button>
+      ${e.variants.length?'<div class="hint">옵션 단가를 비워두면 위의 기본 단가가 적용됩니다.</div>':""}
+    </div>`;
+  }
+
   form.innerHTML=`
-    <div class="field"><label>품명 *</label><input id="fi_name" value="${escapeAttr(i.name)}" placeholder="예: A4 복사용지"></div>
     <div class="grid2">
-      <div class="field"><label>규격</label><input id="fi_spec" value="${escapeAttr(i.spec)}" placeholder="예: 80g, 500매"></div>
-      <div class="field"><label>단위</label><input id="fi_unit" value="${escapeAttr(i.unit)}" placeholder="EA, BOX, kg…"></div>
+      <div class="field"><label>품명 *</label><input id="fi_name" value="${escapeAttr(e.name)}" placeholder="예: 바지(PT_MG-01 BK)"></div>
+      <div class="field"><label>유형</label>
+        <select id="fi_type">
+          <option ${e.type!=="세트"?"selected":""}>단품</option>
+          <option ${e.type==="세트"?"selected":""}>세트</option>
+        </select>
+      </div>
     </div>
-    <div class="grid2">
-      <div class="field"><label>매입단가</label><input type="number" inputmode="numeric" id="fi_buy" value="${i.buy_price||""}" placeholder="0"></div>
-      <div class="field"><label>매출단가</label><input type="number" inputmode="numeric" id="fi_sell" value="${i.sell_price||""}" placeholder="0"></div>
-    </div>
-    <div class="field"><label>메모</label><textarea id="fi_memo" placeholder="특이사항 등">${escapeHtml(i.memo)}</textarea></div>
+    ${body}
+    <div class="field"><label>메모</label><textarea id="fi_memo" placeholder="특이사항 등">${escapeHtml(e.memo)}</textarea></div>
     <div class="form-actions">
       <button class="btn save" id="itSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?'<button class="btn ghost" id="itCancelBtn">취소</button>':'<button class="btn del" id="itDelBtn">삭제</button>'}
     </div>`;
-  document.getElementById("itSaveBtn").onclick=()=>submitItem(i,isNew);
-  if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; renderItList(); renderItDetail(); };
-  else document.getElementById("itDelBtn").onclick=()=>deleteItem(i.id);
+
+  // 공통 바인딩
+  document.getElementById("fi_name").oninput=ev=>{ e.name=ev.target.value; };
+  document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
+  document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
+  document.getElementById("fi_buy").oninput=ev=>{ e.buy_price=Number(ev.target.value)||0; };
+  document.getElementById("fi_sell").oninput=ev=>{ e.sell_price=Number(ev.target.value)||0; };
+
+  if(isSet(e)){
+    document.getElementById("fi_addComp").onclick=()=>{ e.components.push({item_id:"",spec:"",qty:1}); renderItDetail(); };
+    form.querySelectorAll('[data-cf="item"]').forEach(el=>{
+      el.onchange=()=>{
+        const c=e.components[Number(el.dataset.idx)];
+        c.item_id=el.value;
+        const it=db.items.find(x=>x.id===el.value);
+        c.spec = it && (it.variants||[]).length ? it.variants[0].spec : "";
+        renderItDetail();
+      };
+    });
+    form.querySelectorAll('[data-cf="spec"]').forEach(el=>{
+      el.onchange=()=>{ e.components[Number(el.dataset.idx)].spec=el.value; updateItSums(e); };
+    });
+    form.querySelectorAll('[data-cf="qty"]').forEach(el=>{
+      el.oninput=()=>{ e.components[Number(el.dataset.idx)].qty=Number(el.value)||0; updateItSums(e); };
+    });
+    form.querySelectorAll("[data-crm]").forEach(el=>{
+      el.onclick=()=>{ e.components.splice(Number(el.dataset.crm),1); renderItDetail(); };
+    });
+  }else{
+    document.getElementById("fi_spec").oninput=ev=>{ e.spec=ev.target.value; };
+    document.getElementById("fi_unit").oninput=ev=>{ e.unit=ev.target.value; };
+    document.getElementById("fi_quickBtn").onclick=()=>{
+      const raw=document.getElementById("fi_quick").value;
+      const names=raw.split(",").map(s=>s.trim()).filter(Boolean);
+      if(!names.length){ toast("쉼표로 구분해 옵션명을 입력하세요"); return; }
+      names.forEach(n=>{ if(!e.variants.some(v=>v.spec===n)) e.variants.push({spec:n,buy_price:"",sell_price:""}); });
+      renderItDetail();
+    };
+    document.getElementById("fi_addVar").onclick=()=>{ e.variants.push({spec:"",buy_price:"",sell_price:""}); renderItDetail(); };
+    form.querySelectorAll("[data-vf]").forEach(el=>{
+      el.oninput=()=>{
+        const v=e.variants[Number(el.dataset.idx)];
+        v[el.dataset.vf]= el.dataset.vf==="spec" ? el.value : (Number(el.value)||"");
+      };
+    });
+    form.querySelectorAll("[data-vrm]").forEach(el=>{
+      el.onclick=()=>{ e.variants.splice(Number(el.dataset.vrm),1); renderItDetail(); };
+    });
+  }
+
+  document.getElementById("itSaveBtn").onclick=()=>submitItem(isNew);
+  if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; itEditing=null; renderItList(); renderItDetail(); };
+  else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
 }
 
-async function submitItem(i,isNew){
-  const name=document.getElementById("fi_name").value.trim();
-  if(!name){ toast("품명을 입력하세요"); return; }
-  const data={
-    name,
-    spec:document.getElementById("fi_spec").value.trim(),
-    unit:document.getElementById("fi_unit").value.trim(),
-    buy_price:Number(document.getElementById("fi_buy").value)||0,
-    sell_price:Number(document.getElementById("fi_sell").value)||0,
-    memo:document.getElementById("fi_memo").value.trim(),
-  };
-  if(isNew){
-    const row={ id:crypto.randomUUID(), ...data, created_at:new Date().toISOString() };
-    db.items.push(row); itSel=row.id;
+function updateItSums(e){
+  const el=document.getElementById("fi_sums");
+  if(!el) return;
+  const sums=setCompSums(e);
+  el.textContent=`구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}`;
+}
+
+async function submitItem(isNew){
+  const e=itEditing;
+  if(!(e.name||"").trim()){ toast("품명을 입력하세요"); return; }
+  e.name=e.name.trim();
+  if(isSet(e)){
+    e.components=e.components.filter(c=>c.item_id && (Number(c.qty)||0)>0);
+    if(e.components.length===0){ toast("구성품을 1개 이상 선택하세요"); return; }
+    const sums=setCompSums(e);
+    if(!Number(e.buy_price)) e.buy_price=sums.buy;
+    if(!Number(e.sell_price)) e.sell_price=sums.sell;
+    e.variants=[];
   }else{
-    Object.assign(i,data);
+    e.variants=e.variants.filter(v=>(v.spec||"").trim());
+    e.components=[];
   }
+  if(isNew){
+    e.id=crypto.randomUUID();
+    e.created_at=new Date().toISOString();
+    db.items.push(e);
+    itSel=e.id;
+  }else{
+    const idx=db.items.findIndex(x=>x.id===e.id);
+    if(idx>=0) db.items[idx]=e;
+  }
+  itEditing=null;
   renderItList(); renderItDetail();
   await saveTable("items",db.items);
 }
@@ -841,7 +1052,8 @@ async function submitItem(i,isNew){
 async function deleteItem(id){
   if(!confirm("이 품목을 삭제할까요? 되돌릴 수 없습니다.")) return;
   db.items=db.items.filter(i=>i.id!==id);
-  itSel=null; renderItList(); renderItDetail();
+  itSel=null; itEditing=null;
+  renderItList(); renderItDetail();
   await saveTable("items",db.items);
 }
 
@@ -930,7 +1142,7 @@ function renderQtDetail(){
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
-        <div class="qline head"><span>품목</span><span>수량</span><span>단가</span><span style="text-align:right">금액</span><span></span></div>
+        <div class="qline head"><span>품목</span><span>규격/사이즈</span><span>수량</span><span>단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
       <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
@@ -965,16 +1177,21 @@ function renderQtDetail(){
 
 function qtLineHtml(l,idx){
   const itemOpts=db.items.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
-    .map(i=>`<option value="${i.id}" ${i.id===l.item_id?"selected":""}>${escapeHtml(i.name)}${i.spec?` (${escapeHtml(i.spec)})`:""}</option>`).join("");
+    .map(i=>`<option value="${i.id}" ${i.id===l.item_id?"selected":""}>${isSet(i)?"[세트] ":""}${escapeHtml(i.name)}</option>`).join("");
   const nameCell = l.item_id==="__free__"
     ? `<input data-f="name" data-idx="${idx}" value="${escapeAttr(l.name)}" placeholder="품명 직접 입력">`
     : `<select data-f="item" data-idx="${idx}">
         <option value="">— 품목 선택 —</option>${itemOpts}
         <option value="__free__">✏️ 직접 입력</option>
       </select>`;
+  const it=db.items.find(x=>x.id===l.item_id);
+  const specCell = (it && (it.variants||[]).length)
+    ? `<select data-f="vspec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===l.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
+    : `<input data-f="spec" data-idx="${idx}" value="${escapeAttr(l.spec||"")}" placeholder="규격">`;
   const amt=(Number(l.qty)||0)*(Number(l.price)||0);
   return `<div class="qline" data-idx="${idx}">
     ${nameCell}
+    ${specCell}
     <input type="number" inputmode="numeric" class="num" data-f="qty" data-idx="${idx}" value="${l.qty??""}" min="0">
     <input type="number" inputmode="numeric" class="num" data-f="price" data-idx="${idx}" value="${l.price||""}" placeholder="0">
     <span class="amt" data-amt="${idx}">${fmt(amt)}</span>
@@ -994,14 +1211,36 @@ function bindQtLines(e){
       if(v==="__free__"){ l.item_id="__free__"; l.name=""; l.spec=""; l.unit=""; }
       else if(v){
         const it=db.items.find(x=>x.id===v);
-        l.item_id=v; l.name=it.name; l.spec=it.spec; l.unit=it.unit;
-        if(it.sell_price) l.price=it.sell_price;
+        l.item_id=v; l.name=it.name; l.unit=it.unit||"";
+        if(isSet(it)){
+          l.spec=setSpecSummary(it);
+          l.price=itemSell(it);
+        }else if((it.variants||[]).length){
+          l.spec=it.variants[0].spec;
+          l.price=itemSell(it,l.spec);
+        }else{
+          l.spec=it.spec||"";
+          if(it.sell_price) l.price=it.sell_price;
+        }
       }else{ Object.assign(l,blankLine()); }
       renderQtDetail();
     };
   });
   form.querySelectorAll('[data-f="name"]').forEach(el=>{
     el.oninput=()=>{ e.lines[Number(el.dataset.idx)].name=el.value; };
+  });
+  form.querySelectorAll('[data-f="spec"]').forEach(el=>{
+    el.oninput=()=>{ e.lines[Number(el.dataset.idx)].spec=el.value; };
+  });
+  form.querySelectorAll('[data-f="vspec"]').forEach(el=>{
+    el.onchange=()=>{
+      const idx=Number(el.dataset.idx);
+      const l=e.lines[idx];
+      const it=db.items.find(x=>x.id===l.item_id);
+      l.spec=el.value;
+      l.price=itemSell(it,l.spec);
+      renderQtDetail();
+    };
   });
   form.querySelectorAll('[data-f="qty"],[data-f="price"]').forEach(el=>{
     el.oninput=()=>{
@@ -1061,58 +1300,71 @@ function koreanDate(iso){
 function printQuote(q){
   const s=db.settings||{};
   const c=coById(q.company_id)||{};
-  const t=quoteTotals(q);
-  const qtySum=q.lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
-  const rows=q.lines.map(l=>{
+  const lines=q.lines.filter(l=>(l.name||"").trim());   // 품목 미입력 행은 인쇄 제외
+  const fmtb=v=>Number(v)?fmt(v):"";                     // 0은 빈칸으로
+  const t=quoteTotals({lines});
+  const qtySum=lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
+  const colgroup=`<colgroup><col><col style="width:110px"><col style="width:66px"><col style="width:96px"><col style="width:110px"><col style="width:86px"></colgroup>`;
+  const rows=lines.map(l=>{
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
     return `
     <tr>
       <td>${escapeHtml(l.name)}</td>
       <td>${escapeHtml(l.spec||"")}</td>
-      <td class="num">${fmt(l.qty)}</td>
-      <td class="num">${fmt(l.price)}</td>
-      <td class="num">${fmt(supply)}</td>
-      <td class="num">${fmt(Math.round(supply*0.1))}</td>
+      <td class="num">${fmtb(l.qty)}</td>
+      <td class="num">${fmtb(l.price)}</td>
+      <td class="num">${fmtb(supply)}</td>
+      <td class="num">${fmtb(Math.round(supply*0.1))}</td>
     </tr>`;}).join("");
   document.getElementById("printArea").innerHTML=`
   <div class="p-wrap">
     <div class="p-head">
-      <div class="p-info">
+      <div>
+        <div class="p-eyebrow">ESTIMATE</div>
         <div class="p-title">견적서</div>
         <div class="p-to-name">${escapeHtml(c.name||coName(q.company_id))}</div>
-        <div class="irow"><span class="k">견적일</span><span>${escapeHtml(koreanDate(q.date))}</span></div>
-        ${q.valid?`<div class="irow"><span class="k">유효기간</span><span>${escapeHtml(q.valid)}</span></div>`:""}
+        <div class="p-info">
+          <div class="irow"><span class="k">견적번호</span><span>${escapeHtml(q.no)}</span></div>
+          <div class="irow"><span class="k">견적일</span><span>${escapeHtml(koreanDate(q.date))}</span></div>
+          ${q.valid?`<div class="irow"><span class="k">유효기간</span><span>${escapeHtml(q.valid)}</span></div>`:""}
+        </div>
       </div>
       <div class="p-supplier">
         <div class="shead">공급자</div>
         <div class="srow"><span class="k">상호</span><span>${escapeHtml(s.name||"")}</span></div>
         <div class="srow"><span class="k">등록번호</span><span>${escapeHtml(s.biz_no||"")}</span></div>
         <div class="srow"><span class="k">주소</span><span>${escapeHtml(s.address||"")}</span></div>
-        ${s.bank?`<div class="srow"><span class="k">계좌번호</span><span>${escapeHtml(s.bank)}</span></div>`:""}
+        <div class="srow"><span class="k">계좌번호</span><span>${escapeHtml(s.bank||"")}</span></div>
         <div class="srow"><span class="k">전화</span><span>${escapeHtml(s.phone||"")}</span></div>
       </div>
     </div>
     <div class="p-grand">
-      <span class="k">견적금액 <small>(공급가액 + 세액)</small></span>
+      <span class="k">견적금액 (공급가액 + 세액)</span>
       <span class="v">₩${fmt(t.total)}</span>
     </div>
-    <table class="p-tbl">
+    <table class="p-tbl" style="table-layout:fixed">
+      ${colgroup}
       <thead><tr>
-        <th>품명</th><th style="width:110px">규격</th><th class="num" style="width:66px">수량</th>
-        <th class="num" style="width:96px">단가</th><th class="num" style="width:110px">공급가액</th><th class="num" style="width:86px">세액</th>
+        <th>품명</th><th>규격</th><th class="num">수량</th>
+        <th class="num">단가</th><th class="num">공급가액</th><th class="num">세액</th>
       </tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr>
-        <td>합계</td><td></td><td class="num">${fmt(qtySum)}</td><td></td>
-        <td class="num">${fmt(t.supply)}</td><td class="num">${fmt(t.vat)}</td>
-      </tr></tfoot>
     </table>
-    <div class="p-etc">
-      <div class="k">기타</div>
-      ${q.memo?`<div class="memo">${escapeHtml(q.memo)}</div>`:""}
-      <div class="blank"></div>
-      <div class="blank"></div>
-      <div class="blank end"></div>
+    <div class="p-bottom">
+      <div class="p-sum">
+        <span class="k">합계</span>
+        <div class="parts">
+          <span>수량 <b>${fmt(qtySum)}</b></span>
+          <span>공급가액 <b>${fmt(t.supply)}</b></span>
+          <span>세액 <b>${fmt(t.vat)}</b></span>
+          <span class="total">₩${fmt(t.total)}</span>
+        </div>
+      </div>
+      <div class="p-etc">
+        <div class="k">기타</div>
+        <div class="body">${escapeHtml(q.memo||"")}</div>
+      </div>
+      <div class="p-foot">${q.valid?"본 견적서는 유효기간 내에만 유효합니다":""}${(q.valid&&s.name)?" · ":""}${escapeHtml(s.name||"")}</div>
     </div>
   </div>`;
   window.print();
