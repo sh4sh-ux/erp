@@ -255,11 +255,9 @@
   .p-tbl th:last-child{border-radius:0 9px 9px 0}
   .p-tbl th.num,.p-tbl td.num{text-align:right}
   .p-tbl td{padding:12px 11px;border-bottom:1px solid #ECEDEF;font-variant-numeric:tabular-nums}
-  .p-sum{display:flex;justify-content:space-between;align-items:center;background:#F4F5F7;border-radius:11px;padding:10px 16px;font-size:13px}
-  .p-sum .k{font-weight:750}
-  .p-sum .parts{display:flex;gap:26px;align-items:baseline}
-  .p-sum .parts b{font-weight:750}
-  .p-sum .total{font-weight:800;font-size:15px}
+  .p-sumrow td{background:#F4F5F7;border-bottom:none;font-weight:750;padding:10px 11px}
+  .p-sumrow td:first-child{border-radius:11px 0 0 11px}
+  .p-sumrow td:last-child{border-radius:0 11px 11px 0}
   .p-etc{margin-top:22px}
   .p-etc .k{font-size:11px;font-weight:700;letter-spacing:.16em;color:#8A8F98;margin-bottom:7px}
   .p-etc .body{border:1px solid #E4E6E9;border-radius:11px;min-height:64px;padding:10px 13px;font-size:12.5px;color:#222;white-space:pre-wrap}
@@ -488,7 +486,7 @@
 
       <!-- ========== 대시보드 ========== -->
       <section class="view hidden" id="view-dash">
-        <div class="page-head"><h2>대시보드</h2><div class="sp"></div></div>
+        <div class="page-head"><h2>대시보드</h2><span class="count" id="dashVer"></span><div class="sp"></div></div>
         <div class="stats" id="dashStats"></div>
         <div class="dash-grid">
           <div class="card">
@@ -544,6 +542,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
+const APP_VERSION = "v1.5";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1448,15 +1447,13 @@ function printQuote(q){
       <tbody>${rows}</tbody>
     </table>
     <div class="p-bottom">
-      <div class="p-sum">
-        <span class="k">합계</span>
-        <div class="parts">
-          <span>수량 <b>${fmt(qtySum)}</b></span>
-          <span>공급가액 <b>${fmt(t.supply)}</b></span>
-          <span>세액 <b>${fmt(t.vat)}</b></span>
-          <span class="total">₩${fmt(t.total)}</span>
-        </div>
-      </div>
+      <table class="p-tbl" style="table-layout:fixed">
+        ${colgroup}
+        <tbody><tr class="p-sumrow">
+          <td>합계</td><td></td><td class="num">${fmt(qtySum)}</td><td></td>
+          <td class="num">${fmt(t.supply)}</td><td class="num">${fmt(t.vat)}</td>
+        </tr></tbody>
+      </table>
       <div class="p-etc">
         <div class="k">기타</div>
         <div class="body">${escapeHtml(q.memo||"")}</div>
@@ -1656,6 +1653,7 @@ async function deletePayment(id){
    대시보드(dash)
    ===================================================================== */
 function renderDash(){
+  document.getElementById("dashVer").textContent=APP_VERSION;
   const month=localMonth();
   const inMonth=db.payments.filter(p=>(p.date||"").startsWith(month));
   const sumIn=inMonth.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
