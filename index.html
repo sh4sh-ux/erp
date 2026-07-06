@@ -255,12 +255,26 @@
     #view-sales #slCsvBtn{flex:1 1 100%;padding:10px}
   }
 
+  /* ---------- 인쇄 미리보기 오버레이 (모바일) ---------- */
+  #printArea.preview{display:block;position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;background:var(--paper);overflow:auto;padding:64px 12px 40px;-webkit-overflow-scrolling:touch}
+  .pv-bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:61;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 12px}
+  .pv-bar .sp{flex:1}
+  .pv-bar .btn{flex:0 0 auto;padding:9px 16px;font-size:13.5px}
+  .pv-sheet{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin:0 auto;overflow:hidden}
+  .pv-scale{transform-origin:top left}
+  .pv-scale .p-wrap{padding:30px 28px}
+  .pv-hint{text-align:center;font-size:12px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+
   /* ---------- print (견적서 — 그레이 포인트, 레이아웃 고정) ---------- */
   #printArea{display:none}
   @media print{
     body{background:#fff}
     #loginView,#appView,.toast{display:none!important}
     #printArea{display:block!important}
+    #printArea.preview{position:static;padding:0;background:#fff;overflow:visible}
+    .pv-bar,.pv-hint{display:none!important}
+    .pv-sheet{border:none;border-radius:0;box-shadow:none;margin:0;width:auto!important;height:auto!important;overflow:visible}
+    .pv-scale{transform:none!important;width:auto!important}
     @page{margin:16mm 14mm}
     .p-wrap{display:flex;flex-direction:column;min-height:263mm}
   }
@@ -608,7 +622,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.10";
+const APP_VERSION = "v1.11";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1549,7 +1563,41 @@ function printQuote(q){
       <div class="p-foot">${q.valid?"본 견적서는 유효기간 내에만 유효합니다":""}${(q.valid&&s.name)?" · ":""}${escapeHtml(s.name||"")}</div>
     </div>
   </div>`;
-  window.print();
+  // 모바일: window.print()가 동작하지 않는 인앱 브라우저가 많으므로 미리보기 오버레이 먼저 표시
+  if(window.matchMedia("(max-width:820px)").matches) openPrintPreview();
+  else window.print();
+}
+
+/* ---------- 모바일 인쇄 미리보기 ---------- */
+const PV_SHEET_W = 760;   // .p-wrap 인쇄 폭 기준
+function openPrintPreview(){
+  const pa=document.getElementById("printArea");
+  const inner=pa.innerHTML;
+  pa.innerHTML=`
+    <div class="pv-bar">
+      <button class="btn ghost" id="pvCloseBtn">닫기</button>
+      <div class="sp"></div>
+      <button class="btn save" id="pvPrintBtn">인쇄 / PDF 저장</button>
+    </div>
+    <div class="pv-sheet"><div class="pv-scale">${inner}</div></div>
+    <div class="pv-hint">인쇄 버튼이 동작하지 않으면 Safari·Chrome 등<br>기본 브라우저에서 열어 주세요.</div>`;
+  pa.classList.add("preview");
+  document.body.style.overflow="hidden";
+  const sc=pa.querySelector(".pv-scale");
+  const sheet=pa.querySelector(".pv-sheet");
+  const scale=Math.min(1,(pa.clientWidth-24-2)/PV_SHEET_W);
+  sc.style.width=PV_SHEET_W+"px";
+  sc.style.transform=`scale(${scale})`;
+  sheet.style.width=Math.round(PV_SHEET_W*scale)+"px";
+  requestAnimationFrame(()=>{ sheet.style.height=Math.round(sc.offsetHeight*scale)+"px"; });
+  document.getElementById("pvCloseBtn").onclick=closePrintPreview;
+  document.getElementById("pvPrintBtn").onclick=()=>window.print();
+}
+function closePrintPreview(){
+  const pa=document.getElementById("printArea");
+  pa.classList.remove("preview");
+  pa.innerHTML="";
+  document.body.style.overflow="";
 }
 
 /* =====================================================================
