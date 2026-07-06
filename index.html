@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
 <title>ERP · 업무 관리</title>
 <style>
   :root{
@@ -275,11 +276,14 @@
     .pv-bar,.pv-hint{display:none!important}
     .pv-sheet{border:none;border-radius:0;box-shadow:none;margin:0;width:auto!important;height:auto!important;overflow:visible}
     .pv-scale{transform:none!important;width:auto!important}
-    .pv-scale .p-wrap{padding:0!important}
+    /* 모바일 인쇄: 데스크탑 인쇄 폭(A4 182mm=688px)과 동일하게 고정 →
+       iOS Safari가 페이지 폭에 맞춰 축소하며 데스크탑과 같은 레이아웃이 됨 */
+    .pv-scale .p-wrap{padding:0!important;width:688px!important;max-width:none!important}
     @page{margin:16mm 14mm}
     .p-wrap{display:flex;flex-direction:column;min-height:250mm}
   }
   #printArea,#printArea *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea a{color:inherit!important;text-decoration:none!important}
   .p-wrap{max-width:760px;margin:0 auto;color:#111;font-size:13px;line-height:1.5}
   .p-bottom{margin-top:auto}
   .p-eyebrow{font-size:11px;font-weight:700;letter-spacing:.3em;color:#8A8F98;margin-bottom:4px}
@@ -623,7 +627,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.12";
+const APP_VERSION = "v1.13";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
