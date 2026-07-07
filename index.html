@@ -627,7 +627,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.13";
+const APP_VERSION = "v1.14";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1322,7 +1322,10 @@ function renderQtDetail(){
       <button class="btn save" id="qtSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?"":`<button class="btn ghost" id="qtPrintBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-        인쇄</button>`}
+        인쇄</button>
+      <button class="btn ghost" id="qtImgBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+        이미지</button>`}
       ${isNew?'<button class="btn ghost" id="qtCancelBtn">취소</button>':'<button class="btn del" id="qtDelBtn">삭제</button>'}
     </div>`;
   document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; };
@@ -1337,6 +1340,7 @@ function renderQtDetail(){
   else{
     document.getElementById("qtDelBtn").onclick=()=>deleteQuote(qtSel);
     document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing);
+    document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing);
   }
 }
 
@@ -1569,19 +1573,20 @@ function printQuote(q){
     </div>
   </div>`;
   // 모바일: window.print()가 동작하지 않는 인앱 브라우저가 많으므로 미리보기 오버레이 먼저 표시
-  if(window.matchMedia("(max-width:820px)").matches) openPrintPreview();
+  if(window.matchMedia("(max-width:820px)").matches) openPrintPreview(q);
   else window.print();
 }
 
 /* ---------- 모바일 인쇄 미리보기 ---------- */
 const PV_SHEET_W = 760;   // .p-wrap 인쇄 폭 기준
-function openPrintPreview(){
+function openPrintPreview(q){
   const pa=document.getElementById("printArea");
   const inner=pa.innerHTML;
   pa.innerHTML=`
     <div class="pv-bar">
       <button class="btn ghost" id="pvCloseBtn">닫기</button>
       <div class="sp"></div>
+      <button class="btn ghost" id="pvImgBtn">이미지</button>
       <button class="btn save" id="pvPrintBtn">인쇄 / PDF 저장</button>
     </div>
     <div class="pv-sheet"><div class="pv-scale">${inner}</div></div>
@@ -1597,12 +1602,209 @@ function openPrintPreview(){
   requestAnimationFrame(()=>{ sheet.style.height=Math.round(sc.offsetHeight*scale)+"px"; });
   document.getElementById("pvCloseBtn").onclick=closePrintPreview;
   document.getElementById("pvPrintBtn").onclick=()=>window.print();
+  document.getElementById("pvImgBtn").onclick=()=>saveQuoteImage(q);
 }
 function closePrintPreview(){
   const pa=document.getElementById("printArea");
   pa.classList.remove("preview");
   pa.innerHTML="";
   document.body.style.overflow="";
+}
+
+/* ---------- 견적서 이미지(PNG) 내보내기 ----------
+   인쇄 양식(A4 794×1123px@96dpi)과 동일한 레이아웃을 캔버스에 2배 해상도로 그림 */
+const QIMG_FONT='-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif';
+function qimgWrap(ctx,text,maxW){
+  const out=[];
+  for(const raw of String(text||"").split("\n")){
+    let line="";
+    for(const ch of raw){
+      if(ctx.measureText(line+ch).width>maxW && line){ out.push(line); line=ch===" "?"":ch; }
+      else line+=ch;
+    }
+    out.push(line);
+  }
+  return out.length?out:[""];
+}
+function qimgRR(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function drawQuoteCanvas(q){
+  const s=db.settings||{};
+  const lines=q.lines.filter(l=>(l.name||"").trim());
+  const t=quoteTotals({lines});
+  const qtySum=lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
+  const fmtb=v=>Number(v)?fmt(v):"";
+  const NOTICE=["자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.",
+                "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];
+  const SC=2, PW=794, MX=53, MT=60, MB=60, CW=688;
+  const F=(w,px)=>`${w} ${px}px ${QIMG_FONT}`;
+  // 컬럼: 품명(가변) | 규격 110 | 수량 66 | 단가 96 | 공급가액 110 | 세액 86
+  const COLS=[CW-110-66-96-110-86,110,66,96,110,86];
+  const colX=[MX]; COLS.forEach((w,i)=>colX.push(colX[i]+w));
+
+  const mc=document.createElement("canvas").getContext("2d");
+
+  // --- 측정 패스 ---
+  mc.font=F(400,12);
+  const supRows=[["상호",s.name||""],["등록번호",s.biz_no||""],["주소",s.address||""],["계좌번호",s.bank||""],["전화",s.phone||""]];
+  const supW=316, supPadX=18, supValW=supW-supPadX*2-62-12;
+  const supLines=supRows.map(r=>qimgWrap(mc,r[1],supValW));
+  const supRowsH=supLines.reduce((h,ls)=>h+Math.max(1,ls.length)*18+4,0);
+  const supH=15+18+7+supRowsH+15;
+  const infoRows=[["견적번호",q.no||""],["견적일",koreanDate(q.date)]];
+  if(q.valid) infoRows.push(["유효기간",q.valid]);
+  const leftH=16+8+44+30+6+infoRows.length*19;
+  const headerH=Math.max(leftH,supH);
+
+  mc.font=F(400,12.5);
+  const rowInfo=lines.map(l=>{
+    const nameLs=qimgWrap(mc,l.name,COLS[0]-22);
+    const specLs=qimgWrap(mc,[l.color,l.spec].filter(Boolean).join(" · "),COLS[1]-16);
+    const n=Math.max(nameLs.length,specLs.length);
+    return { nameLs, specLs, h:Math.max(42,n*18+24) };
+  });
+  const tableH=30+rowInfo.reduce((h,r)=>h+r.h,0);
+
+  const memoLs=q.memo?qimgWrap(mc,q.memo,CW-26):[];
+  const noticeLs=NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));
+  const etcBoxH=Math.max(64,10+memoLs.length*19+(memoLs.length?8:0)+noticeLs.length*21+10);
+  const footTxt=(q.valid?"본 견적서는 유효기간 내에만 유효합니다":"")+((q.valid&&s.name)?" · ":"")+(s.name||"");
+  const bottomH=34+16+16+7+etcBoxH+(footTxt?14+14:0);
+
+  const flowH=MT+headerH+24+52+20+tableH+22;
+  const PH=Math.max(1123,flowH+bottomH+MB);
+  const bottomY=PH-MB-bottomH;
+
+  // --- 드로잉 패스 ---
+  const canvas=document.createElement("canvas");
+  canvas.width=PW*SC; canvas.height=PH*SC;
+  const ctx=canvas.getContext("2d");
+  ctx.scale(SC,SC);
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,PW,PH);
+  ctx.textBaseline="alphabetic";
+
+  // 좌측 헤더
+  let y=MT+11;
+  ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
+  ctx.fillText("E S T I M A T E",MX,y);
+  y+=8+34;
+  ctx.fillStyle="#111"; ctx.font=F(800,34);
+  ctx.fillText("견적서",MX,y);
+  y+=30+14;
+  ctx.font=F(750,17);
+  ctx.fillText(coName(q.company_id),MX,y);
+  y+=24;
+  infoRows.forEach(r=>{
+    ctx.font=F(600,12.5); ctx.fillStyle="#8A8F98"; ctx.fillText(r[0],MX,y);
+    ctx.font=F(400,12.5); ctx.fillStyle="#333"; ctx.fillText(r[1],MX+74,y);
+    y+=19;
+  });
+
+  // 공급자 박스
+  const supX=MX+CW-supW;
+  ctx.fillStyle="#F4F5F7"; qimgRR(ctx,supX,MT,supW,supH,14); ctx.fill();
+  let sy=MT+15+11;
+  ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
+  ctx.fillText("공 급 자",supX+supPadX,sy);
+  sy+=7+14;
+  supRows.forEach((r,i)=>{
+    ctx.font=F(600,12); ctx.fillStyle="#8A8F98"; ctx.fillText(r[0],supX+supPadX,sy);
+    ctx.font=F(400,12); ctx.fillStyle="#333";
+    supLines[i].forEach((ln,j)=>ctx.fillText(ln,supX+supPadX+62+12,sy+j*18));
+    sy+=Math.max(1,supLines[i].length)*18+4;
+  });
+
+  // 견적금액 바
+  let gy=MT+headerH+24;
+  ctx.fillStyle="#2F3338"; qimgRR(ctx,MX,gy,CW,52,14); ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.85)"; ctx.font=F(650,13);
+  ctx.fillText("견적금액 (공급가액 + 세액)",MX+20,gy+31);
+  ctx.fillStyle="#fff"; ctx.font=F(800,26); ctx.textAlign="right";
+  ctx.fillText("₩"+fmt(t.total),MX+CW-20,gy+35);
+  ctx.textAlign="left";
+
+  // 품목 테이블
+  let ty=gy+52+20;
+  ctx.fillStyle="#ECEDEF"; qimgRR(ctx,MX,ty,CW,30,9); ctx.fill();
+  ctx.fillStyle="#3A3F46"; ctx.font=F(700,11.5);
+  const TH=["품명","규격","수량","단가","공급가액","세액"];
+  TH.forEach((h,i)=>{
+    if(i<2) ctx.fillText(h,colX[i]+11,ty+19);
+    else{ ctx.textAlign="right"; ctx.fillText(h,colX[i+1]-11,ty+19); ctx.textAlign="left"; }
+  });
+  ty+=30;
+  rowInfo.forEach((r,ri)=>{
+    const l=lines[ri];
+    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    const baseY=ty+12+13;
+    ctx.fillStyle="#111"; ctx.font=F(400,12.5);
+    r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11,baseY+j*18));
+    r.specLs.forEach((ln,j)=>ctx.fillText(ln,colX[1]+11,baseY+j*18));
+    ctx.textAlign="right";
+    [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>{
+      ctx.fillText(v,colX[i+3]-11,baseY);
+    });
+    ctx.textAlign="left";
+    ty+=r.h;
+    ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();
+  });
+
+  // 하단 블록 (합계·기타·푸터 — 페이지 하단 고정)
+  let by=bottomY;
+  ctx.fillStyle="#F4F5F7"; qimgRR(ctx,MX,by,CW,34,11); ctx.fill();
+  ctx.fillStyle="#111"; ctx.font=F(750,12.5);
+  ctx.fillText("합계",colX[0]+11,by+22);
+  ctx.textAlign="right";
+  [fmt(qtySum),"",fmt(t.supply),fmt(t.vat)].forEach((v,i)=>{
+    if(v) ctx.fillText(v,colX[i+3]-11,by+22);
+  });
+  ctx.textAlign="left";
+  by+=34+16+11;
+  ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
+  ctx.fillText("기 타",MX,by);
+  by+=7;
+  ctx.strokeStyle="#E4E6E9"; ctx.lineWidth=1;
+  qimgRR(ctx,MX+.5,by+.5,CW-1,etcBoxH-1,11); ctx.stroke();
+  let ey=by+10+14;
+  ctx.font=F(400,12.5);
+  if(memoLs.length){
+    ctx.fillStyle="#222";
+    memoLs.forEach(ln=>{ ctx.fillText(ln,MX+13,ey); ey+=19; });
+    ey+=8;
+  }
+  ctx.fillStyle="#D32F2F";
+  noticeLs.forEach(ln=>{ ctx.fillText(ln,MX+13,ey); ey+=21; });
+  if(footTxt){
+    ctx.fillStyle="#9AA0A8"; ctx.font=F(400,11); ctx.textAlign="center";
+    ctx.fillText(footTxt,MX+CW/2,by+etcBoxH+14+11);
+    ctx.textAlign="left";
+  }
+  return canvas;
+}
+
+async function saveQuoteImage(q){
+  const canvas=drawQuoteCanvas(q);
+  const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
+  if(!blob){ toast("이미지 생성에 실패했습니다"); return; }
+  const safe=v=>String(v||"").replace(/[\\/:*?"<>|]/g,"_");
+  const fname=`견적서_${safe(q.no)}_${safe(coName(q.company_id))}.png`;
+  const file=new File([blob],fname,{type:"image/png"});
+  // 모바일: 공유 시트로 (사진 앱 저장·카톡 전송 등), 실패/미지원 시 다운로드
+  if(window.matchMedia("(max-width:820px)").matches && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:fname}); return; }
+    catch(err){ if(err && err.name==="AbortError") return; }
+  }
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=fname;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast("이미지를 저장했습니다");
 }
 
 /* =====================================================================
