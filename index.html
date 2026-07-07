@@ -249,6 +249,7 @@
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
     .stock-add .span2{grid-column:span 2}
+    #slBody .tbl{min-width:660px}
     #view-sales .page-head{gap:8px}
     #view-sales .page-head .sp{display:none}
     #view-sales .page-head h2{width:100%}
@@ -627,7 +628,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.14";
+const APP_VERSION = "v1.15";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -2107,7 +2108,8 @@ function renderSales(){
           <h3>${escapeHtml(coName(cid))}</h3>
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b></span>
         </div>
-        <div class="tbl-wrap"><table class="tbl">
+        <div class="tbl-wrap"><table class="tbl" style="table-layout:fixed">
+          <colgroup><col><col style="width:200px"><col style="width:90px"><col style="width:110px"><col style="width:130px"><col style="width:110px"></colgroup>
           <thead><tr><th>품명</th><th>색상·사이즈</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th></tr></thead>
           <tbody>${trs}
             <tr style="background:var(--paper)">
