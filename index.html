@@ -628,7 +628,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.15";
+const APP_VERSION = "v1.16";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -2114,8 +2114,8 @@ function renderSales(){
           <tbody>${trs}
             <tr style="background:var(--paper)">
               <td style="font-weight:700">소계</td><td></td>
-              <td class="num">${fmt(sQty)}</td><td></td>
-              <td class="num">${fmt(sSupply)}</td><td class="num">${fmt(sVat)}</td>
+              <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
+              <td class="num" style="font-weight:700">${fmt(sSupply)}</td><td class="num" style="font-weight:700">${fmt(sVat)}</td>
             </tr>
           </tbody>
         </table></div>
