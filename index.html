@@ -249,7 +249,9 @@
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
     .stock-add .span2{grid-column:span 2}
-    #slBody .tbl{min-width:660px}
+    #slBody .tbl{min-width:860px}
+    #slBody .card-head{flex-wrap:wrap;padding-bottom:8px}
+    #slBody .card-head .legend{margin-left:0;width:100%;gap:8px;white-space:nowrap;overflow-x:auto}
     #view-sales .page-head{gap:8px}
     #view-sales .page-head .sp{display:none}
     #view-sales .page-head h2{width:100%}
@@ -628,7 +630,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.16";
+const APP_VERSION = "v1.17";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
