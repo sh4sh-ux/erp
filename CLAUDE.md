@@ -17,7 +17,8 @@
 
 ## 파일 구조
 ```
-index.html            — 앱 전체 (HTML/CSS/JS 통합, 약 2,280줄)
+index.html            — 앱 전체 (HTML/CSS/JS 통합, 약 2,480줄)
+sw.js                 — 서비스워커 (오프라인 지원)
 manifest.webmanifest  — PWA 매니페스트 (아이콘·테마색)
 favicon.png           — 브라우저 탭 아이콘 64px
 icons/icon-180.png    — iOS 홈 화면 (apple-touch-icon)
@@ -89,15 +90,20 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 | payments | `renderPay` | 수금/지급 (월별) |
 | dash | `renderDash` | 대시보드 (월별 차트 + 최근 활동) |
 | sales | `renderSales` | 매출 집계 (기간·거래처별 품목 집계 + CSV) |
-| settings | `renderSettings` | 공급자 정보 (견적서 인쇄용 내 사업자 정보) |
+| ar | `renderAr` | 미수금 (수주 견적 합계 − 수금 합계, 거래처별) |
+| settings | `renderSettings` | 공급자 정보 + 전체 데이터 백업/복원 |
 
 - 거래처·품목·견적서는 좌(목록)·우(상세) 2단 `.cols` 그리드.
   모바일에서는 1열로 접히므로 목록 항목 선택 시 `scrollToDetail(formId)`로 상세까지 자동 스크롤
 - 견적 상태를 "수주"로 저장하면 `deductStockForQuote(q)`가 확인 후 재고에서 자동 출고
   (세트 품목은 구성품 단위로 분해해서 차감)
 
-## 견적서 출력 — 3가지 경로
-같은 견적서를 세 가지로 내보냄. **레이아웃이 서로 어긋나지 않게 함께 확인할 것**
+## 견적서 출력 — 3가지 경로 × 2가지 양식
+같은 견적서를 세 경로로 내보내고, 각 경로는 **견적서 / 거래명세서** 두 양식을 지원.
+`DOC_TYPES`가 양식별 차이(제목·eyebrow·번호/일자 라벨·금액 라벨·유효기간 표시·푸터 문구)를
+한곳에 모아두고, 세 경로가 모두 `docOf(docType)`으로 같은 값을 읽는다.
+견적서 폼의 `#fq_doc` 선택값은 `qtDocType`(렌더 간 유지)에 보관되며 인쇄·이미지·공유가 공유한다.
+**레이아웃이 서로 어긋나지 않게 함께 확인할 것**
 
 1. **인쇄(PDF)** — `printQuote(q)` → `#printArea`에 HTML 주입 후 `window.print()`
 2. **미리보기(모바일)** — `openPrintPreview(q)`. 모바일(≤820px)에서는 `window.print()`가
@@ -145,6 +151,18 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 - 모서리 `--r:16px / --r-sm:10px`, 폰트는 시스템 스택 (외부 폰트·CDN 없음 — 오프라인 동작)
 - 아이콘은 인라인 SVG(lucide 계열)만. 앱 아이콘도 같은 육각형 로고 + `#0A84FF` 배경
 - 숫자는 `font-variant-numeric:tabular-nums` + `fmt()`/`won()`로 천단위 쉼표
+
+## 백업 / 오프라인
+- **백업 JSON** — `exportBackup()`이 `{app:"erp", appVersion, format:1, exportedAt, settings, ...5개 테이블}`
+  형태로 저장. `importBackup()`은 `app!=="erp"`이거나 테이블이 배열이 아니면 **아무것도 반영하지 않고 중단**
+  (부분 복원으로 데이터가 섞이는 것 방지) → 확인 후 전체 덮어쓰기 + Dropbox 재업로드
+- **서비스워커(`sw.js`)** — 앱 껍데기만 캐시(`erp-shell-v1`). 데이터는 Dropbox API라 캐시하지 않음
+  - HTML은 **network-first**: 새 배포를 즉시 받고, 오프라인일 때만 캐시 사본을 씀.
+    사용자가 버전 칩으로 배포를 확인하는 습관과 충돌하지 않도록 한 의도적 선택 —
+    cache-first로 바꾸면 배포해도 옛 버전이 계속 보인다
+  - 아이콘·매니페스트는 cache-first. **파일을 바꾸면 `CACHE` 상수(`erp-shell-v1`)를 올릴 것**
+  - `manifest.webmanifest`의 `display`는 `browser` 유지 — standalone으로 바꾸면 iOS에서
+    Safari 인쇄 경로가 막혀 견적서 인쇄가 어려워진다
 
 ## 알려진 함정 (작업 시 주의)
 - **인쇄·미리보기·캔버스 3중 레이아웃** — 하나만 고치면 나머지가 어긋남. 견적서 출력을
@@ -205,10 +223,19 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - `v1.18` — 홈 화면 앱 아이콘 추가 (apple-touch-icon·manifest·favicon, 상단바 로고와 동일 디자인)
 - `v1.19` — **견적서 공유 기능** — 공유 시트 → 클립보드 복사 → 파일 저장 3단 fallback.
   '이미지' 버튼은 항상 파일 저장으로 역할 분리
+- `v1.20` — 견적서 목록 CSV 내보내기 (검색 결과 그대로, 견적 1건당 1행).
+  `filteredQuotes()`로 목록 화면과 CSV가 같은 필터를 공유
+- `v1.21` — 전체 데이터 JSON 백업·복원 (설정 탭). 형식 검증 후 전체 덮어쓰기
+- `v1.22` — **거래처별 미수금** 뷰 추가 — 수주 견적 합계 − 수금 합계, CSV 내보내기 포함.
+  카드 총액은 전체 기준, 표 하단은 표시된 행 기준이라 라벨을 '합계/표시 합계'로 구분
+- `v1.23` — **거래명세서 양식** — `DOC_TYPES`로 견적서/거래명세서 전환.
+  인쇄·이미지·공유 3경로 모두 선택된 양식으로 출력
+- `v1.24` — **PWA 오프라인 지원** — 서비스워커 추가.
+  HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
 
 ## 다음 작업 후보
-- 견적서 목록 CSV 내보내기 (매출 집계 CSV와 별개로 견적 단위 목록)
-- 전체 데이터 JSON 백업·복원 (Dropbox 외 로컬 사본)
-- 거래처별 미수금 현황 (견적 수주액 − 수금액)
-- 견적서 → 거래명세서·세금계산서 양식 전환
-- PWA 오프라인 지원 (서비스워커)
+- 미수금에 연령 분석(30/60/90일 경과) 추가
+- 수금 입력 시 특정 견적서와 연결 (현재는 거래처 단위 상계)
+- 품목별 매입·매출 마진 분석
+- 견적서 상태 변경 이력 (작성중 → 발송 → 수주 타임스탬프)
+- 다중 사용자 공유 (Dropbox 공유 폴더 가이드)

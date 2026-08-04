@@ -128,6 +128,8 @@
   .btn.del:hover{background:var(--danger);color:#fff}
   .btn.ghost{background:var(--paper);color:var(--ink-2)}
   .btn.ghost:hover{color:var(--ink)}
+  .doc-sel{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-weight:600;font-size:14px;outline:none;cursor:pointer}
+  .doc-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
 
   /* ---------- quote line editor ---------- */
   .qlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
@@ -396,6 +398,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
         매출 집계
       </button>
+      <button class="nav-item" data-view="ar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        미수금
+      </button>
       <div class="nav-sec">설정</div>
       <button class="nav-item" data-view="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -502,6 +508,7 @@
           <h2>견적서</h2>
           <span class="count" id="qtCount">0건</span>
           <div class="sp"></div>
+          <button class="btn-sm" id="qtCsvBtn">CSV 내보내기</button>
         </div>
         <div class="cols">
           <div class="card">
@@ -596,10 +603,33 @@
         <div id="slBody"></div>
       </section>
 
+      <!-- ========== 미수금 ========== -->
+      <section class="view hidden" id="view-ar">
+        <div class="page-head">
+          <h2>미수금</h2>
+          <div class="sp"></div>
+          <select class="month-input" id="arFilter">
+            <option value="open">미수금 있는 곳만</option>
+            <option value="all">모든 거래처</option>
+          </select>
+          <button class="btn-sm" id="arCsvBtn">CSV 내보내기</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">수주 총액</div><div class="v" id="arOrdered">0원</div></div>
+          <div class="stat"><div class="k">수금 총액</div><div class="v pos" id="arPaid">0원</div></div>
+          <div class="stat"><div class="k">미수금 합계</div><div class="v neg" id="arOpen">0원</div></div>
+          <div class="stat"><div class="k">미수 거래처</div><div class="v" id="arCount">0곳</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>거래처별 미수금</h3><span class="legend">수주 견적 합계 − 수금 합계</span></div>
+          <div class="tbl-wrap"><table class="tbl" id="arTbl"></table></div>
+        </div>
+      </section>
+
       <!-- ========== 설정(공급자 정보) ========== -->
       <section class="view hidden" id="view-settings">
         <div class="page-head"><h2>공급자 정보</h2><div class="sp"></div></div>
-        <div class="card" style="max-width:640px">
+        <div class="card" style="max-width:640px;margin-bottom:16px">
           <div class="detail">
             <p style="font-size:13px;color:var(--ink-2);margin-bottom:18px">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
             <div class="grid2">
@@ -616,6 +646,26 @@
             </div>
             <div class="field"><label>주소</label><input id="st_address"></div>
             <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:640px">
+          <div class="detail">
+            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">데이터 백업</h3>
+            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+              거래처·품목·견적서·수금/지급·재고를 파일 하나로 내려받아 보관합니다.
+              불러오기를 하면 <b>현재 데이터를 모두 덮어씁니다.</b>
+            </p>
+            <div id="bkStat" class="hint" style="margin-bottom:14px"></div>
+            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+              <button class="btn ghost" id="bkExportBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                백업 내려받기</button>
+              <button class="btn ghost" id="bkImportBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 8 5-5 5 5"/><path d="M12 3v12"/></svg>
+                백업 불러오기</button>
+              <input type="file" id="bkFile" accept="application/json,.json" class="hidden">
+            </div>
           </div>
         </div>
       </section>
@@ -635,7 +685,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.19";
+const APP_VERSION = "v1.24";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -812,6 +862,7 @@ const renderers={
   payments(){ renderPay(); },
   dash(){ renderDash(); },
   sales(){ renderSales(); },
+  ar(){ renderAr(); },
   settings(){ renderSettings(); }
 };
 function switchView(v){
@@ -1254,11 +1305,16 @@ function quoteTotals(q){
   return { supply, vat, total:supply+vat };
 }
 
-function renderQtList(){
+/* 검색어가 적용된 견적서 목록 — 화면 표시와 CSV 내보내기가 같은 결과를 쓰도록 공유 */
+function filteredQuotes(){
   const q=qtFilter.trim().toLowerCase();
-  const rows=db.quotes
+  return db.quotes
     .filter(x=>!q || (x.no||"").toLowerCase().includes(q) || coName(x.company_id).toLowerCase().includes(q))
     .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.no||"").localeCompare(a.no||""));
+}
+
+function renderQtList(){
+  const rows=filteredQuotes();
   document.getElementById("qtCount").textContent=db.quotes.length+"건";
   const list=document.getElementById("qtList");
   if(rows.length===0){
@@ -1327,6 +1383,9 @@ function renderQtDetail(){
     </div>
     <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea></div>
     <div class="form-actions">
+      ${isNew?"":`<select class="doc-sel" id="fq_doc" title="인쇄·이미지·공유에 사용할 양식">
+        ${Object.keys(DOC_TYPES).map(k=>`<option ${k===qtDocType?"selected":""}>${k}</option>`).join("")}
+      </select>`}
       <button class="btn save" id="qtSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?"":`<button class="btn ghost" id="qtPrintBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
@@ -1350,9 +1409,10 @@ function renderQtDetail(){
   if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; renderQtList(); renderQtDetail(); };
   else{
     document.getElementById("qtDelBtn").onclick=()=>deleteQuote(qtSel);
-    document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing);
-    document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing);
-    document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing);
+    document.getElementById("fq_doc").onchange=ev=>{ qtDocType=ev.target.value; };
+    document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing,qtDocType);
+    document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing,qtDocType);
+    document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing,qtDocType);
   }
 }
 
@@ -1515,7 +1575,20 @@ function koreanDate(iso){
   return `${y}년 ${m}월 ${d}일`;
 }
 
-function printQuote(q){
+/* 견적서 / 거래명세서 — 같은 데이터로 두 가지 양식을 출력 */
+const DOC_TYPES={
+  "견적서":{ eyebrow:"ESTIMATE", noLabel:"견적번호", dateLabel:"견적일",
+    grand:"견적금액 (공급가액 + 세액)", showValid:true,
+    foot:q=>q.valid?"본 견적서는 유효기간 내에만 유효합니다":"" },
+  "거래명세서":{ eyebrow:"STATEMENT", noLabel:"명세번호", dateLabel:"거래일",
+    grand:"거래금액 (공급가액 + 세액)", showValid:false,
+    foot:()=>"위와 같이 거래내역을 명세합니다" }
+};
+let qtDocType="견적서";
+function docOf(t){ return DOC_TYPES[t] || DOC_TYPES["견적서"]; }
+
+function printQuote(q,docType){
+  const D=docOf(docType), title=DOC_TYPES[docType]?docType:"견적서";
   const s=db.settings||{};
   const c=coById(q.company_id)||{};
   const lines=q.lines.filter(l=>(l.name||"").trim());   // 품목 미입력 행은 인쇄 제외
@@ -1538,13 +1611,13 @@ function printQuote(q){
   <div class="p-wrap">
     <div class="p-head">
       <div>
-        <div class="p-eyebrow">ESTIMATE</div>
-        <div class="p-title">견적서</div>
+        <div class="p-eyebrow">${D.eyebrow}</div>
+        <div class="p-title">${title}</div>
         <div class="p-to-name">${escapeHtml(c.name||coName(q.company_id))}</div>
         <div class="p-info">
-          <div class="irow"><span class="k">견적번호</span><span>${escapeHtml(q.no)}</span></div>
-          <div class="irow"><span class="k">견적일</span><span>${escapeHtml(koreanDate(q.date))}</span></div>
-          ${q.valid?`<div class="irow"><span class="k">유효기간</span><span>${escapeHtml(q.valid)}</span></div>`:""}
+          <div class="irow"><span class="k">${D.noLabel}</span><span>${escapeHtml(q.no)}</span></div>
+          <div class="irow"><span class="k">${D.dateLabel}</span><span>${escapeHtml(koreanDate(q.date))}</span></div>
+          ${(D.showValid&&q.valid)?`<div class="irow"><span class="k">유효기간</span><span>${escapeHtml(q.valid)}</span></div>`:""}
         </div>
       </div>
       <div class="p-supplier">
@@ -1557,7 +1630,7 @@ function printQuote(q){
       </div>
     </div>
     <div class="p-grand">
-      <span class="k">견적금액 (공급가액 + 세액)</span>
+      <span class="k">${D.grand}</span>
       <span class="v">₩${fmt(t.total)}</span>
     </div>
     <table class="p-tbl" style="table-layout:fixed">
@@ -1581,17 +1654,17 @@ function printQuote(q){
         <div class="body">${q.memo?`<div class="memo-text">${escapeHtml(q.memo)}</div>`:""}<div class="notice">자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.
 주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.</div></div>
       </div>
-      <div class="p-foot">${q.valid?"본 견적서는 유효기간 내에만 유효합니다":""}${(q.valid&&s.name)?" · ":""}${escapeHtml(s.name||"")}</div>
+      <div class="p-foot">${D.foot(q)}${(D.foot(q)&&s.name)?" · ":""}${escapeHtml(s.name||"")}</div>
     </div>
   </div>`;
   // 모바일: window.print()가 동작하지 않는 인앱 브라우저가 많으므로 미리보기 오버레이 먼저 표시
-  if(window.matchMedia("(max-width:820px)").matches) openPrintPreview(q);
+  if(window.matchMedia("(max-width:820px)").matches) openPrintPreview(q,title);
   else window.print();
 }
 
 /* ---------- 모바일 인쇄 미리보기 ---------- */
 const PV_SHEET_W = 760;   // .p-wrap 인쇄 폭 기준
-function openPrintPreview(q){
+function openPrintPreview(q,docType){
   const pa=document.getElementById("printArea");
   const inner=pa.innerHTML;
   pa.innerHTML=`
@@ -1615,8 +1688,8 @@ function openPrintPreview(q){
   requestAnimationFrame(()=>{ sheet.style.height=Math.round(sc.offsetHeight*scale)+"px"; });
   document.getElementById("pvCloseBtn").onclick=closePrintPreview;
   document.getElementById("pvPrintBtn").onclick=()=>window.print();
-  document.getElementById("pvImgBtn").onclick=()=>saveQuoteImage(q);
-  document.getElementById("pvShareBtn").onclick=()=>shareQuote(q);
+  document.getElementById("pvImgBtn").onclick=()=>saveQuoteImage(q,docType);
+  document.getElementById("pvShareBtn").onclick=()=>shareQuote(q,docType);
 }
 function closePrintPreview(){
   const pa=document.getElementById("printArea");
@@ -1647,7 +1720,8 @@ function qimgRR(ctx,x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
   ctx.closePath();
 }
-function drawQuoteCanvas(q){
+function drawQuoteCanvas(q,docType){
+  const D=docOf(docType), title=DOC_TYPES[docType]?docType:"견적서";
   const s=db.settings||{};
   const lines=q.lines.filter(l=>(l.name||"").trim());
   const t=quoteTotals({lines});
@@ -1670,8 +1744,8 @@ function drawQuoteCanvas(q){
   const supLines=supRows.map(r=>qimgWrap(mc,r[1],supValW));
   const supRowsH=supLines.reduce((h,ls)=>h+Math.max(1,ls.length)*18+4,0);
   const supH=15+18+7+supRowsH+15;
-  const infoRows=[["견적번호",q.no||""],["견적일",koreanDate(q.date)]];
-  if(q.valid) infoRows.push(["유효기간",q.valid]);
+  const infoRows=[[D.noLabel,q.no||""],[D.dateLabel,koreanDate(q.date)]];
+  if(D.showValid&&q.valid) infoRows.push(["유효기간",q.valid]);
   const leftH=16+8+44+30+6+infoRows.length*19;
   const headerH=Math.max(leftH,supH);
 
@@ -1687,7 +1761,7 @@ function drawQuoteCanvas(q){
   const memoLs=q.memo?qimgWrap(mc,q.memo,CW-26):[];
   const noticeLs=NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));
   const etcBoxH=Math.max(64,10+memoLs.length*19+(memoLs.length?8:0)+noticeLs.length*21+10);
-  const footTxt=(q.valid?"본 견적서는 유효기간 내에만 유효합니다":"")+((q.valid&&s.name)?" · ":"")+(s.name||"");
+  const footTxt=D.foot(q)+((D.foot(q)&&s.name)?" · ":"")+(s.name||"");
   const bottomH=34+16+16+7+etcBoxH+(footTxt?14+14:0);
 
   const flowH=MT+headerH+24+52+20+tableH+22;
@@ -1705,10 +1779,10 @@ function drawQuoteCanvas(q){
   // 좌측 헤더
   let y=MT+11;
   ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
-  ctx.fillText("E S T I M A T E",MX,y);
+  ctx.fillText(D.eyebrow.split("").join(" "),MX,y);
   y+=8+34;
   ctx.fillStyle="#111"; ctx.font=F(800,34);
-  ctx.fillText("견적서",MX,y);
+  ctx.fillText(title,MX,y);
   y+=30+14;
   ctx.font=F(750,17);
   ctx.fillText(coName(q.company_id),MX,y);
@@ -1737,7 +1811,7 @@ function drawQuoteCanvas(q){
   let gy=MT+headerH+24;
   ctx.fillStyle="#2F3338"; qimgRR(ctx,MX,gy,CW,52,14); ctx.fill();
   ctx.fillStyle="rgba(255,255,255,.85)"; ctx.font=F(650,13);
-  ctx.fillText("견적금액 (공급가액 + 세액)",MX+20,gy+31);
+  ctx.fillText(D.grand,MX+20,gy+31);
   ctx.fillStyle="#fff"; ctx.font=F(800,26); ctx.textAlign="right";
   ctx.fillText("₩"+fmt(t.total),MX+CW-20,gy+35);
   ctx.textAlign="left";
@@ -1802,14 +1876,15 @@ function drawQuoteCanvas(q){
   return canvas;
 }
 
-async function quoteImageParts(q){
-  const canvas=drawQuoteCanvas(q);
+async function quoteImageParts(q,docType){
+  const title=DOC_TYPES[docType]?docType:"견적서";
+  const canvas=drawQuoteCanvas(q,title);
   const blob=await new Promise(res=>canvas.toBlob(res,"image/png"));
   if(!blob) return null;
   const safe=v=>String(v||"").replace(/[\\/:*?"<>|]/g,"_");
-  const fname=`견적서_${safe(q.no)}_${safe(coName(q.company_id))}.png`;
+  const fname=`${title}_${safe(q.no)}_${safe(coName(q.company_id))}.png`;
   const t=quoteTotals({lines:q.lines.filter(l=>(l.name||"").trim())});
-  const text=`${coName(q.company_id)} 견적서 (${q.no})\n견적금액 ${won(t.total)}`;
+  const text=`${coName(q.company_id)} ${title} (${q.no})\n${docOf(title).grand.split(" (")[0]} ${won(t.total)}`;
   return { blob, fname, text };
 }
 function downloadBlob(blob,fname){
@@ -1820,16 +1895,16 @@ function downloadBlob(blob,fname){
 }
 
 /* 이미지 버튼 — 항상 파일로 저장 */
-async function saveQuoteImage(q){
-  const p=await quoteImageParts(q);
+async function saveQuoteImage(q,docType){
+  const p=await quoteImageParts(q,docType);
   if(!p){ toast("이미지 생성에 실패했습니다"); return; }
   downloadBlob(p.blob,p.fname);
-  toast("견적서 이미지를 저장했습니다");
+  toast(`${DOC_TYPES[docType]?docType:"견적서"} 이미지를 저장했습니다`);
 }
 
 /* 공유 버튼 — 공유 시트 → 클립보드 복사 → 파일 저장 순으로 시도 */
-async function shareQuote(q){
-  const p=await quoteImageParts(q);
+async function shareQuote(q,docType){
+  const p=await quoteImageParts(q,docType);
   if(!p){ toast("이미지 생성에 실패했습니다"); return; }
   const file=new File([p.blob],p.fname,{type:"image/png"});
   // 1) 공유 시트 (iOS·안드로이드·macOS Safari·Windows Chrome/Edge)
@@ -1841,7 +1916,7 @@ async function shareQuote(q){
   try{
     if(navigator.clipboard && window.ClipboardItem){
       await navigator.clipboard.write([new ClipboardItem({"image/png":p.blob})]);
-      toast("견적서 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요");
+      toast(`${DOC_TYPES[docType]?docType:"견적서"} 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요`);
       return;
     }
   }catch(err){ /* 권한 거부 등 — 아래 저장으로 fallback */ }
@@ -2173,6 +2248,26 @@ function renderSales(){
 }
 
 function csvEsc(s){ s=(s??"").toString(); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+function downloadCsv(rows,fname){
+  const blob=new Blob(["\uFEFF"+rows.join("\n")],{type:"text/csv;charset=utf-8"});
+  downloadBlob(blob,fname);
+  toast("CSV 파일을 내려받았습니다");
+}
+
+/* 견적서 목록 CSV — 견적 1건당 1행 (검색 결과 그대로) */
+function exportQuotesCsv(){
+  const rows=filteredQuotes();
+  if(!rows.length){ toast("내보낼 견적서가 없습니다"); return; }
+  const out=[["견적번호","견적일","거래처","상태","유효기간","품목수","총수량","공급가액","세액","합계","비고"].join(",")];
+  rows.forEach(q=>{
+    const lines=(q.lines||[]).filter(l=>(l.name||"").trim());
+    const t=quoteTotals({lines});
+    const qty=lines.reduce((s,l)=>s+(Number(l.qty)||0),0);
+    out.push([csvEsc(q.no),csvEsc(q.date),csvEsc(coName(q.company_id)),csvEsc(q.status),
+      csvEsc(q.valid||""),lines.length,qty,t.supply,t.vat,t.total,csvEsc(q.memo||"")].join(","));
+  });
+  downloadCsv(out,`견적서목록_${localDate()}.csv`);
+}
 function exportSalesCsv(){
   const {groups}=salesData();
   const lines=[["거래처","품명","색상","사이즈","수량","단가","공급가액","세액","합계"].join(",")];
@@ -2186,13 +2281,83 @@ function exportSalesCsv(){
     });
   if(lines.length===1){ toast("내보낼 내역이 없습니다"); return; }
   const from=document.getElementById("slFrom").value, to=document.getElementById("slTo").value;
-  const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=`매출집계_${from}_${to}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast("CSV 파일을 내려받았습니다");
+  downloadCsv(lines,`매출집계_${from}_${to}.csv`);
+}
+
+/* =====================================================================
+   미수금 — 수주 견적 합계 − 수금 합계
+   ===================================================================== */
+function arData(){
+  const rows={};
+  const row=cid=>rows[cid] ?? (rows[cid]={ cid, ordered:0, paid:0, orders:0, lastOrder:"", lastPay:"" });
+  db.quotes.forEach(q=>{
+    if(q.status!=="수주") return;
+    const r=row(q.company_id);
+    r.ordered+=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total;
+    r.orders++;
+    if((q.date||"")>r.lastOrder) r.lastOrder=q.date||"";
+  });
+  (db.payments||[]).forEach(p=>{
+    if(p.kind!=="수금") return;
+    const r=row(p.company_id);
+    r.paid+=Number(p.amount)||0;
+    if((p.date||"")>r.lastPay) r.lastPay=p.date||"";
+  });
+  return Object.values(rows)
+    .map(r=>({ ...r, open:r.ordered-r.paid }))
+    .sort((a,b)=>b.open-a.open || coName(a.cid).localeCompare(coName(b.cid),"ko"));
+}
+
+function arRows(){
+  const all=arData();
+  return document.getElementById("arFilter").value==="all" ? all : all.filter(r=>r.open!==0);
+}
+
+function renderAr(){
+  const all=arData();
+  const rows=arRows();
+  const sum=k=>all.reduce((s,r)=>s+r[k],0);
+  document.getElementById("arOrdered").textContent=won(sum("ordered"));
+  document.getElementById("arPaid").textContent=won(sum("paid"));
+  document.getElementById("arOpen").textContent=won(sum("open"));
+  document.getElementById("arCount").textContent=all.filter(r=>r.open>0).length+"곳";
+
+  const tbl=document.getElementById("arTbl");
+  if(!rows.length){
+    tbl.innerHTML=`<tbody><tr><td><div class="empty">${all.length? "미수금이 남은 거래처가 없습니다." : "수주된 견적서가 없습니다.<br>견적서 상태를 '수주'로 바꾸면 여기에 집계됩니다."}</div></td></tr></tbody>`;
+    return;
+  }
+  tbl.innerHTML=`
+    <thead><tr>
+      <th>거래처</th><th style="text-align:right">수주 건수</th><th style="text-align:right">수주액</th>
+      <th style="text-align:right">수금액</th><th style="text-align:right">미수금</th><th>최근 수금</th>
+    </tr></thead>
+    <tbody>${rows.map(r=>`
+      <tr>
+        <td>${escapeHtml(coName(r.cid))}</td>
+        <td class="num">${r.orders?fmt(r.orders)+"건":"—"}</td>
+        <td class="num">${fmt(r.ordered)}</td>
+        <td class="num">${fmt(r.paid)}</td>
+        <td class="num" style="color:${r.open>0?"var(--danger)":r.open<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.open)}</td>
+        <td class="sub">${escapeHtml(r.lastPay||"—")}</td>
+      </tr>`).join("")}
+      <tr style="background:var(--paper)">
+        <td style="font-weight:700">${rows.length===all.length?"합계":"표시 합계"}</td><td></td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.ordered,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.paid,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.open,0))}</td>
+        <td></td>
+      </tr>
+    </tbody>`;
+}
+
+function exportArCsv(){
+  const rows=arRows();
+  if(!rows.length){ toast("내보낼 내역이 없습니다"); return; }
+  const out=[["거래처","수주 건수","수주액","수금액","미수금","최근 수주일","최근 수금일"].join(",")];
+  rows.forEach(r=>out.push([csvEsc(coName(r.cid)),r.orders,r.ordered,r.paid,r.open,
+    csvEsc(r.lastOrder||""),csvEsc(r.lastPay||"")].join(",")));
+  downloadCsv(out,`미수금_${localDate()}.csv`);
 }
 
 /* =====================================================================
@@ -2207,6 +2372,8 @@ function renderSettings(){
   document.getElementById("st_email").value=s.email||"";
   document.getElementById("st_bank").value=s.bank||"";
   document.getElementById("st_address").value=s.address||"";
+  document.getElementById("bkStat").textContent=
+    `현재 데이터 — 거래처 ${db.companies.length} · 품목 ${db.items.length} · 견적서 ${db.quotes.length} · 수금/지급 ${db.payments.length} · 재고기록 ${(db.stock_moves||[]).length}`;
 }
 async function saveSettings(){
   db.settings={
@@ -2219,6 +2386,43 @@ async function saveSettings(){
     address:document.getElementById("st_address").value.trim(),
   };
   await saveTable("settings",db.settings);
+}
+
+/* =====================================================================
+   전체 데이터 백업 / 복원
+   ===================================================================== */
+const BACKUP_TABLES=["companies","items","quotes","payments","stock_moves"];
+
+function exportBackup(){
+  const data={ app:"erp", appVersion:APP_VERSION, format:1, exportedAt:new Date().toISOString(), settings:db.settings||{} };
+  BACKUP_TABLES.forEach(t=>{ data[t]=db[t]||[]; });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  downloadBlob(blob,`erp_백업_${localDate()}.json`);
+  toast("백업 파일을 내려받았습니다");
+}
+
+async function importBackup(file){
+  let data;
+  try{ data=JSON.parse(await file.text()); }
+  catch(e){ toast("JSON 파일을 읽을 수 없습니다"); return; }
+  if(!data || typeof data!=="object" || data.app!=="erp"){
+    toast("이 앱의 백업 파일이 아닙니다"); return;
+  }
+  // 형식 검증 — 하나라도 배열이 아니면 중단 (부분 복원으로 데이터가 섞이지 않게)
+  for(const t of BACKUP_TABLES){
+    if(data[t]!==undefined && !Array.isArray(data[t])){ toast(`백업 파일이 손상되었습니다 (${t})`); return; }
+  }
+  const summary=BACKUP_TABLES.map(t=>`${t} ${(data[t]||[]).length}건`).join(" · ");
+  if(!confirm(`백업을 불러오면 현재 데이터를 모두 덮어씁니다.\n\n${data.exportedAt? "백업 시각: "+new Date(data.exportedAt).toLocaleString("ko-KR")+"\n":""}${summary}\n\n계속할까요?`)) return;
+
+  BACKUP_TABLES.forEach(t=>{ db[t]=data[t]||[]; });
+  db.settings=data.settings||{};
+  renderCurrentView();
+  toast("복원 중…",true);
+  try{
+    await Promise.all([...BACKUP_TABLES.map(t=>Table.save(t,db[t])), Table.save("settings",db.settings)]);
+    toast("백업을 복원했습니다");
+  }catch(e){ toast("Dropbox 저장 실패: "+e.message); }
 }
 
 /* =====================================================================
@@ -2253,13 +2457,28 @@ async function init(){
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
   document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
+  document.getElementById("qtCsvBtn").onclick=exportQuotesCsv;
   document.getElementById("payMonth").onchange=renderPay;
   document.getElementById("payAddBtn").onclick=addPayment;
   document.getElementById("ivItem").onchange=updateIvCombo;
   document.getElementById("ivAddBtn").onclick=addStockMove;
   ["slFrom","slTo","slCo","slStatus"].forEach(id=>{ document.getElementById(id).onchange=renderSales; });
   document.getElementById("slCsvBtn").onclick=exportSalesCsv;
+  document.getElementById("arFilter").onchange=renderAr;
+  document.getElementById("arCsvBtn").onclick=exportArCsv;
   document.getElementById("stSaveBtn").onclick=saveSettings;
+  document.getElementById("bkExportBtn").onclick=exportBackup;
+  document.getElementById("bkImportBtn").onclick=()=>document.getElementById("bkFile").click();
+  document.getElementById("bkFile").onchange=async e=>{
+    const f=e.target.files&&e.target.files[0];
+    e.target.value="";                 // 같은 파일 재선택 허용
+    if(f) await importBackup(f);
+  };
+
+  // 서비스워커 등록 (오프라인 지원) — file:// 로 열었을 땐 건너뜀
+  if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
 
   // 로그인 상태 확인
   const token=await ensureToken();
