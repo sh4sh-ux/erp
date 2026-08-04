@@ -130,7 +130,9 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 
 ### 공유 (`shareQuote`)
 환경별 자동 fallback — 3단계
-1. `navigator.canShare({files})` → 공유 시트 (iOS·안드로이드·macOS Safari·Windows Chrome)
+1. `navigator.canShare({files})` → 공유 시트 (iOS·안드로이드·macOS Safari·Windows Chrome).
+   **`navigator.share()`에는 `files`만 넘긴다** — `text`/`title`을 함께 넘기면 카카오톡 등에서
+   이미지와 별개로 텍스트 메시지가 하나 더 전송되므로 의도적으로 제외 (v1.25)
 2. `navigator.clipboard.write(ClipboardItem)` → 클립보드 복사 (그 외 데스크탑, 붙여넣기로 전송)
 3. `downloadBlob()` → PNG 파일 저장
 
@@ -232,6 +234,8 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
   인쇄·이미지·공유 3경로 모두 선택된 양식으로 출력
 - `v1.24` — **PWA 오프라인 지원** — 서비스워커 추가.
   HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
+- `v1.25` — 모바일 공유 시 이미지 파일만 전송 — `navigator.share()`의 `text`·`title` 제거
+  (카톡에 요약 메시지가 함께 발송되던 것 삭제)
 
 ## 다음 작업 후보
 - 미수금에 연령 분석(30/60/90일 경과) 추가

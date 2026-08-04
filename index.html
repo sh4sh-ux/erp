@@ -685,7 +685,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.24";
+const APP_VERSION = "v1.25";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1883,9 +1883,7 @@ async function quoteImageParts(q,docType){
   if(!blob) return null;
   const safe=v=>String(v||"").replace(/[\\/:*?"<>|]/g,"_");
   const fname=`${title}_${safe(q.no)}_${safe(coName(q.company_id))}.png`;
-  const t=quoteTotals({lines:q.lines.filter(l=>(l.name||"").trim())});
-  const text=`${coName(q.company_id)} ${title} (${q.no})\n${docOf(title).grand.split(" (")[0]} ${won(t.total)}`;
-  return { blob, fname, text };
+  return { blob, fname };
 }
 function downloadBlob(blob,fname){
   const a=document.createElement("a");
@@ -1909,7 +1907,7 @@ async function shareQuote(q,docType){
   const file=new File([p.blob],p.fname,{type:"image/png"});
   // 1) 공유 시트 (iOS·안드로이드·macOS Safari·Windows Chrome/Edge)
   if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file],title:p.fname,text:p.text}); return; }
+    try{ await navigator.share({files:[file]}); return; }
     catch(err){ if(err && err.name==="AbortError") return; }
   }
   // 2) 클립보드 복사 → 카톡·메일 입력창에 바로 붙여넣기
