@@ -1,0 +1,214 @@
+# ERP — 거래처 관리 업무 앱
+
+## 프로젝트 개요
+단일 HTML 파일로 동작하는 소규모 사업자용 ERP. dutch-pay·receipt-db의 자매 앱으로
+디자인 톤·코드 스타일을 맞춤. 거래처·품목·재고·견적서·수금/지급을 한 곳에서 관리하고,
+견적서를 인쇄·이미지·공유로 고객에게 전달하는 것이 핵심 용도.
+
+- 사용자: 한국어 사용자, 비개발자, 혼자 사용 (디에디트 / THE EDIT)
+- 데이터는 **사용자 본인 Dropbox에만** 저장 — 별도 서버 없음
+- 외부 의존성 없음 — 순수 HTML + CSS + Vanilla JS, 인라인 SVG
+- 데스크탑·모바일 양쪽에서 사용 (모바일 비중 높음 — iOS Safari·카카오톡 인앱 브라우저)
+
+## 라이브 URL / 저장소
+- **라이브:** https://sh4sh-ux.github.io/erp/
+- **GitHub:** https://github.com/sh4sh-ux/erp
+- **배포 브랜치:** `main` (GitHub Pages가 main에서 자동 배포, 반영까지 1~2분)
+
+## 파일 구조
+```
+index.html            — 앱 전체 (HTML/CSS/JS 통합, 약 2,280줄)
+manifest.webmanifest  — PWA 매니페스트 (아이콘·테마색)
+favicon.png           — 브라우저 탭 아이콘 64px
+icons/icon-180.png    — iOS 홈 화면 (apple-touch-icon)
+icons/icon-192.png    — 매니페스트 아이콘
+icons/icon-512.png    — 매니페스트 아이콘
+CLAUDE.md             — 이 파일 (세션 컨텍스트용)
+```
+
+## 버전 관리
+- 단일 상수 `APP_VERSION` (JS 상단, `DROPBOX_APP_KEY` 바로 아래)이 진실의 원천.
+  `init()`에서 상단바 `#tbVer`에 주입 — DOM에 버전을 하드코딩하지 말 것
+- 형식: `v메이저.패치` (예: `v1.9` → `v1.10` → `v1.11`)
+- **변경 시마다** `APP_VERSION` + 아래 changelog 한 줄 + 커밋 메시지(`vX.Y: 요약`)를 함께 갱신
+- 사용자가 라이브에서 버전 칩으로 배포 반영 여부를 확인하므로 버전 누락 금지
+
+## 데이터 저장 (Dropbox)
+- OAuth: Authorization Code + PKCE (`client_secret` 불필요, 서버 없음)
+- `DROPBOX_APP_KEY = "uy4mukymihfjf1o"`, 접근 유형 App folder
+- 토큰은 localStorage(`dbx_access`/`dbx_refresh`/`dbx_exp`/`dbx_verifier`)에 보관.
+  access_token 만료 60초 전 `refreshToken()`으로 자동 갱신
+- 저장 경로: `DATA_DIR = "/erp"` 아래 테이블별 JSON 파일
+  ```
+  /erp/companies.json  /erp/items.json    /erp/quotes.json
+  /erp/payments.json   /erp/stock_moves.json  /erp/settings.json
+  ```
+- `Table.load/loadObj/save` → `db` 전역 객체가 메모리 캐시.
+  **저장 버튼 없음 = 의도적 설계** — 변경 시 해당 테이블만 `saveTable(name, data)`로 즉시 업로드
+- `loadAll()`은 6개 테이블을 `Promise.all`로 병렬 로드 (상단바 새로고침 버튼)
+
+## 데이터 모델
+```js
+db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], settings:{} }
+
+Company { id, name, biz_no, type:"매출"|"매입", contact, phone, email, address, memo }
+
+Item {
+  id, name, type:"단품"|"세트", spec, unit:"EA",
+  buy_price, sell_price,
+  colors:["BK","WH"],                              // 색상 옵션
+  variants:[{spec, buy_price, sell_price}],        // 사이즈별 단가
+  components:[{item_id, color, spec, qty}],        // 세트 구성품 (type==="세트")
+  memo
+}
+
+Quote {
+  id, no:"Q-20260702-1",     // nextQuoteNo(date) — Q-YYYYMMDD-N 자동 채번
+  date, company_id,
+  status:"작성중"|"발송"|"수주"|"취소",
+  valid:"견적일로부터 1주일",
+  lines:[{item_id, name, color, spec, unit, qty, price}],
+  memo
+}
+// item_id === "__free__" → 품명 직접 입력 행 (품목 미등록 항목)
+
+Payment   { id, date, company_id, kind:"수금"|"지급", method, amount, memo, created_at }
+StockMove { id, date, item_id, color, spec, kind:"입고"|"출고", qty, memo, created_at }
+Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공급자 란
+```
+
+## 화면 구조
+탭(사이드바) 8개 — `switchView(v)` → `renderers[v]()` 호출, `.view` 섹션 토글
+
+| 뷰 | 렌더러 | 역할 |
+|----|--------|------|
+| companies | `renderCoList` / `renderCoDetail` | 거래처 (목록 + 상세 폼) |
+| items | `renderItList` / `renderItDetail` | 품목 (색상·사이즈 옵션·세트 구성) |
+| stock | `renderStock` | 재고 현황 + 입출고 기록 |
+| quotes | `renderQtList` / `renderQtDetail` | 견적서 작성·인쇄·이미지·공유 |
+| payments | `renderPay` | 수금/지급 (월별) |
+| dash | `renderDash` | 대시보드 (월별 차트 + 최근 활동) |
+| sales | `renderSales` | 매출 집계 (기간·거래처별 품목 집계 + CSV) |
+| settings | `renderSettings` | 공급자 정보 (견적서 인쇄용 내 사업자 정보) |
+
+- 거래처·품목·견적서는 좌(목록)·우(상세) 2단 `.cols` 그리드.
+  모바일에서는 1열로 접히므로 목록 항목 선택 시 `scrollToDetail(formId)`로 상세까지 자동 스크롤
+- 견적 상태를 "수주"로 저장하면 `deductStockForQuote(q)`가 확인 후 재고에서 자동 출고
+  (세트 품목은 구성품 단위로 분해해서 차감)
+
+## 견적서 출력 — 3가지 경로
+같은 견적서를 세 가지로 내보냄. **레이아웃이 서로 어긋나지 않게 함께 확인할 것**
+
+1. **인쇄(PDF)** — `printQuote(q)` → `#printArea`에 HTML 주입 후 `window.print()`
+2. **미리보기(모바일)** — `openPrintPreview(q)`. 모바일(≤820px)에서는 `window.print()`가
+   막힌 인앱 브라우저가 많아 화면 내 오버레이를 먼저 띄움. 툴바: 닫기·이미지·공유·인쇄·PDF
+3. **이미지(PNG)** — `drawQuoteCanvas(q)`가 Canvas에 2배 해상도로 직접 그림.
+   `saveQuoteImage(q)`=파일 저장, `shareQuote(q)`=공유
+
+### 인쇄 CSS 핵심 (`@media print`)
+- `@page{margin:16mm 14mm}`, `.p-wrap{min-height:250mm}` — 기타·안내문을 하단 고정(`.p-bottom{margin-top:auto}`)
+  하면서 **A4 한 장을 넘지 않는** 값. 이 높이를 올리면 2페이지로 쪼개짐 (v1.12에서 263mm→250mm)
+- `.pv-scale .p-wrap{padding:0!important; width:688px!important}` —
+  미리보기용 여백을 인쇄에서 제거하고, 폭을 데스크탑 인쇄 폭(A4 182mm≈688px)으로 고정.
+  이게 없으면 iOS Safari가 모바일 화면 폭(390px) 기준으로 렌더해 글자가 확대됨 (v1.13)
+- `<meta name="format-detection" content="telephone=no">` +
+  `#printArea a{color:inherit;text-decoration:none}` — iOS가 전화번호·계좌번호를 링크로
+  바꿔 밑줄이 생기는 것 차단
+
+### 캔버스 이미지 (`drawQuoteCanvas`)
+- A4 96dpi 기준 `PW=794`, `MX=53`, `CW=688`, 2배 스케일(`SC=2`)
+- 컬럼: 품명(가변) | 규격 110 | 수량 66 | 단가 96 | 공급가액 110 | 세액 86 — 인쇄 `colgroup`과 동일
+- **측정 패스 → 드로잉 패스** 2단 구조. 품명·주소·메모를 `qimgWrap()`으로 줄바꿈 측정한 뒤
+  전체 높이를 계산하고, 하단 블록(합계·기타·푸터)은 페이지 하단에 고정 배치
+- 품목이 많으면 이미지 높이가 1123px(A4)에서 자동으로 늘어남
+
+### 공유 (`shareQuote`)
+환경별 자동 fallback — 3단계
+1. `navigator.canShare({files})` → 공유 시트 (iOS·안드로이드·macOS Safari·Windows Chrome)
+2. `navigator.clipboard.write(ClipboardItem)` → 클립보드 복사 (그 외 데스크탑, 붙여넣기로 전송)
+3. `downloadBlob()` → PNG 파일 저장
+
+## 모바일 대응
+- 분기: **≤820px** (사이드바 드로어 전환), ≤980px (2단→1단 그리드), ≤560px (grid2/grid3→1열)
+- 사이드바는 `position:fixed` + `transform:translateX(-105%)` 드로어.
+  상단 햄버거(`#menuBtn`) → `toggleNav()`, 백드롭(`#navBackdrop`) 클릭 시 닫힘.
+  `switchView()`가 항상 `toggleNav(false)` + `scrollTo(0,0)` 실행
+- **모바일 CSS는 컴포넌트 규칙보다 뒤(인쇄 CSS 직전)에 위치** — 앞에 두면 나중에 오는
+  `.qline`·`.stock-add` 등에 덮여서 무효가 됨 (v1.10에서 실제로 겪은 문제)
+- 넓은 표는 `overflow-x:auto` + `min-width`로 가로 스크롤:
+  `.qline` 560px, `.cline` 440px, `.vline` 400px, `#slBody .tbl` 860px
+- iOS 입력 확대 방지: viewport에 `maximum-scale=1.0, user-scalable=no`
+
+## 디자인 원칙 (dutch-pay·receipt-db와 통일)
+- 배경 `--paper:#F2F4F7`, 카드 `#FFFFFF`, 선 `--line:#E5E9EF`
+- 강조 `--primary:#0A84FF`, 위험 `--danger:#FF3B30`, 성공 `--ok:#34C759`, 경고 `--warn-c:#FF9F0A`
+- 모서리 `--r:16px / --r-sm:10px`, 폰트는 시스템 스택 (외부 폰트·CDN 없음 — 오프라인 동작)
+- 아이콘은 인라인 SVG(lucide 계열)만. 앱 아이콘도 같은 육각형 로고 + `#0A84FF` 배경
+- 숫자는 `font-variant-numeric:tabular-nums` + `fmt()`/`won()`로 천단위 쉼표
+
+## 알려진 함정 (작업 시 주의)
+- **인쇄·미리보기·캔버스 3중 레이아웃** — 하나만 고치면 나머지가 어긋남. 견적서 출력을
+  건드릴 때는 셋 다 확인 (PDF 페이지 수, 모바일 미리보기, PNG)
+- **표 열 폭 고정 시 min-width 확인** — `table-layout:fixed` + `colgroup`으로 열을 고정하면
+  모바일 `min-width`가 고정 열 합계보다 충분히 커야 함. v1.17에서 min-width 660px이
+  고정 열 합 640px과 거의 같아 품명 열이 20px로 짜부라져 글자가 겹쳤음
+- **여러 테이블의 열 정렬** — 매출 집계처럼 카드가 반복되는 화면은 열 폭을 명시하지 않으면
+  브라우저가 카드마다 따로 계산해 열 위치가 제각각이 됨 (v1.15)
+- `escapeHtml`/`escapeAttr`을 거치지 않은 사용자 입력을 innerHTML에 넣지 말 것
+- 렌더 함수는 innerHTML로 전체를 다시 그리므로, 이벤트는 **매 렌더마다 재바인딩** 필요
+  (`bindQtLines`, `renderCoDetail` 하단 `onclick` 할당 패턴)
+- `qtEditing`/`itEditing`은 편집 중 사본. 새로 만들기(`__new__`) 시 반드시 초기화
+  (v1.8에서 이전 편집 내용이 남는 버그)
+
+## 검증 방법
+로컬에 Playwright(`playwright-core` + `/opt/pw-browsers/chromium`)로 스크린샷·PDF를 뽑아 확인.
+Dropbox 로그인은 우회하고 `db`에 직접 샘플 데이터를 주입:
+```js
+document.getElementById('loginView').classList.add('hidden');
+document.getElementById('appView').classList.remove('hidden');
+db.companies.push({id:'c1', name:'메디랩코리아(주)', type:'매출'});
+db.quotes.push({ /* ... */ });
+switchView('quotes');
+```
+- 인쇄 검증은 `page.pdf({format:'A4'})` → 페이지 수 확인 (`/Type /Page` 카운트)
+- 모바일은 `viewport:{width:390,height:844}, isMobile:true, hasTouch:true`
+
+## Git 작업 방법
+```bash
+git add index.html          # 변경된 파일만 명시적으로 추가 (git add -A 금지)
+git commit -m "vX.Y: 요약"
+git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
+```
+- 개발은 작업 브랜치에서, **main 병합·푸시는 사용자가 "병합해줘"라고 할 때만** 실행
+- GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
+
+## Changelog
+- `v1.0` — 거래처 관리 ERP 초기 배포
+- `v1.1` — 품목·견적서(인쇄)·수금/지급·대시보드·공급자 정보 구현
+- `v1.2` — 견적서 인쇄 양식을 실사용 양식(디에디트)으로 교체 — 유효기간·계좌번호 필드 추가
+- `v1.3` — 견적서 그레이 디자인(레이아웃 고정) + 품목 사이즈 옵션·세트 구성
+- `v1.4` — 품목 색상(BK/WH) + 재고 관리 + 수주 시 자동 출고
+- `v1.5` — 견적서 합계 행 열 정렬(라벨·총액 제거) + 대시보드 버전 표시
+- `v1.6` — 매출 집계: 기간·거래처별 품목 집계 + CSV 내보내기 (세금계산서 준비용)
+- `v1.7` — 견적서 기타란에 주문 제작 안내 문구 빨간색 고정 표시
+- `v1.8` — 품목 + 버튼 클릭 시 이전 편집 내용이 남는 버그 수정 (빈 폼으로 초기화)
+- `v1.9` — 버전 표시를 상단 ERP 로고 옆으로 이동 + 로고 클릭 시 새로고침
+- `v1.10` — **모바일 대응**: 햄버거 드로어 내비게이션(≤820px에서 사이드바가 숨겨져 화면
+  이동 자체가 불가능했음) + 목록 선택 시 상세 자동 스크롤 + 재고·매출 집계 모바일 레이아웃 정리
+- `v1.11` — 모바일 견적서 인쇄 미리보기 오버레이 (인앱 브라우저에서 `window.print()` 무반응 대응)
+- `v1.12` — 견적서 인쇄 2페이지 분리 수정 (미리보기 여백이 인쇄에 적용돼 A4를 넘김)
+- `v1.13` — 모바일 인쇄 레이아웃을 데스크탑과 동일하게 (인쇄 폭 688px 고정, iOS 링크 밑줄 차단)
+- `v1.14` — **견적서 이미지(PNG) 내보내기** — 인쇄 양식과 동일한 레이아웃을 Canvas에 2배 해상도로 그림
+- `v1.15` — 매출 집계 테이블 열 정렬 통일 (`table-layout:fixed` + `colgroup`)
+- `v1.16` — 매출 집계 소계 행 굵은 글씨로 시안성 개선
+- `v1.17` — 모바일 매출 집계 겹침 수정 (테이블 min-width 860px, 카드 상단 요약 줄바꿈)
+- `v1.18` — 홈 화면 앱 아이콘 추가 (apple-touch-icon·manifest·favicon, 상단바 로고와 동일 디자인)
+- `v1.19` — **견적서 공유 기능** — 공유 시트 → 클립보드 복사 → 파일 저장 3단 fallback.
+  '이미지' 버튼은 항상 파일 저장으로 역할 분리
+
+## 다음 작업 후보
+- 견적서 목록 CSV 내보내기 (매출 집계 CSV와 별개로 견적 단위 목록)
+- 전체 데이터 JSON 백업·복원 (Dropbox 외 로컬 사본)
+- 거래처별 미수금 현황 (견적 수주액 − 수금액)
+- 견적서 → 거래명세서·세금계산서 양식 전환
+- PWA 오프라인 지원 (서비스워커)
