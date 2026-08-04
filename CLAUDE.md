@@ -79,7 +79,7 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 ```
 
 ## 화면 구조
-탭(사이드바) 8개 — `switchView(v)` → `renderers[v]()` 호출, `.view` 섹션 토글
+탭(사이드바) 9개 — `switchView(v)` → `renderers[v]()` 호출, `.view` 섹션 토글
 
 | 뷰 | 렌더러 | 역할 |
 |----|--------|------|
@@ -105,11 +105,11 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 견적서 폼의 `#fq_doc` 선택값은 `qtDocType`(렌더 간 유지)에 보관되며 인쇄·이미지·공유가 공유한다.
 **레이아웃이 서로 어긋나지 않게 함께 확인할 것**
 
-1. **인쇄(PDF)** — `printQuote(q)` → `#printArea`에 HTML 주입 후 `window.print()`
-2. **미리보기(모바일)** — `openPrintPreview(q)`. 모바일(≤820px)에서는 `window.print()`가
+1. **인쇄(PDF)** — `printQuote(q, docType)` → `#printArea`에 HTML 주입 후 `window.print()`
+2. **미리보기(모바일)** — `openPrintPreview(q, docType)`. 모바일(≤820px)에서는 `window.print()`가
    막힌 인앱 브라우저가 많아 화면 내 오버레이를 먼저 띄움. 툴바: 닫기·이미지·공유·인쇄·PDF
-3. **이미지(PNG)** — `drawQuoteCanvas(q)`가 Canvas에 2배 해상도로 직접 그림.
-   `saveQuoteImage(q)`=파일 저장, `shareQuote(q)`=공유
+3. **이미지(PNG)** — `drawQuoteCanvas(q, docType)`가 Canvas에 2배 해상도로 직접 그림.
+   `saveQuoteImage(q, docType)`=파일 저장, `shareQuote(q, docType)`=공유
 
 ### 인쇄 CSS 핵심 (`@media print`)
 - `@page{margin:16mm 14mm}`, `.p-wrap{min-height:250mm}` — 기타·안내문을 하단 고정(`.p-bottom{margin-top:auto}`)
