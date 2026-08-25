@@ -751,7 +751,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.44";
+const APP_VERSION = "v1.45";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1959,14 +1959,18 @@ document.addEventListener("mousedown",ev=>{
   if(ipPop && !ipPop.contains(ev.target) && !ev.target.closest(".ip-btn")) closeItemPicker();
 });
 
-/* 날짜·월 입력은 칸 아무 데나 누르면 달력이 열리게 — 작은 달력 아이콘을 겨냥하지 않아도 되도록.
-   (앱 전체에 한 번만 걸어두면 나중에 추가되는 날짜 칸에도 자동 적용된다) */
+/* 날짜·월 입력: **비어 있을 때만** 칸을 누르면 달력이 열린다.
+   값이 있는 칸은 기본 동작에 맡겨 숫자로 직접 고칠 수 있게 한다 —
+   달력이 열려 있으면 키 입력을 달력이 가져가 직접 입력이 막히기 때문 (v1.40에서 겪은 문제).
+   값이 있는 칸도 오른쪽 달력 아이콘을 누르면 그대로 달력이 열린다.
+   모바일(iOS)은 원래 칸을 누르면 달력이 뜨므로 영향 없음. */
 document.addEventListener("click",ev=>{
   const el=ev.target;
   if(!(el instanceof HTMLInputElement)) return;
   if(el.type!=="date" && el.type!=="month") return;
   if(el.readOnly || el.disabled || typeof el.showPicker!=="function") return;
-  try{ el.showPicker(); }catch(_){ /* 이미 열려 있거나 미지원 — 기본 동작에 맡긴다 */ }
+  if(el.value) return;                 // 이미 값이 있으면 직접 입력 우선
+  try{ el.showPicker(); }catch(_){ /* 미지원 — 기본 동작에 맡긴다 */ }
 });
 window.addEventListener("resize",closeItemPicker);
 
