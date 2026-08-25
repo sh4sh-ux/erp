@@ -154,6 +154,12 @@
   .qline .rm:hover{background:var(--danger-soft);color:var(--danger)}
   .line-btns{display:flex;gap:8px}
   .line-btns>*{flex:1}
+  .shortbox{border:1.5px solid var(--warn-c);background:var(--warn-soft);border-radius:12px;padding:12px 14px;margin-top:10px}
+  .shortbox .hd{font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .shortbox .row{display:flex;gap:10px;font-size:13px;padding:3px 0;color:#6B4700}
+  .shortbox .row .nm{flex:1;min-width:0}
+  .shortbox .row .v{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .shortbox .ft{font-size:12px;color:#8A5A00;margin-top:8px}
   .szpanel{border:1.5px solid var(--primary);border-radius:12px;padding:14px;margin-top:10px;background:var(--primary-soft)}
   .szpanel .szhead{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:10px}
   .szpanel select,.szpanel input{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%;background:var(--card)}
@@ -751,7 +757,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.45";
+const APP_VERSION = "v1.46";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1143,14 +1149,36 @@ function quoteMargin(q){
   return { ...marginOf(supply,cost), unknown };
 }
 
+/* ── BOM(소요량) 전개 ──
+   세트 구성을 원자재까지 재귀로 펼친다. 세트 안에 세트가 들어가도 끝까지 내려간다.
+   순환 참조(A가 B를, B가 A를 포함)는 경로 추적으로 차단한다.
+   결과: { "품목id|색상|규격": 수량 } — 재고 키와 같은 형식 */
+function expandBom(item_id,color,spec,qty,out={},path=[]){
+  const it=db.items.find(x=>x.id===item_id);
+  if(!it || !qty) return out;
+  if(isSet(it)){
+    if(path.includes(item_id)) return out;      // 순환 — 더 내려가지 않는다
+    (it.components||[]).forEach(c=>
+      expandBom(c.item_id,c.color,c.spec,(Number(c.qty)||0)*qty,out,[...path,item_id]));
+  }else{
+    const k=[item_id,color||"",spec||""].join("|");
+    out[k]=(out[k]||0)+qty;
+  }
+  return out;
+}
+/* 세트 1개를 만드는 데 필요한 원자재 (다단계 전개) */
+function bomOfSet(i){
+  const out={};
+  (i.components||[]).forEach(c=>expandBom(c.item_id,c.color,c.spec,Number(c.qty)||0,out,[i.id]));
+  return out;
+}
 function setCompSums(i){
   let buy=0, sell=0;
-  (i.components||[]).forEach(c=>{
-    const it=db.items.find(x=>x.id===c.item_id); if(!it) return;
-    const v=variantOf(it,c.spec);
-    const qty=Number(c.qty)||0;
-    buy += ((v&&Number(v.buy_price))||Number(it.buy_price)||0)*qty;
-    sell+= ((v&&Number(v.sell_price))||Number(it.sell_price)||0)*qty;
+  Object.entries(bomOfSet(i)).forEach(([k,qty])=>{
+    const [id,,spec]=k.split("|");
+    const it=db.items.find(x=>x.id===id); if(!it) return;
+    buy += itemBuy(it,spec)*qty;
+    sell+= itemSell(it,spec)*qty;
   });
   return {buy,sell};
 }
@@ -1258,6 +1286,7 @@ function renderItDetail(){
       </div>
       <button class="btn-line-add" id="fi_addComp">＋ 구성품 추가</button>
       <div class="hint" id="fi_sums">구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}</div>
+      <div class="hint" id="fi_bom">${bomHint(e)}</div>
       <div class="hint" id="fi_margin">${itemMarginHint(e)}</div>
     </div>
     <div class="grid2">
@@ -1416,6 +1445,19 @@ function bindCodeSplit(e){
   };
 }
 
+/* 세트 1개당 실제 소요 자재 — 세트 안에 세트가 있어도 끝까지 펼쳐 보여 준다 */
+function bomHint(i){
+  if(!isSet(i)) return "";
+  const bom=Object.entries(bomOfSet(i));
+  if(!bom.length) return "구성품을 추가하면 소요 자재가 여기 표시됩니다";
+  const nested=(i.components||[]).some(c=>isSet(db.items.find(x=>x.id===c.item_id)));
+  return `1세트당 소요 자재 — ` + bom.map(([k,q])=>{
+    const [id,color,spec]=k.split("|");
+    const it=db.items.find(x=>x.id===id);
+    return `${escapeHtml([(it?it.name:"?"),color,spec].filter(Boolean).join(" "))} ×${fmt(q)}`;
+  }).join(" · ") + (nested?" (하위 세트까지 펼침)":"");
+}
+
 function itemMarginHint(i){
   const buy=itemBuy(i), sell=itemSell(i);
   if(!buy || !sell) return "매입단가와 매출단가를 모두 넣으면 마진이 표시됩니다";
@@ -1429,6 +1471,8 @@ function updateItSums(e){
   }
   const mg=document.getElementById("fi_margin");
   if(mg) mg.textContent=itemMarginHint(e);
+  const bm=document.getElementById("fi_bom");
+  if(bm) bm.textContent=bomHint(e);
 }
 
 async function submitItem(isNew){
@@ -1662,6 +1706,7 @@ function renderQtDetail(){
         <button class="btn-line-add" id="fq_sizeBtn">⊞ 사이즈별 한번에</button>
       </div>
       <div id="fq_sizePanel"></div>
+      <div id="fq_short"></div>
     </div>
     <div class="qtotals">
       <div class="row"><span class="k">총 수량</span><span class="v" id="fq_qty">${fmt(t.qty)}</span></div>
@@ -1719,6 +1764,7 @@ function renderQtDetail(){
     renderSizePanel(e,szOpen);
   };
   renderSizePanel(e);
+  renderShortage(e);
   bindQtLines(e);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
   if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; renderQtList(); renderQtDetail(); };
@@ -1844,6 +1890,23 @@ function applySizePanel(e,it,color){
   szOpen=false;
   renderQtDetail();
   toast(added?`사이즈 ${added}종을 품목에 넣었습니다${removed?` · ${removed}종 제거`:""}`:"수량이 입력된 사이즈가 없습니다");
+}
+
+/* 재고가 모자라면 견적 폼에 알려 준다 (BOM 소요량 대비) */
+function renderShortage(e){
+  const box=document.getElementById("fq_short");
+  if(!box) return;
+  const rows=quoteShortage(e);
+  if(!rows.length){ box.innerHTML=""; return; }
+  box.innerHTML=`
+  <div class="shortbox">
+    <div class="hd">⚠ 재고가 부족합니다 — 수주하려면 아래 자재를 확보해야 합니다</div>
+    ${rows.map(r=>`<div class="row">
+      <span class="nm">${escapeHtml(r.label)}</span>
+      <span class="v">필요 ${fmt(r.need)} · 보유 ${fmt(r.avail)} · <b>부족 ${fmt(r.lack)}</b></span>
+    </div>`).join("")}
+    <div class="ft">세트는 구성품(원자재)까지 펼쳐서 계산합니다. 저장은 그대로 가능합니다.</div>
+  </div>`;
 }
 
 function qtLineHtml(l,idx){
@@ -2013,6 +2076,7 @@ function bindQtLines(e){
       document.getElementById("fq_total").textContent=won(t.total);
       const mgEl=document.getElementById("fq_margin");
       if(mgEl) mgEl.textContent=quoteMarginText(e);
+      renderShortage(e);
     };
   });
   form.querySelectorAll("[data-rm]").forEach(el=>{
@@ -2061,20 +2125,9 @@ async function submitQuote(isNew){
 function quoteStockNeeds(q){
   const need={};
   if(!q || !QT_COMMITTED.includes(q.status)) return need;
-  const add=(item_id,color,spec,qty)=>{
-    if(!item_id || !qty) return;
-    const k=[item_id,color||"",spec||""].join("|");
-    need[k]=(need[k]||0)+qty;
-  };
   (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
-    const it=db.items.find(x=>x.id===l.item_id);
-    if(!it) return;
-    if(isSet(it)){
-      (it.components||[]).forEach(c=>add(c.item_id,c.color,c.spec,(Number(c.qty)||0)*(Number(l.qty)||0)));
-    }else{
-      add(l.item_id,l.color,l.spec,Number(l.qty)||0);
-    }
+    expandBom(l.item_id,l.color,l.spec,Number(l.qty)||0,need);   // 세트는 원자재까지 펼침
   });
   return need;
 }
@@ -2082,12 +2135,32 @@ function quoteStockNeeds(q){
 /* 이 견적으로 이미 반영된 재고 (출고 +, 복구 입고 −) */
 function quoteStockDone(qid){
   const done={};
+  if(!qid) return done;          // 아직 저장 전인 견적 — 수동 입출고(quote_id=null)와 섞이면 안 된다
   (db.stock_moves||[]).forEach(m=>{
     if(m.quote_id!==qid) return;
     const k=stockKeyOf(m);
     done[k]=(done[k]||0)+(m.kind==="출고"?1:-1)*(Number(m.qty)||0);
   });
   return done;
+}
+
+/* 이 견적을 수주했을 때 모자라는 자재.
+   이미 이 견적이 빼간 양은 되돌려서 계산해야 중복으로 잡히지 않는다. */
+function quoteShortage(q){
+  const need=quoteStockNeeds({...q,status:"수주"});
+  const done=quoteStockDone(q.id);
+  const cur=currentStocks();
+  const rows=[];
+  Object.entries(need).forEach(([k,n])=>{
+    const avail=(cur[k]||0)+(done[k]||0);
+    if(n>avail){
+      const [item_id,color,spec]=k.split("|");
+      const it=db.items.find(x=>x.id===item_id);
+      rows.push({ label:[(it?it.name:"(삭제된 품목)"),color,spec].filter(Boolean).join(" · "),
+                  need:n, avail, lack:n-avail });
+    }
+  });
+  return rows.sort((a,b)=>b.lack-a.lack);
 }
 
 /* 목표와 현재의 차이 → 기록할 입출고 목록과 사람이 읽을 설명 */
