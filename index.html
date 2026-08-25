@@ -142,6 +142,21 @@
   .qline .amt{text-align:right;font-weight:640;font-size:13.5px;font-variant-numeric:tabular-nums}
   .qline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .qline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .line-btns{display:flex;gap:8px}
+  .line-btns>*{flex:1}
+  .szpanel{border:1.5px solid var(--primary);border-radius:12px;padding:14px;margin-top:10px;background:var(--primary-soft)}
+  .szpanel .szhead{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:10px}
+  .szpanel select,.szpanel input{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%;background:var(--card)}
+  .szpanel select:focus,.szpanel input:focus{border-color:var(--primary)}
+  .szgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+  .szcell{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 9px}
+  .szcell .lb{font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .szcell input{text-align:right;padding:6px 8px}
+  .szcell .pr{margin-top:5px}
+  .szcell .pr input{font-size:12px;color:var(--ink-2)}
+  .szfoot{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .szfoot .sp{flex:1}
+  .szsum{font-size:13px;font-weight:700}
   .btn-line-add{width:100%;padding:9px;border:1.5px dashed var(--line);border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:600;transition:.14s}
   .btn-line-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
 
@@ -696,7 +711,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.31";
+const APP_VERSION = "v1.32";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1495,7 +1510,11 @@ function renderQtDetail(){
         <div class="qline head"><span>품목</span><span>규격/사이즈</span><span>수량</span><span>단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
-      <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
+      <div class="line-btns">
+        <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
+        <button class="btn-line-add" id="fq_sizeBtn">⊞ 사이즈별 한번에</button>
+      </div>
+      <div id="fq_sizePanel"></div>
     </div>
     <div class="qtotals">
       <div class="row"><span class="k">총 수량</span><span class="v" id="fq_qty">${fmt(t.qty)}</span></div>
@@ -1534,6 +1553,8 @@ function renderQtDetail(){
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
+  document.getElementById("fq_sizeBtn").onclick=()=>{ szOpen=!szOpen; renderSizePanel(e); };
+  renderSizePanel(e);
   bindQtLines(e);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
   if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; renderQtList(); renderQtDetail(); };
@@ -1544,6 +1565,93 @@ function renderQtDetail(){
     document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing,qtDocType);
     document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing,qtDocType);
   }
+}
+
+/* 사이즈별 한번에 입력 — 같은 품목의 여러 사이즈를 행 추가 없이 수량만 채워 넣는다 */
+let szOpen=false;
+function renderSizePanel(e){
+  const box=document.getElementById("fq_sizePanel");
+  if(!box) return;
+  if(!szOpen){ box.innerHTML=""; return; }
+
+  const cands=db.items.filter(i=>(i.variants||[]).length)
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
+  if(!cands.length){
+    box.innerHTML=`<div class="szpanel"><div class="hint" style="margin:0">사이즈 옵션이 등록된 품목이 없습니다. 품목 화면에서 사이즈를 먼저 등록해 주세요.</div>
+      <div class="szfoot"><div class="sp"></div><button class="btn ghost" id="sz_close">닫기</button></div></div>`;
+    document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
+    return;
+  }
+  const sel=document.getElementById("sz_item");
+  const itemId=(sel && sel.value) || cands[0].id;
+  const it=db.items.find(x=>x.id===itemId) || cands[0];
+  const colors=it.colors||[];
+  const prevColor=(document.getElementById("sz_color")||{}).value;
+  const color=colors.includes(prevColor)?prevColor:(colors[0]||"");
+
+  // 이미 들어간 행의 수량을 그대로 보여줘 수정도 가능하게
+  const cur={};
+  (e.lines||[]).forEach(l=>{ if(l.item_id===it.id && (l.color||"")===color) cur[l.spec||""]=l; });
+
+  box.innerHTML=`
+  <div class="szpanel">
+    <div class="szhead">
+      <select id="sz_item">${cands.map(i=>`<option value="${i.id}" ${i.id===it.id?"selected":""}>${escapeHtml(i.name)}</option>`).join("")}</select>
+      <select id="sz_color" ${colors.length?"":"disabled"}>
+        ${colors.length?colors.map(c=>`<option ${c===color?"selected":""}>${escapeHtml(c)}</option>`).join(""):`<option value="">색상 —</option>`}
+      </select>
+    </div>
+    <div class="szgrid">
+      ${it.variants.map(v=>{
+        const l=cur[v.spec]||null;
+        const price=l?l.price:(Number(v.sell_price)||Number(it.sell_price)||0);
+        return `<div class="szcell">
+          <div class="lb" title="${escapeAttr(v.spec)}">${escapeHtml(v.spec)}</div>
+          <input type="number" inputmode="numeric" min="0" data-sz="${escapeAttr(v.spec)}" value="${l?l.qty:""}" placeholder="0">
+          <div class="pr"><input type="number" inputmode="numeric" min="0" data-szp="${escapeAttr(v.spec)}" value="${price||""}" placeholder="단가"></div>
+        </div>`;}).join("")}
+    </div>
+    <div class="szfoot">
+      <span class="szsum" id="sz_sum">총 0개</span>
+      <div class="sp"></div>
+      <button class="btn ghost" id="sz_close">닫기</button>
+      <button class="btn save" id="sz_apply" style="flex:0 0 auto">품목에 넣기</button>
+    </div>
+    <div class="hint" style="margin-top:8px">수량을 넣은 사이즈만 품목 행으로 들어갑니다. 0이나 빈칸은 해당 행을 지웁니다.</div>
+  </div>`;
+
+  const sum=()=>{
+    const n=[...box.querySelectorAll("[data-sz]")].reduce((a,i)=>a+(Number(i.value)||0),0);
+    document.getElementById("sz_sum").textContent=`총 ${fmt(n)}개`;
+  };
+  sum();
+  box.querySelectorAll("[data-sz]").forEach(i=>i.oninput=sum);
+  document.getElementById("sz_item").onchange=()=>renderSizePanel(e);
+  const cEl=document.getElementById("sz_color");
+  if(cEl && colors.length) cEl.onchange=()=>renderSizePanel(e);
+  document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
+  document.getElementById("sz_apply").onclick=()=>applySizePanel(e,it,color);
+}
+
+function applySizePanel(e,it,color){
+  const box=document.getElementById("fq_sizePanel");
+  let added=0, removed=0;
+  it.variants.forEach(v=>{
+    const qty=Number((box.querySelector(`[data-sz="${CSS.escape(v.spec)}"]`)||{}).value)||0;
+    const price=Number((box.querySelector(`[data-szp="${CSS.escape(v.spec)}"]`)||{}).value)||0;
+    const idx=e.lines.findIndex(l=>l.item_id===it.id && (l.color||"")===color && (l.spec||"")===v.spec);
+    if(qty>0){
+      if(idx>=0){ e.lines[idx].qty=qty; e.lines[idx].price=price; }
+      else e.lines.push({ item_id:it.id, name:it.name, color, spec:v.spec, unit:it.unit||"", qty, price });
+      added++;
+    }else if(idx>=0){ e.lines.splice(idx,1); removed++; }
+  });
+  // 품목도 품명도 없는 빈 행 정리 (새 견적의 기본 빈 행이 남지 않도록)
+  e.lines=e.lines.filter(l=>(l.name||"").trim() || l.item_id);
+  if(!e.lines.length) e.lines=[blankLine()];
+  szOpen=false;
+  renderQtDetail();
+  toast(added?`사이즈 ${added}종을 품목에 넣었습니다${removed?` · ${removed}종 제거`:""}`:"수량이 입력된 사이즈가 없습니다");
 }
 
 function qtLineHtml(l,idx){
