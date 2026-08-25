@@ -418,6 +418,11 @@
           <h2>거래처</h2>
           <span class="count" id="coCount">0곳</span>
           <div class="sp"></div>
+          <select class="month-input" id="coType">
+            <option value="">전체 구분</option>
+            <option value="매출">매출처만</option>
+            <option value="매입">매입처만</option>
+          </select>
         </div>
         <div class="cols">
           <div class="card">
@@ -557,6 +562,10 @@
           </div>
           <div class="tbl-wrap"><table class="tbl" id="payTbl"></table></div>
         </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-head"><h3>이달 거래처별 집계</h3><span class="legend">수금 − 지급</span></div>
+          <div class="tbl-wrap"><table class="tbl" id="payByCo"></table></div>
+        </div>
       </section>
 
       <!-- ========== 대시보드 ========== -->
@@ -686,7 +695,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.29";
+const APP_VERSION = "v1.30";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -903,13 +912,16 @@ let coSel=null, coFilter="";
 
 function renderCoList(){
   const q=coFilter.trim().toLowerCase();
+  const type=(document.getElementById("coType")||{}).value||"";
   const rows=db.companies
+    .filter(c=>!type || (c.type||"매출")===type)
     .filter(c=>!q || (c.name||"").toLowerCase().includes(q) || (c.contact||"").toLowerCase().includes(q))
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
-  document.getElementById("coCount").textContent=db.companies.length+"곳";
+  document.getElementById("coCount").textContent =
+    rows.length===db.companies.length ? db.companies.length+"곳" : `${rows.length} / ${db.companies.length}곳`;
   const list=document.getElementById("coList");
   if(rows.length===0){
-    list.innerHTML=`<div class="empty">${db.companies.length? "검색 결과가 없습니다." : "아직 등록된 거래처가 없습니다.<br>+ 버튼으로 첫 거래처를 추가해 보세요."}</div>`;
+    list.innerHTML=`<div class="empty">${db.companies.length? "조건에 맞는 거래처가 없습니다." : "아직 등록된 거래처가 없습니다.<br>+ 버튼으로 첫 거래처를 추가해 보세요."}</div>`;
     return;
   }
   list.innerHTML=rows.map(c=>`
@@ -1360,7 +1372,20 @@ function nextQuoteNo(date){
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
-           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"" };
+           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"" };
+}
+/* 발송 후 경과일 — 발송 상태로 오래 머문 건을 찾기 위함 */
+function daysSince(iso){
+  if(!iso) return null;
+  const d=new Date(iso+"T00:00:00"), now=new Date(localDate()+"T00:00:00");
+  return Math.round((now-d)/86400000);
+}
+function quoteSentBadge(q){
+  if(q.status!=="발송") return "";
+  const n=daysSince(q.sent_at);
+  if(n===null) return "";
+  if(n<=0) return '<span class="pill">오늘 발송</span>';
+  return `<span class="pill ${n>=7?"out":""}">발송 ${n}일째</span>`;
 }
 function blankLine(){ return { item_id:"", name:"", color:"", spec:"", unit:"", qty:1, price:0 }; }
 
@@ -1392,8 +1417,9 @@ function quoteMarginText(q){
 }
 function quoteTotals(q){
   const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
+  const qty=q.lines.reduce((s,l)=>s+((l.name||"").trim()?(Number(l.qty)||0):0),0);
   const vat=Math.round(supply*0.1);
-  return { supply, vat, total:supply+vat };
+  return { supply, vat, total:supply+vat, qty };
 }
 
 /* 검색어가 적용된 견적서 목록 — 화면 표시와 CSV 내보내기가 같은 결과를 쓰도록 공유 */
@@ -1418,11 +1444,12 @@ function renderQtList(){
     <div class="list-item ${x.id===qtSel?'on':''}" data-id="${x.id}">
       <div class="li-body">
         <div class="li-name">${escapeHtml(coName(x.company_id))}</div>
-        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}</div>
+        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}${x.status==="발송"&&x.sent_at?` · 발송 ${escapeHtml(x.sent_at)}`:""}</div>
       </div>
       <div class="li-right">
         <div class="li-amt">${won(t.total)}</div>
         <span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>
+        ${quoteSentBadge(x)}
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
@@ -1458,7 +1485,9 @@ function renderQtDetail(){
       <div class="field"><label>상태</label>
         <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
       </div>
-      <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일"></div>
+      <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일">
+        ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
+      </div>
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
@@ -1468,6 +1497,7 @@ function renderQtDetail(){
       <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
     </div>
     <div class="qtotals">
+      <div class="row"><span class="k">총 수량</span><span class="v" id="fq_qty">${fmt(t.qty)}</span></div>
       <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
       <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
       <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
@@ -1596,6 +1626,7 @@ function bindQtLines(e){
       const l=e.lines[idx];
       form.querySelector(`[data-amt="${idx}"]`).textContent=fmt((Number(l.qty)||0)*(Number(l.price)||0));
       const t=quoteTotals(e);
+      document.getElementById("fq_qty").textContent=fmt(t.qty);
       document.getElementById("fq_supply").textContent=won(t.supply);
       document.getElementById("fq_vat").textContent=won(t.vat);
       document.getElementById("fq_total").textContent=won(t.total);
@@ -1627,6 +1658,8 @@ async function submitQuote(isNew){
     const idx=db.quotes.findIndex(x=>x.id===e.id);
     if(idx>=0) db.quotes[idx]=e;
   }
+  // '발송'으로 처음 바뀐 시점을 기록 — 회신 지연을 추적하기 위함
+  if(e.status==="발송" && !e.sent_at) e.sent_at=localDate();
   qtEditing=null;
   renderQtList(); renderQtDetail();
   await saveTable("quotes",db.quotes);
@@ -2190,6 +2223,44 @@ async function deleteStockMove(id){
 /* =====================================================================
    수금/지급(payments)
    ===================================================================== */
+/* 이달 거래처별 수금·지급 집계 — 지급 내역이 어디로 나갔는지 한눈에 */
+function renderPayByCo(rows){
+  const tbl=document.getElementById("payByCo");
+  if(!tbl) return;
+  const by={};
+  rows.forEach(p=>{
+    const r=by[p.company_id] ?? (by[p.company_id]={ inSum:0, outSum:0, n:0 });
+    r[p.kind==="지급"?"outSum":"inSum"]+=Number(p.amount)||0;
+    r.n++;
+  });
+  const list=Object.entries(by)
+    .map(([cid,r])=>({ cid, ...r, net:r.inSum-r.outSum }))
+    .sort((a,b)=>(b.inSum+b.outSum)-(a.inSum+a.outSum));
+  if(!list.length){
+    tbl.innerHTML=`<tbody><tr><td><div class="empty">이 달의 내역이 없습니다.</div></td></tr></tbody>`;
+    return;
+  }
+  const t={ inSum:list.reduce((s,r)=>s+r.inSum,0), outSum:list.reduce((s,r)=>s+r.outSum,0) };
+  tbl.innerHTML=`
+    <thead><tr><th>거래처</th><th style="text-align:right">건수</th>
+      <th style="text-align:right">수금</th><th style="text-align:right">지급</th><th style="text-align:right">차액</th></tr></thead>
+    <tbody>${list.map(r=>`
+      <tr>
+        <td>${escapeHtml(coName(r.cid))}</td>
+        <td class="num">${fmt(r.n)}건</td>
+        <td class="num">${r.inSum?fmt(r.inSum):'<span class="sub">—</span>'}</td>
+        <td class="num">${r.outSum?fmt(r.outSum):'<span class="sub">—</span>'}</td>
+        <td class="num" style="color:${r.net>0?"#1E7A3E":r.net<0?"var(--danger)":"var(--ink-3)"}">${fmt(r.net)}</td>
+      </tr>`).join("")}
+      <tr style="background:var(--paper)">
+        <td style="font-weight:700">합계</td><td></td>
+        <td class="num" style="font-weight:700">${fmt(t.inSum)}</td>
+        <td class="num" style="font-weight:700">${fmt(t.outSum)}</td>
+        <td class="num" style="font-weight:700">${fmt(t.inSum-t.outSum)}</td>
+      </tr>
+    </tbody>`;
+}
+
 function payCoOptions(){
   return db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
@@ -2217,6 +2288,8 @@ function renderPay(){
   const netEl=document.getElementById("paySumNet");
   netEl.textContent=(net>0?"+":"")+won(net);
   netEl.className="v "+(net>0?"pos":net<0?"neg":"");
+
+  renderPayByCo(rows);
 
   const tbl=document.getElementById("payTbl");
   if(rows.length===0){
@@ -2626,6 +2699,7 @@ async function init(){
   document.getElementById("navBackdrop").onclick=()=>toggleNav(false);
   document.getElementById("coNewBtn").onclick=()=>{ coSel="__new__"; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
   document.getElementById("coSearch").oninput=e=>{ coFilter=e.target.value; renderCoList(); };
+  document.getElementById("coType").onchange=renderCoList;
   document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
   document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
