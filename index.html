@@ -734,7 +734,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.35";
+const APP_VERSION = "v1.36";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1627,7 +1627,7 @@ function renderQtDetail(){
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
-  document.getElementById("fq_sizeBtn").onclick=()=>{ szOpen=!szOpen; renderSizePanel(e); };
+  document.getElementById("fq_sizeBtn").onclick=()=>{ szOpen=!szOpen; renderSizePanel(e,szOpen); };
   renderSizePanel(e);
   bindQtLines(e);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
@@ -1643,7 +1643,7 @@ function renderQtDetail(){
 
 /* 사이즈별 한번에 입력 — 같은 품목의 여러 사이즈를 행 추가 없이 수량만 채워 넣는다 */
 let szOpen=false;
-function renderSizePanel(e){
+function renderSizePanel(e,focusFirst){
   const box=document.getElementById("fq_sizePanel");
   if(!box) return;
   if(!szOpen){ box.innerHTML=""; return; }
@@ -1694,15 +1694,27 @@ function renderSizePanel(e){
     <div class="hint" style="margin-top:8px">수량을 넣은 사이즈만 품목 행으로 들어갑니다. 0이나 빈칸은 해당 행을 지웁니다.</div>
   </div>`;
 
+  const qtys=[...box.querySelectorAll("[data-sz]")];
   const sum=()=>{
-    const n=[...box.querySelectorAll("[data-sz]")].reduce((a,i)=>a+(Number(i.value)||0),0);
+    const n=qtys.reduce((a,i)=>a+(Number(i.value)||0),0);
     document.getElementById("sz_sum").textContent=`총 ${fmt(n)}개`;
   };
   sum();
-  box.querySelectorAll("[data-sz]").forEach(i=>i.oninput=sum);
-  document.getElementById("sz_item").onchange=()=>renderSizePanel(e);
+  qtys.forEach((inp,n)=>{
+    inp.oninput=sum;
+    inp.onfocus=()=>inp.select();          // 기존 값 위에 바로 덮어쓰기
+    // Tab은 단가를 건너뛰고 옆 사이즈 수량으로 — 사이즈별로 수량만 훑어 넣는 흐름
+    inp.onkeydown=ev=>{
+      if(ev.key!=="Tab") return;
+      const to = ev.shiftKey ? qtys[n-1] : qtys[n+1];
+      if(to){ ev.preventDefault(); to.focus(); }
+      else if(!ev.shiftKey){ ev.preventDefault(); document.getElementById("sz_apply").focus(); }
+    };
+  });
+  if(focusFirst && qtys.length) setTimeout(()=>{ qtys[0].focus(); },0);
+  document.getElementById("sz_item").onchange=()=>renderSizePanel(e,true);
   const cEl=document.getElementById("sz_color");
-  if(cEl && colors.length) cEl.onchange=()=>renderSizePanel(e);
+  if(cEl && colors.length) cEl.onchange=()=>renderSizePanel(e,true);
   document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
   document.getElementById("sz_apply").onclick=()=>applySizePanel(e,it,color);
 }
