@@ -82,7 +82,10 @@ Quote {
 // 견적번호는 nextQuoteNo()가 그날 최대 일련번호 +1로 채번 (개수 기반 아님 — 삭제해도 안 겹침)
 // item_id === "__free__" → 품명 직접 입력 행 (품목 미등록 항목)
 
-Payment   { id, date, company_id, kind:"수금"|"지급", method, amount, memo, created_at }
+Payment {
+  id, date, company_id, kind:"수금"|"지급", method, amount, memo, created_at,
+  quote_id   // 수금을 특정 견적 건에 연결 (선택). 없으면 거래처 단위 상계만 됨 (v1.42)
+}
 StockMove {
   id, date, item_id, color, spec, kind:"입고"|"출고", qty, memo, created_at,
   quote_id   // 이 기록을 만든 견적 id (수동 입출고는 null) — 재고 정합의 핵심 (v1.27)
@@ -102,7 +105,7 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 | payments | `renderPay` | 수금/지급 (월별) |
 | dash | `renderDash` | 대시보드 (매출·마진·수금·지급·미수금·회신대기 + 월별 매출·수금 차트) |
 | sales | `renderSales` | 매출 집계 (기간·거래처별 품목 집계 + CSV) |
-| ar | `renderAr` | 미수금 (수주 견적 합계 − 수금 합계, 거래처별) |
+| ar | `renderAr` | 미수금 — 거래처별 / 건별 두 가지 보기 (`#arView`) |
 | settings | `renderSettings` | 공급자 정보 + 전체 데이터 백업/복원 |
 
 - 거래처·품목·견적서는 좌(목록)·우(상세) 2단 `.cols` 그리드.
@@ -300,6 +303,12 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
   HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
 - `v1.25` — 모바일 공유 시 이미지 파일만 전송 — `navigator.share()`의 `text`·`title` 제거
   (카톡에 요약 메시지가 함께 발송되던 것 삭제)
+- `v1.42` — **ROADMAP 3단계 ③: 수금 ↔ 견적 연결** — `Payment.quote_id` 추가.
+  수금 입력 시 그 거래처의 '납품했고 덜 받은' 견적을 골라 연결(고르면 잔액이 금액칸에 자동 입력),
+  지급은 대응 문서가 없어 비활성. 미수금 화면에 **건별 보기** 추가 —
+  견적마다 납품액·수금액·잔액·계산서 상태. 건에 연결되지 않은 수금은 하단에 따로 표시해
+  숫자가 맞아떨어지게 함. 수금/지급 목록에도 연결 견적번호 표시.
+  `#payAmt`·`#ivQty`도 text+쉼표로 통일 (number 타입이라 쉼표 값이 무효 처리되던 문제)
 - `v1.41` — **ROADMAP 3단계 ②: 세금계산서 발행 체크** — `Quote.tax_at` 추가.
   견적 폼에 발행일 입력('오늘' 버튼), 납품했는데 미발행이면 목록에 '계산서 미발행' 배지.
   미수금 화면에 미발행 금액·건수 카드와 거래처별 컬럼, 대시보드에도 미발행 건수.

@@ -238,7 +238,7 @@
   .tbl-wrap{overflow-x:auto}
 
   /* ---------- payments ---------- */
-  .pay-add{display:grid;grid-template-columns:130px minmax(0,1.2fr) 92px 110px 130px minmax(0,1fr) auto;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line-2);align-items:center}
+  .pay-add{display:grid;grid-template-columns:126px minmax(0,1.1fr) minmax(0,1.25fr) 84px 100px 118px minmax(0,0.9fr) auto;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line-2);align-items:center}
   @media(max-width:1100px){.pay-add{grid-template-columns:1fr 1fr;padding:14px}}
   .pay-add input,.pay-add select{padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%}
   .pay-add input:focus,.pay-add select:focus{border-color:var(--primary)}
@@ -542,7 +542,7 @@
               <select id="ivColor"></select>
               <select id="ivSpec"></select>
               <select id="ivKind"><option>입고</option><option>출고</option></select>
-              <input type="number" inputmode="numeric" class="num" id="ivQty" placeholder="수량">
+              <input type="text" inputmode="numeric" class="num" id="ivQty" placeholder="수량">
               <input id="ivMemo" placeholder="메모 (선택)">
               <button class="btn-sm" id="ivAddBtn">추가</button>
             </div>
@@ -598,9 +598,10 @@
           <div class="pay-add">
             <input type="date" id="payDate">
             <select id="payCo"></select>
+            <select id="payQuote"><option value="">건 지정 안 함</option></select>
             <select id="payKind"><option>수금</option><option>지급</option></select>
             <select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select>
-            <input type="number" inputmode="numeric" class="num" id="payAmt" placeholder="금액">
+            <input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="금액">
             <input id="payMemo" placeholder="메모 (선택)">
             <button class="btn-sm" id="payAddBtn">추가</button>
           </div>
@@ -662,9 +663,13 @@
         <div class="page-head">
           <h2>미수금</h2>
           <div class="sp"></div>
+          <select class="month-input" id="arView">
+            <option value="co">거래처별</option>
+            <option value="quote">건별</option>
+          </select>
           <select class="month-input" id="arFilter">
-            <option value="open">미수금 있는 곳만</option>
-            <option value="all">모든 거래처</option>
+            <option value="open">미수금 있는 것만</option>
+            <option value="all">전체</option>
           </select>
           <button class="btn-sm" id="arCsvBtn">CSV 내보내기</button>
         </div>
@@ -745,7 +750,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.41";
+const APP_VERSION = "v1.42";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1475,6 +1480,19 @@ function isDelivered(q){ return !!(q && q.delivered_at); }
    납품했는데 아직 발행 안 한 건이 누락되지 않도록 추적한다 */
 function isTaxed(q){ return !!(q && q.tax_at); }
 function needsTax(q){ return isDelivered(q) && !isTaxed(q); }
+/* 견적 1건의 금액·수금·잔액 — 수금에 quote_id를 달면 건별로 남은 금액을 알 수 있다 */
+function quoteAmount(q){ return quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total; }
+function quotePaid(qid){
+  return (db.payments||[]).filter(p=>p.kind==="수금" && p.quote_id===qid)
+    .reduce((s,p)=>s+(Number(p.amount)||0),0);
+}
+function quoteBalance(q){ return quoteAmount(q)-quotePaid(q.id); }
+/* 특정 거래처의 '납품했고 아직 덜 받은' 견적 — 수금 입력 시 고를 대상 */
+function openQuotesOf(cid){
+  return db.quotes
+    .filter(q=>q.company_id===cid && isDelivered(q) && quoteBalance(q)>0)
+    .sort((a,b)=>(a.delivered_at||"").localeCompare(b.delivered_at||""));
+}
 
 function nextQuoteNo(date){
   const ymd=(date||localDate()).replace(/-/g,"");
@@ -2573,7 +2591,7 @@ function renderStock(){
 }
 async function addStockMove(){
   const item_id=document.getElementById("ivItem").value;
-  const qty=Number(document.getElementById("ivQty").value)||0;
+  const qty=parseNum(document.getElementById("ivQty").value);
   if(!item_id){ toast("품목을 선택하세요"); return; }
   if(qty<=0){ toast("수량을 입력하세요"); return; }
   db.stock_moves.push({
@@ -2640,6 +2658,20 @@ function renderPayByCo(rows){
     </tbody>`;
 }
 
+/* 수금일 때만 견적을 고를 수 있게 — 지급은 매입 흐름이 없어 연결할 대상이 없다 */
+function updatePayQuotes(){
+  const sel=document.getElementById("payQuote");
+  if(!sel) return;
+  const cid=document.getElementById("payCo").value;
+  const isIn=document.getElementById("payKind").value==="수금";
+  const prev=sel.value;
+  const list=isIn && cid ? openQuotesOf(cid) : [];
+  sel.innerHTML=`<option value="">건 지정 안 함</option>`+list.map(q=>
+    `<option value="${q.id}">${escapeHtml(q.no)} · ${escapeHtml(q.delivered_at||"")} · 잔액 ${fmt(quoteBalance(q))}</option>`).join("");
+  sel.disabled=!isIn || !cid;
+  if(prev && list.some(q=>q.id===prev)) sel.value=prev;
+}
+
 function payCoOptions(){
   return db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
@@ -2654,6 +2686,7 @@ function renderPay(){
   const cur=coEl.value;
   coEl.innerHTML=`<option value="">— 거래처 —</option>`+payCoOptions();
   if(cur) coEl.value=cur;
+  updatePayQuotes();
 
   const month=monthEl.value;
   const rows=db.payments
@@ -2676,11 +2709,12 @@ function renderPay(){
     return;
   }
   tbl.innerHTML=`
-    <thead><tr><th>날짜</th><th>거래처</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th>메모</th><th></th></tr></thead>
+    <thead><tr><th>날짜</th><th>거래처</th><th>연결 견적</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th>메모</th><th></th></tr></thead>
     <tbody>${rows.map(p=>`
       <tr>
         <td style="white-space:nowrap">${escapeHtml((p.date||"").slice(5))}</td>
         <td>${escapeHtml(coName(p.company_id))}</td>
+        <td class="sub">${p.quote_id ? escapeHtml((db.quotes.find(q=>q.id===p.quote_id)||{}).no||"(삭제된 견적)") : "—"}</td>
         <td><span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span></td>
         <td class="sub">${escapeHtml(p.method||"")}</td>
         <td class="num">${won(p.amount)}</td>
@@ -2699,14 +2733,16 @@ async function addPayment(){
   const company_id=document.getElementById("payCo").value;
   const kind=document.getElementById("payKind").value;
   const method=document.getElementById("payMethod").value;
-  const amount=Number(document.getElementById("payAmt").value)||0;
+  const amount=parseNum(document.getElementById("payAmt").value);
   const memo=document.getElementById("payMemo").value.trim();
+  const quote_id=kind==="수금" ? (document.getElementById("payQuote").value||null) : null;
   if(!date){ toast("날짜를 선택하세요"); return; }
   if(!company_id){ toast("거래처를 선택하세요"); return; }
   if(amount<=0){ toast("금액을 입력하세요"); return; }
-  db.payments.push({ id:crypto.randomUUID(), date, company_id, kind, method, amount, memo, created_at:new Date().toISOString() });
+  db.payments.push({ id:crypto.randomUUID(), date, company_id, quote_id, kind, method, amount, memo, created_at:new Date().toISOString() });
   document.getElementById("payAmt").value="";
   document.getElementById("payMemo").value="";
+  document.getElementById("payQuote").value="";
   document.getElementById("payMonth").value=date.slice(0,7);
   renderPay();
   await saveTable("payments",db.payments);
@@ -2984,6 +3020,7 @@ function renderAr(){
   document.getElementById("arCount").textContent=all.filter(r=>r.open>0).length+"곳";
 
   const tbl=document.getElementById("arTbl");
+  if(document.getElementById("arView").value==="quote"){ renderArByQuote(tbl); return; }
   if(!rows.length){
     tbl.innerHTML=`<tbody><tr><td><div class="empty">${all.length? "미수금이 남은 거래처가 없습니다." : "수주·납품된 견적서가 없습니다.<br>견적서 상태를 '수주'로 바꾸면 여기에 집계됩니다."}</div></td></tr></tbody>`;
     return;
@@ -3014,6 +3051,52 @@ function renderAr(){
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.untaxed,0))}</td>
         <td></td>
       </tr>
+    </tbody>`;
+}
+
+/* 건별 보기 — 납품 건마다 얼마 받았고 얼마 남았는지.
+   건에 연결하지 않은 수금은 특정 건에 귀속시킬 수 없으므로 아래에 따로 표시한다. */
+function renderArByQuote(tbl){
+  const openOnly=document.getElementById("arFilter").value!=="all";
+  let list=db.quotes.filter(isDelivered)
+    .map(q=>({ q, amt:quoteAmount(q), paid:quotePaid(q.id) }))
+    .map(r=>({ ...r, bal:r.amt-r.paid }));
+  if(openOnly) list=list.filter(r=>r.bal>0);
+  list.sort((a,b)=>(b.q.delivered_at||"").localeCompare(a.q.delivered_at||""));
+
+  const unlinked=(db.payments||[]).filter(p=>p.kind==="수금" && !p.quote_id)
+    .reduce((s,p)=>s+(Number(p.amount)||0),0);
+
+  if(!list.length){
+    tbl.innerHTML=`<tbody><tr><td><div class="empty">${openOnly?"잔액이 남은 납품 건이 없습니다.":"납품된 견적이 없습니다."}</div></td></tr></tbody>`;
+    return;
+  }
+  tbl.innerHTML=`
+    <thead><tr>
+      <th>견적번호</th><th>거래처</th><th>납품일</th>
+      <th style="text-align:right">납품액</th><th style="text-align:right">수금액</th><th style="text-align:right">잔액</th>
+      <th>계산서</th>
+    </tr></thead>
+    <tbody>${list.map(r=>`
+      <tr>
+        <td>${escapeHtml(r.q.no)}</td>
+        <td>${escapeHtml(coName(r.q.company_id))}</td>
+        <td class="sub">${escapeHtml(r.q.delivered_at||"")}</td>
+        <td class="num">${fmt(r.amt)}</td>
+        <td class="num">${r.paid?fmt(r.paid):'<span class="sub">—</span>'}</td>
+        <td class="num" style="color:${r.bal>0?"var(--danger)":r.bal<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.bal)}</td>
+        <td>${isTaxed(r.q)?`<span class="sub">${escapeHtml(r.q.tax_at)}</span>`:'<span class="pill out">미발행</span>'}</td>
+      </tr>`).join("")}
+      <tr style="background:var(--paper)">
+        <td style="font-weight:700">합계</td><td></td><td></td>
+        <td class="num" style="font-weight:700">${fmt(list.reduce((s,r)=>s+r.amt,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(list.reduce((s,r)=>s+r.paid,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(list.reduce((s,r)=>s+r.bal,0))}</td>
+        <td></td>
+      </tr>
+      ${unlinked?`<tr><td colspan="7" class="sub" style="padding:12px 14px">
+        건에 연결되지 않은 수금 <b>${won(unlinked)}</b> — 수금 입력 시 견적을 지정하면 이 건별 잔액에 반영됩니다
+      </td></tr>`:""}
     </tbody>`;
 }
 
@@ -3126,12 +3209,23 @@ async function init(){
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
   document.getElementById("qtCsvBtn").onclick=exportQuotesCsv;
   document.getElementById("payMonth").onchange=renderPay;
+  bindNumInput(document.getElementById("payAmt"),()=>{});
+  bindNumInput(document.getElementById("ivQty"),()=>{});
+  document.getElementById("payCo").onchange=updatePayQuotes;
+  document.getElementById("payKind").onchange=updatePayQuotes;
+  document.getElementById("payQuote").onchange=()=>{
+    // 건을 고르면 남은 잔액을 금액칸에 채워 준다 (비어 있을 때만)
+    const amtEl=document.getElementById("payAmt");
+    const q=db.quotes.find(x=>x.id===document.getElementById("payQuote").value);
+    if(q && !parseNum(amtEl.value)) amtEl.value=fmt(quoteBalance(q));
+  };
   document.getElementById("payAddBtn").onclick=addPayment;
   document.getElementById("ivItem").onchange=updateIvCombo;
   document.getElementById("ivAddBtn").onclick=addStockMove;
   ["slFrom","slTo","slCo","slStatus"].forEach(id=>{ document.getElementById(id).onchange=renderSales; });
   document.getElementById("slCsvBtn").onclick=exportSalesCsv;
   document.getElementById("arFilter").onchange=renderAr;
+  document.getElementById("arView").onchange=renderAr;
   document.getElementById("arCsvBtn").onclick=exportArCsv;
   document.getElementById("stSaveBtn").onclick=saveSettings;
   document.getElementById("bkExportBtn").onclick=exportBackup;
