@@ -743,7 +743,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.38";
+const APP_VERSION = "v1.39";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1565,7 +1565,7 @@ function renderQtList(){
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
-    el.onclick=()=>{ qtSel=el.dataset.id; qtEditing=null; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
+    el.onclick=()=>{ qtSel=el.dataset.id; qtEditing=null; szOpen=false; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
   });
 }
 
@@ -1671,7 +1671,11 @@ function renderQtDetail(){
   };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
-  document.getElementById("fq_sizeBtn").onclick=()=>{ szOpen=!szOpen; renderSizePanel(e,szOpen); };
+  document.getElementById("fq_sizeBtn").onclick=()=>{
+    szOpen=!szOpen;
+    if(szOpen){ szItemId=null; szColor=null; }   // 열 때는 견적에 든 품목을 기준으로 다시 잡는다
+    renderSizePanel(e,szOpen);
+  };
   renderSizePanel(e);
   bindQtLines(e);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
@@ -1686,7 +1690,20 @@ function renderQtDetail(){
 }
 
 /* 사이즈별 한번에 입력 — 같은 품목의 여러 사이즈를 행 추가 없이 수량만 채워 넣는다 */
-let szOpen=false;
+let szOpen=false, szItemId=null, szColor=null;
+/* 패널을 열 때 기본으로 잡을 품목·색상 — 견적에 이미 들어간 품목을 우선한다.
+   여러 개면 품목 행 맨 위의 것. (없을 때만 전체 품목 중 첫 번째) */
+function szDefaultItem(e,cands){
+  const inLines=(e.lines||[])
+    .map(l=>db.items.find(x=>x.id===l.item_id))
+    .find(it=>it && (it.variants||[]).length);
+  return inLines || cands[0];
+}
+function szDefaultColor(e,it,colors){
+  if(!colors.length) return "";
+  const line=(e.lines||[]).find(l=>l.item_id===it.id && colors.includes(l.color));
+  return (line && line.color) || colors[0];
+}
 function renderSizePanel(e,focusFirst){
   const box=document.getElementById("fq_sizePanel");
   if(!box) return;
@@ -1700,12 +1717,9 @@ function renderSizePanel(e,focusFirst){
     document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
     return;
   }
-  const sel=document.getElementById("sz_item");
-  const itemId=(sel && sel.value) || cands[0].id;
-  const it=db.items.find(x=>x.id===itemId) || cands[0];
+  const it=(szItemId && db.items.find(x=>x.id===szItemId)) || szDefaultItem(e,cands);
   const colors=it.colors||[];
-  const prevColor=(document.getElementById("sz_color")||{}).value;
-  const color=colors.includes(prevColor)?prevColor:(colors[0]||"");
+  const color=colors.includes(szColor) ? szColor : szDefaultColor(e,it,colors);
 
   // 이미 들어간 행의 수량을 그대로 보여줘 수정도 가능하게
   const cur={};
@@ -1762,9 +1776,9 @@ function renderSizePanel(e,focusFirst){
     i.onfocus=()=>{ i.value=String(i.value).replace(/,/g,""); i.select(); };
     i.onblur=()=>{ const n=parseNum(i.value); i.value=n?fmt(n):""; };
   });
-  document.getElementById("sz_item").onchange=()=>renderSizePanel(e,true);
+  document.getElementById("sz_item").onchange=ev=>{ szItemId=ev.target.value; szColor=null; renderSizePanel(e,true); };
   const cEl=document.getElementById("sz_color");
-  if(cEl && colors.length) cEl.onchange=()=>renderSizePanel(e,true);
+  if(cEl && colors.length) cEl.onchange=ev=>{ szColor=ev.target.value; renderSizePanel(e,true); };
   document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
   document.getElementById("sz_apply").onclick=()=>applySizePanel(e,it,color);
 }
@@ -3067,7 +3081,7 @@ async function init(){
   document.getElementById("coType").onchange=renderCoList;
   document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
-  document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
+  document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; szOpen=false; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
   document.getElementById("qtCsvBtn").onclick=exportQuotesCsv;
   document.getElementById("payMonth").onchange=renderPay;
