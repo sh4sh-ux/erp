@@ -676,6 +676,8 @@
             <div class="hint" style="margin-top:2px">납품 − 수금</div></div>
           <div class="stat"><div class="k">미납품 잔액</div><div class="v" id="arPending">0원</div>
             <div class="hint" style="margin-top:2px">수주했지만 아직 납품 전</div></div>
+          <div class="stat"><div class="k">계산서 미발행</div><div class="v" id="arUntaxed">0원</div>
+            <div class="hint" id="arUntaxedNote" style="margin-top:2px"></div></div>
           <div class="stat"><div class="k">미수 거래처</div><div class="v" id="arCount">0곳</div></div>
         </div>
         <div class="card">
@@ -743,7 +745,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.40";
+const APP_VERSION = "v1.41";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1469,6 +1471,10 @@ const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st
 const QT_COMMITTED=["수주","납품"];
 /* 청구 가능한(= 매출로 확정된) 건인지. 납품일이 있으면 납품된 것으로 본다 */
 function isDelivered(q){ return !!(q && q.delivered_at); }
+/* 세금계산서 발행 여부 — 발행일(tax_at)이 있으면 발행된 것으로 본다.
+   납품했는데 아직 발행 안 한 건이 누락되지 않도록 추적한다 */
+function isTaxed(q){ return !!(q && q.tax_at); }
+function needsTax(q){ return isDelivered(q) && !isTaxed(q); }
 
 function nextQuoteNo(date){
   const ymd=(date||localDate()).replace(/-/g,"");
@@ -1484,7 +1490,7 @@ function nextQuoteNo(date){
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
-           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"", delivered_at:"" };
+           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"", delivered_at:"", tax_at:"" };
 }
 /* 발송 후 경과일 — 발송 상태로 오래 머문 건을 찾기 위함 */
 function daysSince(iso){
@@ -1562,6 +1568,7 @@ function renderQtList(){
         <div class="li-amt">${won(t.total)}</div>
         <span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>
         ${quoteSentBadge(x)}
+        ${needsTax(x)?'<span class="pill out">계산서 미발행</span>':""}
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
@@ -1610,6 +1617,16 @@ function renderQtDetail(){
         <div class="hint">${isDelivered(e)
           ? "납품 완료 — 이 금액이 매출·미수금에 잡힙니다"
           : "비워 두면 <b>미납품</b>으로 보고 미수금에 넣지 않습니다"}</div>
+      </div>
+      <div class="field"><label>세금계산서 발행일</label>
+        <div class="quick-row">
+          <input type="date" id="fq_tax" value="${escapeAttr(e.tax_at||"")}">
+          <button type="button" id="fq_taxToday">오늘</button>
+        </div>
+        <div class="hint">${isTaxed(e)
+          ? "발행 완료"
+          : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
+                            : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
       </div>
     </div>
     <div class="field"><label>품목</label>
@@ -1669,6 +1686,8 @@ function renderQtDetail(){
     if(e.status==="수주") e.status="납품";
     renderQtDetail();
   };
+  document.getElementById("fq_tax").onchange=ev=>{ e.tax_at=ev.target.value; renderQtDetail(); };
+  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
   document.getElementById("fq_sizeBtn").onclick=()=>{
@@ -2724,6 +2743,8 @@ function renderDash(){
   const openAr=arData().reduce((s,r)=>s+r.open,0);
   const sent=db.quotes.filter(q=>q.status==="발송");
   const sentOld=sent.filter(q=>(daysSince(q.sent_at)||0)>=7).length;
+  const untaxed=db.quotes.filter(needsTax).reduce((a,q)=>({
+    n:a.n+1, amt:a.amt+quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total }),{n:0,amt:0});
 
   document.getElementById("dashStats").innerHTML=`
     <div class="stat"><div class="k">이달 매출 (납품)</div><div class="v">${won(sales.total)}</div>
@@ -2734,7 +2755,9 @@ function renderDash(){
     <div class="stat"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div></div>
     <div class="stat"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div></div>
     <div class="stat"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
-      <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></div>`;
+      <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></div>
+    <div class="stat"><div class="k">계산서 미발행</div><div class="v ${untaxed.n?"neg":""}">${untaxed.n}건</div>
+      <div class="hint" style="margin-top:2px">${untaxed.n?won(untaxed.amt):"모두 발행 완료"}</div></div>`;
 
   // 최근 6개월 — 매출(수주) vs 수금
   const months=[];
@@ -2914,8 +2937,8 @@ function exportSalesCsv(){
    '미납품 잔액'으로 따로 보여준다. */
 function arData(){
   const rows={};
-  const row=cid=>rows[cid] ?? (rows[cid]={ cid, ordered:0, delivered:0, paid:0,
-    orders:0, delivers:0, lastOrder:"", lastDeliver:"", lastPay:"" });
+  const row=cid=>rows[cid] ?? (rows[cid]={ cid, ordered:0, delivered:0, paid:0, untaxed:0,
+    orders:0, delivers:0, untaxedCount:0, lastOrder:"", lastDeliver:"", lastPay:"" });
   db.quotes.forEach(q=>{
     if(!QT_COMMITTED.includes(q.status)) return;
     const amt=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total;
@@ -2925,6 +2948,7 @@ function arData(){
     if(isDelivered(q)){
       r.delivered+=amt; r.delivers++;
       if(q.delivered_at>r.lastDeliver) r.lastDeliver=q.delivered_at;
+      if(!isTaxed(q)){ r.untaxed+=amt; r.untaxedCount++; }
     }
   });
   (db.payments||[]).forEach(p=>{
@@ -2952,6 +2976,11 @@ function renderAr(){
   document.getElementById("arPaid").textContent=won(sum("paid"));
   document.getElementById("arOpen").textContent=won(sum("open"));
   document.getElementById("arPending").textContent=won(sum("pending"));
+  const untaxed=sum("untaxed"), untaxedN=all.reduce((s,r)=>s+r.untaxedCount,0);
+  const utEl=document.getElementById("arUntaxed");
+  utEl.textContent=won(untaxed);
+  utEl.className="v"+(untaxed>0?" neg":"");
+  document.getElementById("arUntaxedNote").textContent=untaxedN?`납품 ${untaxedN}건 미발행`:"모두 발행 완료";
   document.getElementById("arCount").textContent=all.filter(r=>r.open>0).length+"곳";
 
   const tbl=document.getElementById("arTbl");
@@ -2963,7 +2992,7 @@ function renderAr(){
     <thead><tr>
       <th>거래처</th><th style="text-align:right">납품 건수</th><th style="text-align:right">납품액</th>
       <th style="text-align:right">수금액</th><th style="text-align:right">미수금</th>
-      <th style="text-align:right">미납품</th><th>최근 수금</th>
+      <th style="text-align:right">미납품</th><th style="text-align:right">계산서 미발행</th><th>최근 수금</th>
     </tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
@@ -2973,6 +3002,7 @@ function renderAr(){
         <td class="num">${fmt(r.paid)}</td>
         <td class="num" style="color:${r.open>0?"var(--danger)":r.open<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.open)}</td>
         <td class="num">${r.pending?fmt(r.pending):'<span class="sub">—</span>'}</td>
+        <td class="num" style="color:${r.untaxed?"var(--danger)":"inherit"}">${r.untaxed?`${fmt(r.untaxed)} <span class="sub">(${r.untaxedCount}건)</span>`:'<span class="sub">—</span>'}</td>
         <td class="sub">${escapeHtml(r.lastPay||"—")}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
@@ -2981,6 +3011,7 @@ function renderAr(){
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.paid,0))}</td>
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.open,0))}</td>
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.pending,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.untaxed,0))}</td>
         <td></td>
       </tr>
     </tbody>`;
@@ -2989,9 +3020,9 @@ function renderAr(){
 function exportArCsv(){
   const rows=arRows();
   if(!rows.length){ toast("내보낼 내역이 없습니다"); return; }
-  const out=[["거래처","납품 건수","납품액","수금액","미수금","미납품","수주액","최근 납품일","최근 수금일"].join(",")];
-  rows.forEach(r=>out.push([csvEsc(coName(r.cid)),r.delivers,r.delivered,r.paid,r.open,r.pending,r.ordered,
-    csvEsc(r.lastDeliver||""),csvEsc(r.lastPay||"")].join(",")));
+  const out=[["거래처","납품 건수","납품액","수금액","미수금","미납품","계산서 미발행","미발행 건수","수주액","최근 납품일","최근 수금일"].join(",")];
+  rows.forEach(r=>out.push([csvEsc(coName(r.cid)),r.delivers,r.delivered,r.paid,r.open,r.pending,
+    r.untaxed,r.untaxedCount,r.ordered,csvEsc(r.lastDeliver||""),csvEsc(r.lastPay||"")].join(",")));
   downloadCsv(out,`미수금_${localDate()}.csv`);
 }
 
