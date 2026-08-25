@@ -96,6 +96,7 @@
   .li-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .li-right{text-align:right;flex:0 0 auto}
   .li-amt{font-size:13px;font-weight:640;font-variant-numeric:tabular-nums}
+  .li-code{font-size:11.5px;font-weight:600;color:var(--ink-3);background:var(--paper);border-radius:5px;padding:1px 5px;margin-left:4px}
   .pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;flex:0 0 auto}
   .pill.buy{background:#FFF1E6;color:#C05617}
   .pill.sell{background:#E7F6EC;color:#1E7A3E}
@@ -182,6 +183,23 @@
   .cline input.num{text-align:right}
   .cline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .cline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .ip-btn{width:100%;text-align:left;padding:7px 26px 7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-size:13.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;transition:.12s}
+  .ip-btn:hover{border-color:var(--ink-3)}
+  .ip-btn.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .ip-btn .ph{color:var(--ink-3)}
+  .ip-btn .cd{font-size:11.5px;font-weight:600;color:var(--ink-3);background:var(--paper);border-radius:5px;padding:1px 5px;margin-left:5px}
+  .ip-btn::after{content:"";position:absolute;right:10px;top:50%;width:6px;height:6px;margin-top:-4px;border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);transform:rotate(45deg)}
+  .ip-pop{position:fixed;z-index:70;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .ip-pop input{width:100%;padding:10px 12px;border:none;border-bottom:1px solid var(--line-2);font-size:13.5px;outline:none}
+  .ip-list{overflow-y:auto;max-height:280px;padding:4px}
+  .ip-opt{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13.5px;cursor:pointer}
+  .ip-opt:hover,.ip-opt.hi{background:var(--primary-soft);color:var(--primary)}
+  .ip-opt .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ip-opt .cd{font-size:11.5px;font-weight:600;color:var(--ink-3);background:var(--paper);border-radius:5px;padding:1px 6px;flex:0 0 auto}
+  .ip-opt.hi .cd{background:var(--card)}
+  .ip-opt .pr{font-size:12px;color:var(--ink-3);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .ip-empty{padding:18px 12px;text-align:center;color:var(--ink-3);font-size:13px}
   .qline .dual{display:flex;gap:5px;min-width:0}
   .qline .dual>*{flex:1;min-width:0}
   .qline .dual select,.qline .dual input{font-size:12.5px;padding:7px 4px 7px 7px}
@@ -716,7 +734,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.34";
+const APP_VERSION = "v1.35";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1047,6 +1065,18 @@ async function deleteCompany(id){
 let itSel=null, itFilter="", itEditing=null;
 
 function isSet(i){ return i && i.type==="세트"; }
+/* 품목코드 — 이카운트처럼 코드와 품명을 분리해서 관리하되,
+   출력물에는 지금까지 쓰던 "품명 [코드]" 표기를 그대로 유지한다 */
+function itemLabel(name,code){
+  name=(name||"").trim(); code=(code||"").trim();
+  return code ? `${name} [${code}]` : name;
+}
+function itemCodeOf(id){ const i=db.items.find(x=>x.id===id); return i ? (i.code||"") : ""; }
+/* 품명 끝의 [XXX]를 코드로 분리 — 기존 데이터 이전용 */
+function splitTrailingCode(name){
+  const m=/^(.*?)\s*\[([^\[\]]+)\]\s*$/.exec(name||"");
+  return m ? { name:m[1].trim(), code:m[2].trim() } : null;
+}
 function variantOf(i,spec){ return (i.variants||[]).find(v=>v.spec===spec); }
 function itemSell(i,spec){
   if(!i) return 0;
@@ -1116,7 +1146,8 @@ function normalizeItem(i){
 function renderItList(){
   const q=itFilter.trim().toLowerCase();
   const rows=db.items
-    .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.spec||"").toLowerCase().includes(q)
+    .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.code||"").toLowerCase().includes(q)
+             || (i.spec||"").toLowerCase().includes(q)
              || (i.variants||[]).some(v=>(v.spec||"").toLowerCase().includes(q)))
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
   document.getElementById("itCount").textContent=db.items.length+"개";
@@ -1136,9 +1167,9 @@ function renderItList(){
     const price = itemSell(i);
     return `
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
-      <div class="avatar">${escapeHtml(initials(i.name))}</div>
+      <div class="avatar">${escapeHtml(initials(i.code||i.name))}</div>
       <div class="li-body">
-        <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}</div>
+        <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}${i.code?` <span class="li-code">${escapeHtml(i.code)}</span>`:""}</div>
         <div class="li-sub">${escapeHtml(sub)}</div>
       </div>
       <div class="li-right">
@@ -1152,7 +1183,7 @@ function renderItList(){
 }
 
 function blankItem(){
-  return { id:null, name:"", type:"단품", spec:"", unit:"EA", buy_price:0, sell_price:0,
+  return { id:null, code:"", name:"", type:"단품", spec:"", unit:"EA", buy_price:0, sell_price:0,
            colors:[], variants:[], components:[], memo:"" };
 }
 
@@ -1244,7 +1275,11 @@ function renderItDetail(){
 
   form.innerHTML=`
     <div class="grid2">
-      <div class="field"><label>품명 *</label><input id="fi_name" value="${escapeAttr(e.name)}" placeholder="예: 바지(PT_MG-01 BK)"></div>
+      <div class="grid2" style="grid-template-columns:180px 1fr">
+        <div class="field"><label>품목코드</label><input id="fi_code" value="${escapeAttr(e.code||"")}" placeholder="예: CTS_3SB"></div>
+        <div class="field"><label>품명 *</label><input id="fi_name" value="${escapeAttr(e.name)}" placeholder="예: 셰프복 세트"></div>
+      </div>
+      <div class="hint" id="fi_codeHint">${itemCodeHint(e)}</div>
       <div class="field"><label>유형</label>
         <select id="fi_type">
           <option ${e.type!=="세트"?"selected":""}>단품</option>
@@ -1260,7 +1295,9 @@ function renderItDetail(){
     </div>`;
 
   // 공통 바인딩
-  document.getElementById("fi_name").oninput=ev=>{ e.name=ev.target.value; };
+  document.getElementById("fi_name").oninput=ev=>{ e.name=ev.target.value; refreshCodeHint(e); };
+  document.getElementById("fi_code").oninput=ev=>{ e.code=ev.target.value.trim(); refreshCodeHint(e); };
+  bindCodeSplit(e);
   document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
   document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fi_buy").oninput=ev=>{ e.buy_price=Number(ev.target.value)||0; updateItSums(e); };
@@ -1320,6 +1357,35 @@ function renderItDetail(){
   else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
 }
 
+/* 품명에 [코드]가 붙어 있고 코드칸이 비어 있으면 분리해 주겠다고 안내 */
+function itemCodeHint(i){
+  const sp=splitTrailingCode(i.name);
+  if(sp && !(i.code||"").trim())
+    return `품명에 <b>[${escapeHtml(sp.code)}]</b>가 들어 있습니다 — <a href="#" id="fi_codeSplit" style="color:var(--primary);font-weight:600">코드로 분리</a>하면 품명은 "${escapeHtml(sp.name)}"이 됩니다`;
+  if((i.code||"").trim())
+    return `출력물에는 <b>${escapeHtml(itemLabel(i.name,i.code))}</b>로 표시됩니다`;
+  return "코드는 선택 사항입니다. 넣으면 견적서에 \"품명 [코드]\"로 표시되고 코드로 검색됩니다";
+}
+function refreshCodeHint(e){
+  const el=document.getElementById("fi_codeHint");
+  if(!el) return;
+  el.innerHTML=itemCodeHint(e);
+  bindCodeSplit(e);
+}
+function bindCodeSplit(e){
+  const a=document.getElementById("fi_codeSplit");
+  if(!a) return;
+  a.onclick=ev=>{
+    ev.preventDefault();
+    const sp=splitTrailingCode(e.name);
+    if(!sp) return;
+    e.name=sp.name; e.code=sp.code;
+    document.getElementById("fi_name").value=e.name;
+    document.getElementById("fi_code").value=e.code;
+    refreshCodeHint(e);
+  };
+}
+
 function itemMarginHint(i){
   const buy=itemBuy(i), sell=itemSell(i);
   if(!buy || !sell) return "매입단가와 매출단가를 모두 넣으면 마진이 표시됩니다";
@@ -1339,6 +1405,9 @@ async function submitItem(isNew){
   const e=itEditing;
   if(!(e.name||"").trim()){ toast("품명을 입력하세요"); return; }
   e.name=e.name.trim();
+  e.code=(e.code||"").trim();
+  const dup=db.items.find(x=>x.id!==e.id && e.code && (x.code||"")===e.code);
+  if(dup){ toast(`품목코드 ${e.code}는 이미 "${dup.name}"에 쓰이고 있습니다`); return; }
   if(isSet(e)){
     e.components=e.components.filter(c=>c.item_id && (Number(c.qty)||0)>0);
     if(e.components.length===0){ toast("구성품을 1개 이상 선택하세요"); return; }
@@ -1601,7 +1670,7 @@ function renderSizePanel(e){
   box.innerHTML=`
   <div class="szpanel">
     <div class="szhead">
-      <select id="sz_item">${cands.map(i=>`<option value="${i.id}" ${i.id===it.id?"selected":""}>${escapeHtml(i.name)}</option>`).join("")}</select>
+      <select id="sz_item">${cands.map(i=>`<option value="${i.id}" ${i.id===it.id?"selected":""}>${escapeHtml(itemLabel(i.name,i.code))}</option>`).join("")}</select>
       <select id="sz_color" ${colors.length?"":"disabled"}>
         ${colors.length?colors.map(c=>`<option ${c===color?"selected":""}>${escapeHtml(c)}</option>`).join(""):`<option value="">색상 —</option>`}
       </select>
@@ -1647,7 +1716,7 @@ function applySizePanel(e,it,color){
     const idx=e.lines.findIndex(l=>l.item_id===it.id && (l.color||"")===color && (l.spec||"")===v.spec);
     if(qty>0){
       if(idx>=0){ e.lines[idx].qty=qty; e.lines[idx].price=price; }
-      else e.lines.push({ item_id:it.id, name:it.name, color, spec:v.spec, unit:it.unit||"", qty, price });
+      else e.lines.push({ item_id:it.id, name:itemLabel(it.name,it.code), color, spec:v.spec, unit:it.unit||"", qty, price });
       added++;
     }else if(idx>=0){ e.lines.splice(idx,1); removed++; }
   });
@@ -1660,14 +1729,13 @@ function applySizePanel(e,it,color){
 }
 
 function qtLineHtml(l,idx){
-  const itemOpts=db.items.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
-    .map(i=>`<option value="${i.id}" ${i.id===l.item_id?"selected":""}>${isSet(i)?"[세트] ":""}${escapeHtml(i.name)}</option>`).join("");
+  const sel=db.items.find(x=>x.id===l.item_id);
+  const btnLabel = sel
+    ? `${escapeHtml(sel.name)}${sel.code?`<span class="cd">${escapeHtml(sel.code)}</span>`:""}`
+    : `<span class="ph">품목 선택 — 품명·코드 검색</span>`;
   const nameCell = l.item_id==="__free__"
     ? `<input data-f="name" data-idx="${idx}" value="${escapeAttr(l.name)}" placeholder="품명 직접 입력">`
-    : `<select data-f="item" data-idx="${idx}">
-        <option value="">— 품목 선택 —</option>${itemOpts}
-        <option value="__free__">✏️ 직접 입력</option>
-      </select>`;
+    : `<button type="button" class="ip-btn" data-f="item" data-idx="${idx}">${btnLabel}</button>`;
   const it=db.items.find(x=>x.id===l.item_id);
   const sizeCell = (it && (it.variants||[]).length)
     ? `<select data-f="vspec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===l.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
@@ -1688,31 +1756,96 @@ function qtLineHtml(l,idx){
   </div>`;
 }
 
+/* 선택한 품목을 견적 행에 반영.
+   name에는 itemLabel()로 "품명 [코드]"를 넣어 출력물 표기를 유지한다 (문서 스냅샷) */
+function applyItemPick(e,idx,v){
+  const l=e.lines[idx];
+  if(v==="__free__"){ l.item_id="__free__"; l.name=""; l.spec=""; l.unit=""; }
+  else if(v){
+    const it=db.items.find(x=>x.id===v);
+    if(!it) return;
+    l.item_id=v; l.name=itemLabel(it.name,it.code); l.unit=it.unit||"";
+    l.color=(it.colors&&it.colors[0])||"";
+    if(isSet(it)){
+      l.spec=setSpecSummary(it);
+      l.price=itemSell(it);
+    }else if((it.variants||[]).length){
+      l.spec=it.variants[0].spec;
+      l.price=itemSell(it,l.spec);
+    }else{
+      l.spec=it.spec||"";
+      if(it.sell_price) l.price=it.sell_price;
+    }
+  }else{ Object.assign(l,blankLine()); }
+  renderQtDetail();
+}
+
+/* 품목 선택기 — 품명·코드로 검색해서 고른다 (품목이 늘어도 찾기 쉽게) */
+let ipPop=null;
+function closeItemPicker(){
+  if(ipPop){ ipPop.remove(); ipPop=null; }
+  document.querySelectorAll(".ip-btn.on").forEach(b=>b.classList.remove("on"));
+}
+function openItemPicker(btn,onPick){
+  closeItemPicker();
+  btn.classList.add("on");
+  const r=btn.getBoundingClientRect();
+  const pop=document.createElement("div");
+  pop.className="ip-pop";
+  pop.innerHTML=`<input type="text" placeholder="품명·코드 검색" autocomplete="off"><div class="ip-list"></div>`;
+  document.body.appendChild(pop);
+  ipPop=pop;
+  const w=Math.max(260,Math.min(r.width,460));
+  pop.style.width=w+"px";
+  pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-8))+"px";
+  const below=window.innerHeight-r.bottom;
+  if(below<240 && r.top>below){ pop.style.bottom=(window.innerHeight-r.top+6)+"px"; }
+  else { pop.style.top=(r.bottom+6)+"px"; }
+
+  const input=pop.querySelector("input");
+  const list=pop.querySelector(".ip-list");
+  let hi=0, shown=[];
+  const draw=()=>{
+    const q=input.value.trim().toLowerCase();
+    shown=db.items
+      .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.code||"").toLowerCase().includes(q))
+      .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
+      .slice(0,50);
+    hi=Math.min(hi,Math.max(0,shown.length));
+    list.innerHTML = (shown.length
+      ? shown.map((i,n)=>`<div class="ip-opt ${n===hi?"hi":""}" data-id="${i.id}">
+          <span class="nm">${isSet(i)?"[세트] ":""}${escapeHtml(i.name)}</span>
+          ${i.code?`<span class="cd">${escapeHtml(i.code)}</span>`:""}
+          <span class="pr">${itemSell(i)?fmt(itemSell(i)):""}</span></div>`).join("")
+      : `<div class="ip-empty">"${escapeHtml(input.value)}"에 맞는 품목이 없습니다</div>`)
+      + `<div class="ip-opt ${hi===shown.length?"hi":""}" data-id="__free__"><span class="nm">✏️ 직접 입력</span></div>`;
+    list.querySelectorAll(".ip-opt").forEach(o=>{
+      o.onmousedown=ev=>{ ev.preventDefault(); onPick(o.dataset.id); closeItemPicker(); };
+    });
+  };
+  draw();
+  input.oninput=()=>{ hi=0; draw(); };
+  input.onkeydown=ev=>{
+    const max=shown.length;             // 마지막은 '직접 입력'
+    if(ev.key==="ArrowDown"){ ev.preventDefault(); hi=Math.min(hi+1,max); draw(); scrollHi(); }
+    else if(ev.key==="ArrowUp"){ ev.preventDefault(); hi=Math.max(hi-1,0); draw(); scrollHi(); }
+    else if(ev.key==="Enter"){ ev.preventDefault();
+      const el=list.querySelector(".ip-opt.hi");
+      if(el){ onPick(el.dataset.id); closeItemPicker(); } }
+    else if(ev.key==="Escape"){ ev.preventDefault(); closeItemPicker(); btn.focus(); }
+  };
+  const scrollHi=()=>{ const el=list.querySelector(".ip-opt.hi"); if(el) el.scrollIntoView({block:"nearest"}); };
+  setTimeout(()=>input.focus(),0);
+}
+document.addEventListener("mousedown",ev=>{
+  if(ipPop && !ipPop.contains(ev.target) && !ev.target.closest(".ip-btn")) closeItemPicker();
+});
+window.addEventListener("resize",closeItemPicker);
+
 function bindQtLines(e){
   const form=document.getElementById("qtForm");
-  form.querySelectorAll('[data-f="item"]').forEach(el=>{
-    el.onchange=()=>{
-      const idx=Number(el.dataset.idx);
-      const v=el.value;
-      const l=e.lines[idx];
-      if(v==="__free__"){ l.item_id="__free__"; l.name=""; l.spec=""; l.unit=""; }
-      else if(v){
-        const it=db.items.find(x=>x.id===v);
-        l.item_id=v; l.name=it.name; l.unit=it.unit||"";
-        l.color=(it.colors&&it.colors[0])||"";
-        if(isSet(it)){
-          l.spec=setSpecSummary(it);
-          l.price=itemSell(it);
-        }else if((it.variants||[]).length){
-          l.spec=it.variants[0].spec;
-          l.price=itemSell(it,l.spec);
-        }else{
-          l.spec=it.spec||"";
-          if(it.sell_price) l.price=it.sell_price;
-        }
-      }else{ Object.assign(l,blankLine()); }
-      renderQtDetail();
-    };
+  form.querySelectorAll('.ip-btn[data-f="item"]').forEach(el=>{
+    el.onclick=()=>openItemPicker(el,v=>applyItemPick(e,Number(el.dataset.idx),v));
   });
   form.querySelectorAll('[data-f="name"]').forEach(el=>{
     el.oninput=()=>{ e.lines[Number(el.dataset.idx)].name=el.value; };

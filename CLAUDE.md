@@ -60,7 +60,7 @@ Company {
 }
 
 Item {
-  id, name, type:"단품"|"세트", spec, unit:"EA",
+  id, code, name, type:"단품"|"세트", spec, unit:"EA",   // code = 품목코드 (선택, 중복 불가)
   buy_price, sell_price,
   colors:["BK","WH"],                              // 색상 옵션
   variants:[{spec, buy_price, sell_price}],        // 사이즈별 단가
@@ -272,6 +272,11 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
   HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
 - `v1.25` — 모바일 공유 시 이미지 파일만 전송 — `navigator.share()`의 `text`·`title` 제거
   (카톡에 요약 메시지가 함께 발송되던 것 삭제)
+- `v1.35` — **품목코드 + 견적서 품목 검색** — `Item.code` 추가(이카운트 방식).
+  견적 품목 선택을 `<select>` → **검색형 선택기**로 교체 (품명·코드 검색, ↑↓·Enter, 바깥 클릭 닫기).
+  견적 행의 `name`에는 `itemLabel()`로 **"품명 [코드]"**를 넣어 기존 출력물 표기를 유지.
+  품명 끝의 `[XXX]`를 코드로 분리해 주는 안내(기존 데이터 이전용) 포함
+- `v1.34` — 견적 품목 행 열별 정렬 — 단가는 금액과 같이 오른쪽, 수량·규격/사이즈는 가운데
 - `v1.33` — 견적 품목 행의 **규격/사이즈 칸 확대** (104px → 176px). 색상·사이즈 select 두 개가
   좁은 칸에 들어가 "WH"가 "W"로 잘리던 문제. 품목 칸이 과하게 넓어(1.4fr → 1fr) 남는 폭을 넘김.
   두 select만 글자 12.5px·좌우 여백 축소. 모바일 가로 스크롤 기준 560 → 620px
