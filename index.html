@@ -29,6 +29,10 @@
   body{font-family:var(--sans);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.5;letter-spacing:-0.01em}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
   input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+  /* 숫자 입력의 증감 화살표 제거 — 자리를 예약해 우/가운데 정렬을 밀어낸다 */
+  input[type=number]{-moz-appearance:textfield;appearance:textfield}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .hidden{display:none!important}
 
   /* ---------- login ---------- */
@@ -104,6 +108,7 @@
   .pill.st-sent{background:var(--primary-soft);color:var(--primary)}
   .pill.st-won{background:var(--ok-soft);color:#1E7A3E}
   .pill.st-lost{background:var(--danger-soft);color:var(--danger)}
+  .pill.st-done{background:#1E7A3E;color:#fff}
   .pill.set{background:#EFE9FD;color:#6B46C1}
   .pill.in{background:var(--ok-soft);color:#1E7A3E}
   .pill.out{background:var(--warn-soft);color:#B26A00}
@@ -615,7 +620,7 @@
           <div class="card">
             <div class="card-head">
               <h3>월별 매출·수금</h3>
-              <div class="legend"><span><i style="background:var(--primary)"></i>매출(수주)</span><span><i style="background:var(--ok)"></i>수금</span></div>
+              <div class="legend"><span><i style="background:var(--primary)"></i>매출(납품)</span><span><i style="background:var(--ok)"></i>수금</span></div>
             </div>
             <div class="chart" id="dashChart"></div>
           </div>
@@ -664,9 +669,13 @@
           <button class="btn-sm" id="arCsvBtn">CSV 내보내기</button>
         </div>
         <div class="stats">
-          <div class="stat"><div class="k">수주 총액</div><div class="v" id="arOrdered">0원</div></div>
+          <div class="stat"><div class="k">납품 총액</div><div class="v" id="arDelivered">0원</div>
+            <div class="hint" id="arOrderedNote" style="margin-top:2px"></div></div>
           <div class="stat"><div class="k">수금 총액</div><div class="v pos" id="arPaid">0원</div></div>
-          <div class="stat"><div class="k">미수금 합계</div><div class="v neg" id="arOpen">0원</div></div>
+          <div class="stat"><div class="k">미수금 합계</div><div class="v neg" id="arOpen">0원</div>
+            <div class="hint" style="margin-top:2px">납품 − 수금</div></div>
+          <div class="stat"><div class="k">미납품 잔액</div><div class="v" id="arPending">0원</div>
+            <div class="hint" style="margin-top:2px">수주했지만 아직 납품 전</div></div>
           <div class="stat"><div class="k">미수 거래처</div><div class="v" id="arCount">0곳</div></div>
         </div>
         <div class="card">
@@ -734,7 +743,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.36";
+const APP_VERSION = "v1.38";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -865,6 +874,7 @@ async function loadAll(){
     ]);
     db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.stock_moves=m; db.settings=s;
     migrateStockQuoteLinks();
+    await runMigrations();
     renderCurrentView();
     toast("불러왔습니다");
   }catch(e){ toast("불러오기 실패: "+e.message); }
@@ -881,6 +891,14 @@ function escapeHtml(s){ return (s??"").toString().replace(/[&<>"]/g,m=>({"&":"&a
 function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
 function fmt(n){ return Number(n||0).toLocaleString("ko-KR"); }
 function won(n){ return fmt(n)+"원"; }
+/* 쉼표가 섞인 입력값을 숫자로 — 입력칸에 천단위 구분을 표시하기 위해 필요 */
+function parseNum(v){ return Number(String(v??"").replace(/[^0-9.-]/g,""))||0; }
+/* 입력칸에 쉼표 표시: 포커스 땐 원본 숫자, 벗어나면 쉼표 */
+function bindNumInput(el,onChange){
+  el.oninput=()=>onChange(parseNum(el.value));
+  el.onfocus=()=>{ el.value=String(el.value).replace(/,/g,""); el.select(); };
+  el.onblur=()=>{ const n=parseNum(el.value); el.value=n?fmt(n):""; };
+}
 function localDate(d=new Date()){ const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
 function localMonth(d=new Date()){ return localDate(d).slice(0,7); }
 function initials(name){ return (name||"?").trim().slice(0,2); }
@@ -1445,8 +1463,12 @@ async function deleteItem(id){
    견적서(quotes)
    ===================================================================== */
 let qtSel=null, qtFilter="", qtEditing=null;
-const QT_STATUS=["작성중","발송","수주","취소"];
-const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "취소":"st-lost" };
+const QT_STATUS=["작성중","발송","수주","납품","취소"];
+const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "납품":"st-done", "취소":"st-lost" };
+/* 재고가 빠져나가야 하는 상태 — 수주하면 제작에 들어가므로 납품까지 계속 나가 있는 것으로 본다 */
+const QT_COMMITTED=["수주","납품"];
+/* 청구 가능한(= 매출로 확정된) 건인지. 납품일이 있으면 납품된 것으로 본다 */
+function isDelivered(q){ return !!(q && q.delivered_at); }
 
 function nextQuoteNo(date){
   const ymd=(date||localDate()).replace(/-/g,"");
@@ -1462,7 +1484,7 @@ function nextQuoteNo(date){
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
-           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"" };
+           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"", delivered_at:"" };
 }
 /* 발송 후 경과일 — 발송 상태로 오래 머문 건을 찾기 위함 */
 function daysSince(iso){
@@ -1534,7 +1556,7 @@ function renderQtList(){
     <div class="list-item ${x.id===qtSel?'on':''}" data-id="${x.id}">
       <div class="li-body">
         <div class="li-name">${escapeHtml(coName(x.company_id))}</div>
-        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}${x.status==="발송"&&x.sent_at?` · 발송 ${escapeHtml(x.sent_at)}`:""}</div>
+        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}${x.status==="발송"&&x.sent_at?` · 발송 ${escapeHtml(x.sent_at)}`:""}${isDelivered(x)?` · 납품 ${escapeHtml(x.delivered_at)}`:""}</div>
       </div>
       <div class="li-right">
         <div class="li-amt">${won(t.total)}</div>
@@ -1579,9 +1601,20 @@ function renderQtDetail(){
         ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
       </div>
     </div>
+    <div class="grid2">
+      <div class="field"><label>납품일</label>
+        <div class="quick-row">
+          <input type="date" id="fq_delivered" value="${escapeAttr(e.delivered_at||"")}">
+          <button type="button" id="fq_delToday">오늘</button>
+        </div>
+        <div class="hint">${isDelivered(e)
+          ? "납품 완료 — 이 금액이 매출·미수금에 잡힙니다"
+          : "비워 두면 <b>미납품</b>으로 보고 미수금에 넣지 않습니다"}</div>
+      </div>
+    </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
-        <div class="qline head"><span>품목</span><span style="text-align:center">규격/사이즈</span><span style="text-align:center">수량</span><span style="text-align:right">단가</span><span style="text-align:right">금액</span><span></span></div>
+        <div class="qline head"><span>품목</span><span style="text-align:center">규격/사이즈</span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
       <div class="line-btns">
@@ -1625,6 +1658,17 @@ function renderQtDetail(){
   };
   document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
+  document.getElementById("fq_delivered").onchange=ev=>{
+    e.delivered_at=ev.target.value;
+    if(e.delivered_at && e.status==="수주") e.status="납품";
+    if(!e.delivered_at && e.status==="납품") e.status="수주";
+    renderQtDetail();
+  };
+  document.getElementById("fq_delToday").onclick=()=>{
+    e.delivered_at=localDate();
+    if(e.status==="수주") e.status="납품";
+    renderQtDetail();
+  };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
   document.getElementById("fq_sizeBtn").onclick=()=>{ szOpen=!szOpen; renderSizePanel(e,szOpen); };
@@ -1681,8 +1725,8 @@ function renderSizePanel(e,focusFirst){
         const price=l?l.price:(Number(v.sell_price)||Number(it.sell_price)||0);
         return `<div class="szcell">
           <div class="lb" title="${escapeAttr(v.spec)}">${escapeHtml(v.spec)}</div>
-          <input type="number" inputmode="numeric" min="0" data-sz="${escapeAttr(v.spec)}" value="${l?l.qty:""}" placeholder="0">
-          <div class="pr"><input type="number" inputmode="numeric" min="0" data-szp="${escapeAttr(v.spec)}" value="${price||""}" placeholder="단가"></div>
+          <input type="text" inputmode="numeric" data-sz="${escapeAttr(v.spec)}" value="${l&&l.qty?fmt(l.qty):""}" placeholder="0">
+          <div class="pr"><input type="text" inputmode="numeric" data-szp="${escapeAttr(v.spec)}" value="${price?fmt(price):""}" placeholder="단가"></div>
         </div>`;}).join("")}
     </div>
     <div class="szfoot">
@@ -1696,13 +1740,15 @@ function renderSizePanel(e,focusFirst){
 
   const qtys=[...box.querySelectorAll("[data-sz]")];
   const sum=()=>{
-    const n=qtys.reduce((a,i)=>a+(Number(i.value)||0),0);
+    const n=qtys.reduce((a,i)=>a+parseNum(i.value),0);
     document.getElementById("sz_sum").textContent=`총 ${fmt(n)}개`;
   };
   sum();
   qtys.forEach((inp,n)=>{
     inp.oninput=sum;
-    inp.onfocus=()=>inp.select();          // 기존 값 위에 바로 덮어쓰기
+    // 포커스 땐 쉼표를 걷어 숫자만, 벗어나면 다시 쉼표
+    inp.onfocus=()=>{ inp.value=String(inp.value).replace(/,/g,""); inp.select(); };
+    inp.onblur=()=>{ const n=parseNum(inp.value); inp.value=n?fmt(n):""; sum(); };
     // Tab은 단가를 건너뛰고 옆 사이즈 수량으로 — 사이즈별로 수량만 훑어 넣는 흐름
     inp.onkeydown=ev=>{
       if(ev.key!=="Tab") return;
@@ -1712,6 +1758,10 @@ function renderSizePanel(e,focusFirst){
     };
   });
   if(focusFirst && qtys.length) setTimeout(()=>{ qtys[0].focus(); },0);
+  box.querySelectorAll("[data-szp]").forEach(i=>{
+    i.onfocus=()=>{ i.value=String(i.value).replace(/,/g,""); i.select(); };
+    i.onblur=()=>{ const n=parseNum(i.value); i.value=n?fmt(n):""; };
+  });
   document.getElementById("sz_item").onchange=()=>renderSizePanel(e,true);
   const cEl=document.getElementById("sz_color");
   if(cEl && colors.length) cEl.onchange=()=>renderSizePanel(e,true);
@@ -1723,8 +1773,8 @@ function applySizePanel(e,it,color){
   const box=document.getElementById("fq_sizePanel");
   let added=0, removed=0;
   it.variants.forEach(v=>{
-    const qty=Number((box.querySelector(`[data-sz="${CSS.escape(v.spec)}"]`)||{}).value)||0;
-    const price=Number((box.querySelector(`[data-szp="${CSS.escape(v.spec)}"]`)||{}).value)||0;
+    const qty=parseNum((box.querySelector(`[data-sz="${CSS.escape(v.spec)}"]`)||{}).value);
+    const price=parseNum((box.querySelector(`[data-szp="${CSS.escape(v.spec)}"]`)||{}).value);
     const idx=e.lines.findIndex(l=>l.item_id===it.id && (l.color||"")===color && (l.spec||"")===v.spec);
     if(qty>0){
       if(idx>=0){ e.lines[idx].qty=qty; e.lines[idx].price=price; }
@@ -1759,8 +1809,8 @@ function qtLineHtml(l,idx){
   return `<div class="qline" data-idx="${idx}">
     ${nameCell}
     ${specCell}
-    <input type="number" inputmode="numeric" class="num" data-f="qty" data-idx="${idx}" value="${l.qty??""}" min="0">
-    <input type="number" inputmode="numeric" class="num" data-f="price" data-idx="${idx}" value="${l.price||""}" placeholder="0">
+    <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${idx}" value="${l.qty?fmt(l.qty):""}">
+    <input type="text" inputmode="numeric" class="num" data-f="price" data-idx="${idx}" value="${l.price?fmt(l.price):""}" placeholder="0">
     <span class="amt" data-amt="${idx}">${fmt(amt)}</span>
     <button class="rm" data-rm="${idx}" title="행 삭제">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -1879,9 +1929,11 @@ function bindQtLines(e){
     };
   });
   form.querySelectorAll('[data-f="qty"],[data-f="price"]').forEach(el=>{
+    el.onfocus=()=>{ el.value=String(el.value).replace(/,/g,""); el.select(); };
+    el.onblur=()=>{ const n=parseNum(el.value); el.value=n?fmt(n):""; };
     el.oninput=()=>{
       const idx=Number(el.dataset.idx);
-      e.lines[idx][el.dataset.f]=Number(el.value)||0;
+      e.lines[idx][el.dataset.f]=parseNum(el.value);
       const l=e.lines[idx];
       form.querySelector(`[data-amt="${idx}"]`).textContent=fmt((Number(l.qty)||0)*(Number(l.price)||0));
       const t=quoteTotals(e);
@@ -1919,6 +1971,8 @@ async function submitQuote(isNew){
   }
   // '발송'으로 처음 바뀐 시점을 기록 — 회신 지연을 추적하기 위함
   if(e.status==="발송" && !e.sent_at) e.sent_at=localDate();
+  // '납품'으로 바꾸면 납품일을 자동 기록 (매출·미수금의 기준)
+  if(e.status==="납품" && !e.delivered_at) e.delivered_at=localDate();
   qtEditing=null;
   renderQtList(); renderQtDetail();
   await saveTable("quotes",db.quotes);
@@ -1936,7 +1990,7 @@ async function submitQuote(isNew){
 /* 이 견적이 재고에서 빼야 할 수량 — 세트는 구성품으로 분해 */
 function quoteStockNeeds(q){
   const need={};
-  if(!q || q.status!=="수주") return need;
+  if(!q || !QT_COMMITTED.includes(q.status)) return need;
   const add=(item_id,color,spec,qty)=>{
     if(!item_id || !qty) return;
     const k=[item_id,color||"",spec||""].join("|");
@@ -1994,6 +2048,29 @@ async function syncStockForQuote(q,{ask=true}={}){
   await saveTable("stock_moves",db.stock_moves);
   toast(`재고 ${moves.length}건 반영했습니다`);
   return true;
+}
+
+/* ── 스키마 마이그레이션 ──
+   settings.schema로 1회만 실행한다. 매번 돌면 새 수주 건까지 납품 처리돼 버리므로
+   반드시 버전을 기록해야 한다. */
+const SCHEMA=3;
+async function runMigrations(){
+  const cur=Number((db.settings||{}).schema)||0;
+  if(cur>=SCHEMA) return;
+  // v3: 기존 '수주' 건은 이미 납품된 것으로 간주해 납품일을 채운다.
+  //     (미수금 기준이 수주 → 납품으로 바뀌므로, 이게 없으면 기존 미수금이 갑자기 0이 된다)
+  let n=0;
+  if(cur<3){
+    db.quotes.forEach(q=>{
+      if(q.status==="수주" && !q.delivered_at){ q.delivered_at=q.date||localDate(); n++; }
+    });
+  }
+  db.settings=db.settings||{};
+  db.settings.schema=SCHEMA;
+  try{
+    await Promise.all([Table.save("quotes",db.quotes), Table.save("settings",db.settings)]);
+    if(n) toast(`기존 수주 ${n}건을 납품 완료로 정리했습니다`);
+  }catch(err){ /* 실패하면 다음 실행 때 다시 시도 — 이미 채운 건은 건너뛴다 */ }
 }
 
 /* 예전 버전이 만든 출고 기록에 quote_id를 채운다 (메모의 견적번호로 역추적).
@@ -2603,10 +2680,11 @@ async function deletePayment(id){
    대시보드(dash)
    ===================================================================== */
 /* 월별 매출 — 수주 견적 기준 (미수금·매출 집계와 같은 기준) */
+/* 월 매출 = 그 달에 '납품'된 금액 (수주만 한 건은 아직 매출이 아니다) */
 function monthSales(ym){
   let supply=0, total=0, margin=0, count=0;
   db.quotes.forEach(q=>{
-    if(q.status!=="수주" || !(q.date||"").startsWith(ym)) return;
+    if(!isDelivered(q) || !(q.delivered_at||"").startsWith(ym)) return;
     const t=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())});
     supply+=t.supply; total+=t.total; margin+=quoteMargin(q).margin; count++;
   });
@@ -2624,7 +2702,7 @@ function renderDash(){
   const sentOld=sent.filter(q=>(daysSince(q.sent_at)||0)>=7).length;
 
   document.getElementById("dashStats").innerHTML=`
-    <div class="stat"><div class="k">이달 매출 (수주)</div><div class="v">${won(sales.total)}</div>
+    <div class="stat"><div class="k">이달 매출 (납품)</div><div class="v">${won(sales.total)}</div>
       <div class="hint" style="margin-top:2px">${sales.count}건</div></div>
     <div class="stat"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
       <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:""}</div></div>
@@ -2807,15 +2885,23 @@ function exportSalesCsv(){
 /* =====================================================================
    미수금 — 수주 견적 합계 − 수금 합계
    ===================================================================== */
+/* 미수금은 '납품한 금액 − 받은 금액'.
+   수주만 하고 아직 납품 전인 건은 청구할 수 없으므로 미수금이 아니라
+   '미납품 잔액'으로 따로 보여준다. */
 function arData(){
   const rows={};
-  const row=cid=>rows[cid] ?? (rows[cid]={ cid, ordered:0, paid:0, orders:0, lastOrder:"", lastPay:"" });
+  const row=cid=>rows[cid] ?? (rows[cid]={ cid, ordered:0, delivered:0, paid:0,
+    orders:0, delivers:0, lastOrder:"", lastDeliver:"", lastPay:"" });
   db.quotes.forEach(q=>{
-    if(q.status!=="수주") return;
+    if(!QT_COMMITTED.includes(q.status)) return;
+    const amt=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total;
     const r=row(q.company_id);
-    r.ordered+=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total;
-    r.orders++;
+    r.ordered+=amt; r.orders++;
     if((q.date||"")>r.lastOrder) r.lastOrder=q.date||"";
+    if(isDelivered(q)){
+      r.delivered+=amt; r.delivers++;
+      if(q.delivered_at>r.lastDeliver) r.lastDeliver=q.delivered_at;
+    }
   });
   (db.payments||[]).forEach(p=>{
     if(p.kind!=="수금") return;
@@ -2824,7 +2910,7 @@ function arData(){
     if((p.date||"")>r.lastPay) r.lastPay=p.date||"";
   });
   return Object.values(rows)
-    .map(r=>({ ...r, open:r.ordered-r.paid }))
+    .map(r=>({ ...r, open:r.delivered-r.paid, pending:r.ordered-r.delivered }))
     .sort((a,b)=>b.open-a.open || coName(a.cid).localeCompare(coName(b.cid),"ko"));
 }
 
@@ -2837,35 +2923,40 @@ function renderAr(){
   const all=arData();
   const rows=arRows();
   const sum=k=>all.reduce((s,r)=>s+r[k],0);
-  document.getElementById("arOrdered").textContent=won(sum("ordered"));
+  document.getElementById("arDelivered").textContent=won(sum("delivered"));
+  document.getElementById("arOrderedNote").textContent=`수주 총액 ${won(sum("ordered"))}`;
   document.getElementById("arPaid").textContent=won(sum("paid"));
   document.getElementById("arOpen").textContent=won(sum("open"));
+  document.getElementById("arPending").textContent=won(sum("pending"));
   document.getElementById("arCount").textContent=all.filter(r=>r.open>0).length+"곳";
 
   const tbl=document.getElementById("arTbl");
   if(!rows.length){
-    tbl.innerHTML=`<tbody><tr><td><div class="empty">${all.length? "미수금이 남은 거래처가 없습니다." : "수주된 견적서가 없습니다.<br>견적서 상태를 '수주'로 바꾸면 여기에 집계됩니다."}</div></td></tr></tbody>`;
+    tbl.innerHTML=`<tbody><tr><td><div class="empty">${all.length? "미수금이 남은 거래처가 없습니다." : "수주·납품된 견적서가 없습니다.<br>견적서 상태를 '수주'로 바꾸면 여기에 집계됩니다."}</div></td></tr></tbody>`;
     return;
   }
   tbl.innerHTML=`
     <thead><tr>
-      <th>거래처</th><th style="text-align:right">수주 건수</th><th style="text-align:right">수주액</th>
-      <th style="text-align:right">수금액</th><th style="text-align:right">미수금</th><th>최근 수금</th>
+      <th>거래처</th><th style="text-align:right">납품 건수</th><th style="text-align:right">납품액</th>
+      <th style="text-align:right">수금액</th><th style="text-align:right">미수금</th>
+      <th style="text-align:right">미납품</th><th>최근 수금</th>
     </tr></thead>
     <tbody>${rows.map(r=>`
       <tr>
         <td>${escapeHtml(coName(r.cid))}</td>
-        <td class="num">${r.orders?fmt(r.orders)+"건":"—"}</td>
-        <td class="num">${fmt(r.ordered)}</td>
+        <td class="num">${r.delivers?fmt(r.delivers)+"건":"—"}</td>
+        <td class="num">${fmt(r.delivered)}</td>
         <td class="num">${fmt(r.paid)}</td>
         <td class="num" style="color:${r.open>0?"var(--danger)":r.open<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.open)}</td>
+        <td class="num">${r.pending?fmt(r.pending):'<span class="sub">—</span>'}</td>
         <td class="sub">${escapeHtml(r.lastPay||"—")}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
         <td style="font-weight:700">${rows.length===all.length?"합계":"표시 합계"}</td><td></td>
-        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.ordered,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.delivered,0))}</td>
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.paid,0))}</td>
         <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.open,0))}</td>
+        <td class="num" style="font-weight:700">${fmt(rows.reduce((s,r)=>s+r.pending,0))}</td>
         <td></td>
       </tr>
     </tbody>`;
@@ -2874,9 +2965,9 @@ function renderAr(){
 function exportArCsv(){
   const rows=arRows();
   if(!rows.length){ toast("내보낼 내역이 없습니다"); return; }
-  const out=[["거래처","수주 건수","수주액","수금액","미수금","최근 수주일","최근 수금일"].join(",")];
-  rows.forEach(r=>out.push([csvEsc(coName(r.cid)),r.orders,r.ordered,r.paid,r.open,
-    csvEsc(r.lastOrder||""),csvEsc(r.lastPay||"")].join(",")));
+  const out=[["거래처","납품 건수","납품액","수금액","미수금","미납품","수주액","최근 납품일","최근 수금일"].join(",")];
+  rows.forEach(r=>out.push([csvEsc(coName(r.cid)),r.delivers,r.delivered,r.paid,r.open,r.pending,r.ordered,
+    csvEsc(r.lastDeliver||""),csvEsc(r.lastPay||"")].join(",")));
   downloadCsv(out,`미수금_${localDate()}.csv`);
 }
 
