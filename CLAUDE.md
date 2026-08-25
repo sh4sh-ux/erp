@@ -76,10 +76,14 @@ Quote {
   lines:[{item_id, name, color, spec, unit, qty, price}],
   memo
 }
+// 견적번호는 nextQuoteNo()가 그날 최대 일련번호 +1로 채번 (개수 기반 아님 — 삭제해도 안 겹침)
 // item_id === "__free__" → 품명 직접 입력 행 (품목 미등록 항목)
 
 Payment   { id, date, company_id, kind:"수금"|"지급", method, amount, memo, created_at }
-StockMove { id, date, item_id, color, spec, kind:"입고"|"출고", qty, memo, created_at }
+StockMove {
+  id, date, item_id, color, spec, kind:"입고"|"출고", qty, memo, created_at,
+  quote_id   // 이 기록을 만든 견적 id (수동 입출고는 null) — 재고 정합의 핵심 (v1.27)
+}
 Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공급자 란
 ```
 
@@ -100,8 +104,7 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 
 - 거래처·품목·견적서는 좌(목록)·우(상세) 2단 `.cols` 그리드.
   모바일에서는 1열로 접히므로 목록 항목 선택 시 `scrollToDetail(formId)`로 상세까지 자동 스크롤
-- 견적 상태를 "수주"로 저장하면 `deductStockForQuote(q)`가 확인 후 재고에서 자동 출고
-  (세트 품목은 구성품 단위로 분해해서 차감)
+- 견적 저장 시 `syncStockForQuote(q)`가 재고를 목표 상태로 맞춘다 (아래 "재고 정합 설계" 참조)
 
 ## 견적서 출력 — 3가지 경로 × 2가지 양식
 같은 견적서를 세 경로로 내보내고, 각 경로는 **견적서 / 거래명세서** 두 양식을 지원.
@@ -171,26 +174,31 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
   - `manifest.webmanifest`의 `display`는 `browser` 유지 — standalone으로 바꾸면 iOS에서
     Safari 인쇄 경로가 막혀 견적서 인쇄가 어려워진다
 
-## 알려진 결함 (미수정 — 2026-08 실측 확인)
-**아직 고치지 않은 실제 버그다. 재고·견적 관련 작업 시 반드시 먼저 읽을 것.**
-배경·우선순위는 `ROADMAP.md` 참조.
+## 재고 정합 설계 (v1.27~) — 건드리기 전에 반드시 읽을 것
+견적과 재고는 **"목표 상태로 맞추는(reconcile)" 방식**으로 연결돼 있다. 차감을 쌓는 방식이 아니다.
 
-1. **재고 수량이 틀어진다** — `submitQuote`의 `wasWon` 가드는 "재저장 시 중복 차감"만 막는다
-   - 수주 → 취소: 재고 복구 안 됨 (90 그대로, 100이어야)
-   - 취소 → 다시 수주: **이중 차감** (80)
-   - 수주 상태에서 수량 10→30 수정: 출고 기록 10 그대로
-   - 근본 원인: 출고가 견적 저장에 묶여 있음 → 별도 "출고 처리" 동작으로 분리해야 함
-2. **견적번호 중복** — `nextQuoteNo`가 "같은 날짜 견적 **개수** + 1"이라
-   `-1`을 삭제하면 다음 견적도 `-2`가 된다. 최대값 기준 채번으로 바꿔야 함
-3. **거래처 삭제 시 고아 데이터** — `deleteCompany`가 연쇄 확인 없이 삭제.
-   견적·수금이 남아 "(삭제된 거래처)"로 표시되고 미수금에 유령 거래처로 잡힘
-4. **미수금이 "수주 = 매출" 기준** — 아직 납품 안 한 건도 미수금으로 잡혀 부풀려짐.
-   납품(출고) 문서를 분리해야 정확해짐
+- `quoteStockNeeds(q)` — 이 견적이 재고에서 빼야 할 목표 수량 (수주면 견적 수량, 그 외엔 0.
+  세트는 구성품으로 분해)
+- `quoteStockDone(q.id)` — `stock_moves.quote_id`로 추적한, 이미 반영된 수량
+- `stockDeltaForQuote(q)` — 목표 − 현재 = 기록할 입출고. 차이가 0이면 아무것도 안 만든다
+- `syncStockForQuote(q)` — 위 차이를 확인받고 반영. **멱등** — 여러 번 실행해도 결과가 같다
+
+이 구조 덕분에 수주↔취소 반복, 수량 증감, 재저장, 견적 삭제가 모두 자동으로 맞는다.
+**차감 로직을 다시 "상태가 바뀔 때만 빼기"로 되돌리지 말 것** — v1.26 이전에 그렇게 돼 있어서
+이중 차감·미복구 버그가 있었다 (v1.27에서 수정).
+
+- `stock_moves.quote_id`: 견적이 만든 기록이면 견적 id, 수동 입출고면 `null`
+- `migrateStockQuoteLinks()` — v1.26 이전 기록에는 `quote_id`가 없어서 메모의 견적번호로
+  역추적해 채운다. `loadAll()`에서 실행. **이게 없으면 기존 수주 건 재저장 시 이중 차감된다**
 
 ## 껍데기 필드 (UI만 있고 기능 없음 — 채우거나 지울 것)
 `Company.type`의 `매입` · `Item.buy_price` · `Payment.kind`의 `지급` · 견적 상태 `발송`.
 모두 입력은 되지만 어떤 계산·문서에도 쓰이지 않는다. 대시보드도 매출·수주가 안 보이고
-현금 입출금만 있어 매출 집계·미수금과 중복. 자세한 판단은 `ROADMAP.md`.
+현금 입출금만 있어 매출 집계·미수금과 중복. 자세한 판단은 `ROADMAP.md` (2단계).
+
+## 남은 결함 (2단계에서 처리)
+- **미수금이 "수주 = 매출" 기준** — 아직 납품 안 한 건도 미수금으로 잡혀 부풀려진다.
+  납품(출고) 문서를 분리해야 정확해짐. `ROADMAP.md` 2단계 참조
 
 ## 알려진 함정 (작업 시 주의)
 - **인쇄·미리보기·캔버스 3중 레이아웃** — 하나만 고치면 나머지가 어긋남. 견적서 출력을
@@ -262,6 +270,10 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
   HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
 - `v1.25` — 모바일 공유 시 이미지 파일만 전송 — `navigator.share()`의 `text`·`title` 제거
   (카톡에 요약 메시지가 함께 발송되던 것 삭제)
+- `v1.27` — **ROADMAP 1단계: 정합성 복구** — ① 재고를 reconcile 방식으로 재설계
+  (수주↔취소 반복·수량 증감·재저장·삭제 모두 정확, `stock_moves.quote_id` 추가 +
+  기존 데이터 마이그레이션) ② 견적번호를 최대값 기준 채번으로 (삭제 후 중복 해소)
+  ③ 거래처 삭제 시 연결된 견적·수금 건수 경고
 - `v1.26` — **거래처별 견적서 기본 비고** (`Company.quote_memo`) — 거래처 선택 시 견적 비고에
   자동 입력. `applyCoQuoteMemo()`가 **직접 입력한 내용은 덮어쓰지 않고**, 비었거나 직전 거래처의
   기본 문구 그대로일 때만 교체 (receipt-db의 `_catAutoFilled`와 같은 방식)

@@ -685,7 +685,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.26";
+const APP_VERSION = "v1.27";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -815,6 +815,7 @@ async function loadAll(){
       Table.load("payments"), Table.load("stock_moves"), Table.loadObj("settings")
     ]);
     db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.stock_moves=m; db.settings=s;
+    migrateStockQuoteLinks();
     renderCurrentView();
     toast("불러왔습니다");
   }catch(e){ toast("불러오기 실패: "+e.message); }
@@ -992,7 +993,15 @@ async function submitCompany(c,isNew){
 }
 
 async function deleteCompany(id){
-  if(!confirm("이 거래처를 삭제할까요? 되돌릴 수 없습니다.")) return;
+  const qc=db.quotes.filter(q=>q.company_id===id).length;
+  const pc=(db.payments||[]).filter(p=>p.company_id===id).length;
+  const linked=[qc&&`견적서 ${qc}건`, pc&&`수금/지급 ${pc}건`].filter(Boolean);
+  const msg = linked.length
+    ? `이 거래처에 연결된 ${linked.join(" · ")}이 있습니다.\n`
+      + `거래처를 지워도 이 기록은 남아 "(삭제된 거래처)"로 표시되고,\n`
+      + `미수금·매출 집계에도 그대로 잡힙니다.\n\n그래도 삭제할까요?`
+    : "이 거래처를 삭제할까요? 되돌릴 수 없습니다.";
+  if(!confirm(msg)) return;
   db.companies=db.companies.filter(c=>c.id!==id);
   coSel=null; renderCoList(); renderCoDetail();
   await saveTable("companies",db.companies);
@@ -1297,8 +1306,14 @@ const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st
 function nextQuoteNo(date){
   const ymd=(date||localDate()).replace(/-/g,"");
   const prefix=`Q-${ymd}-`;
-  const seq=db.quotes.filter(q=>(q.no||"").startsWith(prefix)).length+1;
-  return prefix+seq;
+  // 개수가 아니라 최대 일련번호 기준 — 중간 건을 지워도 번호가 겹치지 않는다
+  const max=db.quotes.reduce((m,q)=>{
+    const no=q.no||"";
+    if(!no.startsWith(prefix)) return m;
+    const n=parseInt(no.slice(prefix.length),10);
+    return Number.isFinite(n) && n>m ? n : m;
+  },0);
+  return prefix+(max+1);
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
@@ -1550,7 +1565,6 @@ async function submitQuote(isNew){
   if(!e.company_id){ toast("거래처를 선택하세요"); return; }
   e.lines=e.lines.filter(l=>(l.name||"").trim() && (Number(l.qty)||0)>0);
   if(e.lines.length===0){ toast("품목을 1개 이상 입력하세요 (품목·수량 확인)"); e.lines=[blankLine()]; renderQtDetail(); return; }
-  const wasWon = !isNew && (db.quotes.find(x=>x.id===e.id)||{}).status==="수주";
   if(isNew){
     e.id=crypto.randomUUID();
     e.no=nextQuoteNo(e.date);
@@ -1564,39 +1578,98 @@ async function submitQuote(isNew){
   qtEditing=null;
   renderQtList(); renderQtDetail();
   await saveTable("quotes",db.quotes);
-  if(e.status==="수주" && !wasWon) await deductStockForQuote(e);
+  await syncStockForQuote(e);
 }
 
 /* 수주 확정 → 재고 자동 출고 */
-async function deductStockForQuote(q){
-  if(!confirm(`수주 처리: 견적 ${q.no}의 수량만큼 재고에서 출고할까요?`)) return;
-  const now=new Date().toISOString();
-  const moves=[];
-  q.lines.forEach(l=>{
+/* ---------- 재고 반영 (견적 ↔ 재고 정합) ----------
+   견적 1건이 재고에 남겨야 할 결과를 "목표 상태"로 보고, 이미 반영된 것과의 차이만 기록한다.
+   몇 번 실행해도 결과가 같아(멱등) 이중 차감·미복구가 생기지 않는다.
+   - 수주    → 견적 수량만큼 출고된 상태가 목표
+   - 그 외   → 아무것도 출고되지 않은 상태가 목표 (취소·작성중으로 되돌리면 자동 복구)
+   stock_moves.quote_id로 어느 견적이 만든 기록인지 추적한다. */
+
+/* 이 견적이 재고에서 빼야 할 수량 — 세트는 구성품으로 분해 */
+function quoteStockNeeds(q){
+  const need={};
+  if(!q || q.status!=="수주") return need;
+  const add=(item_id,color,spec,qty)=>{
+    if(!item_id || !qty) return;
+    const k=[item_id,color||"",spec||""].join("|");
+    need[k]=(need[k]||0)+qty;
+  };
+  (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
     const it=db.items.find(x=>x.id===l.item_id);
     if(!it) return;
     if(isSet(it)){
-      (it.components||[]).forEach(c=>{
-        moves.push({ id:crypto.randomUUID(), date:localDate(), item_id:c.item_id,
-          color:c.color||"", spec:c.spec||"", kind:"출고",
-          qty:(Number(c.qty)||0)*(Number(l.qty)||0),
-          memo:`견적 ${q.no} 수주 (세트: ${it.name})`, created_at:now });
-      });
+      (it.components||[]).forEach(c=>add(c.item_id,c.color,c.spec,(Number(c.qty)||0)*(Number(l.qty)||0)));
     }else{
-      moves.push({ id:crypto.randomUUID(), date:localDate(), item_id:l.item_id,
-        color:l.color||"", spec:l.spec||"", kind:"출고",
-        qty:Number(l.qty)||0, memo:`견적 ${q.no} 수주`, created_at:now });
+      add(l.item_id,l.color,l.spec,Number(l.qty)||0);
     }
   });
-  if(!moves.length){ toast("재고와 연결된 품목이 없어 출고 기록이 없습니다"); return; }
+  return need;
+}
+
+/* 이 견적으로 이미 반영된 재고 (출고 +, 복구 입고 −) */
+function quoteStockDone(qid){
+  const done={};
+  (db.stock_moves||[]).forEach(m=>{
+    if(m.quote_id!==qid) return;
+    const k=stockKeyOf(m);
+    done[k]=(done[k]||0)+(m.kind==="출고"?1:-1)*(Number(m.qty)||0);
+  });
+  return done;
+}
+
+/* 목표와 현재의 차이 → 기록할 입출고 목록과 사람이 읽을 설명 */
+function stockDeltaForQuote(q){
+  const need=quoteStockNeeds(q), done=quoteStockDone(q.id);
+  const now=new Date().toISOString();
+  const moves=[], desc=[];
+  new Set([...Object.keys(need),...Object.keys(done)]).forEach(k=>{
+    const delta=(need[k]||0)-(done[k]||0);
+    if(!delta) return;
+    const [item_id,color,spec]=k.split("|");
+    const it=db.items.find(x=>x.id===item_id);
+    const out=delta>0;
+    moves.push({ id:crypto.randomUUID(), date:localDate(), item_id, color, spec,
+      kind: out?"출고":"입고", qty:Math.abs(delta), quote_id:q.id,
+      memo:`견적 ${q.no} ${out?"출고":"출고 복구"}`, created_at:now });
+    desc.push(`· ${[(it?it.name:"(삭제된 품목)"),color,spec].filter(Boolean).join(" · ")} — ${out?"출고":"복구"} ${fmt(Math.abs(delta))}`);
+  });
+  return { moves, desc };
+}
+
+/* 재고 반영 실행. ask=false면 확인 없이 적용 (삭제처럼 이미 확인을 받은 경우) */
+async function syncStockForQuote(q,{ask=true}={}){
+  const { moves, desc }=stockDeltaForQuote(q);
+  if(!moves.length) return false;
+  if(ask && !confirm(`재고를 다음과 같이 반영할까요?\n\n${desc.join("\n")}`)) return false;
   db.stock_moves.push(...moves);
   await saveTable("stock_moves",db.stock_moves);
-  toast(`출고 ${moves.length}건이 재고에 기록되었습니다`);
+  toast(`재고 ${moves.length}건 반영했습니다`);
+  return true;
+}
+
+/* 예전 버전이 만든 출고 기록에 quote_id를 채운다 (메모의 견적번호로 역추적).
+   이게 없으면 기존 수주 건을 다시 저장할 때 재고가 이중 차감된다. */
+function migrateStockQuoteLinks(){
+  (db.stock_moves||[]).forEach(m=>{
+    if(m.quote_id!==undefined) return;
+    const hit=/^견적 (.+?) (?:수주|출고)/.exec(m.memo||"");
+    const q=hit && db.quotes.find(x=>x.no===hit[1]);
+    m.quote_id = q ? q.id : null;
+  });
 }
 
 async function deleteQuote(id){
-  if(!confirm("이 견적서를 삭제할까요? 되돌릴 수 없습니다.")) return;
+  const q=db.quotes.find(x=>x.id===id);
+  const back=q ? stockDeltaForQuote({...q,status:"취소"}) : {moves:[],desc:[]};
+  const msg="이 견적서를 삭제할까요? 되돌릴 수 없습니다."
+    + (back.moves.length ? `\n\n이 견적으로 나간 재고는 함께 복구됩니다:\n${back.desc.join("\n")}` : "");
+  if(!confirm(msg)) return;
+  if(q) await syncStockForQuote({...q,status:"취소"},{ask:false});
   db.quotes=db.quotes.filter(x=>x.id!==id);
   qtSel=null; qtEditing=null;
   renderQtList(); renderQtDetail();
