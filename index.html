@@ -256,7 +256,7 @@
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
     .stock-add .span2{grid-column:span 2}
-    #slBody .tbl{min-width:860px}
+    #slBody .tbl{min-width:980px}
     #slBody .card-head{flex-wrap:wrap;padding-bottom:8px}
     #slBody .card-head .legend{margin-left:0;width:100%;gap:8px;white-space:nowrap;overflow-x:auto}
     #view-sales .page-head{gap:8px}
@@ -599,6 +599,7 @@
           <div class="stat"><div class="k">공급가액</div><div class="v" id="slSupply">0원</div></div>
           <div class="stat"><div class="k">세액</div><div class="v" id="slVat">0원</div></div>
           <div class="stat"><div class="k">합계</div><div class="v" id="slTotal">0원</div></div>
+          <div class="stat"><div class="k">마진</div><div class="v" id="slMargin">0원</div><div class="hint" id="slMarginNote" style="margin-top:2px"></div></div>
         </div>
         <div id="slBody"></div>
       </section>
@@ -685,7 +686,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.28";
+const APP_VERSION = "v1.29";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1021,6 +1022,38 @@ function itemSell(i,spec){
   if(Number(i.sell_price)) return Number(i.sell_price);
   return isSet(i) ? setCompSums(i).sell : 0;
 }
+function itemBuy(i,spec){
+  if(!i) return 0;
+  const v=variantOf(i,spec);
+  if(v && Number(v.buy_price)) return Number(v.buy_price);
+  if(Number(i.buy_price)) return Number(i.buy_price);
+  return isSet(i) ? setCompSums(i).buy : 0;
+}
+/* 마진 — 매입단가를 모르는 항목은 계산에서 빼고 몇 건인지 알려준다
+   (0원으로 치면 마진이 부풀려지므로) */
+function marginOf(supply,cost){
+  const margin=supply-cost;
+  return { cost, supply, margin, rate: supply ? margin/supply*100 : 0 };
+}
+function fmtMargin(m,unknown){
+  if(!m.supply) return "";
+  return `마진 ${won(m.margin)} (${m.rate.toFixed(1)}%)`
+    + (unknown ? ` · 매입단가 없는 ${unknown}건 제외` : "");
+}
+function quoteMargin(q){
+  let supply=0, cost=0, unknown=0;
+  (q.lines||[]).forEach(l=>{
+    const qty=Number(l.qty)||0;
+    if(!(l.name||"").trim() || !qty) return;
+    const it = (l.item_id && l.item_id!=="__free__") ? db.items.find(x=>x.id===l.item_id) : null;
+    const buy = it ? itemBuy(it,l.spec) : 0;
+    if(!buy){ unknown++; return; }          // 매입단가 미상 — 마진 계산에서 제외
+    supply += qty*(Number(l.price)||0);
+    cost   += qty*buy;
+  });
+  return { ...marginOf(supply,cost), unknown };
+}
+
 function setCompSums(i){
   let buy=0, sell=0;
   (i.components||[]).forEach(c=>{
@@ -1135,6 +1168,7 @@ function renderItDetail(){
       </div>
       <button class="btn-line-add" id="fi_addComp">＋ 구성품 추가</button>
       <div class="hint" id="fi_sums">구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}</div>
+      <div class="hint" id="fi_margin">${itemMarginHint(e)}</div>
     </div>
     <div class="grid2">
       <div class="field"><label>세트 매입가</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="비워두면 구성 합계 적용"></div>
@@ -1150,6 +1184,7 @@ function renderItDetail(){
       <div class="field"><label>매입단가 (기본)</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="0"></div>
       <div class="field"><label>매출단가 (기본)</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="0"></div>
     </div>
+    <div class="hint" id="fi_margin">${itemMarginHint(e)}</div>
     <div class="field"><label>색상 <span style="font-weight:400;color:var(--ink-3)">(쉼표로 구분 — 예: BK, WH / 없으면 비워두세요)</span></label>
       <input id="fi_colors" value="${escapeAttr((e.colors||[]).join(", "))}" placeholder="예: BK, WH, NV">
     </div>
@@ -1195,8 +1230,8 @@ function renderItDetail(){
   document.getElementById("fi_name").oninput=ev=>{ e.name=ev.target.value; };
   document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
   document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
-  document.getElementById("fi_buy").oninput=ev=>{ e.buy_price=Number(ev.target.value)||0; };
-  document.getElementById("fi_sell").oninput=ev=>{ e.sell_price=Number(ev.target.value)||0; };
+  document.getElementById("fi_buy").oninput=ev=>{ e.buy_price=Number(ev.target.value)||0; updateItSums(e); };
+  document.getElementById("fi_sell").oninput=ev=>{ e.sell_price=Number(ev.target.value)||0; updateItSums(e); };
 
   if(isSet(e)){
     document.getElementById("fi_addComp").onclick=()=>{ e.components.push({item_id:"",spec:"",qty:1}); renderItDetail(); };
@@ -1252,11 +1287,19 @@ function renderItDetail(){
   else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
 }
 
+function itemMarginHint(i){
+  const buy=itemBuy(i), sell=itemSell(i);
+  if(!buy || !sell) return "매입단가와 매출단가를 모두 넣으면 마진이 표시됩니다";
+  return "1개당 " + fmtMargin(marginOf(sell,buy),0);
+}
 function updateItSums(e){
   const el=document.getElementById("fi_sums");
-  if(!el) return;
-  const sums=setCompSums(e);
-  el.textContent=`구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}`;
+  if(el){
+    const sums=setCompSums(e);
+    el.textContent=`구성품 합계 — 매입 ${won(sums.buy)} · 매출 ${won(sums.sell)}`;
+  }
+  const mg=document.getElementById("fi_margin");
+  if(mg) mg.textContent=itemMarginHint(e);
 }
 
 async function submitItem(isNew){
@@ -1342,6 +1385,11 @@ function applyCoQuoteMemo(e,prevMemo){
     hint.classList.remove("hidden");
   }
 }
+function quoteMarginText(q){
+  const m=quoteMargin(q);
+  if(!m.supply) return "매입단가 미등록";
+  return fmtMargin(m,m.unknown);
+}
 function quoteTotals(q){
   const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
   const vat=Math.round(supply*0.1);
@@ -1423,7 +1471,9 @@ function renderQtDetail(){
       <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
       <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
       <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
+      <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
     </div>
+    <div class="hint" style="text-align:right;margin-top:-2px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
     <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
       <div class="hint hidden" id="fq_memoHint"></div>
     </div>
@@ -1549,6 +1599,8 @@ function bindQtLines(e){
       document.getElementById("fq_supply").textContent=won(t.supply);
       document.getElementById("fq_vat").textContent=won(t.vat);
       document.getElementById("fq_total").textContent=won(t.total);
+      const mgEl=document.getElementById("fq_margin");
+      if(mgEl) mgEl.textContent=quoteMarginText(e);
     };
   });
   form.querySelectorAll("[data-rm]").forEach(el=>{
@@ -2287,7 +2339,7 @@ function salesData(){
     (q.lines||[]).forEach(l=>{
       const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0].join("|");
       const g=groups[q.company_id] ?? (groups[q.company_id]={});
-      const r=g[key] ?? (g[key]={name:l.name,color:l.color||"",spec:l.spec||"",price:Number(l.price)||0,qty:0});
+      const r=g[key] ?? (g[key]={item_id:l.item_id||"",name:l.name,color:l.color||"",spec:l.spec||"",price:Number(l.price)||0,qty:0});
       r.qty+=Number(l.qty)||0;
     });
   });
@@ -2306,38 +2358,46 @@ function renderSales(){
     .map(c=>`<option value="${c.id}" ${c.id===cur?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
 
   const {groups,count}=salesData();
-  let totQty=0, totSupply=0, totVat=0;
+  let totQty=0, totSupply=0, totVat=0, totMargin=0, totMarginUnknown=0;
   const sections=Object.entries(groups)
     .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
     .map(([cid,g])=>{
       const rows=Object.values(g).sort((a,b)=>a.name.localeCompare(b.name,"ko")||a.color.localeCompare(b.color)||a.spec.localeCompare(b.spec,"ko"));
       let sQty=0, sSupply=0, sVat=0;
+      let sMargin=0, sMarginUnknown=0;
       const trs=rows.map(r=>{
         const supply=r.qty*r.price, vat=Math.round(supply*0.1);
         sQty+=r.qty; sSupply+=supply; sVat+=vat;
+        const it=r.item_id && r.item_id!=="__free__" ? db.items.find(x=>x.id===r.item_id) : null;
+        const buy=it ? itemBuy(it,r.spec) : 0;
+        if(buy) sMargin += supply - buy*r.qty; else sMarginUnknown++;
         return `<tr>
           <td>${escapeHtml(r.name)}</td>
           <td class="sub">${escapeHtml([r.color,r.spec].filter(Boolean).join(" · ")||"—")}</td>
           <td class="num">${fmt(r.qty)}</td>
           <td class="num">${fmt(r.price)}</td>
           <td class="num">${fmt(supply)}</td>
+          <td class="num">${buy?fmt(supply-buy*r.qty):'<span class="sub">—</span>'}</td>
           <td class="num">${fmt(vat)}</td>
         </tr>`;}).join("");
+      totMargin+=sMargin; totMarginUnknown+=sMarginUnknown;
       totQty+=sQty; totSupply+=sSupply; totVat+=sVat;
       return `
       <div class="card" style="margin-bottom:16px">
         <div class="card-head" style="padding-bottom:4px">
           <h3>${escapeHtml(coName(cid))}</h3>
-          <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b></span>
+          <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
         <div class="tbl-wrap"><table class="tbl" style="table-layout:fixed">
-          <colgroup><col><col style="width:200px"><col style="width:90px"><col style="width:110px"><col style="width:130px"><col style="width:110px"></colgroup>
-          <thead><tr><th>품명</th><th>색상·사이즈</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th></tr></thead>
+          <colgroup><col><col style="width:190px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
+          <thead><tr><th>품명</th><th>색상·사이즈</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
           <tbody>${trs}
             <tr style="background:var(--paper)">
               <td style="font-weight:700">소계</td><td></td>
               <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
-              <td class="num" style="font-weight:700">${fmt(sSupply)}</td><td class="num" style="font-weight:700">${fmt(sVat)}</td>
+              <td class="num" style="font-weight:700">${fmt(sSupply)}</td>
+              <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>
+              <td class="num" style="font-weight:700">${fmt(sVat)}</td>
             </tr>
           </tbody>
         </table></div>
@@ -2348,6 +2408,11 @@ function renderSales(){
   document.getElementById("slSupply").textContent=won(totSupply);
   document.getElementById("slVat").textContent=won(totVat);
   document.getElementById("slTotal").textContent=won(totSupply+totVat);
+  const mgEl=document.getElementById("slMargin");
+  mgEl.textContent = totMarginUnknown && !totMargin ? "—" : won(totMargin);
+  mgEl.className = "v"+(totMargin>0?" pos":totMargin<0?" neg":"");
+  document.getElementById("slMarginNote").textContent =
+    totMarginUnknown ? `매입단가 없는 ${totMarginUnknown}종 제외` : "";
   document.getElementById("slBody").innerHTML = sections.length ? sections.join("")
     : `<div class="card"><div class="empty">선택한 기간에 해당하는 ${document.getElementById("slStatus").value==="all"?"견적":"수주 건"}이 없습니다.<br>기간이나 필터를 조정해 보세요.</div></div>`;
 }
@@ -2375,13 +2440,16 @@ function exportQuotesCsv(){
 }
 function exportSalesCsv(){
   const {groups}=salesData();
-  const lines=[["거래처","품명","색상","사이즈","수량","단가","공급가액","세액","합계"].join(",")];
+  const lines=[["거래처","품명","색상","사이즈","수량","단가","공급가액","마진","세액","합계"].join(",")];
   Object.entries(groups)
     .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
     .forEach(([cid,g])=>{
       Object.values(g).forEach(r=>{
         const supply=r.qty*r.price, vat=Math.round(supply*0.1);
-        lines.push([csvEsc(coName(cid)),csvEsc(r.name),csvEsc(r.color),csvEsc(r.spec),r.qty,r.price,supply,vat,supply+vat].join(","));
+        const it=r.item_id && r.item_id!=="__free__" ? db.items.find(x=>x.id===r.item_id) : null;
+        const buy=it ? itemBuy(it,r.spec) : 0;
+        lines.push([csvEsc(coName(cid)),csvEsc(r.name),csvEsc(r.color),csvEsc(r.spec),r.qty,r.price,supply,
+          buy?supply-buy*r.qty:"",vat,supply+vat].join(","));
       });
     });
   if(lines.length===1){ toast("내보낼 내역이 없습니다"); return; }
