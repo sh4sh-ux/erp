@@ -358,6 +358,7 @@
   .p-tbl th:first-child{border-radius:9px 0 0 9px}
   .p-tbl th:last-child{border-radius:0 9px 9px 0}
   .p-tbl th.num,.p-tbl td.num{text-align:right}
+  .p-tbl th.ctr,.p-tbl td.ctr{text-align:center}
   .p-tbl td{padding:12px 11px;border-bottom:1px solid #ECEDEF;font-variant-numeric:tabular-nums}
   .p-sumrow td{background:#F4F5F7;border-bottom:none;font-weight:750;padding:10px 11px}
   .p-sumrow td:first-child{border-radius:11px 0 0 11px}
@@ -750,7 +751,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.43";
+const APP_VERSION = "v1.44";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -2195,8 +2196,8 @@ function printQuote(q,docType){
     <tr>
       <td>${escapeHtml(l.name)}</td>
       <td>${escapeHtml(l.color||"")}</td>
-      <td>${escapeHtml(l.spec||"")}</td>
-      <td class="num">${fmtb(l.qty)}</td>
+      <td class="ctr">${escapeHtml(l.spec||"")}</td>
+      <td class="ctr">${fmtb(l.qty)}</td>
       <td class="num">${fmtb(l.price)}</td>
       <td class="num">${fmtb(supply)}</td>
       <td class="num">${fmtb(Math.round(supply*0.1))}</td>
@@ -2230,7 +2231,7 @@ function printQuote(q,docType){
     <table class="p-tbl" style="table-layout:fixed">
       ${colgroup}
       <thead><tr>
-        <th>품명</th><th>색상</th><th>규격</th><th class="num">수량</th>
+        <th>품명</th><th>색상</th><th class="ctr">규격</th><th class="ctr">수량</th>
         <th class="num">단가</th><th class="num">공급가액</th><th class="num">세액</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -2239,7 +2240,7 @@ function printQuote(q,docType){
       <table class="p-tbl" style="table-layout:fixed">
         ${colgroup}
         <tbody><tr class="p-sumrow">
-          <td>합계</td><td></td><td></td><td class="num">${fmt(qtySum)}</td><td></td>
+          <td>합계</td><td></td><td></td><td class="ctr">${fmt(qtySum)}</td><td></td>
           <td class="num">${fmt(t.supply)}</td><td class="num">${fmt(t.vat)}</td>
         </tr></tbody>
       </table>
@@ -2417,24 +2418,26 @@ function drawQuoteCanvas(q,docType){
   ctx.fillStyle="#ECEDEF"; qimgRR(ctx,MX,ty,CW,30,9); ctx.fill();
   ctx.fillStyle="#3A3F46"; ctx.font=F(700,11.5);
   const TH=["품명","색상","규격","수량","단가","공급가액","세액"];
-  TH.forEach((h,i)=>{
-    if(i<3) ctx.fillText(h,colX[i]+11,ty+19);
-    else{ ctx.textAlign="right"; ctx.fillText(h,colX[i+1]-11,ty+19); ctx.textAlign="left"; }
-  });
+  // 열별 정렬 — 인쇄 표(.ctr/.num)와 같은 규칙을 쓴다
+  const ALIGN=["left","left","center","center","right","right","right"];
+  const cell=(text,i,y)=>{
+    const a=ALIGN[i];
+    if(a==="right"){ ctx.textAlign="right"; ctx.fillText(text,colX[i+1]-11,y); }
+    else if(a==="center"){ ctx.textAlign="center"; ctx.fillText(text,(colX[i]+colX[i+1])/2,y); }
+    else { ctx.textAlign="left"; ctx.fillText(text,colX[i]+11,y); }
+    ctx.textAlign="left";
+  };
+  TH.forEach((h,i)=>cell(h,i,ty+19));
   ty+=30;
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
     const baseY=ty+12+13;
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
-    r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11,baseY+j*18));
-    r.colorLs.forEach((ln,j)=>ctx.fillText(ln,colX[1]+11,baseY+j*18));
-    r.specLs.forEach((ln,j)=>ctx.fillText(ln,colX[2]+11,baseY+j*18));
-    ctx.textAlign="right";
-    [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>{
-      ctx.fillText(v,colX[i+4]-11,baseY);
-    });
-    ctx.textAlign="left";
+    r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
+    r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
+    r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
+    [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>cell(v,i+3,baseY));
     ty+=r.h;
     ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();
@@ -2444,12 +2447,8 @@ function drawQuoteCanvas(q,docType){
   let by=bottomY;
   ctx.fillStyle="#F4F5F7"; qimgRR(ctx,MX,by,CW,34,11); ctx.fill();
   ctx.fillStyle="#111"; ctx.font=F(750,12.5);
-  ctx.fillText("합계",colX[0]+11,by+22);
-  ctx.textAlign="right";
-  [fmt(qtySum),"",fmt(t.supply),fmt(t.vat)].forEach((v,i)=>{
-    if(v) ctx.fillText(v,colX[i+4]-11,by+22);
-  });
-  ctx.textAlign="left";
+  cell("합계",0,by+22);
+  [fmt(qtySum),"",fmt(t.supply),fmt(t.vat)].forEach((v,i)=>{ if(v) cell(v,i+3,by+22); });
   by+=34+16+11;
   ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
   ctx.fillText("비 고",MX,by);
