@@ -139,6 +139,10 @@
   .qline input,.qline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
   .qline input:focus,.qline select:focus{border-color:var(--primary)}
   .qline input.num{text-align:right;font-variant-numeric:tabular-nums}
+  .qline input[data-f="qty"]{text-align:center}
+  .qline input[data-f="price"]{text-align:right}
+  .qline input[data-f="spec"],.qline select[data-f="vspec"],.qline select[data-f="lcolor"]{text-align:center}
+  .qline .dual select,.qline .dual input{text-align:center}
   .qline .amt{text-align:right;font-weight:640;font-size:13.5px;font-variant-numeric:tabular-nums}
   .qline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .qline .rm:hover{background:var(--danger-soft);color:var(--danger)}
@@ -712,7 +716,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.33";
+const APP_VERSION = "v1.34";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1508,7 +1512,7 @@ function renderQtDetail(){
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
-        <div class="qline head"><span>품목</span><span>규격/사이즈</span><span>수량</span><span>단가</span><span style="text-align:right">금액</span><span></span></div>
+        <div class="qline head"><span>품목</span><span style="text-align:center">규격/사이즈</span><span style="text-align:center">수량</span><span style="text-align:right">단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
       <div class="line-btns">
