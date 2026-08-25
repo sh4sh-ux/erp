@@ -53,7 +53,11 @@ ROADMAP.md            — 이카운트 ERP 대비 분석 · 개선 우선순위 
 ```js
 db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], settings:{} }
 
-Company { id, name, biz_no, type:"매출"|"매입", contact, phone, email, address, memo }
+Company {
+  id, name, biz_no, type:"매출"|"매입", contact, phone, email, address,
+  memo,          // 내부 메모 (출력물에 안 나감)
+  quote_memo     // 견적서 기본 비고 — 이 거래처 선택 시 견적 비고에 자동 입력 (v1.26)
+}
 
 Item {
   id, name, type:"단품"|"세트", spec, unit:"EA",
@@ -258,6 +262,9 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
   HTML network-first(배포 즉시 반영) + 정적 자원 cache-first
 - `v1.25` — 모바일 공유 시 이미지 파일만 전송 — `navigator.share()`의 `text`·`title` 제거
   (카톡에 요약 메시지가 함께 발송되던 것 삭제)
+- `v1.26` — **거래처별 견적서 기본 비고** (`Company.quote_memo`) — 거래처 선택 시 견적 비고에
+  자동 입력. `applyCoQuoteMemo()`가 **직접 입력한 내용은 덮어쓰지 않고**, 비었거나 직전 거래처의
+  기본 문구 그대로일 때만 교체 (receipt-db의 `_catAutoFilled`와 같은 방식)
 
 ## 다음 작업 후보
 - 미수금에 연령 분석(30/60/90일 경과) 추가

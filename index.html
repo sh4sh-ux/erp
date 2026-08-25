@@ -685,7 +685,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.25";
+const APP_VERSION = "v1.26";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -925,7 +925,7 @@ function renderCoList(){
 }
 
 function blankCompany(){
-  return { id:null, name:"", biz_no:"", type:"매출", contact:"", phone:"", email:"", address:"", memo:"" };
+  return { id:null, name:"", biz_no:"", type:"매출", contact:"", phone:"", email:"", address:"", memo:"", quote_memo:"" };
 }
 
 function renderCoDetail(){
@@ -953,6 +953,11 @@ function renderCoDetail(){
     <div class="field"><label>이메일</label><input id="f_email" value="${escapeAttr(c.email)}"></div>
     <div class="field"><label>주소</label><input id="f_address" value="${escapeAttr(c.address)}"></div>
     <div class="field"><label>메모</label><textarea id="f_memo" placeholder="특이사항, 결제조건 등">${escapeHtml(c.memo)}</textarea></div>
+    <div class="field">
+      <label>견적서 기본 비고</label>
+      <textarea id="f_qmemo" placeholder="예: 결제는 월말 결산 후 익월 10일">${escapeHtml(c.quote_memo)}</textarea>
+      <div class="hint">이 거래처로 견적서를 만들면 비고에 자동으로 채워집니다 (견적서에서 수정 가능)</div>
+    </div>
     <div class="form-actions">
       <button class="btn save" id="coSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?'<button class="btn ghost" id="coCancelBtn">취소</button>':'<button class="btn del" id="coDelBtn">삭제</button>'}
@@ -974,6 +979,7 @@ async function submitCompany(c,isNew){
     email:document.getElementById("f_email").value.trim(),
     address:document.getElementById("f_address").value.trim(),
     memo:document.getElementById("f_memo").value.trim(),
+    quote_memo:document.getElementById("f_qmemo").value.trim(),
   };
   if(isNew){
     const row={ id:crypto.randomUUID(), ...data, created_at:new Date().toISOString() };
@@ -1299,6 +1305,28 @@ function blankQuote(){
            valid:"견적일로부터 1주일", lines:[blankLine()], memo:"" };
 }
 function blankLine(){ return { item_id:"", name:"", color:"", spec:"", unit:"", qty:1, price:0 }; }
+
+/* 거래처별 견적서 기본 비고 */
+function coQuoteMemo(cid){ return ((coById(cid)||{}).quote_memo || "").trim(); }
+function applyCoQuoteMemo(e,prevMemo){
+  const next=coQuoteMemo(e.company_id);
+  const cur=(e.memo||"").trim();
+  const hint=document.getElementById("fq_memoHint");
+  // 사용자가 직접 쓴 내용은 보존 — 비었거나 직전 거래처 기본 문구 그대로일 때만 교체
+  if(next===cur || (cur && cur!==(prevMemo||"").trim())){
+    if(hint) hint.classList.add("hidden");
+    return;
+  }
+  e.memo=next;
+  const box=document.getElementById("fq_memo");
+  if(box) box.value=next;
+  if(hint){
+    hint.textContent = next
+      ? `${coName(e.company_id)}의 기본 비고를 넣었습니다 — 수정할 수 있습니다`
+      : "이전 거래처의 기본 비고를 지웠습니다";
+    hint.classList.remove("hidden");
+  }
+}
 function quoteTotals(q){
   const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
   const vat=Math.round(supply*0.1);
@@ -1381,7 +1409,9 @@ function renderQtDetail(){
       <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
       <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
     </div>
-    <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea></div>
+    <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
+      <div class="hint hidden" id="fq_memoHint"></div>
+    </div>
     <div class="form-actions">
       ${isNew?"":`<select class="doc-sel" id="fq_doc" title="인쇄·이미지·공유에 사용할 양식">
         ${Object.keys(DOC_TYPES).map(k=>`<option ${k===qtDocType?"selected":""}>${k}</option>`).join("")}
@@ -1399,7 +1429,11 @@ function renderQtDetail(){
       ${isNew?'<button class="btn ghost" id="qtCancelBtn">취소</button>':'<button class="btn del" id="qtDelBtn">삭제</button>'}
     </div>`;
   document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; };
-  document.getElementById("fq_co").onchange=ev=>{ e.company_id=ev.target.value; };
+  document.getElementById("fq_co").onchange=ev=>{
+    const prev=coQuoteMemo(e.company_id);
+    e.company_id=ev.target.value;
+    applyCoQuoteMemo(e,prev);
+  };
   document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
