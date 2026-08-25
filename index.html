@@ -743,7 +743,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.39";
+const APP_VERSION = "v1.40";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1915,6 +1915,16 @@ function openItemPicker(btn,onPick){
 }
 document.addEventListener("mousedown",ev=>{
   if(ipPop && !ipPop.contains(ev.target) && !ev.target.closest(".ip-btn")) closeItemPicker();
+});
+
+/* 날짜·월 입력은 칸 아무 데나 누르면 달력이 열리게 — 작은 달력 아이콘을 겨냥하지 않아도 되도록.
+   (앱 전체에 한 번만 걸어두면 나중에 추가되는 날짜 칸에도 자동 적용된다) */
+document.addEventListener("click",ev=>{
+  const el=ev.target;
+  if(!(el instanceof HTMLInputElement)) return;
+  if(el.type!=="date" && el.type!=="month") return;
+  if(el.readOnly || el.disabled || typeof el.showPicker!=="function") return;
+  try{ el.showPicker(); }catch(_){ /* 이미 열려 있거나 미지원 — 기본 동작에 맡긴다 */ }
 });
 window.addEventListener("resize",closeItemPicker);
 
