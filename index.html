@@ -222,6 +222,7 @@
   .cbars{display:flex;gap:5px;align-items:flex-end;flex:1;width:100%;justify-content:center}
   .cbar{width:15px;border-radius:5px 5px 2px 2px;min-height:2px;transition:.3s}
   .cbar.in{background:var(--ok)}
+  .cbar.sale{background:var(--primary)}
   .cbar.out{background:var(--warn-c)}
   .clabel{font-size:11px;color:var(--ink-3);margin-top:7px}
   .recent{padding:8px 8px 10px}
@@ -575,8 +576,8 @@
         <div class="dash-grid">
           <div class="card">
             <div class="card-head">
-              <h3>월별 수금·지급</h3>
-              <div class="legend"><span><i style="background:var(--ok)"></i>수금</span><span><i style="background:var(--warn-c)"></i>지급</span></div>
+              <h3>월별 매출·수금</h3>
+              <div class="legend"><span><i style="background:var(--primary)"></i>매출(수주)</span><span><i style="background:var(--ok)"></i>수금</span></div>
             </div>
             <div class="chart" id="dashChart"></div>
           </div>
@@ -695,7 +696,7 @@
    https://www.dropbox.com/developers/apps
    ===================================================================== */
 const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.30";
+const APP_VERSION = "v1.31";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -2343,42 +2344,57 @@ async function deletePayment(id){
 /* =====================================================================
    대시보드(dash)
    ===================================================================== */
+/* 월별 매출 — 수주 견적 기준 (미수금·매출 집계와 같은 기준) */
+function monthSales(ym){
+  let supply=0, total=0, margin=0, count=0;
+  db.quotes.forEach(q=>{
+    if(q.status!=="수주" || !(q.date||"").startsWith(ym)) return;
+    const t=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())});
+    supply+=t.supply; total+=t.total; margin+=quoteMargin(q).margin; count++;
+  });
+  return { supply, total, margin, count };
+}
+
 function renderDash(){
   const month=localMonth();
   const inMonth=db.payments.filter(p=>(p.date||"").startsWith(month));
   const sumIn=inMonth.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
   const sumOut=inMonth.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0);
-  const net=sumIn-sumOut;
-  const stCount=s=>db.quotes.filter(q=>q.status===s).length;
+  const sales=monthSales(month);
+  const openAr=arData().reduce((s,r)=>s+r.open,0);
+  const sent=db.quotes.filter(q=>q.status==="발송");
+  const sentOld=sent.filter(q=>(daysSince(q.sent_at)||0)>=7).length;
 
   document.getElementById("dashStats").innerHTML=`
+    <div class="stat"><div class="k">이달 매출 (수주)</div><div class="v">${won(sales.total)}</div>
+      <div class="hint" style="margin-top:2px">${sales.count}건</div></div>
+    <div class="stat"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
+      <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:""}</div></div>
     <div class="stat"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div></div>
     <div class="stat"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div></div>
-    <div class="stat"><div class="k">이달 차액</div><div class="v ${net>0?"pos":net<0?"neg":""}">${(net>0?"+":"")+won(net)}</div></div>
-    <div class="stat"><div class="k">거래처 / 품목</div><div class="v">${db.companies.length}곳 · ${db.items.length}개</div></div>
-    <div class="stat"><div class="k">견적 (발송/수주)</div><div class="v">${stCount("발송")}건 · ${stCount("수주")}건</div></div>`;
+    <div class="stat"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div></div>
+    <div class="stat"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
+      <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></div>`;
 
-  // 최근 6개월 차트
+  // 최근 6개월 — 매출(수주) vs 수금
   const months=[];
   const now=new Date();
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
     months.push({ key:localMonth(d), label:(d.getMonth()+1)+"월" });
   }
-  const data=months.map(m=>{
-    const rows=db.payments.filter(p=>(p.date||"").startsWith(m.key));
-    return {
-      ...m,
-      inSum:rows.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0),
-      outSum:rows.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0)
-    };
-  });
-  const max=Math.max(1,...data.map(d=>Math.max(d.inSum,d.outSum)));
+  const data=months.map(m=>({
+    ...m,
+    saleSum:monthSales(m.key).total,
+    inSum:db.payments.filter(p=>p.kind==="수금" && (p.date||"").startsWith(m.key))
+      .reduce((s,p)=>s+(Number(p.amount)||0),0)
+  }));
+  const max=Math.max(1,...data.map(d=>Math.max(d.saleSum,d.inSum)));
   document.getElementById("dashChart").innerHTML=data.map(d=>`
     <div class="cgroup">
       <div class="cbars">
+        <div class="cbar sale" style="height:${Math.round(d.saleSum/max*100)}%" title="매출 ${won(d.saleSum)}"></div>
         <div class="cbar in" style="height:${Math.round(d.inSum/max*100)}%" title="수금 ${won(d.inSum)}"></div>
-        <div class="cbar out" style="height:${Math.round(d.outSum/max*100)}%" title="지급 ${won(d.outSum)}"></div>
       </div>
       <div class="clabel">${d.label}</div>
     </div>`).join("");
@@ -2386,7 +2402,7 @@ function renderDash(){
   // 최근 활동
   const acts=[
     ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", html:
-      `<span class="pill ${QT_STATUS_CLASS[q.status]||'st-draft'}">견적</span><span class="t">${escapeHtml(coName(q.company_id))} · ${won(quoteTotals(q).total)}</span>` })),
+      `<span class="pill ${QT_STATUS_CLASS[q.status]||'st-draft'}">${escapeHtml(q.status)}</span><span class="t">${escapeHtml(coName(q.company_id))} · ${won(quoteTotals(q).total)}</span>` })),
     ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", html:
       `<span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span><span class="t">${escapeHtml(coName(p.company_id))} · ${won(p.amount)}</span>` }))
   ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||"")).slice(0,8);
