@@ -37,14 +37,20 @@ ROADMAP.md            — 이카운트 ERP 대비 분석 · 개선 우선순위 
 
 ## 데이터 저장 (Dropbox)
 - OAuth: Authorization Code + PKCE (`client_secret` 불필요, 서버 없음)
-- `DROPBOX_APP_KEY = "uy4mukymihfjf1o"`, 접근 유형 App folder
+- App key는 `DROPBOX_APP_KEY_DEFAULT`(`uy4mukymihfjf1o`, 접근 유형 **App folder**)가 기본값이고,
+  로그인 화면에서 새 키를 넣으면 localStorage `dbx_app_key`가 우선한다 (`appKey()`).
+  **`/07_Apps/`에 저장하려면 Full Dropbox 권한의 앱을 새로 만들어 그 키를 넣어야 한다** —
+  Dropbox는 앱 생성 후 접근 유형을 바꿀 수 없다.
 - 토큰은 localStorage(`dbx_access`/`dbx_refresh`/`dbx_exp`/`dbx_verifier`)에 보관.
   access_token 만료 60초 전 `refreshToken()`으로 자동 갱신
-- 저장 경로: `DATA_DIR = "/erp"` 아래 테이블별 JSON 파일
+- 저장 경로: `DATA_DIR = "/07_Apps/거래처관리(ERP)"` 아래 테이블별 JSON 파일 (v1.47~)
   ```
-  /erp/companies.json  /erp/items.json    /erp/quotes.json
-  /erp/payments.json   /erp/stock_moves.json  /erp/settings.json
+  /07_Apps/거래처관리(ERP)/companies.json  items.json    quotes.json
+                            payments.json   stock_moves.json  settings.json
   ```
+  읽기는 `readTable()`이 새 위치 → 옛 위치(`DATA_DIR_LEGACY = "/erp"`) 순으로 시도한다.
+  폴더를 아직 안 옮겼거나 옛 App key로 접속해도 데이터가 보이게 하기 위한 폴백이고, **쓰기는 항상 새 위치**로 간다.
+  한글 폴더명이라 `Dropbox-API-Arg` 헤더는 반드시 `dbxArg()`로 ASCII 이스케이프할 것 (헤더는 ASCII만 허용).
 - `Table.load/loadObj/save` → `db` 전역 객체가 메모리 캐시.
   **저장 버튼 없음 = 의도적 설계** — 변경 시 해당 테이블만 `saveTable(name, data)`로 즉시 업로드
 - `loadAll()`은 6개 테이블을 `Promise.all`로 병렬 로드 (상단바 새로고침 버튼)
@@ -298,6 +304,8 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
 
 ## Changelog
+- `v1.47` — Dropbox 저장 위치를 `/07_Apps/거래처관리(ERP)/`로 이동(앱 전체 폴더 통합).
+  App key를 로그인 화면에서 입력받도록 변경(Full Dropbox 앱으로 교체하기 위함) + 옛 `/erp` 읽기 폴백.
 - `v1.0` — 거래처 관리 ERP 초기 배포
 - `v1.1` — 품목·견적서(인쇄)·수금/지급·대시보드·공급자 정보 구현
 - `v1.2` — 견적서 인쇄 양식을 실사용 양식(디에디트)으로 교체 — 유효기간·계좌번호 필드 추가

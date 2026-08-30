@@ -388,6 +388,17 @@
     <h1>거래처 관리 ERP</h1>
     <p>Dropbox 계정으로 연결하면 데이터가 <b>내 Dropbox에만</b> 저장됩니다. 별도 서버도, 추가 비용도 없습니다.</p>
     <div id="keyWarn" class="warn hidden"></div>
+    <div class="note" style="text-align:left">
+      <div class="k">Dropbox App key <span style="font-weight:400;opacity:.7">— 비워두면 기존 앱 키를 씁니다</span></div>
+      <input class="redirect-box" id="appKeyInput" type="text" inputmode="latin" autocomplete="off"
+             autocapitalize="off" spellcheck="false" placeholder="새 App key (Full Dropbox 권한)"
+             style="width:100%;border:0;font:inherit;color:inherit;background:transparent">
+      <div class="k" style="margin-top:10px;font-weight:400;line-height:1.7;opacity:.8">
+        데이터를 <b>/07_Apps/거래처관리(ERP)/</b>에 저장하려면 Dropbox 개발자 콘솔에서
+        <b>Full Dropbox</b> 권한의 앱을 새로 만들고 그 App key를 위에 넣어 주세요.
+        기존 키(App folder)로도 계속 쓸 수 있지만 저장 위치는 <b>/Apps/</b> 안에 남습니다.
+      </div>
+    </div>
     <button class="btn-primary" id="connectBtn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2 0 6l6 4 6-4-6-4Zm12 0-6 4 6 4 6-4-6-4ZM0 14l6 4 6-4-6-4-6 4Zm18-4-6 4 6 4 6-4-6-4ZM6 19.5l6 4 6-4-6-4-6 4Z"/></svg>
       Dropbox로 연결
@@ -756,12 +767,29 @@
    설정 — Dropbox 앱 콘솔에서 발급받은 App key
    https://www.dropbox.com/developers/apps
    ===================================================================== */
-const DROPBOX_APP_KEY = "uy4mukymihfjf1o";
-const APP_VERSION = "v1.46";
+/* App key — 기본값은 기존 App folder 앱. Dropbox 앱을 새로 만들면(아래 참고)
+   로그인 화면에서 새 키를 넣을 수 있고, 그 값이 localStorage에 남아 우선한다. */
+const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
+const LS_APP_KEY = "dbx_app_key";
+const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
+const APP_VERSION = "v1.47";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
-const DATA_DIR = "/erp";
+
+/* ── Dropbox 저장 위치 (v1.47) ────────────────────────────────────────
+   모든 앱 데이터를 Dropbox `/07_Apps/` 아래로 모았다.
+     · 새 위치: /07_Apps/거래처관리(ERP)/*.json
+     · 옛 위치: /erp/*.json
+   ⚠️ 이 앱은 원래 **App folder** 권한이라 경로가 `/Apps/<앱>/erp/`로 매핑됐다.
+   Dropbox는 앱을 만든 뒤 접근 유형을 바꿀 수 없으므로, 진짜 `/07_Apps/`에
+   저장하려면 **Full Dropbox 권한의 앱을 새로 만들어** App key를 바꿔 넣어야 한다.
+   새 키로 연결하기 전까지는 아래 읽기 폴백 덕분에 옛 위치의 데이터가 그대로 보인다. */
+const DATA_DIR = "/07_Apps/거래처관리(ERP)";
+const DATA_DIR_LEGACY = "/erp";
+/* 한글 폴더명을 Dropbox-API-Arg 헤더에 넣으려면 ASCII로 이스케이프해야 한다.
+   (HTTP 헤더는 ASCII만 허용 — 안 하면 fetch 자체가 실패한다) */
+const dbxArg = o => JSON.stringify(o).replace(/[\u007f-\uffff]/g, c => "\\u"+c.charCodeAt(0).toString(16).padStart(4,"0"));
 const SCOPES = "account_info.read files.content.read files.content.write";
 const LS = { access:"dbx_access", refresh:"dbx_refresh", exp:"dbx_exp", verifier:"dbx_verifier" };
 
@@ -772,12 +800,14 @@ async function challenge(verifier){ const d=new TextEncoder().encode(verifier); 
 
 /* ---------- 인증 ---------- */
 async function startLogin(){
-  if(!DROPBOX_APP_KEY){ showKeyWarn(); return; }
+  const typed=(document.getElementById("appKeyInput")?.value||"").trim();
+  if(typed) localStorage.setItem(LS_APP_KEY,typed);
+  if(!appKey()){ showKeyWarn(); return; }
   const verifier=randomVerifier();
   localStorage.setItem(LS.verifier,verifier);
   const chal=await challenge(verifier);
   const url=new URL("https://www.dropbox.com/oauth2/authorize");
-  url.searchParams.set("client_id",DROPBOX_APP_KEY);
+  url.searchParams.set("client_id",appKey());
   url.searchParams.set("response_type","code");
   url.searchParams.set("code_challenge",chal);
   url.searchParams.set("code_challenge_method","S256");
@@ -790,7 +820,7 @@ async function startLogin(){
 async function exchangeCode(code){
   const verifier=localStorage.getItem(LS.verifier);
   const body=new URLSearchParams({
-    code, grant_type:"authorization_code", client_id:DROPBOX_APP_KEY,
+    code, grant_type:"authorization_code", client_id:appKey(),
     redirect_uri:REDIRECT_URI, code_verifier:verifier
   });
   const res=await fetch("https://api.dropboxapi.com/oauth2/token",{
@@ -810,7 +840,7 @@ function saveTokens(t){
 async function refreshToken(){
   const rt=localStorage.getItem(LS.refresh);
   if(!rt) return false;
-  const body=new URLSearchParams({ grant_type:"refresh_token", refresh_token:rt, client_id:DROPBOX_APP_KEY });
+  const body=new URLSearchParams({ grant_type:"refresh_token", refresh_token:rt, client_id:appKey() });
   const res=await fetch("https://api.dropboxapi.com/oauth2/token",{ method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body });
   if(!res.ok) return false;
   saveTokens(await res.json());
@@ -833,7 +863,7 @@ async function dbxDownload(path){
   const token=await ensureToken();
   const res=await fetch("https://content.dropboxapi.com/2/files/download",{
     method:"POST",
-    headers:{ "Authorization":"Bearer "+token, "Dropbox-API-Arg":JSON.stringify({path}) }
+    headers:{ "Authorization":"Bearer "+token, "Dropbox-API-Arg":dbxArg({path}) }
   });
   if(res.status===409) return null;             // 파일 없음
   if(!res.ok) throw new Error("다운로드 실패 "+res.status);
@@ -845,7 +875,7 @@ async function dbxUpload(path,content){
     method:"POST",
     headers:{
       "Authorization":"Bearer "+token,
-      "Dropbox-API-Arg":JSON.stringify({path,mode:"overwrite",mute:true}),
+      "Dropbox-API-Arg":dbxArg({path,mode:"overwrite",mute:true}),
       "Content-Type":"application/octet-stream"
     },
     body:content
@@ -863,13 +893,20 @@ async function dbxAccount(){
 }
 
 /* ---------- 데이터 계층 (테이블 = JSON 파일) ---------- */
+// 새 위치에 없으면 옛 위치(/erp)에서 읽는다. 폴더를 아직 안 옮겼거나 옛 App key로
+// 접속한 경우에도 데이터가 그대로 보이게 하기 위한 폴백 — 쓰기는 항상 새 위치로 간다.
+async function readTable(name){
+  const txt=await dbxDownload(`${DATA_DIR}/${name}.json`);
+  if(txt!==null) return txt;
+  return await dbxDownload(`${DATA_DIR_LEGACY}/${name}.json`);
+}
 const Table = {
   async load(name){
-    const txt=await dbxDownload(`${DATA_DIR}/${name}.json`);
+    const txt=await readTable(name);
     return txt ? JSON.parse(txt) : [];
   },
   async loadObj(name){
-    const txt=await dbxDownload(`${DATA_DIR}/${name}.json`);
+    const txt=await readTable(name);
     return txt ? JSON.parse(txt) : {};
   },
   async save(name,data){
@@ -931,7 +968,7 @@ function toast(msg,loading){
 function showKeyWarn(){
   const w=document.getElementById("keyWarn");
   w.classList.remove("hidden");
-  w.innerHTML="⚠️ App key가 아직 입력되지 않았습니다. 코드 상단의 <b>DROPBOX_APP_KEY</b>에 Dropbox 앱 콘솔의 App key를 붙여넣어 주세요.";
+  w.innerHTML="⚠️ App key가 없습니다. 위 칸에 Dropbox 앱 콘솔의 App key를 넣어 주세요.";
 }
 
 /* ---------- 뷰 전환 ---------- */
