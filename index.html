@@ -734,6 +734,23 @@
 
         <div class="card" style="max-width:640px">
           <div class="detail">
+            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">옛 앱 폴더에서 가져오기</h3>
+            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+              Dropbox App key를 <b>Full Dropbox</b> 권한으로 바꾸면 저장 위치가
+              <b>/07_Apps/거래처관리(ERP)/</b>로 옮겨집니다. 예전 데이터는 Dropbox의
+              <b>앱/&lt;앱이름&gt;/</b> 안에 남아 있는데, 이 버튼을 누르면 앱이 찾아서 가져옵니다.
+              <b>옛 폴더의 원본은 지우지 않습니다.</b>
+            </p>
+            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+              <button class="btn ghost" id="importOldBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M12 10v6"/><path d="m9 13 3 3 3-3"/></svg>
+                옛 앱 폴더에서 가져오기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:640px">
+          <div class="detail">
             <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">데이터 백업</h3>
             <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
               거래처·품목·견적서·수금/지급·재고를 파일 하나로 내려받아 보관합니다.
@@ -772,7 +789,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.48";
+const APP_VERSION = "v1.49";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -943,6 +960,80 @@ const Table = {
     await dbxUpload(`${DATA_DIR}/${name}.json`, JSON.stringify(data,null,2));
   }
 };
+
+/* ── 옛 앱 폴더에서 가져오기 (v1.49) ──────────────────────────────────
+   App folder 권한이던 시절 데이터는 Dropbox의 `앱/<앱이름>/` 안에 들어 있다.
+   Full Dropbox 권한으로 바꿔 연결하면 앱이 그 폴더 안까지 볼 수 있으므로,
+   사용자가 파일을 손으로 끌어 옮기지 않아도 앱이 찾아서 복사할 수 있다.
+   · 원본은 지우지 않는다 — 복사만 한다
+   · 앱 폴더 모음의 이름은 계정 언어를 따른다 (한국어 계정은 '앱') */
+const APPS_ROOTS=["/앱","/Apps"];
+const ERP_TABLES=["companies","items","quotes","payments","stock_moves","settings"];
+
+async function dbxList(path){
+  const token=await needToken();
+  const res=await fetch("https://api.dropboxapi.com/2/files/list_folder",{
+    method:"POST",
+    headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},
+    body:JSON.stringify({path,recursive:false})   // 본문은 UTF-8 — 헤더만 ASCII 제약
+  });
+  if(!res.ok) return null;                        // 폴더 없음(App folder 권한이면 /앱도 없다)
+  return (await res.json()).entries||[];
+}
+
+/* 이 앱의 데이터가 들어 있는 옛 폴더를 찾는다. companies.json 이 있는 곳이 기준.
+   앱 폴더 이름(ERP_H 등)을 몰라도 되도록 앱 폴더 모음을 훑는다. */
+async function findLegacyDir(){
+  for(const root of APPS_ROOTS){
+    const subs=await dbxList(root);
+    if(!subs) continue;
+    for(const sub of subs.filter(e=>e[".tag"]==="folder")){
+      for(const rel of [DATA_DIR_LEGACY,DATA_DIR]){   // 옛 /erp → 새 이름 폴더 순
+        const dir=`${root}/${sub.name}${rel}`;
+        try{ if(await dbxDownload(`${dir}/companies.json`)!==null) return dir; }catch(e){}
+      }
+    }
+  }
+  return null;
+}
+
+async function importFromAppFolder(){
+  let dir;
+  toast("옛 폴더를 찾는 중…",true);
+  try{ dir=await findLegacyDir(); }
+  catch(e){ toast("찾기 실패: "+e.message); return; }
+  if(!dir){
+    toast("옛 앱 폴더를 찾지 못했습니다");
+    alert("Dropbox의 앱 폴더에서 ERP 데이터를 찾지 못했습니다.\n\n"
+         +"· Full Dropbox 권한의 App key로 연결돼 있는지 확인해 주세요.\n"
+         +"  (App folder 권한이면 다른 앱 폴더 안을 볼 수 없습니다)\n"
+         +"· 이미 옮기셨다면 이 작업은 필요 없습니다.");
+    return;
+  }
+  // 무엇을 가져올지 먼저 세어 보고 확인받는다
+  const found=[];
+  for(const name of ERP_TABLES){
+    const txt=await dbxDownload(`${dir}/${name}.json`);
+    if(txt===null) continue;
+    let n=0;
+    try{ const v=JSON.parse(txt); n=Array.isArray(v)?v.length:Object.keys(v).length; }catch(e){}
+    found.push({name,txt,n});
+  }
+  if(!found.length){ toast("가져올 파일이 없습니다"); return; }
+  const LABEL={companies:"거래처",items:"품목",quotes:"견적서",payments:"수금/지급",
+               stock_moves:"재고기록",settings:"공급자 정보"};
+  const summary=found.map(f=>`  · ${LABEL[f.name]||f.name} ${f.n}건`).join("\n");
+  if(!confirm(`찾았습니다:\n${dir}\n\n${summary}\n\n`
+             +`이 내용을 ${DATA_DIR} 로 가져옵니다.\n`
+             +`현재 데이터는 덮어씁니다. 옛 폴더의 원본은 그대로 둡니다.\n\n계속할까요?`)) return;
+
+  toast("가져오는 중…",true);
+  try{
+    for(const f of found) await dbxUpload(`${DATA_DIR}/${f.name}.json`, f.txt);
+  }catch(e){ toast("가져오기 실패: "+e.message); return; }
+  toast("가져왔습니다 — 다시 불러옵니다",true);
+  await loadAll();
+}
 
 const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], settings:{} };
 
@@ -3345,6 +3436,7 @@ async function init(){
   document.getElementById("brandBtn").onclick=()=>location.reload();
   document.getElementById("connectBtn").onclick=startLogin;
   document.getElementById("logoutBtn").onclick=logout;
+  document.getElementById("importOldBtn").onclick=importFromAppFolder;
   document.getElementById("refreshBtn").onclick=loadAll;
   document.querySelectorAll(".nav-item").forEach(el=>{
     el.onclick=()=>switchView(el.dataset.view);
