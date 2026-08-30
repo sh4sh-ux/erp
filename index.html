@@ -789,7 +789,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.49";
+const APP_VERSION = "v1.50";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -998,6 +998,7 @@ async function findLegacyDir(){
 }
 
 async function importFromAppFolder(){
+  _offeredImport=true;                       // loadAll이 다시 물어보지 않게
   let dir;
   toast("옛 폴더를 찾는 중…",true);
   try{ dir=await findLegacyDir(); }
@@ -1049,7 +1050,27 @@ async function loadAll(){
     await runMigrations();
     renderCurrentView();
     toast("불러왔습니다");
+    offerImportIfEmpty();          // 비어 있으면 옛 앱 폴더를 찾아 가져오기를 제안
   }catch(e){ toast("불러오기 실패: "+e.message); }
+}
+
+/* 데이터가 하나도 없으면 옛 앱 폴더를 조용히 찾아보고, 있으면 가져올지 물어본다.
+   이 앱은 로컬 저장소를 쓰지 않아 Dropbox가 비면 화면이 통째로 비는데,
+   App key를 Full Dropbox로 바꾼 직후가 정확히 그 상태다. 사용자가 설정 탭의
+   버튼을 스스로 찾아가야만 복구되는 것은 불친절하므로 먼저 제안한다. */
+let _offeredImport=false;
+async function offerImportIfEmpty(){
+  if(_offeredImport)return;
+  const empty=!db.companies.length&&!db.items.length&&!db.quotes.length
+            &&!db.payments.length&&!(db.stock_moves||[]).length;
+  if(!empty)return;
+  _offeredImport=true;                       // 한 세션에 한 번만 묻는다
+  let dir=null;
+  try{ dir=await findLegacyDir(); }catch(e){ return; }   // 못 찾으면 조용히 넘어간다
+  if(!dir)return;
+  if(!confirm("데이터가 비어 있는데, 예전 데이터를 Dropbox에서 찾았습니다.\n\n"
+             +dir+"\n\n지금 가져올까요?\n(옛 폴더의 원본은 그대로 둡니다)"))return;
+  await importFromAppFolder();
 }
 
 async function saveTable(name,data){
