@@ -136,6 +136,8 @@
   .btn.ghost:hover{color:var(--ink)}
   .doc-sel{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-weight:600;font-size:14px;outline:none;cursor:pointer}
   .doc-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .copy-note{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px;padding:11px 13px;border:1px solid rgba(10,132,255,.22);border-radius:10px;background:var(--primary-soft);color:#0868C5;font-size:13px;line-height:1.55}
+  .copy-note svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px}
 
   /* ---------- quote line editor ---------- */
   .qlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
@@ -789,7 +791,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.50";
+const APP_VERSION = "v1.51";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1697,7 +1699,7 @@ async function deleteItem(id){
 /* =====================================================================
    견적서(quotes)
    ===================================================================== */
-let qtSel=null, qtFilter="", qtEditing=null;
+let qtSel=null, qtFilter="", qtEditing=null, qtCopySourceNo="";
 const QT_STATUS=["작성중","발송","수주","납품","취소"];
 const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "납품":"st-done", "취소":"st-lost" };
 /* 재고가 빠져나가야 하는 상태 — 수주하면 제작에 들어가므로 납품까지 계속 나가 있는 것으로 본다 */
@@ -1737,6 +1739,29 @@ function nextQuoteNo(date){
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
            valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"", delivered_at:"", tax_at:"" };
+}
+/* 기존 견적의 실무 입력값만 새 견적으로 복제한다.
+   번호·진행 상태·납품/계산서 날짜·재고 연결은 넘기지 않아 원본과 완전히 독립된 새 건이 된다. */
+function duplicateQuote(source){
+  if(!source) return;
+  const copy=JSON.parse(JSON.stringify(source));
+  copy.id=null;
+  copy.no="";
+  copy.date=localDate();
+  copy.status="작성중";
+  copy.sent_at="";
+  copy.delivered_at="";
+  copy.tax_at="";
+  delete copy.created_at;
+  delete copy.updated_at;
+  qtCopySourceNo=source.no||"";
+  qtSel="__new__";
+  qtEditing=copy;
+  szOpen=false;
+  renderQtList();
+  renderQtDetail();
+  scrollToDetail("qtForm");
+  toast("견적서를 복사했습니다 — 확인 후 등록하세요");
 }
 /* 발송 후 경과일 — 발송 상태로 오래 머문 건을 찾기 위함 */
 function daysSince(iso){
@@ -1840,6 +1865,10 @@ function renderQtDetail(){
   const coOpts=db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}" ${c.id===e.company_id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
   form.innerHTML=`
+    ${isNew&&qtCopySourceNo?`<div class="copy-note" role="status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span><b>${escapeHtml(qtCopySourceNo)}</b>의 내용을 복사했습니다. 새 견적번호는 등록할 때 만들어집니다.</span>
+    </div>`:""}
     <div class="grid2">
       <div class="field"><label>견적일자</label><input type="date" id="fq_date" value="${escapeAttr(e.date)}"></div>
       <div class="field"><label>거래처 *</label>
@@ -1903,7 +1932,10 @@ function renderQtDetail(){
         ${Object.keys(DOC_TYPES).map(k=>`<option ${k===qtDocType?"selected":""}>${k}</option>`).join("")}
       </select>`}
       <button class="btn save" id="qtSaveBtn">${isNew?"등록":"저장"}</button>
-      ${isNew?"":`<button class="btn ghost" id="qtPrintBtn">
+      ${isNew?"":`<button class="btn ghost" id="qtCopyBtn" title="이 견적서를 새 견적으로 복사">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        복사</button>
+      <button class="btn ghost" id="qtPrintBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
         인쇄</button>
       <button class="btn ghost" id="qtImgBtn">
@@ -1946,10 +1978,11 @@ function renderQtDetail(){
   renderShortage(e);
   bindQtLines(e);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
-  if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; renderQtList(); renderQtDetail(); };
+  if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{ qtSel=null; qtEditing=null; qtCopySourceNo=""; renderQtList(); renderQtDetail(); };
   else{
     document.getElementById("qtDelBtn").onclick=()=>deleteQuote(qtSel);
     document.getElementById("fq_doc").onchange=ev=>{ qtDocType=ev.target.value; };
+    document.getElementById("qtCopyBtn").onclick=()=>duplicateQuote(qtEditing);
     document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing,qtDocType);
     document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing,qtDocType);
     document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing,qtDocType);
@@ -2287,6 +2320,7 @@ async function submitQuote(isNew){
   // '납품'으로 바꾸면 납품일을 자동 기록 (매출·미수금의 기준)
   if(e.status==="납품" && !e.delivered_at) e.delivered_at=localDate();
   qtEditing=null;
+  qtCopySourceNo="";
   renderQtList(); renderQtDetail();
   await saveTable("quotes",db.quotes);
   await syncStockForQuote(e);
@@ -3469,7 +3503,7 @@ async function init(){
   document.getElementById("coType").onchange=renderCoList;
   document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
-  document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; szOpen=false; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
+  document.getElementById("qtNewBtn").onclick=()=>{ qtSel="__new__"; qtEditing=null; qtCopySourceNo=""; szOpen=false; renderQtList(); renderQtDetail(); scrollToDetail("qtForm"); };
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
   document.getElementById("qtCsvBtn").onclick=exportQuotesCsv;
   document.getElementById("payMonth").onchange=renderPay;
