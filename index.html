@@ -268,6 +268,43 @@
   .qtotals .row.grand .k{font-weight:700}
   .qtotals .row.grand .v{font-size:17px;font-weight:750;color:var(--primary)}
 
+  /* ---------- quote delivery / payment workflow ---------- */
+  .date-control{min-width:0;width:100%}
+  .quick-row>.date-control{flex:1 1 0}
+  .grid2,.quote-filters,.stock-add,.pay-add{min-width:0}
+  .grid2>*,.quote-filters>*,.stock-add>*,.pay-add>*{min-width:0}
+  .page-head>.date-control{width:auto}
+  input[type=date],input[type=month]{min-width:0;max-width:100%;box-sizing:border-box}
+  .date-control-display,.date-control-icon{display:none}
+  .quote-flow{margin:16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .quote-flow-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 15px;background:var(--paper)}
+  .quote-flow-title{font-size:14px;font-weight:700}
+  .quote-flow-sub{margin-top:2px;color:var(--ink-3);font-size:12px}
+  .quote-flow-value{text-align:right;font-size:14px;font-weight:700;white-space:nowrap}
+  .quote-flow-value small{display:block;margin-top:2px;color:var(--danger);font-size:11.5px}
+  .quote-progress{height:6px;margin:0 15px 12px;border-radius:999px;background:var(--line-2);overflow:hidden}
+  .quote-progress span{display:block;height:100%;border-radius:inherit;background:var(--primary)}
+  .quote-flow-body{padding:0 15px 14px}
+  .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid var(--line-2);font-size:13px}
+  .quote-record:first-child{border-top:none}
+  .quote-record .date{color:var(--ink-3)}
+  .quote-record .amount{font-weight:700;text-align:right;white-space:nowrap}
+  .quote-record .rm{width:28px;height:28px;border-radius:8px;color:var(--ink-3)}
+  .quote-record .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .quote-flow-add{width:100%;padding:10px;border:1px solid rgba(10,132,255,.25);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:13.5px;font-weight:700}
+  .quote-flow-form{display:grid;gap:10px;margin-top:10px;padding:12px;border:1px solid var(--line-2);border-radius:10px;background:var(--paper)}
+  .quote-flow-form .field{margin:0}
+  .delivery-draft-line{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center}
+  .delivery-draft-line .name{font-size:13px;min-width:0}
+  .delivery-draft-line .name small{display:block;color:var(--ink-3);font-size:11.5px}
+  .delivery-draft-line input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;text-align:right}
+  .quote-flow-actions{display:flex;gap:8px}
+  .quote-flow-actions .btn{flex:1;padding:10px 12px}
+  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:0 0 10px;font-size:13px}
+  .payment-totals span{color:var(--ink-2)}
+  .payment-totals b{text-align:right}
+  .payment-totals .balance{color:var(--danger)}
+
   /* ---------- table ---------- */
   .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
   .tbl th{text-align:left;font-size:11.5px;color:var(--ink-3);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -373,6 +410,11 @@
     #view-quotes .quick-row{min-width:0}
     #view-quotes input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;inline-size:100%;min-inline-size:0;max-inline-size:100%}
     #view-quotes .quick-row input[type="date"]{flex:1 1 0}
+    #view-quotes .quick-row .date-control{flex:1 1 0}
+    #view-quotes .quick-row .date-control+button{min-height:48px}
+    #view-quotes .quote-record{grid-template-columns:58px minmax(0,1fr) auto auto;gap:7px}
+    #view-quotes .quote-flow-head{padding:13px}
+    #view-quotes .quote-flow-body{padding:0 13px 13px}
     #view-quotes .quote-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     #view-quotes .quote-form-actions .doc-sel,
     #view-quotes .quote-form-actions #qtSaveBtn,
@@ -384,6 +426,17 @@
   }
 
   /* ---------- 인쇄 미리보기 오버레이 (모바일) ---------- */
+  @media(max-width:820px){
+    .date-control,#view-quotes .date-control{position:relative;display:flex;align-items:center;min-width:0;min-height:48px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+    .date-control input[type=date],.date-control input[type=month],#view-quotes .date-control input[type=date]{position:absolute;inset:0;z-index:2;width:100%;height:100%;min-width:0;opacity:0;margin:0;padding:0;appearance:none;-webkit-appearance:none}
+    .date-control-display,#view-quotes .date-control-display{display:block;min-width:0;padding:10px 12px;color:var(--ink);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+    .date-control-display.empty,#view-quotes .date-control-display.empty{color:var(--ink-3)}
+    .date-control:focus-within{outline:2px solid var(--primary);outline-offset:2px}
+    .date-control-icon,#view-quotes .date-control-icon{display:none}
+    .page-head>.date-control{flex:0 1 auto;min-width:145px}
+    #view-sales .page-head>.date-control{flex:1 1 38%}
+    .pay-add,.stock-add,.quote-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
   #printArea.preview{display:block;position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;background:var(--paper);overflow:auto;padding:64px 12px 40px;-webkit-overflow-scrolling:touch}
   .pv-bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:61;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 12px}
   .pv-bar .sp{flex:1}
@@ -667,7 +720,7 @@
                 <span class="filter-label">상태</span>
                 <select id="qtStatus" aria-label="견적 상태 필터">
                   <option value="">전체 상태</option>
-                  <option>작성중</option><option>발송</option><option>수주</option><option>납품</option><option>취소</option>
+                  <option>작성중</option><option>발송</option><option>수주</option><option>부분납품</option><option>납품</option><option>취소</option>
                 </select>
               </label>
               <div class="quote-period-row">
@@ -889,7 +942,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.60";
+const APP_VERSION = "v1.61";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -1181,8 +1234,8 @@ async function offerImportIfEmpty(){
 async function saveTable(name,data){
   setSyncState("syncing","저장 중");
   toast("저장 중…",true);
-  try{ await Table.save(name,data); setSyncState("saved",syncTimeLabel("저장")); toast("저장했습니다"); }
-  catch(e){ setSyncState("error","저장 실패"); toast("저장 실패: "+e.message); }
+  try{ await Table.save(name,data); setSyncState("saved",syncTimeLabel("저장")); toast("저장했습니다"); return true; }
+  catch(e){ setSyncState("error","저장 실패"); toast("저장 실패: "+e.message); return false; }
 }
 
 /* ---------- 공통 헬퍼 ---------- */
@@ -1861,12 +1914,33 @@ async function deleteItem(id){
    견적서(quotes)
    ===================================================================== */
 let qtSel=null, qtFilter="", qtEditing=null, qtCopySourceNo="", qtBaseline="";
-const QT_STATUS=["작성중","발송","수주","납품","취소"];
-const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "납품":"st-done", "취소":"st-lost" };
-/* 재고가 빠져나가야 하는 상태 — 수주하면 제작에 들어가므로 납품까지 계속 나가 있는 것으로 본다 */
-const QT_COMMITTED=["수주","납품"];
-/* 청구 가능한(= 매출로 확정된) 건인지. 납품일이 있으면 납품된 것으로 본다 */
-function isDelivered(q){ return !!(q && q.delivered_at); }
+let qtDeliveryOpen=false, qtPaymentOpen=false;
+const QT_STATUS=["작성중","발송","수주","부분납품","납품","취소"];
+const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "부분납품":"st-sent", "납품":"st-done", "취소":"st-lost" };
+const QT_COMMITTED=["수주","부분납품","납품"];
+function ensureQuoteLineIds(q){
+  (q.lines||[]).forEach(l=>{ if(!l.id) l.id=crypto.randomUUID(); });
+  if(!Array.isArray(q.deliveries)){
+    q.deliveries=q.delivered_at?[{id:crypto.randomUUID(),date:q.delivered_at,legacy:true,lines:q.lines.map(l=>({line_id:l.id,qty:Number(l.qty)||0}))}]:[];
+    q.legacy_stock=true;
+  }
+  return q;
+}
+function quoteDeliveryQtyMap(q){
+  const out={};
+  (q.deliveries||[]).forEach(d=>(d.lines||[]).forEach(l=>{ out[l.line_id]=(out[l.line_id]||0)+(Number(l.qty)||0); }));
+  return out;
+}
+function quoteOrderedQty(q){ return (q.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function quoteDeliveredQty(q){ return Object.values(quoteDeliveryQtyMap(q)).reduce((s,n)=>s+n,0); }
+function quoteLatestDelivery(q){
+  return (q.deliveries||[]).reduce((last,d)=>(d.date||"")>last?(d.date||""):last,q.delivered_at||"");
+}
+function quoteIsFullyDelivered(q){
+  const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q);
+  return ordered>0 && delivered>=ordered;
+}
+function isDelivered(q){ return !!(q && (quoteDeliveredQty(q)>0 || q.delivered_at)); }
 /* 세금계산서 발행 여부 — 발행일(tax_at)이 있으면 발행된 것으로 본다.
    납품했는데 아직 발행 안 한 건이 누락되지 않도록 추적한다 */
 function isTaxed(q){ return !!(q && q.tax_at); }
@@ -1878,11 +1952,13 @@ function quotePaid(qid){
     .reduce((s,p)=>s+(Number(p.amount)||0),0);
 }
 function quoteBalance(q){ return quoteAmount(q)-quotePaid(q.id); }
-/* 특정 거래처의 '납품했고 아직 덜 받은' 견적 — 수금 입력 시 고를 대상 */
+function deliveredLines(q,d){return (d.lines||[]).map(dl=>({...q.lines.find(l=>l.id===dl.line_id),qty:dl.qty}));}
+function deliveredAmount(q){return (q.deliveries||[]).reduce((sum,d)=>sum+quoteTotals({lines:deliveredLines(q,d)}).total,0);}
+/* 계약금·중도금도 연결할 수 있게 수주 이후의 미수 견적을 보여준다. */
 function openQuotesOf(cid){
   return db.quotes
-    .filter(q=>q.company_id===cid && isDelivered(q) && quoteBalance(q)>0)
-    .sort((a,b)=>(a.delivered_at||"").localeCompare(b.delivered_at||""));
+    .filter(q=>q.company_id===cid && QT_COMMITTED.includes(q.status) && quoteBalance(q)>0)
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
 }
 
 function nextQuoteNo(date){
@@ -1899,7 +1975,7 @@ function nextQuoteNo(date){
 }
 function blankQuote(){
   return { id:null, no:"", date:localDate(), company_id:"", status:"작성중",
-           valid:"견적일로부터 1주일", lines:[blankLine()], memo:"", sent_at:"", delivered_at:"", tax_at:"" };
+           valid:"견적일로부터 1주일", lines:[blankLine()], deliveries:[], memo:"", sent_at:"", delivered_at:"", tax_at:"" };
 }
 function quoteSnapshot(q){ return JSON.stringify(q||null); }
 function qtHasUnsavedChanges(){ return !!qtEditing && quoteSnapshot(qtEditing)!==qtBaseline; }
@@ -1928,6 +2004,9 @@ function duplicateQuote(source){
   copy.sent_at="";
   copy.delivered_at="";
   copy.tax_at="";
+  copy.deliveries=[];
+  delete copy.legacy_stock;
+  copy.lines=(copy.lines||[]).map(l=>({...l,id:crypto.randomUUID()}));
   delete copy.created_at;
   delete copy.updated_at;
   qtCopySourceNo=source.no||"";
@@ -1953,7 +2032,45 @@ function quoteSentBadge(q){
   if(n<=0) return '<span class="pill">오늘 발송</span>';
   return `<span class="pill ${n>=7?"out":""}">발송 ${n}일째</span>`;
 }
-function blankLine(){ return { item_id:"", name:"", color:"", spec:"", unit:"", qty:1, price:0 }; }
+function blankLine(){ return { id:crypto.randomUUID(), item_id:"", name:"", color:"", spec:"", unit:"", qty:1, price:0 }; }
+
+function shortDate(iso){
+  if(!iso) return "날짜 선택";
+  const [y,m,d]=iso.split("-");
+  if(!d)return `${y}년 ${Number(m)}월`;
+  return `${y}. ${Number(m)}. ${Number(d)}.`;
+}
+function dateControlHtml(id,value,label){
+  return `<div class="date-control">
+    <input type="date" id="${id}" value="${escapeAttr(value||"")}" aria-label="${escapeAttr(label)}">
+    <span class="date-control-display ${value?"":"empty"}" aria-hidden="true">${shortDate(value)}</span>
+    <svg class="date-control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+  </div>`;
+}
+function refreshDateControl(id){
+  const input=document.getElementById(id), display=input&&input.parentElement.querySelector(".date-control-display");
+  if(!display)return;
+  display.textContent=shortDate(input.value);
+  display.classList.toggle("empty",!input.value);
+}
+function enhanceDateControls(){
+  document.querySelectorAll('input[type="date"],input[type="month"]').forEach(input=>{
+    if(!input.parentElement.classList.contains("date-control")){
+      const wrap=document.createElement("div");wrap.className="date-control";
+      input.before(wrap);wrap.append(input);
+      const label=document.createElement("span");label.className="date-control-display";label.setAttribute("aria-hidden","true");wrap.append(label);
+      if(!input.getAttribute("aria-label"))input.setAttribute("aria-label",input.title||input.closest("label")?.textContent.trim()||"날짜 선택");
+    }
+    const label=input.parentElement.querySelector(".date-control-display");
+    const value=input.value?shortDate(input.value):(input.type==="month"?"월 선택":"날짜 선택");
+    if(label.textContent!==value)label.textContent=value;
+    label.classList.toggle("empty",!input.value);
+  });
+}
+document.addEventListener("input",enhanceDateControls);
+document.addEventListener("change",enhanceDateControls);
+new MutationObserver(enhanceDateControls).observe(document.getElementById("appView"),{childList:true,subtree:true});
+enhanceDateControls();
 
 /* 거래처별 견적서 기본 비고 */
 function coQuoteMemo(cid){ return ((coById(cid)||{}).quote_memo || "").trim(); }
@@ -2065,10 +2182,156 @@ function renderQtList(){
     el.onclick=()=>{
       if(el.dataset.id===qtSel){ scrollToDetail("qtForm"); return; }
       if(!guardQtLeave()) return;
-      qtSel=el.dataset.id; qtEditing=null; qtBaseline=""; szOpen=false;
+      qtSel=el.dataset.id; qtEditing=null; qtBaseline=""; szOpen=false; qtDeliveryOpen=false; qtPaymentOpen=false;
       renderQtList(); renderQtDetail(); scrollToDetail("qtForm");
     };
   });
+}
+
+function deliveryRecordLabel(q,d){
+  const names=[];
+  (d.lines||[]).forEach(dl=>{
+    const line=(q.lines||[]).find(l=>l.id===dl.line_id);
+    if(line && !names.includes(line.name)) names.push(line.name);
+  });
+  return names.length>1 ? `${names[0]} 외 ${names.length-1}건` : (names[0]||"납품");
+}
+function deliveryRecordQty(d){ return (d.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function deliveryPanelHtml(q,isNew){
+  ensureQuoteLineIds(q);
+  const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q), remaining=Math.max(0,ordered-delivered);
+  const rate=ordered?Math.min(100,Math.round(delivered/ordered*100)):0;
+  const done=quoteDeliveryQtyMap(q);
+  const records=(q.deliveries||[]).slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  return `<section class="quote-flow" aria-labelledby="fq_delivery_title">
+    <div class="quote-flow-head">
+      <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">주문 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품</div></div>
+      <div class="quote-flow-value">${fmt(delivered)} / ${fmt(ordered)}개<small>${remaining?`${fmt(remaining)}개 남음`:delivered?"납품 완료":"미납품"}</small></div>
+    </div>
+    <div class="quote-progress" role="progressbar" aria-label="납품 진행률" aria-valuenow="${delivered}" aria-valuemin="0" aria-valuemax="${ordered||0}"><span style="width:${rate}%"></span></div>
+    <div class="quote-flow-body">
+      <div class="quote-flow-sub">납품 기록 변경 후 아래 견적서 저장을 눌러 확정하세요.${q.legacy_stock?" 기존 견적은 이전 재고 처리 방식을 유지합니다.":" 새 견적의 출고는 납품 수량 기준입니다."}</div>
+      ${records.map(d=>`<div class="quote-record">
+        <span class="date">${escapeHtml(shortDate(d.date))}</span>
+        <details><summary>${escapeHtml(deliveryRecordLabel(q,d))}</summary>${(d.lines||[]).map(dl=>{const l=q.lines.find(x=>x.id===dl.line_id)||{};return `<div>${escapeHtml([l.name,l.color,l.spec].filter(Boolean).join(" · "))} × ${fmt(dl.qty)}</div>`}).join("")}${d.memo?`<div>${escapeHtml(d.memo)}</div>`:""}</details>
+        <span class="amount">${fmt(deliveryRecordQty(d))}개</span>
+        <button class="rm" type="button" data-delivery-remove="${d.id}" aria-label="${escapeAttr(shortDate(d.date))} 납품 기록 삭제">×</button>
+      </div>`).join("")}
+      ${!records.length?'<div class="quote-flow-sub" style="padding:4px 0 12px">아직 납품 기록이 없습니다.</div>':""}
+      ${qtDeliveryOpen?`<div class="quote-flow-form" id="fq_delivery_form">
+        <div class="field"><label>납품일</label>${dateControlHtml("fd_date",localDate(),"납품일")}</div>
+        ${(q.lines||[]).map(l=>{
+          const left=Math.max(0,(Number(l.qty)||0)-(done[l.id]||0));
+          return `<label class="delivery-draft-line">
+            <span class="name">${escapeHtml(l.name||"품목")}<small>${[l.color,l.spec].filter(Boolean).map(escapeHtml).join(" · ")} · 남음 ${fmt(left)}개</small></span>
+            <input type="text" inputmode="numeric" data-delivery-line="${l.id}" data-max="${left}" placeholder="수량" ${left?"":"disabled"}>
+          </label>`;
+        }).join("")}
+        <div class="field"><label>메모</label><input id="fd_memo" placeholder="예: 1차 납품, 택배"></div>
+        <div class="quote-flow-actions"><button class="btn ghost" type="button" id="fd_cancel">취소</button><button class="btn save" type="button" id="fd_save">납품 기록 추가</button></div>
+      </div>`:`<button class="quote-flow-add" type="button" id="fd_open" ${isNew||!remaining?'disabled style="opacity:.5"':""}>＋ 납품 기록 추가</button>`}
+    </div>
+  </section>`;
+}
+
+function quotePayments(qid){
+  return (db.payments||[]).filter(p=>p.kind==="수금"&&p.quote_id===qid)
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||""));
+}
+function paymentPanelHtml(q,isNew){
+  const total=quoteAmount(q), paid=quotePaid(q.id), balance=total-paid, rows=isNew?[]:quotePayments(q.id);
+  return `<section class="quote-flow" aria-labelledby="fq_payment_title">
+    <div class="quote-flow-head">
+      <div><div class="quote-flow-title" id="fq_payment_title">수금</div><div class="quote-flow-sub">이 견적서에 연결된 입금 내역</div></div>
+      <div class="quote-flow-value">${won(paid)}<small>${balance>0?`${won(balance)} 남음`:balance<0?`${won(Math.abs(balance))} 초과 입금`:"수금 완료"}</small></div>
+    </div>
+    <div class="quote-flow-body">
+      <div class="payment-totals"><span>견적 합계</span><b>${won(total)}</b><span>입금 합계</span><b>${won(paid)}</b><span>남은 금액</span><b class="${balance>0?"balance":""}">${won(balance)}</b></div>
+      ${rows.map(p=>`<div class="quote-record"><span class="date">${escapeHtml(shortDate(p.date))}</span><span>${escapeHtml([p.memo,p.method].filter(Boolean).join(" · ")||"입금")}</span><span class="amount">${won(p.amount)}</span><span></span></div>`).join("")}
+      ${qtPaymentOpen?`<div class="quote-flow-form" id="fq_payment_form">
+        <div class="field"><label>입금일</label>${dateControlHtml("fp_date",localDate(),"입금일")}</div>
+        <div class="grid2">
+          <div class="field"><label>입금 방법</label><select id="fp_method"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select></div>
+          <div class="field"><label>입금액</label><input type="text" inputmode="numeric" id="fp_amount" value="${balance>0?fmt(balance):""}" placeholder="0"></div>
+        </div>
+        <div class="field"><label>메모</label><input id="fp_memo" placeholder="예: 계약금, 잔금"></div>
+        <div class="quote-flow-actions"><button class="btn ghost" type="button" id="fp_cancel">취소</button><button class="btn save" type="button" id="fp_save">입금 저장</button></div>
+      </div>`:`<button class="quote-flow-add" type="button" id="fp_open" ${isNew?'disabled style="opacity:.5"':""}>＋ 입금 추가</button>`}
+    </div>
+  </section>`;
+}
+
+function normalizeDeliveryStatus(q){
+  const delivered=quoteDeliveredQty(q), ordered=quoteOrderedQty(q);
+  q.delivered_at=quoteLatestDelivery({...q,delivered_at:""});
+  if(delivered<=0){
+    q.delivered_at="";
+    if(q.status==="부분납품"||q.status==="납품") q.status="수주";
+  }else if(ordered&&delivered>=ordered) q.status="납품";
+  else q.status="부분납품";
+}
+function bindDeliveryPanel(q,isNew){
+  const open=document.getElementById("fd_open");
+  if(open) open.onclick=()=>{ qtDeliveryOpen=true; qtPaymentOpen=false; renderQtDetail(); };
+  const cancel=document.getElementById("fd_cancel");
+  if(cancel) cancel.onclick=()=>{ qtDeliveryOpen=false; renderQtDetail(); };
+  const date=document.getElementById("fd_date");
+  if(date) date.onchange=()=>refreshDateControl("fd_date");
+  const save=document.getElementById("fd_save");
+  if(save) save.onclick=()=>{
+    const deliveryDate=(document.getElementById("fd_date")||{}).value||"";
+    if(!deliveryDate){ toast("납품일을 선택하세요"); return; }
+    const lines=[];
+    let invalid=false;
+    document.querySelectorAll("[data-delivery-line]").forEach(input=>{
+      const qty=parseNum(input.value), max=Number(input.dataset.max)||0;
+      if(qty<0||qty>max){ invalid=true; return; }
+      if(qty>0) lines.push({line_id:input.dataset.deliveryLine,qty});
+    });
+    if(invalid){ toast("남은 수량보다 많이 납품할 수 없습니다"); return; }
+    if(!lines.length){ toast("납품 수량을 1개 이상 입력하세요"); return; }
+    q.deliveries.push({id:crypto.randomUUID(),date:deliveryDate,lines,memo:(document.getElementById("fd_memo")||{}).value?.trim()||"",created_at:new Date().toISOString()});
+    normalizeDeliveryStatus(q);
+    qtDeliveryOpen=false;
+    renderQtDetail();
+    toast("납품 기록을 추가했습니다 — 견적서를 저장하세요");
+  };
+  document.querySelectorAll("[data-delivery-remove]").forEach(btn=>{
+    btn.onclick=()=>{
+      if(!confirm("이 납품 기록을 삭제할까요? 견적서 저장 전에는 확정되지 않습니다."))return;
+      q.deliveries=q.deliveries.filter(d=>d.id!==btn.dataset.deliveryRemove);
+      normalizeDeliveryStatus(q);
+      renderQtDetail();
+    };
+  });
+}
+function bindPaymentPanel(q,isNew){
+  const open=document.getElementById("fp_open");
+  if(open) open.onclick=()=>{
+    if(qtHasUnsavedChanges()){ toast("입금 전에 견적서 변경사항을 먼저 저장하세요"); return; }
+    qtPaymentOpen=true; qtDeliveryOpen=false; renderQtDetail();
+  };
+  const cancel=document.getElementById("fp_cancel");
+  if(cancel) cancel.onclick=()=>{ qtPaymentOpen=false; renderQtDetail(); };
+  const date=document.getElementById("fp_date");
+  if(date) date.onchange=()=>refreshDateControl("fp_date");
+  const amount=document.getElementById("fp_amount");
+  if(amount) bindNumInput(amount,()=>{});
+  const save=document.getElementById("fp_save");
+  if(save) save.onclick=async()=>{
+    if(qtHasUnsavedChanges()){toast("견적서 변경사항을 먼저 저장하세요");return;}
+    const paymentDate=(document.getElementById("fp_date")||{}).value||"";
+    const value=parseNum((document.getElementById("fp_amount")||{}).value);
+    if(!paymentDate){ toast("입금일을 선택하세요"); return; }
+    if(value<=0){ toast("입금액을 입력하세요"); return; }
+    if(value>Math.max(0,quoteBalance(q))&&!confirm("남은 견적 금액보다 입금액이 큽니다. 초과 입금으로 기록할까요?"))return;
+    save.disabled=true;
+    const next=[...db.payments,{id:crypto.randomUUID(),date:paymentDate,company_id:q.company_id,quote_id:q.id,kind:"수금",
+      method:document.getElementById("fp_method").value,amount:value,memo:document.getElementById("fp_memo").value.trim(),created_at:new Date().toISOString()}];
+    if(!await saveTable("payments",next)){save.disabled=false;return;}
+    db.payments=next;qtPaymentOpen=false;
+    renderQtDetail();
+  };
 }
 
 function renderQtDetail(){
@@ -2080,7 +2343,7 @@ function renderQtDetail(){
     const src=db.quotes.find(x=>x.id===qtSel);
     if(!src){ qtSel=null; }
     else if(!qtEditing || qtEditing.id!==qtSel){
-      qtEditing=JSON.parse(JSON.stringify(src));
+      qtEditing=ensureQuoteLineIds(JSON.parse(JSON.stringify(src)));
       qtBaseline=quoteSnapshot(qtEditing);
     }
   }
@@ -2098,7 +2361,7 @@ function renderQtDetail(){
       <span><b>${escapeHtml(qtCopySourceNo)}</b>의 내용을 복사했습니다. 새 견적번호는 등록할 때 만들어집니다.</span>
     </div>`:""}
     <div class="grid2">
-      <div class="field"><label>견적일자</label><input type="date" id="fq_date" value="${escapeAttr(e.date)}"></div>
+      <div class="field"><label>견적일자</label>${dateControlHtml("fq_date",e.date,"견적일자")}</div>
       <div class="field"><label>거래처 *</label>
         <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
       </div>
@@ -2111,26 +2374,15 @@ function renderQtDetail(){
         ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
       </div>
     </div>
-    <div class="grid2">
-      <div class="field"><label>납품일</label>
+    <div class="field"><label>세금계산서 발행일</label>
         <div class="quick-row">
-          <input type="date" id="fq_delivered" value="${escapeAttr(e.delivered_at||"")}">
-          <button type="button" id="fq_delToday">오늘</button>
-        </div>
-        <div class="hint">${isDelivered(e)
-          ? "납품 완료 — 이 금액이 매출·미수금에 잡힙니다"
-          : "비워 두면 <b>미납품</b>으로 보고 미수금에 넣지 않습니다"}</div>
-      </div>
-      <div class="field"><label>세금계산서 발행일</label>
-        <div class="quick-row">
-          <input type="date" id="fq_tax" value="${escapeAttr(e.tax_at||"")}">
+          ${dateControlHtml("fq_tax",e.tax_at||"","세금계산서 발행일")}
           <button type="button" id="fq_taxToday">오늘</button>
         </div>
         <div class="hint">${isTaxed(e)
           ? "발행 완료"
           : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
                             : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
-      </div>
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
@@ -2151,6 +2403,8 @@ function renderQtDetail(){
       <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
     </div>
     <div class="hint" style="text-align:right;margin-top:-2px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
+    ${deliveryPanelHtml(e,isNew)}
+    ${paymentPanelHtml(e,isNew)}
     <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
       <div class="hint hidden" id="fq_memoHint"></div>
     </div>
@@ -2173,7 +2427,7 @@ function renderQtDetail(){
         공유</button>`}
       ${isNew?'<button class="btn ghost" id="qtCancelBtn">취소</button>':'<button class="btn del" id="qtDelBtn">삭제</button>'}
     </div>`;
-  document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; };
+  document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; refreshDateControl("fq_date"); };
   document.getElementById("fq_co").onchange=ev=>{
     const prev=coQuoteMemo(e.company_id);
     e.company_id=ev.target.value;
@@ -2181,18 +2435,7 @@ function renderQtDetail(){
   };
   document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
-  document.getElementById("fq_delivered").onchange=ev=>{
-    e.delivered_at=ev.target.value;
-    if(e.delivered_at && e.status==="수주") e.status="납품";
-    if(!e.delivered_at && e.status==="납품") e.status="수주";
-    renderQtDetail();
-  };
-  document.getElementById("fq_delToday").onclick=()=>{
-    e.delivered_at=localDate();
-    if(e.status==="수주") e.status="납품";
-    renderQtDetail();
-  };
-  document.getElementById("fq_tax").onchange=ev=>{ e.tax_at=ev.target.value; renderQtDetail(); };
+  document.getElementById("fq_tax").onchange=ev=>{ e.tax_at=ev.target.value; refreshDateControl("fq_tax"); };
   document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
@@ -2204,6 +2447,8 @@ function renderQtDetail(){
   renderSizePanel(e);
   renderShortage(e);
   bindQtLines(e);
+  bindDeliveryPanel(e,isNew);
+  bindPaymentPanel(e,isNew);
   document.getElementById("qtSaveBtn").onclick=()=>submitQuote(isNew);
   if(isNew) document.getElementById("qtCancelBtn").onclick=()=>{
     if(!guardQtLeave()) return;
@@ -2530,7 +2775,15 @@ function bindQtLines(e){
 }
 
 async function submitQuote(isNew){
-  const e=qtEditing;
+  const e=ensureQuoteLineIds(JSON.parse(JSON.stringify(qtEditing)));
+  const done=quoteDeliveryQtyMap(e), original=db.quotes.find(q=>q.id===e.id);
+  if(e.status==="취소"&&quoteDeliveredQty(e)>0){toast("납품 기록이 있는 견적입니다. 납품 기록을 먼저 확인·정정한 뒤 취소하세요");return;}
+  for(const [id,qty] of Object.entries(done)){
+    const line=e.lines.find(l=>l.id===id), old=original?.lines.find(l=>l.id===id);
+    if(!line||Number(line.qty)<qty){toast("납품 수량보다 주문 수량을 줄이거나 해당 품목을 삭제할 수 없습니다");return;}
+    if(old&&["item_id","name","color","spec","price"].some(k=>line[k]!==old[k])){toast("납품된 품목의 규격·단가는 변경할 수 없습니다");return;}
+  }
+  if(original&&quotePaid(e.id)&&e.company_id!==original.company_id){toast("입금이 연결된 견적의 거래처는 변경할 수 없습니다");return;}
   if(!e.company_id){ toast("거래처를 선택하세요"); return; }
   e.lines=e.lines.filter(l=>(l.name||"").trim() && (Number(l.qty)||0)>0);
   if(e.lines.length===0){ toast("품목을 1개 이상 입력하세요 (품목·수량 확인)"); e.lines=[blankLine()]; renderQtDetail(); return; }
@@ -2538,21 +2791,18 @@ async function submitQuote(isNew){
     e.id=crypto.randomUUID();
     e.no=nextQuoteNo(e.date);
     e.created_at=new Date().toISOString();
-    db.quotes.push(e);
-    qtSel=e.id;
-  }else{
-    const idx=db.quotes.findIndex(x=>x.id===e.id);
-    if(idx>=0) db.quotes[idx]=e;
   }
   // '발송'으로 처음 바뀐 시점을 기록 — 회신 지연을 추적하기 위함
   if(e.status==="발송" && !e.sent_at) e.sent_at=localDate();
-  // '납품'으로 바꾸면 납품일을 자동 기록 (매출·미수금의 기준)
-  if(e.status==="납품" && !e.delivered_at) e.delivered_at=localDate();
+  normalizeDeliveryStatus(e);
+  const next=isNew?[...db.quotes,e]:db.quotes.map(q=>q.id===e.id?e:q);
+  const button=document.getElementById("qtSaveBtn");button.disabled=true;
+  if(!await saveTable("quotes",next)){button.disabled=false;return;}
+  db.quotes=next;qtSel=e.id;
   qtEditing=null;
   qtCopySourceNo="";
   qtBaseline="";
   renderQtList(); renderQtDetail();
-  await saveTable("quotes",db.quotes);
   await syncStockForQuote(e);
 }
 
@@ -2568,9 +2818,10 @@ async function submitQuote(isNew){
 function quoteStockNeeds(q){
   const need={};
   if(!q || !QT_COMMITTED.includes(q.status)) return need;
+  const delivered=quoteDeliveryQtyMap(q);
   (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
-    expandBom(l.item_id,l.color,l.spec,Number(l.qty)||0,need);   // 세트는 원자재까지 펼침
+    expandBom(l.item_id,l.color,l.spec,q.legacy_stock?(Number(l.qty)||0):(delivered[l.id]||0),need);
   });
   return need;
 }
@@ -2590,7 +2841,7 @@ function quoteStockDone(qid){
 /* 이 견적을 수주했을 때 모자라는 자재.
    이미 이 견적이 빼간 양은 되돌려서 계산해야 중복으로 잡히지 않는다. */
 function quoteShortage(q){
-  const need=quoteStockNeeds({...q,status:"수주"});
+  const need=quoteStockNeeds({...q,status:"수주",legacy_stock:true});
   const done=quoteStockDone(q.id);
   const cur=currentStocks();
   const rows=[];
@@ -2630,8 +2881,9 @@ async function syncStockForQuote(q,{ask=true}={}){
   const { moves, desc }=stockDeltaForQuote(q);
   if(!moves.length) return false;
   if(ask && !confirm(`재고를 다음과 같이 반영할까요?\n\n${desc.join("\n")}`)) return false;
-  db.stock_moves.push(...moves);
-  await saveTable("stock_moves",db.stock_moves);
+  const next=[...db.stock_moves,...moves];
+  if(!await saveTable("stock_moves",next))return false;
+  db.stock_moves=next;
   toast(`재고 ${moves.length}건 반영했습니다`);
   return true;
 }
@@ -2642,7 +2894,7 @@ async function syncStockForQuote(q,{ask=true}={}){
 const SCHEMA=3;
 async function runMigrations(){
   const cur=Number((db.settings||{}).schema)||0;
-  if(cur>=SCHEMA) return;
+  if(cur>=SCHEMA){db.quotes.forEach(ensureQuoteLineIds);return;}
   // v3: 기존 '수주' 건은 이미 납품된 것으로 간주해 납품일을 채운다.
   //     (미수금 기준이 수주 → 납품으로 바뀌므로, 이게 없으면 기존 미수금이 갑자기 0이 된다)
   let n=0;
@@ -2651,6 +2903,7 @@ async function runMigrations(){
       if(q.status==="수주" && !q.delivered_at){ q.delivered_at=q.date||localDate(); n++; }
     });
   }
+  db.quotes.forEach(ensureQuoteLineIds);
   db.settings=db.settings||{};
   db.settings.schema=SCHEMA;
   try{
@@ -2672,6 +2925,7 @@ function migrateStockQuoteLinks(){
 
 async function deleteQuote(id){
   const q=db.quotes.find(x=>x.id===id);
+  if(db.payments.some(p=>p.quote_id===id)||quoteDeliveredQty(q||{})>0){toast("납품·입금 기록이 연결된 견적은 삭제할 수 없습니다. 연결된 기록을 먼저 확인하세요");return;}
   const back=q ? stockDeltaForQuote({...q,status:"취소"}) : {moves:[],desc:[]};
   const msg="이 견적서를 삭제할까요? 되돌릴 수 없습니다."
     + (back.moves.length ? `\n\n이 견적으로 나간 재고는 함께 복구됩니다:\n${back.desc.join("\n")}` : "");
@@ -3289,9 +3543,10 @@ async function deletePayment(id){
 function monthSales(ym){
   let supply=0, total=0, margin=0, count=0;
   db.quotes.forEach(q=>{
-    if(!isDelivered(q) || !(q.delivered_at||"").startsWith(ym)) return;
-    const t=quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())});
-    supply+=t.supply; total+=t.total; margin+=quoteMargin(q).margin; count++;
+    (q.deliveries||[]).filter(d=>(d.date||"").startsWith(ym)).forEach(d=>{
+      const lines=deliveredLines(q,d), t=quoteTotals({lines});
+      supply+=t.supply;total+=t.total;margin+=quoteMargin({lines}).margin;count++;
+    });
   });
   return { supply, total, margin, count };
 }
@@ -3366,7 +3621,7 @@ function salesData(){
   const st=document.getElementById("slStatus").value;
   const quotes=db.quotes.filter(q=>
     (!from || (q.date||"")>=from) && (!to || (q.date||"")<=to) &&
-    (st==="all" || q.status==="수주") &&
+    (st==="all" || QT_COMMITTED.includes(q.status)) &&
     (!co || q.company_id===co));
   const groups={};   // company_id → { key → {name,color,spec,price,qty} }
   quotes.forEach(q=>{
@@ -3508,9 +3763,9 @@ function arData(){
     r.ordered+=amt; r.orders++;
     if((q.date||"")>r.lastOrder) r.lastOrder=q.date||"";
     if(isDelivered(q)){
-      r.delivered+=amt; r.delivers++;
+      r.delivered+=deliveredAmount(q); r.delivers++;
       if(q.delivered_at>r.lastDeliver) r.lastDeliver=q.delivered_at;
-      if(!isTaxed(q)){ r.untaxed+=amt; r.untaxedCount++; }
+      if(!isTaxed(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }
     }
   });
   (db.payments||[]).forEach(p=>{
@@ -3585,7 +3840,7 @@ function renderAr(){
 function renderArByQuote(tbl){
   const openOnly=document.getElementById("arFilter").value!=="all";
   let list=db.quotes.filter(isDelivered)
-    .map(q=>({ q, amt:quoteAmount(q), paid:quotePaid(q.id) }))
+    .map(q=>({ q, amt:deliveredAmount(q), paid:quotePaid(q.id) }))
     .map(r=>({ ...r, bal:r.amt-r.paid }));
   if(openOnly) list=list.filter(r=>r.bal>0);
   list.sort((a,b)=>(b.q.delivered_at||"").localeCompare(a.q.delivered_at||""));
@@ -3740,7 +3995,7 @@ async function init(){
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
   document.getElementById("qtNewBtn").onclick=()=>{
     if(!guardQtLeave()) return;
-    qtSel="__new__"; qtEditing=null; qtCopySourceNo=""; qtBaseline=""; szOpen=false;
+    qtSel="__new__"; qtEditing=null; qtCopySourceNo=""; qtBaseline=""; szOpen=false; qtDeliveryOpen=false; qtPaymentOpen=false;
     renderQtList(); renderQtDetail(); scrollToDetail("qtForm");
   };
   document.getElementById("qtSearch").oninput=e=>{ qtFilter=e.target.value; renderQtList(); };
