@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="format-detection" content="telephone=no">
 <title>ERP · 업무 관리</title>
 <link rel="icon" type="image/png" href="favicon.png">
@@ -26,7 +26,7 @@
     --mono:ui-monospace,"SF Mono",Menlo,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--sans);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.5;letter-spacing:-0.01em}
+  body{font-family:var(--sans);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;line-height:1.5;letter-spacing:0}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
   input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
   /* 숫자 입력의 증감 화살표 제거 — 자리를 예약해 우/가운데 정렬을 밀어낸다 */
@@ -39,7 +39,7 @@
   .login{min-height:100vh;display:grid;place-items:center;padding:24px}
   .login-card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:40px 36px;max-width:440px;width:100%;text-align:center}
   .login-logo{width:56px;height:56px;border-radius:16px;background:var(--primary);display:grid;place-items:center;margin:0 auto 20px;box-shadow:0 6px 18px var(--primary-soft)}
-  .login-card h1{font-size:24px;font-weight:680;letter-spacing:-0.03em;margin-bottom:8px}
+  .login-card h1{font-size:24px;font-weight:680;letter-spacing:0;margin-bottom:8px}
   .login-card p{color:var(--ink-2);font-size:14.5px;margin-bottom:26px;line-height:1.6}
   .btn-primary{background:var(--primary);color:#fff;font-weight:600;font-size:15px;padding:13px 20px;border-radius:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;transition:.15s}
   .btn-primary:hover{filter:brightness(1.05)}
@@ -82,7 +82,7 @@
 
   .main{padding:26px 28px;overflow:auto}
   .page-head{display:flex;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
-  .page-head h2{font-size:22px;font-weight:680;letter-spacing:-0.02em}
+  .page-head h2{font-size:22px;font-weight:680;letter-spacing:0}
   .page-head .count{margin-left:10px;font-size:13px;color:var(--ink-3);background:var(--card);border:1px solid var(--line);padding:3px 10px;border-radius:99px}
   .page-head .sp{flex:1}
 
@@ -268,7 +268,7 @@
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:20px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm)}
   .stat .k{font-size:12px;color:var(--ink-3);font-weight:600}
-  .stat .v{font-size:21px;font-weight:720;letter-spacing:-0.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .v{font-size:21px;font-weight:720;letter-spacing:0;margin-top:4px;font-variant-numeric:tabular-nums}
   .stat .v.pos{color:#1E7A3E}
   .stat .v.neg{color:var(--danger)}
   .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
@@ -368,7 +368,7 @@
   .p-bottom{margin-top:auto}
   .p-eyebrow{font-size:11px;font-weight:700;letter-spacing:.3em;color:#8A8F98;margin-bottom:4px}
   .p-head{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;margin-bottom:24px}
-  .p-title{font-size:34px;font-weight:800;letter-spacing:-0.02em;margin-bottom:18px}
+  .p-title{font-size:34px;font-weight:800;letter-spacing:0;margin-bottom:18px}
   .p-to-name{font-size:17px;font-weight:750;margin-bottom:12px}
   .p-info .irow{display:flex;gap:14px;font-size:12.5px;padding:3px 0;color:#333}
   .p-info .irow .k{color:#8A8F98;font-weight:600;min-width:60px}
@@ -378,7 +378,7 @@
   .p-supplier .srow .k{color:#8A8F98;font-weight:600;min-width:62px;flex:0 0 auto}
   .p-grand{display:flex;justify-content:space-between;align-items:center;background:#2F3338;color:#fff;border-radius:14px;padding:13px 20px;margin-bottom:20px}
   .p-grand .k{font-weight:650;font-size:13px;opacity:.85}
-  .p-grand .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+  .p-grand .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:0}
   .p-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
   .p-tbl th{background:#ECEDEF;color:#3A3F46;font-weight:700;padding:8px 11px;text-align:left;font-size:11.5px}
   .p-tbl th:first-child{border-radius:9px 0 0 9px}
@@ -2003,7 +2003,6 @@ function renderQtDetail(){
       <div id="fq_short"></div>
     </div>
     <div class="qtotals">
-      <div class="row"><span class="k">총 수량</span><span class="v" id="fq_qty">${fmt(t.qty)}</span></div>
       <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
       <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
       <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
@@ -2371,7 +2370,6 @@ function bindQtLines(e){
       const l=e.lines[idx];
       form.querySelector(`[data-amt="${idx}"]`).textContent=fmt((Number(l.qty)||0)*(Number(l.price)||0));
       const t=quoteTotals(e);
-      document.getElementById("fq_qty").textContent=fmt(t.qty);
       document.getElementById("fq_supply").textContent=won(t.supply);
       document.getElementById("fq_vat").textContent=won(t.vat);
       document.getElementById("fq_total").textContent=won(t.total);
@@ -2568,7 +2566,6 @@ function printQuote(q,docType){
   const lines=q.lines.filter(l=>(l.name||"").trim());   // 품목 미입력 행은 인쇄 제외
   const fmtb=v=>Number(v)?fmt(v):"";                     // 0은 빈칸으로
   const t=quoteTotals({lines});
-  const qtySum=lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
   const colgroup=`<colgroup><col><col style="width:46px"><col style="width:112px"><col style="width:58px"><col style="width:88px"><col style="width:100px"><col style="width:82px"></colgroup>`;
   const rows=lines.map(l=>{
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
@@ -2620,7 +2617,7 @@ function printQuote(q,docType){
       <table class="p-tbl" style="table-layout:fixed">
         ${colgroup}
         <tbody><tr class="p-sumrow">
-          <td>합계</td><td></td><td></td><td class="ctr">${fmt(qtySum)}</td><td></td>
+          <td>합계</td><td></td><td></td><td></td><td></td>
           <td class="num">${fmt(t.supply)}</td><td class="num">${fmt(t.vat)}</td>
         </tr></tbody>
       </table>
@@ -2700,7 +2697,6 @@ function drawQuoteCanvas(q,docType){
   const s=db.settings||{};
   const lines=q.lines.filter(l=>(l.name||"").trim());
   const t=quoteTotals({lines});
-  const qtySum=lines.reduce((sum,l)=>sum+(Number(l.qty)||0),0);
   const fmtb=v=>Number(v)?fmt(v):"";
   const NOTICE=["자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.",
                 "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];
@@ -2828,7 +2824,8 @@ function drawQuoteCanvas(q,docType){
   ctx.fillStyle="#F4F5F7"; qimgRR(ctx,MX,by,CW,34,11); ctx.fill();
   ctx.fillStyle="#111"; ctx.font=F(750,12.5);
   cell("합계",0,by+22);
-  [fmt(qtySum),"",fmt(t.supply),fmt(t.vat)].forEach((v,i)=>{ if(v) cell(v,i+3,by+22); });
+  cell(fmt(t.supply),5,by+22);
+  cell(fmt(t.vat),6,by+22);
   by+=34+16+11;
   ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
   ctx.fillText("비 고",MX,by);
