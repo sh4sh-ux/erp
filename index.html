@@ -368,6 +368,14 @@
     .sync-text{max-width:74px;overflow:hidden;text-overflow:ellipsis}
     .biz-card-btn{width:34px;padding:0;justify-content:center}
     .biz-card-btn .txt{display:none}
+    #view-quotes .quote-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    #view-quotes .quote-form-actions .doc-sel,
+    #view-quotes .quote-form-actions #qtSaveBtn,
+    #view-quotes .quote-form-actions #qtDelBtn,
+    #view-quotes .quote-form-actions #qtCancelBtn{grid-column:1/-1;width:100%}
+    #view-quotes .quote-form-actions .btn{width:100%;min-width:0;min-height:48px;padding:11px 12px;white-space:nowrap}
+    #view-quotes .quote-form-actions #qtSaveBtn{min-height:52px;font-size:16px}
+    #view-quotes .quote-form-actions #qtDelBtn{margin-top:2px}
   }
 
   /* ---------- 인쇄 미리보기 오버레이 (모바일) ---------- */
@@ -876,7 +884,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.58";
+const APP_VERSION = "v1.59";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2141,7 +2149,7 @@ function renderQtDetail(){
     <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
       <div class="hint hidden" id="fq_memoHint"></div>
     </div>
-    <div class="form-actions">
+    <div class="form-actions quote-form-actions">
       ${isNew?"":`<select class="doc-sel" id="fq_doc" title="인쇄·이미지·공유에 사용할 양식">
         ${Object.keys(DOC_TYPES).map(k=>`<option ${k===qtDocType?"selected":""}>${k}</option>`).join("")}
       </select>`}
