@@ -187,7 +187,7 @@
   .btn-line-add{width:100%;padding:9px;border:1.5px dashed var(--line);border-radius:10px;color:var(--ink-2);font-size:13px;font-weight:600;transition:.14s}
   .btn-line-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
 
-  /* ---------- 품목 옵션(사이즈)·세트 구성품 편집 ---------- */
+  /* ---------- 품목 규격/옵션·세트 구성품 편집 ---------- */
   .vlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
   .vline{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .vline:last-child{border-bottom:none}
@@ -544,7 +544,7 @@
             <div class="list-head">
               <div class="search">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input id="itSearch" placeholder="품명·규격 검색">
+                <input id="itSearch" placeholder="품명·규격/옵션 검색">
               </div>
               <button class="btn-add" id="itNewBtn" title="새 품목">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -819,7 +819,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.53";
+const APP_VERSION = "v1.54";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1317,7 +1317,7 @@ async function deleteCompany(id){
 }
 
 /* =====================================================================
-   품목(items) — 단품(사이즈 옵션) / 세트(구성품)
+   품목(items) — 단품(규격/옵션) / 세트(구성품)
    ===================================================================== */
 let itSel=null, itFilter="", itEditing=null;
 
@@ -1377,7 +1377,7 @@ function quoteMargin(q){
 /* ── BOM(소요량) 전개 ──
    세트 구성을 원자재까지 재귀로 펼친다. 세트 안에 세트가 들어가도 끝까지 내려간다.
    순환 참조(A가 B를, B가 A를 포함)는 경로 추적으로 차단한다.
-   결과: { "품목id|색상|규격": 수량 } — 재고 키와 같은 형식 */
+   결과: { "품목id|색상|규격/옵션": 수량 } — 재고 키와 같은 형식 */
 function expandBom(item_id,color,spec,qty,out={},path=[]){
   const it=db.items.find(x=>x.id===item_id);
   if(!it || !qty) return out;
@@ -1489,7 +1489,7 @@ function renderItDetail(){
     body=`
     <div class="field"><label>구성품</label>
       <div class="vlines">
-        <div class="cline head"><span>품목</span><span>색상</span><span>사이즈/옵션</span><span>수량</span><span></span></div>
+        <div class="cline head"><span>품목</span><span>색상</span><span>규격/옵션</span><span>수량</span><span></span></div>
         ${e.components.map((c,idx)=>{
           const it=db.items.find(x=>x.id===c.item_id);
           const colorCell = it && (it.colors||[]).length
@@ -1521,10 +1521,10 @@ function renderItDetail(){
   }else{
     body=`
     <div class="grid2">
-      <div class="field"><label>규격 (기본)</label><input id="fi_spec" value="${escapeAttr(e.spec)}" placeholder="예: 80X40cm, 500매">
+      <div class="field"><label>규격/옵션 (기본)</label><input id="fi_spec" value="${escapeAttr(e.spec)}" placeholder="예: XL, 80X40cm, 500매">
         <div class="hint">${(e.variants||[]).length
-          ? "아래 <b>사이즈/옵션</b>이 있어 이 값은 쓰이지 않습니다 (견적서에는 선택한 사이즈가 규격으로 들어갑니다)"
-          : "사이즈 옵션이 없는 품목의 규격. 견적서 <b>규격</b> 칸에 그대로 들어갑니다"}</div>
+          ? "아래 <b>규격/옵션</b>이 있어 이 값은 쓰이지 않습니다 (견적서에는 선택한 규격/옵션으로 표시됩니다)"
+          : "별도 옵션이 없는 품목의 기본 규격/옵션입니다. 견적서 <b>규격/옵션</b> 칸에 그대로 들어갑니다"}</div>
       </div>
       <div class="field"><label>단위</label><input id="fi_unit" value="${escapeAttr(e.unit)}" placeholder="EA, BOX, kg…"></div>
     </div>
@@ -1536,9 +1536,9 @@ function renderItDetail(){
     <div class="field"><label>색상 <span style="font-weight:400;color:var(--ink-3)">(쉼표로 구분 — 예: BK, WH / 없으면 비워두세요)</span></label>
       <input id="fi_colors" value="${escapeAttr((e.colors||[]).join(", "))}" placeholder="예: BK, WH, NV">
     </div>
-    <div class="field"><label>사이즈/옵션 <span style="font-weight:400;color:var(--ink-3)">(사이즈별 단가가 다를 때 — 없으면 비워두세요. 견적서에는 규격 칸에 표시)</span></label>
+    <div class="field"><label>규격/옵션 <span style="font-weight:400;color:var(--ink-3)">(옵션별 단가가 다를 때 — 없으면 비워두세요. 견적서에는 규격/옵션 칸에 표시)</span></label>
       <div class="quick-row">
-        <input id="fi_quick" placeholder="쉼표로 한 번에 추가 — 예: 30inch, 34inch, 36inch">
+        <input id="fi_quick" placeholder="쉼표로 한 번에 추가 — 예: XL, 3XL, 앞면 자수">
         <button id="fi_quickBtn">생성</button>
       </div>
       ${e.variants.length?`
@@ -1992,12 +1992,12 @@ function renderQtDetail(){
     </div>
     <div class="field"><label>품목</label>
       <div class="qlines">
-        <div class="qline head"><span>품목</span><span style="text-align:center">색상 · 규격</span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
+        <div class="qline head"><span>품목</span><span style="text-align:center">색상 · 규격/옵션</span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
       <div class="line-btns">
         <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
-        <button class="btn-line-add" id="fq_sizeBtn">⊞ 사이즈별 한번에</button>
+        <button class="btn-line-add" id="fq_sizeBtn">⊞ 옵션별 한번에</button>
       </div>
       <div id="fq_sizePanel"></div>
       <div id="fq_short"></div>
@@ -2077,7 +2077,7 @@ function renderQtDetail(){
   }
 }
 
-/* 사이즈별 한번에 입력 — 같은 품목의 여러 사이즈를 행 추가 없이 수량만 채워 넣는다 */
+/* 옵션별 한번에 입력 — 같은 품목의 여러 옵션을 행 추가 없이 수량만 채워 넣는다 */
 let szOpen=false, szItemId=null, szColor=null;
 /* 패널을 열 때 기본으로 잡을 품목·색상 — 견적에 이미 들어간 품목을 우선한다.
    여러 개면 품목 행 맨 위의 것. (없을 때만 전체 품목 중 첫 번째) */
@@ -2100,7 +2100,7 @@ function renderSizePanel(e,focusFirst){
   const cands=db.items.filter(i=>(i.variants||[]).length)
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"));
   if(!cands.length){
-    box.innerHTML=`<div class="szpanel"><div class="hint" style="margin:0">사이즈 옵션이 등록된 품목이 없습니다. 품목 화면에서 사이즈를 먼저 등록해 주세요.</div>
+    box.innerHTML=`<div class="szpanel"><div class="hint" style="margin:0">규격/옵션이 등록된 품목이 없습니다. 품목 화면에서 옵션을 먼저 등록해 주세요.</div>
       <div class="szfoot"><div class="sp"></div><button class="btn ghost" id="sz_close">닫기</button></div></div>`;
     document.getElementById("sz_close").onclick=()=>{ szOpen=false; renderSizePanel(e); };
     return;
@@ -2137,7 +2137,7 @@ function renderSizePanel(e,focusFirst){
       <button class="btn ghost" id="sz_close">닫기</button>
       <button class="btn save" id="sz_apply" style="flex:0 0 auto">품목에 넣기</button>
     </div>
-    <div class="hint" style="margin-top:8px">수량을 넣은 사이즈만 품목 행으로 들어갑니다. 0이나 빈칸은 해당 행을 지웁니다.</div>
+    <div class="hint" style="margin-top:8px">수량을 넣은 옵션만 품목 행으로 들어갑니다. 0이나 빈칸은 해당 행을 지웁니다.</div>
   </div>`;
 
   const qtys=[...box.querySelectorAll("[data-sz]")];
@@ -2151,7 +2151,7 @@ function renderSizePanel(e,focusFirst){
     // 포커스 땐 쉼표를 걷어 숫자만, 벗어나면 다시 쉼표
     inp.onfocus=()=>{ inp.value=String(inp.value).replace(/,/g,""); inp.select(); };
     inp.onblur=()=>{ const n=parseNum(inp.value); inp.value=n?fmt(n):""; sum(); };
-    // Tab은 단가를 건너뛰고 옆 사이즈 수량으로 — 사이즈별로 수량만 훑어 넣는 흐름
+    // Tab은 단가를 건너뛰고 옆 옵션 수량으로 — 옵션별로 수량만 훑어 넣는 흐름
     inp.onkeydown=ev=>{
       if(ev.key!=="Tab") return;
       const to = ev.shiftKey ? qtys[n-1] : qtys[n+1];
@@ -2189,7 +2189,7 @@ function applySizePanel(e,it,color){
   if(!e.lines.length) e.lines=[blankLine()];
   szOpen=false;
   renderQtDetail();
-  toast(added?`사이즈 ${added}종을 품목에 넣었습니다${removed?` · ${removed}종 제거`:""}`:"수량이 입력된 사이즈가 없습니다");
+  toast(added?`옵션 ${added}종을 품목에 넣었습니다${removed?` · ${removed}종 제거`:""}`:"수량이 입력된 옵션이 없습니다");
 }
 
 /* 재고가 모자라면 견적 폼에 알려 준다 (BOM 소요량 대비) */
@@ -2220,7 +2220,7 @@ function qtLineHtml(l,idx){
   const it=db.items.find(x=>x.id===l.item_id);
   const sizeCell = (it && (it.variants||[]).length)
     ? `<select data-f="vspec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===l.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
-    : `<input data-f="spec" data-idx="${idx}" value="${escapeAttr(l.spec||"")}" placeholder="규격">`;
+    : `<input data-f="spec" data-idx="${idx}" value="${escapeAttr(l.spec||"")}" placeholder="규격/옵션">`;
   const specCell = (it && (it.colors||[]).length)
     ? `<div class="dual"><select data-f="lcolor" data-idx="${idx}">${it.colors.map(cn=>`<option ${cn===l.color?"selected":""}>${escapeHtml(cn)}</option>`).join("")}</select>${sizeCell}</div>`
     : sizeCell;
@@ -2608,7 +2608,7 @@ function printQuote(q,docType){
     <table class="p-tbl" style="table-layout:fixed">
       ${colgroup}
       <thead><tr>
-        <th>품명</th><th>색상</th><th class="ctr">규격</th><th class="ctr">수량</th>
+        <th>품명</th><th>색상</th><th class="ctr">규격/옵션</th><th class="ctr">수량</th>
         <th class="num">단가</th><th class="num">공급가액</th><th class="num">세액</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -2702,7 +2702,7 @@ function drawQuoteCanvas(q,docType){
                 "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];
   const SC=2, PW=794, MX=53, MT=60, MB=60, CW=688;
   const F=(w,px)=>`${w} ${px}px ${QIMG_FONT}`;
-  // 컬럼: 품명(가변 202) | 색상 46 | 규격 112 | 수량 58 | 단가 88 | 공급가액 100 | 세액 82
+  // 컬럼: 품명(가변 202) | 색상 46 | 규격/옵션 112 | 수량 58 | 단가 88 | 공급가액 100 | 세액 82
   //   실측 기준 — "WH" 22px, "5000X900mm" 89px, 품명 최장 143px, "1,028,000" 64px
   const COLS=[CW-46-112-58-88-100-82,46,112,58,88,100,82];
   const colX=[MX]; COLS.forEach((w,i)=>colX.push(colX[i]+w));
@@ -2793,7 +2793,7 @@ function drawQuoteCanvas(q,docType){
   let ty=gy+52+20;
   ctx.fillStyle="#ECEDEF"; qimgRR(ctx,MX,ty,CW,30,9); ctx.fill();
   ctx.fillStyle="#3A3F46"; ctx.font=F(700,11.5);
-  const TH=["품명","색상","규격","수량","단가","공급가액","세액"];
+  const TH=["품명","색상","규격/옵션","수량","단가","공급가액","세액"];
   // 열별 정렬 — 인쇄 표(.ctr/.num)와 같은 규칙을 쓴다
   const ALIGN=["left","left","center","center","right","right","right"];
   const cell=(text,i,y)=>{
@@ -2915,7 +2915,7 @@ function updateIvCombo(){
   const hasC=!!(it&&(it.colors||[]).length), hasV=!!(it&&(it.variants||[]).length);
   colorEl.innerHTML = hasC ? it.colors.map(c=>`<option>${escapeHtml(c)}</option>`).join("") : `<option value="">색상 —</option>`;
   colorEl.disabled=!hasC;
-  specEl.innerHTML = hasV ? it.variants.map(v=>`<option>${escapeHtml(v.spec)}</option>`).join("") : `<option value="">사이즈 —</option>`;
+  specEl.innerHTML = hasV ? it.variants.map(v=>`<option>${escapeHtml(v.spec)}</option>`).join("") : `<option value="">규격/옵션 —</option>`;
   specEl.disabled=!hasV;
 }
 function renderStock(){
@@ -2943,7 +2943,7 @@ function renderStock(){
 
   const tbl=document.getElementById("ivTbl");
   tbl.innerHTML = combos.length ? `
-    <thead><tr><th>품목</th><th>색상</th><th>사이즈</th><th style="text-align:right">현재고</th></tr></thead>
+    <thead><tr><th>품목</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">현재고</th></tr></thead>
     <tbody>${combos.map(c=>`
       <tr>
         <td>${escapeHtml(c.name)}</td>
@@ -3282,7 +3282,7 @@ function renderSales(){
         </div>
         <div class="tbl-wrap"><table class="tbl" style="table-layout:fixed">
           <colgroup><col><col style="width:190px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
-          <thead><tr><th>품명</th><th>색상·사이즈</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
+          <thead><tr><th>품명</th><th>색상·규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
           <tbody>${trs}
             <tr style="background:var(--paper)">
               <td style="font-weight:700">소계</td><td></td>
@@ -3332,7 +3332,7 @@ function exportQuotesCsv(){
 }
 function exportSalesCsv(){
   const {groups}=salesData();
-  const lines=[["거래처","품명","색상","사이즈","수량","단가","공급가액","마진","세액","합계"].join(",")];
+  const lines=[["거래처","품명","색상","규격/옵션","수량","단가","공급가액","마진","세액","합계"].join(",")];
   Object.entries(groups)
     .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
     .forEach(([cid,g])=>{
