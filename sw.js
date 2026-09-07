@@ -7,12 +7,13 @@
    - 아이콘·매니페스트: cache-first — 거의 바뀌지 않고 바뀌면 CACHE 이름을 올린다.
    - Dropbox API(api.dropboxapi.com 등): 서비스워커가 건드리지 않고 그대로 통과.
 */
-const CACHE = "erp-shell-v5";
+const CACHE = "erp-shell-v6";
 const SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./favicon.png",
+  "./assets/business-card-gownii.png",
   "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

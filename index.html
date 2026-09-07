@@ -767,7 +767,7 @@
               <div class="field"><label>계좌번호</label><input id="st_bank" placeholder="예: 신한은행 110-000-000000"></div>
             </div>
             <div class="field"><label>주소</label><input id="st_address"></div>
-            <div class="field"><label>명함 공유 링크</label><input id="st_card_url" placeholder="명함 이미지나 Dropbox 링크">
+            <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
               <div class="hint">상단 <b>명함 보내기</b> 버튼에서 사용됩니다.</div>
             </div>
             <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
@@ -831,8 +831,10 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.55";
-const DEFAULT_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
+const APP_VERSION = "v1.56";
+const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
+const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
+const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1172,26 +1174,47 @@ function showKeyWarn(){
 }
 
 function businessCardUrl(){
-  return ((db.settings||{}).business_card_url || DEFAULT_BUSINESS_CARD_URL).trim();
+  const url=((db.settings||{}).business_card_url || DEFAULT_BUSINESS_CARD_URL).trim();
+  return url===LEGACY_BUSINESS_CARD_URL ? DEFAULT_BUSINESS_CARD_URL : url;
+}
+function absUrl(url){
+  try{ return new URL(url,window.location.href).href; }
+  catch(err){ return url; }
+}
+async function businessCardFile(url){
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok) throw new Error("business card image fetch failed");
+  const blob=await res.blob();
+  return new File([blob],BUSINESS_CARD_FILENAME,{type:blob.type||"image/png"});
 }
 async function shareBusinessCard(){
   const url=businessCardUrl();
-  if(!url){ toast("명함 링크가 없습니다"); return; }
-  const title="GOWNII 명함";
-  const text="GOWNII 명함입니다.";
+  if(!url){ toast("명함 이미지가 없습니다"); return; }
+  const shareUrl=absUrl(url);
+  if(navigator.share && navigator.canShare){
+    try{
+      const file=await businessCardFile(shareUrl);
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file]});
+        return;
+      }
+    }catch(err){
+      if(err && err.name==="AbortError") return;
+    }
+  }
   if(navigator.share){
-    try{ await navigator.share({title,text,url}); return; }
+    try{ await navigator.share({url:shareUrl}); return; }
     catch(err){ if(err && err.name==="AbortError") return; }
   }
   try{
     if(navigator.clipboard && navigator.clipboard.writeText){
-      await navigator.clipboard.writeText(url);
-      toast("명함 링크를 복사했습니다 — 붙여넣기로 보내세요");
+      await navigator.clipboard.writeText(shareUrl);
+      toast("명함 이미지 링크를 복사했습니다 — 붙여넣기로 보내세요");
       return;
     }
   }catch(err){}
-  window.open(url,"_blank","noopener");
-  toast("명함 링크를 열었습니다");
+  window.open(shareUrl,"_blank","noopener");
+  toast("명함 이미지를 열었습니다");
 }
 
 /* ---------- 뷰 전환 ---------- */
@@ -3541,11 +3564,14 @@ function renderSettings(){
   document.getElementById("st_email").value=s.email||"";
   document.getElementById("st_bank").value=s.bank||"";
   document.getElementById("st_address").value=s.address||"";
-  document.getElementById("st_card_url").value=s.business_card_url||DEFAULT_BUSINESS_CARD_URL;
+  const cardUrl=(s.business_card_url||DEFAULT_BUSINESS_CARD_URL).trim();
+  document.getElementById("st_card_url").value=cardUrl===LEGACY_BUSINESS_CARD_URL ? DEFAULT_BUSINESS_CARD_URL : cardUrl;
   document.getElementById("bkStat").textContent=
     `현재 데이터 — 거래처 ${db.companies.length} · 품목 ${db.items.length} · 견적서 ${db.quotes.length} · 수금/지급 ${db.payments.length} · 재고기록 ${(db.stock_moves||[]).length}`;
 }
 async function saveSettings(){
+  let businessCardUrl=document.getElementById("st_card_url").value.trim();
+  if(businessCardUrl===LEGACY_BUSINESS_CARD_URL) businessCardUrl=DEFAULT_BUSINESS_CARD_URL;
   db.settings={
     name:document.getElementById("st_name").value.trim(),
     ceo:document.getElementById("st_ceo").value.trim(),
@@ -3554,7 +3580,7 @@ async function saveSettings(){
     email:document.getElementById("st_email").value.trim(),
     bank:document.getElementById("st_bank").value.trim(),
     address:document.getElementById("st_address").value.trim(),
-    business_card_url:document.getElementById("st_card_url").value.trim(),
+    business_card_url:businessCardUrl,
   };
   await saveTable("settings",db.settings);
 }
