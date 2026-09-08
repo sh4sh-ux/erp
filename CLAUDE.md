@@ -67,12 +67,13 @@ Company {
 }
 
 Item {
-  id, code, name, type:"단품"|"세트", spec, unit:"EA",   // code = 품목코드 (선택, 중복 불가)
+  id, code, name, type:"단품"|"세트"|"작업", spec, unit:"EA",   // code = 품목코드 (선택, 중복 불가)
   buy_price, sell_price,
   colors:["BK","WH"],                              // 색상 옵션 (별개 축)
   spec,                                            // 고정 규격 — variants가 있으면 쓰이지 않음
   variants:[{spec, buy_price, sell_price}],        // 사이즈 옵션 (단가가 다를 수 있는 축)
   components:[{item_id, color, spec, qty}],        // 세트 구성품 (type==="세트")
+  // type==="작업"은 견적·매출에는 포함하지만 재고 현황·자동 출고에서는 제외
   memo
 }
 
@@ -107,7 +108,7 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 | 뷰 | 렌더러 | 역할 |
 |----|--------|------|
 | companies | `renderCoList` / `renderCoDetail` | 거래처 (목록 + 상세 폼) |
-| items | `renderItList` / `renderItDetail` | 품목 (색상·사이즈 옵션·세트 구성) |
+| items | `renderItList` / `renderItDetail` | 품목 (색상·규격/옵션·세트 구성·작업 품목) |
 | stock | `renderStock` | 재고 현황 + 입출고 기록 |
 | quotes | `renderQtList` / `renderQtDetail` | 견적서 작성·인쇄·이미지·공유 |
 | payments | `renderPay` | 수금/지급 (월별) |
@@ -194,8 +195,8 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 ## 재고 정합 설계 (v1.27~) — 건드리기 전에 반드시 읽을 것
 견적과 재고는 **"목표 상태로 맞추는(reconcile)" 방식**으로 연결돼 있다. 차감을 쌓는 방식이 아니다.
 
-- `quoteStockNeeds(q)` — 이 견적이 재고에서 빼야 할 목표 수량 (수주면 견적 수량, 그 외엔 0.
-  세트는 구성품으로 분해)
+- `quoteStockNeeds(q)` — 이 견적이 재고에서 빼야 할 목표 수량.
+  세트는 구성품으로 분해하고 `작업` 품목은 제외한다.
 - `quoteStockDone(q.id)` — `stock_moves.quote_id`로 추적한, 이미 반영된 수량
 - `stockDeltaForQuote(q)` — 목표 − 현재 = 기록할 입출고. 차이가 0이면 아무것도 안 만든다
 - `syncStockForQuote(q)` — 위 차이를 확인받고 반영. **멱등** — 여러 번 실행해도 결과가 같다
@@ -243,12 +244,13 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
   둘 다 필요해지면 `line.size`를 새로 만들고 출력 열을 하나 더 늘려야 한다 (아직 미구현)
 
 ## BOM(소요량) — 세트 전개 규칙 (v1.46~)
-`세트` 품목이 곧 BOM이다. `expandBom(item_id,color,spec,qty,out,path)`이 **원자재까지 재귀로**
+`세트` 품목이 곧 BOM이다. `expandBom(item_id,color,spec,qty,out,path)`이 **원자재·작업까지 재귀로**
 펼친다 — 세트 안에 세트가 들어가도 끝까지 내려가고, 순환 참조(A⊃B, B⊃A)는 `path`로 차단한다.
 
-- `bomOfSet(i)` — 세트 1개당 소요 자재 맵
-- `setCompSums(i)` — 전개된 자재의 매입·매출 합 (중첩 세트 가격도 정확)
+- `bomOfSet(i)` — 세트 1개당 구성 소요 맵
+- `setCompSums(i)` — 전개된 구성의 매입·매출 합 (중첩 세트 가격도 정확)
 - `quoteStockNeeds(q)` — 견적 소요량. **세트를 여기서 직접 펼치지 말고 `expandBom`을 쓸 것**
+  단, 최종 재고 차감은 `tracksStock()`이 참인 품목만 반영한다.
 - `quoteShortage(q)` — 소요량 대비 부족 자재. 이 견적이 이미 뺀 양(`quoteStockDone`)을
   되돌려 계산하므로 수주 후에도 중복으로 잡히지 않는다
 - **`quoteStockDone(qid)`는 `qid`가 없으면 빈 값을 반환해야 한다** — 저장 전 견적(id=null)에서
@@ -305,6 +307,8 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
 
 ## Changelog
+- `v1.64` — 품목 유형에 `작업`을 추가. 자수·패치 부착 같은 작업형 품목은
+  견적·매출에는 포함하되 재고 현황·재고 부족·자동 출고 계산에서는 제외.
 - `v1.63` — 설정 화면에 다른 컴퓨터·휴대폰에서 이어 쓰기 안내를 추가하고,
   ERP 주소 복사 버튼과 Dropbox 연결 다시 설정 버튼을 제공.
 - `v1.62` — 기본 App folder 키로 빈 Dropbox 앱 폴더를 보고 있을 때 정상 동기화처럼 보이지 않도록

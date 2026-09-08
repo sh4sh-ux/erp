@@ -122,6 +122,7 @@
   .pill.st-lost{background:var(--danger-soft);color:var(--danger)}
   .pill.st-done{background:#1E7A3E;color:#fff}
   .pill.set{background:#EFE9FD;color:#6B46C1}
+  .pill.work{background:#E7F0FF;color:#0B5CAD}
   .pill.in{background:var(--ok-soft);color:#1E7A3E}
   .pill.out{background:var(--warn-soft);color:#B26A00}
   .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.7}
@@ -962,7 +963,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.63";
+const APP_VERSION = "v1.64";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -1550,11 +1551,13 @@ async function deleteCompany(id){
 }
 
 /* =====================================================================
-   품목(items) — 단품(규격/옵션) / 세트(구성품)
+   품목(items) — 단품(규격/옵션) / 세트(구성품) / 작업(재고 제외)
    ===================================================================== */
 let itSel=null, itFilter="", itEditing=null;
 
 function isSet(i){ return i && i.type==="세트"; }
+function isWork(i){ return i && i.type==="작업"; }
+function tracksStock(i){ return i && !isSet(i) && !isWork(i); }
 /* 품목코드 — 이카운트처럼 코드와 품명을 분리해서 관리하되,
    출력물에는 지금까지 쓰던 "품명 [코드]" 표기를 그대로 유지한다 */
 function itemLabel(name,code){
@@ -1608,9 +1611,10 @@ function quoteMargin(q){
 }
 
 /* ── BOM(소요량) 전개 ──
-   세트 구성을 원자재까지 재귀로 펼친다. 세트 안에 세트가 들어가도 끝까지 내려간다.
+   세트 구성을 원자재·작업까지 재귀로 펼친다. 세트 안에 세트가 들어가도 끝까지 내려간다.
    순환 참조(A가 B를, B가 A를 포함)는 경로 추적으로 차단한다.
-   결과: { "품목id|색상|규격/옵션": 수량 } — 재고 키와 같은 형식 */
+   결과: { "품목id|색상|규격/옵션": 수량 } — 재고 키와 같은 형식.
+   실제 재고 차감은 quoteStockNeeds()에서 tracksStock 품목만 골라 반영한다. */
 function expandBom(item_id,color,spec,qty,out={},path=[]){
   const it=db.items.find(x=>x.id===item_id);
   if(!it || !qty) return out;
@@ -1675,8 +1679,13 @@ function renderItList(){
     const sub = isSet(i)
       ? `구성 ${(i.components||[]).length}종 · ${setSpecSummary(i)||"—"}`
       : (parts.length ? parts.join("  |  ")
-          : [i.spec,i.unit].filter(Boolean).join(" · ")||"—");
+          : [i.spec,i.unit].filter(Boolean).join(" · ") || (isWork(i)?"재고 제외":"—"));
     const price = itemSell(i);
+    const typeMark = isSet(i)
+      ? '<span class="pill set">세트</span>'
+      : isWork(i)
+        ? '<span class="pill work">작업</span>'
+        : (i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"");
     return `
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
       <div class="avatar">${escapeHtml(initials(i.code||i.name))}</div>
@@ -1686,7 +1695,7 @@ function renderItList(){
       </div>
       <div class="li-right">
         <div class="li-amt">${price?won(price):""}</div>
-        ${isSet(i)?'<span class="pill set">세트</span>':(i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"")}
+        ${typeMark}
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
@@ -1734,7 +1743,7 @@ function renderItDetail(){
           return `<div class="cline">
             <select data-cf="item" data-idx="${idx}">
               <option value="">— 품목 선택 —</option>
-              ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${escapeHtml(o.name)}</option>`).join("")}
+              ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${isWork(o)?"[작업] ":""}${escapeHtml(o.name)}</option>`).join("")}
             </select>
             ${colorCell}
             ${specCell}
@@ -1752,18 +1761,25 @@ function renderItDetail(){
       <div class="field"><label>세트 판매가</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="비워두면 구성 합계 적용"></div>
     </div>`;
   }else{
+    const workNote = isWork(e)
+      ? `<div class="copy-note" role="note">작업 품목은 견적·매출에는 포함되지만 재고 현황과 자동 출고에서는 제외됩니다. 자수, 패치 부착, 수선처럼 수량은 필요하지만 재고로 세기 애매한 항목에 사용하세요.</div>`
+      : "";
+    const unitLabel = isWork(e) ? "작업 단위" : "단위";
+    const buyLabel = isWork(e) ? "작업 매입단가 (기본)" : "매입단가 (기본)";
+    const sellLabel = isWork(e) ? "작업 매출단가 (기본)" : "매출단가 (기본)";
     body=`
+    ${workNote}
     <div class="grid2">
       <div class="field"><label>규격/옵션 (기본)</label><input id="fi_spec" value="${escapeAttr(e.spec)}" placeholder="예: XL, 80X40cm, 500매">
         <div class="hint">${(e.variants||[]).length
           ? "아래 <b>규격/옵션</b>이 있어 이 값은 쓰이지 않습니다 (견적서에는 선택한 규격/옵션으로 표시됩니다)"
           : "별도 옵션이 없는 품목의 기본 규격/옵션입니다. 견적서 <b>규격/옵션</b> 칸에 그대로 들어갑니다"}</div>
       </div>
-      <div class="field"><label>단위</label><input id="fi_unit" value="${escapeAttr(e.unit)}" placeholder="EA, BOX, kg…"></div>
+      <div class="field"><label>${unitLabel}</label><input id="fi_unit" value="${escapeAttr(e.unit)}" placeholder="${isWork(e)?"건, 회, 장…":"EA, BOX, kg…"}"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>매입단가 (기본)</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="0"></div>
-      <div class="field"><label>매출단가 (기본)</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="0"></div>
+      <div class="field"><label>${buyLabel}</label><input type="number" inputmode="numeric" id="fi_buy" value="${e.buy_price||""}" placeholder="0"></div>
+      <div class="field"><label>${sellLabel}</label><input type="number" inputmode="numeric" id="fi_sell" value="${e.sell_price||""}" placeholder="0"></div>
     </div>
     <div class="hint" id="fi_margin">${itemMarginHint(e)}</div>
     <div class="field"><label>색상 <span style="font-weight:400;color:var(--ink-3)">(쉼표로 구분 — 예: BK, WH / 없으면 비워두세요)</span></label>
@@ -1799,8 +1815,9 @@ function renderItDetail(){
       <div class="hint" id="fi_codeHint">${itemCodeHint(e)}</div>
       <div class="field"><label>유형</label>
         <select id="fi_type">
-          <option ${e.type!=="세트"?"selected":""}>단품</option>
+          <option ${!isSet(e)&&!isWork(e)?"selected":""}>단품</option>
           <option ${e.type==="세트"?"selected":""}>세트</option>
+          <option ${isWork(e)?"selected":""}>작업</option>
         </select>
       </div>
     </div>
@@ -1907,12 +1924,12 @@ function bindCodeSplit(e){
 function bomHint(i){
   if(!isSet(i)) return "";
   const bom=Object.entries(bomOfSet(i));
-  if(!bom.length) return "구성품을 추가하면 소요 자재가 여기 표시됩니다";
+  if(!bom.length) return "구성품을 추가하면 구성 소요가 여기 표시됩니다";
   const nested=(i.components||[]).some(c=>isSet(db.items.find(x=>x.id===c.item_id)));
-  return `1세트당 소요 자재 — ` + bom.map(([k,q])=>{
+  return `1세트당 구성 소요 — ` + bom.map(([k,q])=>{
     const [id,color,spec]=k.split("|");
     const it=db.items.find(x=>x.id===id);
-    return `${escapeHtml([(it?it.name:"?"),color,spec].filter(Boolean).join(" "))} ×${fmt(q)}`;
+    return `${isWork(it)?"[작업] ":""}${escapeHtml([(it?it.name:"?"),color,spec].filter(Boolean).join(" "))} ×${fmt(q)}`;
   }).join(" · ") + (nested?" (하위 세트까지 펼침)":"");
 }
 
@@ -2656,14 +2673,14 @@ function renderShortage(e){
       <span class="nm">${escapeHtml(r.label)}</span>
       <span class="v">필요 ${fmt(r.need)} · 보유 ${fmt(r.avail)} · <b>부족 ${fmt(r.lack)}</b></span>
     </div>`).join("")}
-    <div class="ft">세트는 구성품(원자재)까지 펼쳐서 계산합니다. 저장은 그대로 가능합니다.</div>
+    <div class="ft">세트는 구성품까지 펼쳐 계산하고, 작업 품목은 재고 부족 계산에서 제외합니다. 저장은 그대로 가능합니다.</div>
   </div>`;
 }
 
 function qtLineHtml(l,idx){
   const sel=db.items.find(x=>x.id===l.item_id);
   const btnLabel = sel
-    ? `${escapeHtml(sel.name)}${sel.code?`<span class="cd">${escapeHtml(sel.code)}</span>`:""}`
+    ? `${isWork(sel)?'<span class="pill work">작업</span> ':""}${escapeHtml(sel.name)}${sel.code?`<span class="cd">${escapeHtml(sel.code)}</span>`:""}`
     : `<span class="ph">품목 선택 — 품명·코드 검색</span>`;
   const nameCell = l.item_id==="__free__"
     ? `<input data-f="name" data-idx="${idx}" value="${escapeAttr(l.name)}" placeholder="품명 직접 입력">`
@@ -2745,10 +2762,12 @@ function openItemPicker(btn,onPick){
       .slice(0,50);
     hi=Math.min(hi,Math.max(0,shown.length));
     list.innerHTML = (shown.length
-      ? shown.map((i,n)=>`<div class="ip-opt ${n===hi?"hi":""}" data-id="${i.id}">
-          <span class="nm">${isSet(i)?"[세트] ":""}${escapeHtml(i.name)}</span>
+      ? shown.map((i,n)=>{
+          const tag = isSet(i) ? "[세트] " : (isWork(i) ? "[작업] " : "");
+          return `<div class="ip-opt ${n===hi?"hi":""}" data-id="${i.id}">
+          <span class="nm">${tag}${escapeHtml(i.name)}</span>
           ${i.code?`<span class="cd">${escapeHtml(i.code)}</span>`:""}
-          <span class="pr">${itemSell(i)?fmt(itemSell(i)):""}</span></div>`).join("")
+          <span class="pr">${itemSell(i)?fmt(itemSell(i)):""}</span></div>`}).join("")
       : `<div class="ip-empty">"${escapeHtml(input.value)}"에 맞는 품목이 없습니다</div>`)
       + `<div class="ip-opt ${hi===shown.length?"hi":""}" data-id="__free__"><span class="nm">✏️ 직접 입력</span></div>`;
     list.querySelectorAll(".ip-opt").forEach(o=>{
@@ -2878,14 +2897,20 @@ async function submitQuote(isNew){
    - 그 외   → 아무것도 출고되지 않은 상태가 목표 (취소·작성중으로 되돌리면 자동 복구)
    stock_moves.quote_id로 어느 견적이 만든 기록인지 추적한다. */
 
-/* 이 견적이 재고에서 빼야 할 수량 — 세트는 구성품으로 분해 */
+/* 이 견적이 재고에서 빼야 할 수량 — 세트는 구성품으로 분해하고 작업 품목은 제외 */
 function quoteStockNeeds(q){
   const need={};
   if(!q || !QT_COMMITTED.includes(q.status)) return need;
   const delivered=quoteDeliveryQtyMap(q);
   (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
-    expandBom(l.item_id,l.color,l.spec,q.legacy_stock?(Number(l.qty)||0):(delivered[l.id]||0),need);
+    const expanded=expandBom(l.item_id,l.color,l.spec,q.legacy_stock?(Number(l.qty)||0):(delivered[l.id]||0));
+    Object.entries(expanded).forEach(([k,n])=>{
+      const [item_id]=k.split("|");
+      const it=db.items.find(x=>x.id===item_id);
+      if(!tracksStock(it)) return;
+      need[k]=(need[k]||0)+n;
+    });
   });
   return need;
 }
@@ -2896,6 +2921,8 @@ function quoteStockDone(qid){
   if(!qid) return done;          // 아직 저장 전인 견적 — 수동 입출고(quote_id=null)와 섞이면 안 된다
   (db.stock_moves||[]).forEach(m=>{
     if(m.quote_id!==qid) return;
+    const it=db.items.find(x=>x.id===m.item_id);
+    if(it && !tracksStock(it)) return;
     const k=stockKeyOf(m);
     done[k]=(done[k]||0)+(m.kind==="출고"?1:-1)*(Number(m.qty)||0);
   });
@@ -3363,6 +3390,8 @@ function stockKeyOf(m){ return [m.item_id,m.color||"",m.spec||""].join("|"); }
 function currentStocks(){
   const map={};
   (db.stock_moves||[]).forEach(m=>{
+    const it=db.items.find(x=>x.id===m.item_id);
+    if(it && !tracksStock(it)) return;
     const k=stockKeyOf(m);
     map[k]=(map[k]||0)+(m.kind==="출고"?-1:1)*(Number(m.qty)||0);
   });
@@ -3383,7 +3412,7 @@ function renderStock(){
   if(!dateEl.value) dateEl.value=localDate();
   const itemEl=document.getElementById("ivItem");
   const cur=itemEl.value;
-  itemEl.innerHTML=`<option value="">— 품목 —</option>`+db.items.filter(i=>!isSet(i))
+  itemEl.innerHTML=`<option value="">— 품목 —</option>`+db.items.filter(tracksStock)
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(i=>`<option value="${i.id}" ${i.id===cur?"selected":""}>${escapeHtml(i.name)}</option>`).join("");
   updateIvCombo();
@@ -3413,7 +3442,10 @@ function renderStock(){
       </tr>`).join("")}</tbody>`
     : `<tr><td><div class="empty">아직 재고 기록이 없습니다.<br>오른쪽에서 입고를 등록해 보세요.</div></td></tr>`;
 
-  const hist=(db.stock_moves||[]).slice()
+  const hist=(db.stock_moves||[]).filter(m=>{
+      const it=db.items.find(x=>x.id===m.item_id);
+      return !it || tracksStock(it);
+    }).slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||""))
     .slice(0,30);
   const histTbl=document.getElementById("ivHist");
