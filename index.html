@@ -573,6 +573,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg>
         재고
       </button>
+      <button class="nav-item" data-view="materials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v14H3zM3 7l9-5 9 5M12 7v14"/></svg>업체 제공 자재</button>
       <button class="nav-item" data-view="quotes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
         견적서
@@ -699,6 +700,11 @@
         </div>
       </section>
 
+      <section class="view hidden" id="view-materials">
+        <div class="page-head"><h2>업체 제공 자재</h2></div>
+        <div class="copy-note">고객이 맡긴 패치는 회사 재고·매출·매입과 별개로 관리합니다. 견적서 없이 스마트스토어 주문도 기록할 수 있습니다. ‘작업 완료’ 저장 시에만 사용량이 차감되며 견적 저장·납품으로는 차감되지 않습니다.</div>
+        <div id="materialContent"></div>
+      </section>
       <!-- ========== 견적서 ========== -->
       <section class="view hidden" id="view-quotes">
         <div class="page-head">
@@ -963,7 +969,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.65";
+const APP_VERSION = "v1.66";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -1145,7 +1151,7 @@ const Table = {
    · 원본은 지우지 않는다 — 복사만 한다
    · 앱 폴더 모음의 이름은 계정 언어를 따른다 (한국어 계정은 '앱') */
 const APPS_ROOTS=["/앱","/Apps"];
-const ERP_TABLES=["companies","items","quotes","payments","stock_moves","settings"];
+const ERP_TABLES=["companies","items","quotes","payments","stock_moves","material_moves","settings"];
 
 async function dbxList(path){
   const token=await needToken();
@@ -1199,7 +1205,7 @@ async function importFromAppFolder(){
   }
   if(!found.length){ toast("가져올 파일이 없습니다"); return; }
   const LABEL={companies:"거래처",items:"품목",quotes:"견적서",payments:"수금/지급",
-               stock_moves:"재고기록",settings:"공급자 정보"};
+               stock_moves:"재고기록",material_moves:"업체 제공 자재",settings:"공급자 정보"};
   const summary=found.map(f=>`  · ${LABEL[f.name]||f.name} ${f.n}건`).join("\n");
   if(!confirm(`찾았습니다:\n${dir}\n\n${summary}\n\n`
              +`이 내용을 ${DATA_DIR} 로 가져옵니다.\n`
@@ -1213,17 +1219,18 @@ async function importFromAppFolder(){
   await loadAll();
 }
 
-const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], settings:{} };
+const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], material_moves:[], settings:{} };
 
 async function loadAll(){
   setSyncState("syncing","불러오는 중");
   toast("불러오는 중…",true);
   try{
-    const [c,i,q,p,m,s]=await Promise.all([
+    const [c,i,q,p,m,s,mm]=await Promise.all([
       Table.load("companies"), Table.load("items"), Table.load("quotes"),
-      Table.load("payments"), Table.load("stock_moves"), Table.loadObj("settings")
+      Table.load("payments"), Table.load("stock_moves"), Table.loadObj("settings"),Table.load("material_moves")
     ]);
     db.companies=c; db.items=i; db.quotes=q; db.payments=p; db.stock_moves=m; db.settings=s;
+    db.material_moves=mm;
     migrateStockQuoteLinks();
     await runMigrations();
     renderCurrentView();
@@ -1290,7 +1297,7 @@ function usesDefaultAppFolderKey(){
 }
 function dataLooksEmpty(){
   return !db.companies.length&&!db.items.length&&!db.quotes.length
-      && !db.payments.length&&!(db.stock_moves||[]).length;
+      && !db.payments.length&&!(db.stock_moves||[]).length&&!(db.material_moves||[]).length;
 }
 function emptyStorageNoticeHtml(){
   if(!dataLooksEmpty() || !usesDefaultAppFolderKey()) return "";
@@ -1398,6 +1405,7 @@ const renderers={
   companies(){ renderCoList(); renderCoDetail(); },
   items(){ renderItList(); renderItDetail(); },
   stock(){ renderStock(); },
+  materials(){renderMaterials();},
   quotes(){ renderQtList(); renderQtDetail(); },
   payments(){ renderPay(); },
   dash(){ renderDash(); },
@@ -1575,6 +1583,7 @@ async function submitCompany(c,isNew){
 }
 
 async function deleteCompany(id){
+  if(db.material_moves.some(m=>m.company_id===id)){toast("업체 제공 자재 이력이 있는 거래처는 삭제할 수 없습니다");return;}
   const qc=db.quotes.filter(q=>q.company_id===id).length;
   const pc=(db.payments||[]).filter(p=>p.company_id===id).length;
   const linked=[qc&&`견적서 ${qc}건`, pc&&`수금/지급 ${pc}건`].filter(Boolean);
@@ -3433,6 +3442,91 @@ async function shareQuote(q,docType){
    재고(stock_moves)
    ===================================================================== */
 function stockKeyOf(m){ return [m.item_id,m.color||"",m.spec||""].join("|"); }
+// Customer-owned materials: independent of quote, sales, payments and company-owned stock.
+let materialDraft=null,materialSaving=false;
+function newMaterialDraft(company_id=""){
+  return {id:crypto.randomUUID(),company_id,date:localDate(),kind:"받음",material:"",qty:"",work_qty:"",per_unit:"1",source:"직접 주문",order_no:"",quote_id:"",work_item_id:"",memo:""};
+}
+function materialKey(m){return JSON.stringify([m.company_id,m.material]);}
+function materialBalances(rows=db.material_moves){
+  const totals={};
+  rows.filter(m=>!m.void_at).forEach(m=>{const k=materialKey(m);totals[k]=(totals[k]||0)+(m.kind==="받음"?m.qty:-m.qty);});
+  return totals;
+}
+function validateMaterialLedger(rows){
+  const totals={};
+  for(const m of rows.filter(m=>!m.void_at).slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.created_at||"").localeCompare(b.created_at||""))){
+    if(!Number.isSafeInteger(m.qty)||m.qty<=0)throw Error("수량은 1 이상의 정수로 입력하세요");
+    const k=materialKey(m);totals[k]=(totals[k]||0)+(m.kind==="받음"?m.qty:-m.qty);
+    if(totals[k]<0)throw Error(`${m.date} ${m.material}: 제공받은 수량이 부족합니다. 업체·자재·받은 날짜를 확인하세요`);
+  }
+}
+function buildMaterialMove(d){
+  if(!db.companies.some(c=>c.id===d.company_id))throw Error("자재를 제공한 거래처를 선택하세요");
+  const material=d.material.trim();if(!material)throw Error("자재 이름을 입력하거나 선택하세요");
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date)||new Date(d.date+"T00:00:00Z").toISOString().slice(0,10)!==d.date)throw Error("올바른 기록 일자를 선택하세요");
+  if(!["받음","작업 완료","반환","불량/분실"].includes(d.kind))throw Error("기록 구분을 선택하세요");
+  const work_qty=Number(d.work_qty),per_unit=Number(d.per_unit);
+  if(d.kind==="작업 완료"&&(!Number.isSafeInteger(work_qty)||work_qty<=0||!Number.isSafeInteger(per_unit)||per_unit<=0))throw Error("작업 수량과 작업당 사용량은 1 이상의 정수여야 합니다");
+  const qty=d.kind==="작업 완료"?work_qty*per_unit:Number(d.qty);
+  if(!Number.isSafeInteger(qty)||qty<=0)throw Error("수량은 1 이상의 정수로 입력하세요");
+  if(d.quote_id&&!db.quotes.some(q=>q.id===d.quote_id&&q.company_id===d.company_id))throw Error("견적서와 거래처가 일치하지 않습니다");
+  return {...d,material,qty,work_qty:d.kind==="작업 완료"?work_qty:null,per_unit:d.kind==="작업 완료"?per_unit:null,
+    order_no:d.order_no.trim(),memo:d.memo.trim(),work_name:db.items.find(i=>i.id===d.work_item_id)?.name||"",created_at:new Date().toISOString()};
+}
+async function persistMaterialMove(move){
+  if(db.material_moves.some(m=>m.id===move.id))return true;
+  const next=[...db.material_moves,move];validateMaterialLedger(next);
+  if(!await saveTable("material_moves",next))return false;
+  db.material_moves=next;return true;
+}
+async function voidMaterialMove(id){
+  const original=db.material_moves.find(m=>m.id===id);if(!original||original.void_at)return false;
+  const next=db.material_moves.map(m=>m.id===id?{...m,void_at:new Date().toISOString()}:m);
+  validateMaterialLedger(next);
+  if(!await saveTable("material_moves",next))return false;
+  db.material_moves=next;return true;
+}
+function renderMaterials(){
+  if(!materialDraft)materialDraft=newMaterialDraft();
+  const d=materialDraft,rows=db.material_moves.filter(m=>!d.company_id||m.company_id===d.company_id);
+  const totals=materialBalances(rows),names=[...new Set(db.material_moves.filter(m=>m.company_id===d.company_id).map(m=>m.material))];
+  const option=(value,label,selected)=>`<option value="${escapeAttr(value)}" ${value===selected?"selected":""}>${escapeHtml(label)}</option>`;
+  const input=(key,label,type="text")=>`<div class="field"><label for="mm_${key}">${label}</label><input id="mm_${key}" data-mm="${key}" type="${type}" ${["qty","work_qty","per_unit"].includes(key)?'inputmode="numeric"':""} value="${escapeAttr(d[key])}"></div>`;
+  document.getElementById("materialContent").innerHTML=`
+    <div class="card" style="padding:16px;margin-top:16px">
+      <div class="field"><label for="mm_company">자재 소유 거래처 *</label><select id="mm_company" data-mm="company_id">${option("","거래처 선택",d.company_id)}${db.companies.map(c=>option(c.id,c.name,d.company_id)).join("")}</select></div>
+      <div class="hint">스마트스토어 구매자도 거래처로 등록하세요. 다른 업체의 자재와 섞이지 않습니다.</div>
+      <div class="grid2">${input("date","기록 일자 *","date")}<div class="field"><label for="mm_kind">기록 구분</label><select id="mm_kind" data-mm="kind">${["받음","작업 완료","반환","불량/분실"].map(k=>option(k,k,d.kind)).join("")}</select></div></div>
+      <div class="field"><label for="mm_material">자재 이름·종류 *</label>${d.kind==="받음"?`<input id="mm_material" data-mm="material" list="mm_names" value="${escapeAttr(d.material)}" placeholder="예: A업체 로고 패치 (흰색)"><datalist id="mm_names">${names.map(n=>option(n,n,"")).join("")}</datalist>`:`<select id="mm_material" data-mm="material">${option("","받은 자재 선택",d.material)}${names.map(n=>option(n,n,d.material)).join("")}</select>`}</div>
+      ${d.kind==="작업 완료"?`<div class="grid2">${input("work_qty","완료한 작업 수량 *")}${input("per_unit","작업 1개당 자재 사용량 *")}</div><div class="hint" id="mm_preview"></div><div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,i.name,d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}
+      <div class="grid2"><div class="field"><label for="mm_source">주문 경로</label><select id="mm_source" data-mm="source">${["직접 주문","스마트스토어","기타"].map(k=>option(k,k,d.source)).join("")}</select></div>${input("order_no","주문번호 / 회차 (선택)")}</div>
+      <div class="field"><label for="mm_quote">견적서 연결 (선택)</label><select id="mm_quote" data-mm="quote_id">${option("","견적서 없이 기록",d.quote_id)}${db.quotes.filter(q=>q.company_id===d.company_id).map(q=>option(q.id,q.no,d.quote_id)).join("")}</select></div>
+      ${input("memo","메모 (예: 1차 작업, 불량 사유)")}
+      <div class="hint">금액·수금은 생성하지 않습니다. 자재 잔량만 기록합니다. 부분 작업은 실제 완료한 수량만 회차별로 입력하세요.</div>
+      <button type="button" class="btn save" id="mm_save" style="width:100%;margin-top:12px" ${materialSaving?"disabled":""}>${d.kind==="작업 완료"?"작업 완료 · 자재 차감":"자재 기록 저장"}</button>
+    </div>
+    <div class="card" style="padding:16px;margin-top:16px"><h3>업체별 자재 잔량</h3>${Object.entries(totals).map(([key,qty])=>{const [cid,name]=JSON.parse(key);return `<div class="quote-record" style="grid-template-columns:minmax(0,1fr) auto"><span>${escapeHtml(coName(cid))} · ${escapeHtml(name)}</span><b>${fmt(qty)}개</b></div>`}).join("")||'<div class="hint">아직 받은 자재가 없습니다.</div>'}</div>
+    <div class="card" style="padding:16px;margin-top:16px"><h3>기록 내역 ${d.company_id?"(선택 업체)":"(전체 업체)"}</h3>${rows.slice().reverse().map(m=>`<div style="padding:12px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere;${m.void_at?"opacity:.55":""}"><b>${escapeHtml(m.date)} · ${escapeHtml(m.kind)} · ${m.kind==="받음"?"+":"−"}${fmt(m.qty)}개 ${m.void_at?"(취소됨)":""}</b><div>${escapeHtml(coName(m.company_id))} · ${escapeHtml(m.material)}</div><div class="hint">${escapeHtml([m.source,m.order_no,m.work_name,m.kind==="작업 완료"?`${m.work_qty}작업 × ${m.per_unit}개`:"",m.quote_id?(db.quotes.find(q=>q.id===m.quote_id)?.no||"삭제된 견적"):"",m.memo].filter(Boolean).join(" · "))}</div>${m.void_at?"":`<button type="button" class="btn ghost" data-mm-void="${escapeAttr(m.id)}" ${materialSaving?"disabled":""}>기록 취소</button>`}</div>`).join("")||'<div class="hint">기록이 없습니다.</div>'}</div>`;
+  const updatePreview=()=>{const el=document.getElementById("mm_preview");if(el)el.textContent=`차감 예정 ${fmt((Number(d.work_qty)||0)*(Number(d.per_unit)||0))}개 · 현재 잔량 ${fmt(totals[materialKey(d)]||0)}개`;};updatePreview();
+  document.querySelectorAll("[data-mm]").forEach(el=>{
+    el.oninput=()=>{d[el.dataset.mm]=el.value;updatePreview();};
+    if(["company_id","kind"].includes(el.dataset.mm))el.onchange=()=>{d[el.dataset.mm]=el.value;if(el.dataset.mm==="company_id"){d.material="";d.quote_id="";}renderMaterials();};
+  });
+  document.getElementById("mm_save").onclick=async()=>{
+    if(materialSaving)return;materialSaving=true;const btn=document.getElementById("mm_save");btn.disabled=true;
+    try{
+      const move=buildMaterialMove(d);
+      if(move.kind==="작업 완료"&&move.order_no&&db.material_moves.some(m=>!m.void_at&&m.kind==="작업 완료"&&m.company_id===move.company_id&&m.material===move.material&&m.source===move.source&&m.order_no===move.order_no)&&!confirm("같은 주문번호·자재의 작업 기록이 있습니다. 별도 회차의 추가 작업이 맞나요?"))return;
+      if(await persistMaterialMove(move)){materialDraft=newMaterialDraft(d.company_id);renderMaterials();}
+    }catch(err){toast(err.message);}finally{materialSaving=false;document.querySelectorAll("[data-mm-void],#mm_save").forEach(b=>b.disabled=false);}
+  };
+  document.querySelectorAll("[data-mm-void]").forEach(btn=>{btn.onclick=async()=>{
+    if(materialSaving||!confirm("기록을 취소하고 잔량을 다시 계산할까요? 원본 기록은 취소 이력으로 남습니다."))return;
+    materialSaving=true;btn.disabled=true;
+    try{if(await voidMaterialMove(btn.dataset.mmVoid))renderMaterials();}catch(err){toast(err.message);}finally{materialSaving=false;document.querySelectorAll("[data-mm-void],#mm_save").forEach(b=>b.disabled=false);}
+  };});
+}
 function currentStocks(){
   const map={};
   (db.stock_moves||[]).forEach(m=>{
@@ -4068,7 +4162,7 @@ async function saveSettings(){
 /* =====================================================================
    전체 데이터 백업 / 복원
    ===================================================================== */
-const BACKUP_TABLES=["companies","items","quotes","payments","stock_moves"];
+const BACKUP_TABLES=["companies","items","quotes","payments","stock_moves","material_moves"];
 
 function exportBackup(){
   const data={ app:"erp", appVersion:APP_VERSION, format:1, exportedAt:new Date().toISOString(), settings:db.settings||{} };
@@ -4089,6 +4183,7 @@ async function importBackup(file){
   for(const t of BACKUP_TABLES){
     if(data[t]!==undefined && !Array.isArray(data[t])){ toast(`백업 파일이 손상되었습니다 (${t})`); return; }
   }
+  if(data.material_moves===undefined&&db.material_moves.length){toast("이 옛 백업에는 업체 제공 자재 이력이 없습니다. 현재 자재 이력을 보호하기 위해 복원을 중단했습니다");return;}
   const summary=BACKUP_TABLES.map(t=>`${t} ${(data[t]||[]).length}건`).join(" · ");
   if(!confirm(`백업을 불러오면 현재 데이터를 모두 덮어씁니다.\n\n${data.exportedAt? "백업 시각: "+new Date(data.exportedAt).toLocaleString("ko-KR")+"\n":""}${summary}\n\n계속할까요?`)) return;
 
