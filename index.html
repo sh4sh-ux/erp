@@ -963,7 +963,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.64";
+const APP_VERSION = "v1.65";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -1472,6 +1472,37 @@ function blankCompany(){
   return { id:null, name:"", biz_no:"", type:"매출", contact:"", phone:"", email:"", address:"", memo:"", quote_memo:"" };
 }
 
+function companyPriceRow(rule={}){
+  const options=db.items.map(i=>`<option value="${escapeAttr(i.id)}" ${i.id===rule.item_id?"selected":""}>${escapeHtml(itemLabel(i.name,i.code))}</option>`).join("");
+  return `<div data-price-rule class="quote-flow" style="padding:12px">
+    <div class="field"><label>제품</label><select data-rule="item_id"><option value="">제품 선택</option>${options}${rule.item_id&&!db.items.some(i=>i.id===rule.item_id)?`<option value="${escapeAttr(rule.item_id)}" selected>삭제된 품목 (삭제 권장)</option>`:""}</select></div>
+    <div class="grid2"><div class="field"><label>색상 (빈칸: 전체)</label><input data-rule="color" value="${escapeAttr(rule.color||"")}" placeholder="예: WH"></div><div class="field"><label>규격·사이즈 (빈칸: 전체)</label><input data-rule="spec" value="${escapeAttr(rule.spec||"")}" placeholder="예: XL"></div></div>
+    <div class="field"><label>판매 단가 (부가세 별도)</label><input data-rule="price" type="text" inputmode="decimal" value="${escapeAttr(rule.price??"")}" placeholder="예: 9000"></div>
+    <button type="button" class="btn ghost" data-rule-remove>약정 삭제</button></div>`;
+}
+function readCompanyPrices(){
+  const rules=[],keys=new Set();
+  document.querySelectorAll("[data-price-rule]").forEach(row=>{
+    const value=k=>row.querySelector(`[data-rule="${k}"]`).value.trim();
+    const rule={item_id:value("item_id"),color:value("color"),spec:value("spec"),price:Number(value("price").replace(/,/g,""))};
+    if(!rule.item_id||!value("price")||!Number.isFinite(rule.price)||rule.price<0)throw Error("약정의 제품과 0 이상의 단가를 입력하세요");
+    const key=JSON.stringify([rule.item_id,rule.color,rule.spec]);
+    if(keys.has(key))throw Error("같은 제품·색상·규격의 약정이 중복됩니다");
+    keys.add(key);rules.push(rule);
+  });
+  return rules;
+}
+// Exact options first, then size, color, product-wide price. Zero is a valid agreement.
+function companySell(cid,item,color="",spec=""){
+  const rules=(coById(cid)?.prices||[]).filter(r=>r.item_id===item?.id&&(!r.color||r.color===color)&&(!r.spec||r.spec===spec)&&Number.isFinite(Number(r.price))&&Number(r.price)>=0);
+  rules.sort((a,b)=>((b.spec?2:0)+(b.color?1:0))-((a.spec?2:0)+(a.color?1:0)));
+  return rules.length?Number(rules[0].price):itemSell(item,spec);
+}
+function applyAutomaticPrice(q,line){
+  if(line.price_auto!==true||(quoteDeliveryQtyMap(q)[line.id]||0)>0)return;
+  const item=db.items.find(i=>i.id===line.item_id);
+  if(item)line.price=companySell(q.company_id,item,line.color,line.spec);
+}
 function renderCoDetail(){
   const empty=document.getElementById("coEmpty");
   const form=document.getElementById("coForm");
@@ -1502,11 +1533,19 @@ function renderCoDetail(){
       <textarea id="f_qmemo" placeholder="예: 결제는 월말 결산 후 익월 10일">${escapeHtml(c.quote_memo)}</textarea>
       <div class="hint">이 거래처로 견적서를 만들면 비고에 자동으로 채워집니다 (견적서에서 수정 가능)</div>
     </div>
+    <section class="quote-flow" style="padding:12px"><h3>거래처 약정 판매 단가</h3>
+      <div class="hint">제품은 그대로 두고 이 업체의 판매 단가만 설정합니다. 색상·규격은 품목에 등록한 표기와 같게 입력하세요. 모두 지정한 약정 → 규격별 → 색상별 → 제품 전체 순으로 적용됩니다. 기존 견적은 바뀌지 않습니다.</div>
+      <div id="coPriceRules">${(c.prices||[]).map(companyPriceRow).join("")}</div>
+      <button class="btn ghost" type="button" id="coPriceAdd">＋ 약정 단가 추가</button>
+      <div class="hint">추가·삭제 후 아래 거래처 저장을 눌러 확정하세요.</div>
+    </section>
     <div class="form-actions">
       <button class="btn save" id="coSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?'<button class="btn ghost" id="coCancelBtn">취소</button>':'<button class="btn del" id="coDelBtn">삭제</button>'}
     </div>`;
   document.getElementById("coSaveBtn").onclick=()=>submitCompany(c,isNew);
+  document.getElementById("coPriceAdd").onclick=()=>document.getElementById("coPriceRules").insertAdjacentHTML("beforeend",companyPriceRow());
+  document.getElementById("coPriceRules").onclick=ev=>{if(ev.target.closest("[data-rule-remove]"))ev.target.closest("[data-price-rule]").remove();};
   if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ coSel=null; renderCoList(); renderCoDetail(); };
   else document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
 }
@@ -1514,7 +1553,9 @@ function renderCoDetail(){
 async function submitCompany(c,isNew){
   const name=document.getElementById("f_name").value.trim();
   if(!name){ toast("상호를 입력하세요"); return; }
+  let prices;try{prices=readCompanyPrices();}catch(err){toast(err.message);return;}
   const data={
+    prices,
     name,
     type:document.getElementById("f_type").value,
     biz_no:document.getElementById("f_biz").value.trim(),
@@ -1525,14 +1566,12 @@ async function submitCompany(c,isNew){
     memo:document.getElementById("f_memo").value.trim(),
     quote_memo:document.getElementById("f_qmemo").value.trim(),
   };
-  if(isNew){
-    const row={ id:crypto.randomUUID(), ...data, created_at:new Date().toISOString() };
-    db.companies.push(row); coSel=row.id;
-  }else{
-    Object.assign(c,data);
-  }
+  const row=isNew?{id:crypto.randomUUID(),...data,created_at:new Date().toISOString()}:{...c,...data};
+  const next=isNew?[...db.companies,row]:db.companies.map(x=>x.id===c.id?row:x);
+  const button=document.getElementById("coSaveBtn");button.disabled=true;
+  if(!await saveTable("companies",next)){button.disabled=false;return;}
+  db.companies=next;coSel=row.id;
   renderCoList(); renderCoDetail();
-  await saveTable("companies",db.companies);
 }
 
 async function deleteCompany(id){
@@ -2513,6 +2552,8 @@ function renderQtDetail(){
     const prev=coQuoteMemo(e.company_id);
     e.company_id=ev.target.value;
     applyCoQuoteMemo(e,prev);
+    e.lines.forEach(l=>applyAutomaticPrice(e,l));
+    renderQtDetail();
   };
   document.getElementById("fq_status").onchange=ev=>{ e.status=ev.target.value; };
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
@@ -2592,7 +2633,7 @@ function renderSizePanel(e,focusFirst){
     <div class="szgrid">
       ${it.variants.map(v=>{
         const l=cur[v.spec]||null;
-        const price=l?l.price:(Number(v.sell_price)||Number(it.sell_price)||0);
+        const price=l?l.price:companySell(e.company_id,it,color,v.spec);
         return `<div class="szcell">
           <div class="lb" title="${escapeAttr(v.spec)}">${escapeHtml(v.spec)}</div>
           <input type="text" inputmode="numeric" data-sz="${escapeAttr(v.spec)}" value="${l&&l.qty?fmt(l.qty):""}" placeholder="0">
@@ -2629,6 +2670,7 @@ function renderSizePanel(e,focusFirst){
   });
   if(focusFirst && qtys.length) setTimeout(()=>{ qtys[0].focus(); },0);
   box.querySelectorAll("[data-szp]").forEach(i=>{
+    i.oninput=()=>{i.dataset.manual="true";};
     i.onfocus=()=>{ i.value=String(i.value).replace(/,/g,""); i.select(); };
     i.onblur=()=>{ const n=parseNum(i.value); i.value=n?fmt(n):""; };
   });
@@ -2647,8 +2689,9 @@ function applySizePanel(e,it,color){
     const price=parseNum((box.querySelector(`[data-szp="${CSS.escape(v.spec)}"]`)||{}).value);
     const idx=e.lines.findIndex(l=>l.item_id===it.id && (l.color||"")===color && (l.spec||"")===v.spec);
     if(qty>0){
-      if(idx>=0){ e.lines[idx].qty=qty; e.lines[idx].price=price; }
-      else e.lines.push({ item_id:it.id, name:itemLabel(it.name,it.code), color, spec:v.spec, unit:it.unit||"", qty, price });
+      const manual=box.querySelector(`[data-szp="${CSS.escape(v.spec)}"]`)?.dataset.manual==="true";
+      if(idx>=0){ e.lines[idx].qty=qty; e.lines[idx].price=price;if(manual)e.lines[idx].price_auto=false; }
+      else e.lines.push({ id:crypto.randomUUID(),item_id:it.id, name:itemLabel(it.name,it.code), color, spec:v.spec, unit:it.unit||"", qty, price,price_auto:!manual });
       added++;
     }else if(idx>=0){ e.lines.splice(idx,1); removed++; }
   });
@@ -2725,6 +2768,7 @@ function applyItemPick(e,idx,v){
       l.spec=it.spec||"";
       if(it.sell_price) l.price=it.sell_price;
     }
+    l.price_auto=true;applyAutomaticPrice(e,l);
   }else{ Object.assign(l,blankLine()); }
   renderQtDetail();
 }
@@ -2817,9 +2861,10 @@ function bindQtLines(e){
   });
   form.querySelectorAll('[data-f="spec"]').forEach(el=>{
     el.oninput=()=>{ e.lines[Number(el.dataset.idx)].spec=el.value; };
+    el.onchange=()=>{applyAutomaticPrice(e,e.lines[Number(el.dataset.idx)]);renderQtDetail();};
   });
   form.querySelectorAll('[data-f="lcolor"]').forEach(el=>{
-    el.onchange=()=>{ e.lines[Number(el.dataset.idx)].color=el.value; };
+    el.onchange=()=>{const l=e.lines[Number(el.dataset.idx)];l.color=el.value;applyAutomaticPrice(e,l);renderQtDetail();};
   });
   form.querySelectorAll('[data-f="vspec"]').forEach(el=>{
     el.onchange=()=>{
@@ -2827,7 +2872,7 @@ function bindQtLines(e){
       const l=e.lines[idx];
       const it=db.items.find(x=>x.id===l.item_id);
       l.spec=el.value;
-      l.price=itemSell(it,l.spec);
+      applyAutomaticPrice(e,l);
       renderQtDetail();
     };
   });
@@ -2837,6 +2882,7 @@ function bindQtLines(e){
     el.oninput=()=>{
       const idx=Number(el.dataset.idx);
       e.lines[idx][el.dataset.f]=parseNum(el.value);
+      if(el.dataset.f==="price")e.lines[idx].price_auto=false;
       const l=e.lines[idx];
       form.querySelector(`[data-amt="${idx}"]`).textContent=fmt((Number(l.qty)||0)*(Number(l.price)||0));
       const t=quoteTotals(e);
