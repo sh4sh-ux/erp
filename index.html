@@ -125,6 +125,8 @@
   .pill.in{background:var(--ok-soft);color:#1E7A3E}
   .pill.out{background:var(--warn-soft);color:#B26A00}
   .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.7}
+  .empty-actions{display:flex;justify-content:center;gap:8px;margin-top:14px}
+  .empty .btn{padding:9px 13px;font-size:13px}
 
   /* ---------- detail form ---------- */
   .detail{padding:22px 24px}
@@ -942,7 +944,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.61";
+const APP_VERSION = "v1.62";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -1206,8 +1208,13 @@ async function loadAll(){
     migrateStockQuoteLinks();
     await runMigrations();
     renderCurrentView();
-    setSyncState("saved",syncTimeLabel("동기화"));
-    toast("불러왔습니다");
+    if(dataLooksEmpty() && usesDefaultAppFolderKey()){
+      setSyncState("error","데이터 위치 확인 필요");
+      toast("Dropbox 데이터 위치를 확인해 주세요");
+    }else{
+      setSyncState("saved",syncTimeLabel("동기화"));
+      toast("불러왔습니다");
+    }
     offerImportIfEmpty();          // 비어 있으면 옛 앱 폴더를 찾아 가져오기를 제안
   }catch(e){ setSyncState("error","불러오기 실패"); toast("불러오기 실패: "+e.message); }
 }
@@ -1219,13 +1226,18 @@ async function loadAll(){
 let _offeredImport=false;
 async function offerImportIfEmpty(){
   if(_offeredImport)return;
-  const empty=!db.companies.length&&!db.items.length&&!db.quotes.length
-            &&!db.payments.length&&!(db.stock_moves||[]).length;
-  if(!empty)return;
+  if(!dataLooksEmpty())return;
   _offeredImport=true;                       // 한 세션에 한 번만 묻는다
   let dir=null;
   try{ dir=await findLegacyDir(); }catch(e){ return; }   // 못 찾으면 조용히 넘어간다
-  if(!dir)return;
+  if(!dir){
+    if(usesDefaultAppFolderKey()){
+      alert("Dropbox 연결은 됐지만 현재 앱 폴더에는 ERP 데이터가 없습니다.\n\n"
+           +"기존 데이터는 Dropbox의 /07_Apps/거래처관리(ERP)에 남아 있을 수 있습니다.\n"
+           +"Full Dropbox 권한의 App key로 다시 연결하거나, 데이터 복사를 진행해 주세요.");
+    }
+    return;
+  }
   if(!confirm("데이터가 비어 있는데, 예전 데이터를 Dropbox에서 찾았습니다.\n\n"
              +dir+"\n\n지금 가져올까요?\n(옛 폴더의 원본은 그대로 둡니다)"))return;
   await importFromAppFolder();
@@ -1253,6 +1265,27 @@ function bindNumInput(el,onChange){
 }
 function localDate(d=new Date()){ const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
 function localMonth(d=new Date()){ return localDate(d).slice(0,7); }
+function usesDefaultAppFolderKey(){
+  const saved=(localStorage.getItem(LS_APP_KEY)||"").trim();
+  return !saved || saved===DROPBOX_APP_KEY_DEFAULT;
+}
+function dataLooksEmpty(){
+  return !db.companies.length&&!db.items.length&&!db.quotes.length
+      && !db.payments.length&&!(db.stock_moves||[]).length;
+}
+function emptyStorageNoticeHtml(){
+  if(!dataLooksEmpty() || !usesDefaultAppFolderKey()) return "";
+  return `<div class="empty">현재 Dropbox 연결이 빈 앱 폴더를 보고 있습니다.<br>기존 데이터가 보이지 않으면 Dropbox 연결을 다시 설정하거나 데이터 복사를 진행해 주세요.
+    <div class="empty-actions"><button class="btn ghost" data-dropbox-reset>Dropbox 연결 다시 설정</button></div>
+  </div>`;
+}
+function bindEmptyStorageActions(root){
+  const btn=root.querySelector("[data-dropbox-reset]");
+  if(!btn) return;
+  btn.onclick=()=>{
+    if(confirm("Dropbox 연결을 다시 설정할까요?\n\n다시 연결할 때 Full Dropbox 권한의 App key를 입력하면 /07_Apps/거래처관리(ERP) 데이터를 볼 수 있습니다.")) logout();
+  };
+}
 function syncTimeLabel(action,d=new Date()){
   const p=n=>String(n).padStart(2,"0");
   return `${p(d.getHours())}:${p(d.getMinutes())} ${action}`;
@@ -2160,7 +2193,8 @@ function renderQtList(){
   document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${db.quotes.length}건`;
   const list=document.getElementById("qtList");
   if(rows.length===0){
-    list.innerHTML=`<div class="empty">${db.quotes.length? "조건에 맞는 견적서가 없습니다." : "아직 작성한 견적서가 없습니다.<br>+ 버튼으로 첫 견적서를 만들어 보세요."}</div>`;
+    list.innerHTML=emptyStorageNoticeHtml() || `<div class="empty">${db.quotes.length? "조건에 맞는 견적서가 없습니다." : "아직 작성한 견적서가 없습니다.<br>+ 버튼으로 첫 견적서를 만들어 보세요."}</div>`;
+    bindEmptyStorageActions(list);
     return;
   }
   list.innerHTML=rows.map(x=>{

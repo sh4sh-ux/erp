@@ -24,6 +24,7 @@ favicon.png           — 브라우저 탭 아이콘 64px
 icons/icon-180.png    — iOS 홈 화면 (apple-touch-icon)
 icons/icon-192.png    — 매니페스트 아이콘
 icons/icon-512.png    — 매니페스트 아이콘
+assets/business-card-gownii.png — 명함 보내기 기본 이미지
 CLAUDE.md             — 이 파일 (세션 컨텍스트용)
 ROADMAP.md            — 이카운트 ERP 대비 분석 · 개선 우선순위 (추가/유지/삭제 판단 근거)
 ```
@@ -304,6 +305,8 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
 
 ## Changelog
+- `v1.62` — 기본 App folder 키로 빈 Dropbox 앱 폴더를 보고 있을 때 정상 동기화처럼 보이지 않도록
+  상단 동기화 상태와 견적서 빈 화면에 데이터 위치 확인 안내, Dropbox 재연결 버튼을 표시.
 - `v1.61` — 모든 날짜·월 입력을 공통 표시 래퍼로 통일하고 모바일 Grid 최소 너비를 제한.
   네이티브 날짜 선택은 유지하면서 Safari 고유 표시 크기를 레이아웃에서 분리한다.
   견적별 회차·품목 수량별 분할납품과 직접 입금 등록, 부분납품 상태, 납품분 월별 집계 추가.
