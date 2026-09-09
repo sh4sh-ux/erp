@@ -654,6 +654,160 @@
     #view-dash .head-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
   }
 
+  /* ---------- v1.78: 업체 제공 자재에서 확장한 공통 작업 화면 ---------- */
+  :root{
+    --ink:#171A1F;
+    --ink-2:#5F6875;
+    --ink-3:#98A0AC;
+    --paper:#F5F6F8;
+    --card:#FFFFFF;
+    --line:#E2E5E9;
+    --line-2:#ECEEF1;
+    --primary:#2477F3;
+    --primary-soft:#EDF4FF;
+    --danger:#F04438;
+    --danger-soft:#FFF0EE;
+    --ok:#26A65B;
+    --ok-soft:#EAF8F0;
+    --warn-c:#F59E0B;
+    --warn-soft:#FFF7E8;
+    --r:14px;
+    --r-sm:9px;
+  }
+  body{background:var(--paper);font-size:15px}
+  .topbar{height:64px;padding:0 22px;border-bottom-color:var(--line);background:rgba(255,255,255,.97)}
+  .tb-brand{font-size:16px;letter-spacing:-.01em}
+  .tb-brand .m{width:32px;height:32px;border-radius:10px;box-shadow:none}
+  .tb-ver{font-size:12px}
+  .shell{grid-template-columns:204px minmax(0,1fr);min-height:calc(100vh - 64px)}
+  .sidebar{top:64px;height:calc(100vh - 64px);padding:20px 12px;border-right-color:var(--line)}
+  .nav-sec{padding:14px 11px 7px;color:#A3AAB4;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:none}
+  .nav-item{min-height:44px;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600}
+  .nav-item.on{background:var(--primary-soft);box-shadow:inset 3px 0 var(--primary)}
+  .main{padding:30px 34px 48px}
+  .view{width:100%;max-width:1480px;margin:0 auto}
+  .page-head{min-height:46px;margin-bottom:22px;gap:10px}
+  .page-head h2{font-size:25px;font-weight:730;letter-spacing:-.035em}
+  .page-head .count{margin-left:2px;padding:4px 9px;border:1px solid var(--line);background:var(--card);font-size:12px;font-weight:650}
+  .page-title p{margin-top:3px;font-size:13px}
+  .head-actions{gap:9px}
+
+  .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:none}
+  .cols{grid-template-columns:320px minmax(0,1fr);gap:16px}
+  .list-head{padding:14px;border-bottom-color:var(--line)}
+  .search{min-height:44px;padding:9px 11px;border:1px solid var(--line);background:#F7F8FA}
+  .search:focus-within{background:#fff;box-shadow:0 0 0 3px var(--primary-soft)}
+  .btn-add{width:44px;height:44px;border-radius:10px}
+  .list{padding:7px}
+  .list-item{min-height:60px;padding:10px 11px;border-radius:10px}
+  .list-item.on{background:var(--primary-soft)}
+  .avatar{width:36px;height:36px;border-radius:9px}
+  .li-name{font-size:14px;font-weight:680}
+  .li-sub{margin-top:2px;font-size:12px}
+  .detail{padding:28px 30px}
+  .detail-empty{padding:76px 24px}
+
+  .field{margin-bottom:16px}
+  .field label{margin-bottom:7px;color:var(--ink-2);font-size:13px;font-weight:650}
+  .field input,.field select,.field textarea,
+  .month-input,.doc-sel,.pay-add input,.pay-add select,.stock-add input,.stock-add select{
+    min-height:44px;border-color:var(--line);border-radius:9px;background:#fff;font-size:14px;
+  }
+  .field input:hover,.field select:hover,.field textarea:hover,
+  .month-input:hover,.doc-sel:hover{border-color:#C7CCD3}
+  .field input:focus,.field select:focus,.field textarea:focus,
+  .month-input:focus,.doc-sel:focus{box-shadow:0 0 0 3px var(--primary-soft)}
+  .grid2,.grid3{gap:12px 16px}
+  .form-actions{margin-top:24px;padding-top:18px}
+  .btn,.btn-sm{min-height:44px;border-radius:9px;font-weight:680}
+  .btn.ghost,.head-action-secondary{border:1px solid var(--line);background:#fff}
+  .btn.ghost:hover,.head-action-secondary:hover{border-color:#C7CCD3;background:#F8F9FA}
+
+  .stats{gap:12px;margin-bottom:18px}
+  .stat{min-height:112px;padding:19px 20px;border-radius:var(--r)}
+  .stat .k{color:var(--ink-3);font-size:12px;font-weight:650}
+  .stat .v{margin-top:10px;font-size:23px;font-weight:760;letter-spacing:-.025em}
+  .stat .hint{margin-top:5px!important}
+  .stat-link:hover{border-color:#BFD5F8;background:#FBFDFF}
+  .dash-grid{grid-template-columns:minmax(0,1.35fr) minmax(340px,.85fr);gap:16px}
+  .card-head{min-height:56px;padding:17px 20px 10px;border-bottom:1px solid var(--line-2)}
+  .card-head h3{font-size:15px;font-weight:720}
+  .chart{height:210px;padding:24px 22px 18px}
+
+  .tbl{font-size:14px}
+  .tbl th{padding:11px 14px;background:#FAFBFC;color:var(--ink-3);font-size:12px;font-weight:650}
+  .tbl td{padding:13px 14px}
+  .tbl tbody tr:hover{background:#FAFCFF}
+  .item-data-table th+th,.item-data-table td+td{border-left-color:var(--line-2)}
+  .pay-add,.stock-add{padding:16px;gap:9px;background:#FAFBFC}
+  #view-payments>.card,#view-stock>.cols>.card{overflow:hidden}
+
+  #view-quotes .quote-cols{grid-template-columns:minmax(300px,340px) minmax(0,1fr)}
+  .quote-filters{padding:13px 14px;background:#FAFBFC;border-bottom-color:var(--line)}
+  .quote-filters input,.quote-filters select{height:42px;background:#fff}
+  .quote-back{margin:16px 16px 0}
+  .qlines,.vlines,.quote-flow{border-radius:11px}
+  .qline{min-height:48px;padding:8px 11px}
+  .qline.head{min-height:38px;background:#FAFBFC}
+  .qline input,.qline select,.vline input,.vline select,.cline input,.cline select{min-height:38px;border-radius:8px;background:#fff}
+  .qtotals{gap:7px;padding:20px 4px 4px}
+  .qtotals .row.grand .v{font-size:20px}
+  .quote-flow-head{padding:16px 17px;background:#FAFBFC}
+  .quote-flow-body{padding:0 17px 16px}
+  .quote-record{min-height:50px;padding:11px 0}
+
+  .copy-note{margin-bottom:18px;padding:12px 15px;border-radius:10px;background:var(--primary-soft)}
+  .material-master{margin-top:0;border-radius:16px}
+  .material-owners{padding:16px 24px;background:#FAFBFC}
+  .material-owner{border-radius:10px}
+  .material-detail{max-width:1120px;padding:42px 48px 58px}
+  .material-balance-hero{margin-top:40px}
+  .material-balance-hero strong{font-size:48px}
+  .material-summary{padding:19px 0}
+  .material-record{min-height:74px}
+
+  #view-settings>.card{max-width:760px!important}
+
+  @media(max-width:1120px){
+    .main{padding:26px 24px 42px}
+    .dash-grid{grid-template-columns:1fr}
+    .cols{grid-template-columns:300px minmax(0,1fr)}
+  }
+  @media(max-width:980px){
+    .cols,#view-quotes .quote-cols{grid-template-columns:1fr}
+  }
+  @media(max-width:820px){
+    .topbar{height:58px;padding:0 12px}
+    .shell{min-height:calc(100vh - 58px)}
+    .sidebar{top:58px}
+    .main{padding:18px 14px calc(90px + env(safe-area-inset-bottom))}
+    .view{max-width:none}
+    .page-head{min-height:42px;margin-bottom:15px}
+    .page-head h2{font-size:22px}
+    .card{border-radius:12px}
+    .detail{padding:20px 16px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .stat{min-height:98px;padding:15px}
+    .stat .v{margin-top:7px;font-size:20px}
+    .card-head{padding:15px 16px 9px}
+    .tbl th{padding:10px 12px}
+    .tbl td{padding:12px}
+    .material-master{margin:8px -14px 0;border-left:0;border-right:0;border-radius:0}
+    .material-owners{padding:14px}
+    .material-detail{padding:26px 18px 104px}
+    .material-balance-hero strong{font-size:40px}
+    .mobile-nav{min-height:66px;padding-top:6px}
+    .mobile-nav-item{min-height:54px;border-radius:10px}
+  }
+  @media(max-width:560px){
+    .grid2,.grid3{grid-template-columns:1fr}
+    .pay-add,.stock-add,.quote-filters{grid-template-columns:1fr}
+    .pay-add>*,.stock-add>*{grid-column:auto!important}
+    .page-head{align-items:center}
+    #view-sales .page-head h2{width:100%}
+    .detail-empty{padding:54px 20px}
+  }
+
   #printArea.preview{display:block;position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:60;background:var(--paper);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:calc(64px + env(safe-area-inset-top)) 12px calc(40px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
   .pv-bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:61;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 12px}
   .pv-bar .sp{flex:1}
@@ -1206,7 +1360,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.77";
+const APP_VERSION = "v1.78";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
