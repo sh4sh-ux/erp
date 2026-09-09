@@ -808,6 +808,39 @@
     .detail-empty{padding:54px 20px}
   }
 
+  /* ---------- v1.79: 직선 선택 바 · 업체 자재 내역 정돈 ---------- */
+  .nav-item,.list-item,.material-owner{position:relative}
+  .nav-item.on,.list-item.on,.material-owner.active{box-shadow:none}
+  .nav-item.on::before,.list-item.on::before,.material-owner.active::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0;background:var(--primary)
+  }
+  .material-owner.active{border-color:#C9DCF9;background:var(--primary-soft)}
+  .material-balance-hero{margin-top:32px}
+  .material-balance-hero strong{font-size:32px;letter-spacing:-1px}
+  .material-history{border-top:1px solid var(--line)}
+  .material-day+.material-day{margin-top:0;border-top:0}
+  .material-day-head{display:none}
+  .material-record{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:16px;min-height:0;padding:16px 2px;border-bottom:1px solid var(--line)}
+  .material-day:last-child .material-record:last-child{border-bottom:0}
+  .material-record-date{margin-bottom:6px;color:var(--ink-3);font-size:12px;font-weight:650}
+  .material-record-line{gap:7px}
+  .material-record-name{margin:0;font-size:14px;font-weight:720}
+  .material-record-kind{padding:3px 7px;border-radius:6px;font-size:11px;line-height:1.35}
+  .material-record-kind.work{background:var(--ok-soft);color:#1E7A3E}
+  .material-record-meta{margin-top:5px;color:var(--ink-2);font-size:12.5px;line-height:1.5}
+  .material-record-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:24px}
+  .material-record-actions{flex-wrap:wrap}
+
+  @media(max-width:820px){
+    .mobile-nav-item{position:relative}
+    .mobile-nav-item.on{box-shadow:none}
+    .mobile-nav-item.on::after{content:"";position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:0;background:var(--primary)}
+    .material-balance-hero strong{font-size:28px}
+    .material-record{padding:14px 0;gap:10px}
+    .material-record-side{padding-top:23px}
+    .material-record-actions .btn{min-height:34px;padding:6px 8px;font-size:11.5px}
+  }
+
   #printArea.preview{display:block;position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:60;background:var(--paper);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:calc(64px + env(safe-area-inset-top)) 12px calc(40px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
   .pv-bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:61;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 12px}
   .pv-bar .sp{flex:1}
@@ -1360,7 +1393,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.78";
+const APP_VERSION = "v1.79";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -4122,7 +4155,7 @@ function renderMaterials(){
   }).join("");
   const historyGroups=new Map();
   ownerRows.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||"")).forEach(m=>{if(!historyGroups.has(m.date))historyGroups.set(m.date,[]);historyGroups.get(m.date).push(m);});
-  const historyHtml=[...historyGroups.entries()].map(([date,moves])=>`<section class="material-day"><div class="material-day-head"><span>${escapeHtml(shortDate(date))}</span><small>${moves.length}건</small></div>${moves.map(m=>{const direction=m.kind==="받음"?"in":"out";return `<div class="material-record" style="${m.void_at?"opacity:.5":""}"><div class="material-record-main"><div class="material-record-line"><span class="material-record-kind ${direction}">${escapeHtml(m.kind)}</span><strong class="material-record-qty ${direction}">${direction==="in"?"+":"−"}${fmt(m.qty)}개</strong>${m.void_at?'<span class="material-edit-pill">취소됨</span>':""}</div><div class="material-record-name">${escapeHtml(m.material)}</div><div class="hint">${escapeHtml([m.source,m.order_no,m.work_name,m.kind==="작업 완료"?`${m.work_qty}작업 × ${m.per_unit}개`:"",m.memo].filter(Boolean).join(" · "))}</div></div>${m.void_at?"":`<div class="material-record-actions"><button type="button" class="btn ghost" data-mm-edit="${escapeAttr(m.id)}" ${materialSaving||materialEditingId===m.id?"disabled":""}>수정</button><button type="button" class="btn ghost" data-mm-void="${escapeAttr(m.id)}" ${materialSaving?"disabled":""}>기록 취소</button></div>`}</div>`;}).join("")}</section>`).join("");
+  const historyHtml=[...historyGroups.entries()].map(([date,moves])=>`<section class="material-day">${moves.map(m=>{const direction=m.kind==="받음"?"in":"out",status=m.kind==="작업 완료"?"작업완료":m.kind==="받음"?"입고완료":m.kind,statusClass=m.kind==="작업 완료"?"work":direction;return `<div class="material-record" style="${m.void_at?"opacity:.5":""}"><div class="material-record-main"><div class="material-record-date">${escapeHtml(shortDate(date))}</div><div class="material-record-line"><strong class="material-record-name">${escapeHtml(m.material)}</strong><span class="material-record-kind ${statusClass}">${escapeHtml(status)}</span>${m.void_at?'<span class="material-edit-pill">취소됨</span>':""}</div><div class="material-record-meta">${escapeHtml([m.source,m.order_no,m.work_name,m.kind==="작업 완료"?`${m.work_qty}작업 × ${m.per_unit}개`:"",m.memo].filter(Boolean).join(" · "))}</div></div><div class="material-record-side"><strong class="material-record-qty ${direction}">${direction==="in"?"+":"−"}${fmt(m.qty)}개</strong>${m.void_at?"":`<div class="material-record-actions"><button type="button" class="btn ghost" data-mm-edit="${escapeAttr(m.id)}" ${materialSaving||materialEditingId===m.id?"disabled":""}>수정</button><button type="button" class="btn ghost" data-mm-void="${escapeAttr(m.id)}" ${materialSaving?"disabled":""}>기록 취소</button></div>`}</div></div>`;}).join("")}</section>`).join("");
   const formBalance=Number(totals[materialKey(d)])||0;
   const formHtml=`<div class="card material-entry-card ${materialEditingId?"editing":""}" id="materialEntryCard" ${materialDetailOpen||materialEditingId?"":"hidden"}>
     <div class="material-section-head"><h3>${materialEditingId?"자재 기록 수정":"상세 기록"}</h3>${materialEditingId?'<span class="material-edit-pill">수정 중</span>':""}</div>
