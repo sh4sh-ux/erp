@@ -169,11 +169,23 @@
   .material-form-actions{display:flex;gap:10px;margin-top:12px}
   .material-form-actions .btn.save{width:auto}
   .material-history{max-height:660px;overflow:auto}
-  .material-record{padding:13px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+  .material-day+.material-day{margin-top:10px}
+  .material-day-head{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;background:var(--paper);color:var(--ink-2);font-size:12.5px;font-weight:750}
+  .material-day-head small{color:var(--ink-3);font-size:11.5px;font-weight:600}
+  .material-record{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line-2);overflow-wrap:anywhere}
   .material-record:last-child{border-bottom:0}
-  .material-record-top{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
-  .material-record-actions{display:flex;gap:7px;margin-top:9px}
-  .material-record-actions .btn{padding:8px 11px;font-size:12.5px}
+  .material-record-main{min-width:0}
+  .material-record-line{display:flex;align-items:center;gap:8px;min-width:0}
+  .material-record-kind{flex:0 0 auto;padding:2px 7px;border-radius:6px;background:var(--paper);color:var(--ink-2);font-size:11.5px;font-weight:700}
+  .material-record-kind.in{background:var(--ok-soft);color:#1E7A3E}
+  .material-record-kind.out{background:var(--warn-soft);color:#9A5B00}
+  .material-record-qty{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+  .material-record-qty.in{color:#1E7A3E}.material-record-qty.out{color:#B45F06}
+  .material-record-name{margin-top:3px;font-size:13px;font-weight:650}
+  .material-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;white-space:nowrap}
+  .material-record-actions .btn{padding:7px 10px;font-size:12px}
+  .material-entry-card .field{margin-bottom:12px}
+  .material-entry-card>.hint{margin:-2px 0 12px}
   @media(max-width:1100px){.material-workspace{grid-template-columns:1fr}.material-history{max-height:none}}
   @media(max-width:680px){
     .material-report-grid{grid-template-columns:1fr}
@@ -181,6 +193,9 @@
     .material-report-card,.material-entry-card,.material-side-card{padding:16px}
     .material-form-actions{flex-direction:column}
     .material-form-actions .btn{width:100%}
+    .material-record{gap:8px}
+    .material-record-actions{flex-direction:column;align-items:stretch}
+    .material-record-actions .btn{padding:7px 9px}
   }
 
   /* ---------- quote master / detail ---------- */
@@ -330,12 +345,16 @@
   .delivery-draft-line .name{font-size:13px;min-width:0}
   .delivery-draft-line .name small{display:block;color:var(--ink-3);font-size:11.5px}
   .delivery-draft-line input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;text-align:right}
+  .delivery-form-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+  .delivery-form-head .field{margin:0}
+  .delivery-fill-all{height:39px;padding:0 13px;border:1px solid rgba(10,132,255,.28);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:12.5px;font-weight:750;white-space:nowrap}
   .quote-flow-actions{display:flex;gap:8px}
   .quote-flow-actions .btn{flex:1;padding:10px 12px}
   .payment-totals{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:0 0 10px;font-size:13px}
   .payment-totals span{color:var(--ink-2)}
   .payment-totals b{text-align:right}
   .payment-totals .balance{color:var(--danger)}
+  @media(max-width:560px){.delivery-form-head{grid-template-columns:1fr}.delivery-fill-all{width:100%}}
 
   /* ---------- table ---------- */
   .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -1005,7 +1024,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.68";
+const APP_VERSION = "v1.69";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2362,6 +2381,11 @@ function deliveryRecordLabel(q,d){
   return names.length>1 ? `${names[0]} 외 ${names.length-1}건` : (names[0]||"납품");
 }
 function deliveryRecordQty(d){ return (d.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function fillRemainingDeliveryInputs(inputs=document.querySelectorAll("[data-delivery-line]")){
+  let total=0;
+  inputs.forEach(input=>{const max=Number(input.dataset.max)||0;if(max>0&&!input.disabled){input.value=String(max);total+=max;}});
+  return total;
+}
 function deliveryPanelHtml(q,isNew){
   ensureQuoteLineIds(q);
   const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q), remaining=Math.max(0,ordered-delivered);
@@ -2384,7 +2408,7 @@ function deliveryPanelHtml(q,isNew){
       </div>`).join("")}
       ${!records.length?'<div class="quote-flow-sub" style="padding:4px 0 12px">아직 납품 기록이 없습니다.</div>':""}
       ${qtDeliveryOpen?`<div class="quote-flow-form" id="fq_delivery_form">
-        <div class="field"><label>납품일</label>${dateControlHtml("fd_date",localDate(),"납품일")}</div>
+        <div class="delivery-form-head"><div class="field"><label>납품일</label>${dateControlHtml("fd_date",localDate(),"납품일")}</div><button class="delivery-fill-all" type="button" id="fd_fill_all">남은 수량 전체 입력</button></div>
         ${(q.lines||[]).map(l=>{
           const left=Math.max(0,(Number(l.qty)||0)-(done[l.id]||0));
           return `<label class="delivery-draft-line">
@@ -2442,6 +2466,8 @@ function bindDeliveryPanel(q,isNew){
   if(cancel) cancel.onclick=()=>{ qtDeliveryOpen=false; renderQtDetail(); };
   const date=document.getElementById("fd_date");
   if(date) date.onchange=()=>refreshDateControl("fd_date");
+  const fillAll=document.getElementById("fd_fill_all");
+  if(fillAll) fillAll.onclick=()=>{const total=fillRemainingDeliveryInputs();toast(total?`미납 ${fmt(total)}개를 모두 입력했습니다`:"남은 납품 수량이 없습니다");};
   const save=document.getElementById("fd_save");
   if(save) save.onclick=()=>{
     const deliveryDate=(document.getElementById("fd_date")||{}).value||"";
@@ -3603,6 +3629,9 @@ function renderMaterials(){
   const balance=Number(allTotals[materialKey(d)])||0;
   const companyOptions=entryCompanies.map(c=>option(c.id,c.name,d.company_id)).join("");
   const materialOptions=choices.map(x=>option(x.name,`${x.name} — ${fmt(x.balance)}개 남음`,d.material)).join("");
+  const historyGroups=new Map();
+  rows.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||"")).forEach(m=>{if(!historyGroups.has(m.date))historyGroups.set(m.date,[]);historyGroups.get(m.date).push(m);});
+  const historyHtml=[...historyGroups.entries()].map(([date,moves])=>`<section class="material-day"><div class="material-day-head"><span>${escapeHtml(shortDate(date))}</span><small>${moves.length}건</small></div>${moves.map(m=>{const direction=m.kind==="받음"?"in":"out";return `<div class="material-record" style="${m.void_at?"opacity:.55":""}"><div class="material-record-main"><div class="material-record-line"><span class="material-record-kind ${direction}">${escapeHtml(m.kind)}</span><strong class="material-record-qty ${direction}">${direction==="in"?"+":"−"}${fmt(m.qty)}개</strong>${m.void_at?'<span class="material-edit-pill">취소됨</span>':""}</div><div class="material-record-name">${escapeHtml(coName(m.company_id))} · ${escapeHtml(m.material)}</div><div class="hint">${escapeHtml([m.source,m.order_no,m.work_name,m.kind==="작업 완료"?`${m.work_qty}작업 × ${m.per_unit}개`:"",m.quote_id?(db.quotes.find(q=>q.id===m.quote_id)?.no||"삭제된 견적"):"",m.memo].filter(Boolean).join(" · "))}</div></div>${m.void_at?"":`<div class="material-record-actions">${materialEditingId===m.id?'<span class="material-edit-pill">수정 중</span>':""}<button type="button" class="btn ghost" data-mm-edit="${escapeAttr(m.id)}" ${materialSaving||materialEditingId===m.id?"disabled":""}>수정</button><button type="button" class="btn ghost" data-mm-void="${escapeAttr(m.id)}" ${materialSaving?"disabled":""}>기록 취소</button></div>`}</div>`;}).join("")}</section>`).join("");
   document.getElementById("materialContent").innerHTML=`
     <div class="card material-report-card"><div class="material-report-head"><div><h3>업체 전달용 재고내역서</h3><div class="hint">현재 보유 자재가 있는 업체만 표시합니다.</div></div></div><div class="material-report-grid"><div class="field"><label for="mm_statement_company">보유 업체 *</label><select id="mm_statement_company">${option("",holdingIds.length?"업체 선택":"보유 자재가 없습니다",materialStatementCompanyId)}${db.companies.filter(c=>holdingIds.includes(c.id)).map(c=>option(c.id,c.name,materialStatementCompanyId)).join("")}</select></div><div class="field"><label for="mm_statement_date">조회 기준일 (기본: 오늘)</label><input type="date" id="mm_statement_date" value="${escapeAttr(materialStatementDate||localDate())}"></div><button type="button" class="btn save" id="mm_statement">미리보기 · 인쇄/PDF</button></div><div class="hint" style="margin-top:10px">과거 날짜의 잔량을 확인할 때만 조회 기준일을 바꾸세요. 기록일자와는 별개입니다.</div></div>
     <div class="material-workspace">
@@ -3612,16 +3641,15 @@ function renderMaterials(){
       <div class="hint">‘받음’은 모든 업체에서 선택할 수 있고, 사용·반환·불량은 잔량이 있는 업체만 표시합니다.</div>
       <div class="field"><label for="mm_material">자재 종류 *</label>${d.kind==="받음"?`<input id="mm_material" data-mm="material" list="mm_names" value="${escapeAttr(d.material)}" placeholder="예: 로고 패치 (흰색)"><datalist id="mm_names">${materialChoices(d.company_id,allTotals).map(x=>option(x.name,x.name,"")).join("")}</datalist>`:`<select id="mm_material" data-mm="material">${option("",choices.length?"자재 선택":"남은 자재가 없습니다",d.material)}${materialOptions}</select>`}</div>
       ${d.company_id&&d.material?`<div class="material-balance-box" id="mm_balance">현재 남은 수량 ${fmt(balance)}개</div>`:""}
-      <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,i.name,d.work_item_id)).join("")}</select></div>`:""}</div>
-      ${d.kind==="작업 완료"?`<div class="grid2">${input("work_qty","완료한 작업 수량 *")}${input("per_unit","작업 1개당 자재 사용량 *")}</div><div class="hint" id="mm_preview"></div>`:input("qty","자재 수량 (개) *")}
+      <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,i.name,d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}</div>
+      ${d.kind==="작업 완료"?`<div class="grid2">${input("work_qty","완료한 작업 수량 *")}${input("per_unit","작업 1개당 자재 사용량 *")}</div><div class="hint" id="mm_preview"></div>`:""}
       <div class="grid2"><div class="field"><label for="mm_source">주문 경로</label><select id="mm_source" data-mm="source">${["직접 주문","스마트스토어","기타"].map(k=>option(k,k,d.source)).join("")}</select></div>${input("order_no","주문번호 / 회차 (선택)")}</div>
-      <div class="field"><label for="mm_quote">견적서 연결 (선택)</label><select id="mm_quote" data-mm="quote_id">${option("","견적서 없이 기록",d.quote_id)}${db.quotes.filter(q=>q.company_id===d.company_id).map(q=>option(q.id,q.no,d.quote_id)).join("")}</select></div>
-      ${input("memo","메모 (예: 1차 작업, 불량 사유)")}
+      <div class="grid2"><div class="field"><label for="mm_quote">견적서 연결 (선택)</label><select id="mm_quote" data-mm="quote_id">${option("","견적서 없이 기록",d.quote_id)}${db.quotes.filter(q=>q.company_id===d.company_id).map(q=>option(q.id,q.no,d.quote_id)).join("")}</select></div>${input("memo","메모 (예: 1차 작업, 불량 사유)")}</div>
       <div class="hint">금액·수금은 생성하지 않습니다. 자재 잔량만 기록합니다. 부분 작업은 실제 완료한 수량만 회차별로 입력하세요.</div>
       <div class="material-form-actions"><button type="button" class="btn save" id="mm_save" ${materialSaving?"disabled":""}>${materialEditingId?"수정 내용 저장":d.kind==="작업 완료"?"작업 완료 · 자재 차감":"자재 기록 저장"}</button>${materialEditingId?'<button type="button" class="btn ghost" id="mm_edit_cancel">수정 취소</button>':""}</div>
     </div>
     <div class="material-side"><div class="card material-side-card"><div class="material-section-head"><h3>현재 자재 잔량</h3></div>${Object.entries(allTotals).filter(([,qty])=>Number(qty)>0).map(([key,qty])=>{const [cid,name]=JSON.parse(key);return `<div class="quote-record" style="grid-template-columns:minmax(0,1fr) auto"><span>${escapeHtml(coName(cid))} · ${escapeHtml(name)}</span><b>${fmt(qty)}개</b></div>`}).join("")||'<div class="hint">현재 보관 중인 자재가 없습니다.</div>'}</div>
-    <div class="card material-side-card"><div class="material-section-head"><h3>기록 내역 ${d.company_id?"· "+escapeHtml(coName(d.company_id)):"· 전체 업체"}</h3></div><div class="material-history">${rows.slice().reverse().map(m=>`<div class="material-record" style="${m.void_at?"opacity:.55":""}"><div class="material-record-top"><div><b>${escapeHtml(m.date)} · ${escapeHtml(m.kind)} · ${m.kind==="받음"?"+":"−"}${fmt(m.qty)}개 ${m.void_at?"(취소됨)":""}</b><div>${escapeHtml(coName(m.company_id))} · ${escapeHtml(m.material)}</div></div>${materialEditingId===m.id?'<span class="material-edit-pill">수정 중</span>':""}</div><div class="hint">${escapeHtml([m.source,m.order_no,m.work_name,m.kind==="작업 완료"?`${m.work_qty}작업 × ${m.per_unit}개`:"",m.quote_id?(db.quotes.find(q=>q.id===m.quote_id)?.no||"삭제된 견적"):"",m.memo].filter(Boolean).join(" · "))}</div>${m.void_at?"":`<div class="material-record-actions"><button type="button" class="btn ghost" data-mm-edit="${escapeAttr(m.id)}" ${materialSaving||materialEditingId===m.id?"disabled":""}>수정</button><button type="button" class="btn ghost" data-mm-void="${escapeAttr(m.id)}" ${materialSaving?"disabled":""}>기록 취소</button></div>`}</div>`).join("")||'<div class="hint">기록이 없습니다.</div>'}</div></div></div></div>`;
+    <div class="card material-side-card"><div class="material-section-head"><h3>기록 내역 ${d.company_id?"· "+escapeHtml(coName(d.company_id)):"· 전체 업체"}</h3></div><div class="material-history">${historyHtml||'<div class="hint">기록이 없습니다.</div>'}</div></div></div></div>`;
   document.getElementById("mm_statement_date").onchange=ev=>{materialStatementDate=ev.target.value;};
   document.getElementById("mm_statement_company").onchange=ev=>{materialStatementCompanyId=ev.target.value;};
   document.getElementById("mm_statement").onclick=()=>previewMaterialStatement(document.getElementById("mm_statement_company").value);

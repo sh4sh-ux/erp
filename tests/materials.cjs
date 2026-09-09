@@ -37,6 +37,8 @@ const run=s=>vm.runInContext(s,context);run(source);
   assert.ok(materialsHTML.includes('견적서 없이 기록'));
   assert.ok(materialsHTML.includes('id="mm_statement_company"'));
   assert.ok(!materialsHTML.match(/id="mm_statement"[^>]*disabled/));
+  assert.ok(materialsHTML.includes('material-day-head'));
+  assert.ok(materialsHTML.includes('material-record-actions'));
   assert.equal(run('materialStatementCompanyId'),'a'); // only owner is selected automatically
   run('let materialToast="";toast=message=>{materialToast=message};previewMaterialStatement("")');
   assert.equal(run('materialToast'),'재고내역서를 만들 업체를 먼저 선택하세요');
