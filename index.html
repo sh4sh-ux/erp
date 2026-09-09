@@ -1029,7 +1029,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.70";
+const APP_VERSION = "v1.71";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2106,20 +2106,33 @@ let qtDeliveryOpen=false, qtPaymentOpen=false;
 const QT_STATUS=["작성중","발송","수주","부분납품","납품","취소"];
 const QT_STATUS_CLASS={ "작성중":"st-draft", "발송":"st-sent", "수주":"st-won", "부분납품":"st-sent", "납품":"st-done", "취소":"st-lost" };
 const QT_COMMITTED=["수주","부분납품","납품"];
+/* 납품은 실제 제품만 추적한다. 작업 품목과 음수 할인 행은 견적 금액에는
+   남기되 납품 수량·진행률·재고 출고 대상에서는 제외한다. */
+function isDeliveryLine(l){
+  if(!l || !(l.name||"").trim() || !(Number(l.qty)||0)) return false;
+  const it=l.item_id&&l.item_id!=="__free__" ? db.items.find(x=>x.id===l.item_id) : null;
+  if(it && isWork(it)) return false;
+  if((Number(l.price)||0)<0) return false;
+  return true;
+}
+function quoteDeliveryLines(q){ return (q.lines||[]).filter(isDeliveryLine); }
 function ensureQuoteLineIds(q){
   (q.lines||[]).forEach(l=>{ if(!l.id) l.id=crypto.randomUUID(); });
   if(!Array.isArray(q.deliveries)){
-    q.deliveries=q.delivered_at?[{id:crypto.randomUUID(),date:q.delivered_at,legacy:true,lines:q.lines.map(l=>({line_id:l.id,qty:Number(l.qty)||0}))}]:[];
+    q.deliveries=q.delivered_at?[{id:crypto.randomUUID(),date:q.delivered_at,legacy:true,lines:quoteDeliveryLines(q).map(l=>({line_id:l.id,qty:Number(l.qty)||0}))}]:[];
     q.legacy_stock=true;
   }
   return q;
 }
 function quoteDeliveryQtyMap(q){
   const out={};
-  (q.deliveries||[]).forEach(d=>(d.lines||[]).forEach(l=>{ out[l.line_id]=(out[l.line_id]||0)+(Number(l.qty)||0); }));
+  const allowed=new Set(quoteDeliveryLines(q).map(l=>l.id));
+  (q.deliveries||[]).forEach(d=>(d.lines||[]).forEach(l=>{
+    if(allowed.has(l.line_id)) out[l.line_id]=(out[l.line_id]||0)+(Number(l.qty)||0);
+  }));
   return out;
 }
-function quoteOrderedQty(q){ return (q.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function quoteOrderedQty(q){ return quoteDeliveryLines(q).reduce((s,l)=>s+(Number(l.qty)||0),0); }
 function quoteDeliveredQty(q){ return Object.values(quoteDeliveryQtyMap(q)).reduce((s,n)=>s+n,0); }
 function quoteLatestDelivery(q){
   return (q.deliveries||[]).reduce((last,d)=>(d.date||"")>last?(d.date||""):last,q.delivered_at||"");
@@ -2140,7 +2153,22 @@ function quotePaid(qid){
     .reduce((s,p)=>s+(Number(p.amount)||0),0);
 }
 function quoteBalance(q){ return quoteAmount(q)-quotePaid(q.id); }
-function deliveredLines(q,d){return (d.lines||[]).map(dl=>({...q.lines.find(l=>l.id===dl.line_id),qty:dl.qty}));}
+function deliveryRecordLines(q,d){
+  const allowed=new Set(quoteDeliveryLines(q).map(l=>l.id));
+  return (d.lines||[]).filter(dl=>allowed.has(dl.line_id));
+}
+/* 매출 인식에서는 납품 대상이 아닌 작업비·할인도 누락하지 않고
+   제품이 완납되는 마지막 회차에 함께 반영한다. */
+function deliveredLines(q,d){
+  const products=deliveryRecordLines(q,d).map(dl=>({...q.lines.find(l=>l.id===dl.line_id),qty:dl.qty}));
+  const ordered=quoteOrderedQty(q);
+  const records=q.deliveries||[], at=records.findIndex(x=>x===d||(x.id&&x.id===d.id));
+  if(!ordered || at<0) return products;
+  const before=records.slice(0,at).reduce((s,x)=>s+deliveryRecordQty(q,x),0);
+  const through=before+products.reduce((s,l)=>s+(Number(l.qty)||0),0);
+  const completes=before<ordered&&through>=ordered;
+  return completes ? [...products,...(q.lines||[]).filter(l=>!isDeliveryLine(l)&&(l.name||"").trim()&&(Number(l.qty)||0))] : products;
+}
 function deliveredAmount(q){return (q.deliveries||[]).reduce((sum,d)=>sum+quoteTotals({lines:deliveredLines(q,d)}).total,0);}
 /* 계약금·중도금도 연결할 수 있게 수주 이후의 미수 견적을 보여준다. */
 function openQuotesOf(cid){
@@ -2385,7 +2413,7 @@ function deliveryRecordLabel(q,d){
   });
   return names.length>1 ? `${names[0]} 외 ${names.length-1}건` : (names[0]||"납품");
 }
-function deliveryRecordQty(d){ return (d.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function deliveryRecordQty(q,d){ return deliveryRecordLines(q,d).reduce((s,l)=>s+(Number(l.qty)||0),0); }
 function fillRemainingDeliveryInputs(inputs=document.querySelectorAll("[data-delivery-line]")){
   let total=0;
   inputs.forEach(input=>{const max=Number(input.dataset.max)||0;if(max>0&&!input.disabled){input.value=String(max);total+=max;}});
@@ -2396,10 +2424,13 @@ function deliveryPanelHtml(q,isNew){
   const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q), remaining=Math.max(0,ordered-delivered);
   const rate=ordered?Math.min(100,Math.round(delivered/ordered*100)):0;
   const done=quoteDeliveryQtyMap(q);
-  const records=(q.deliveries||[]).slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const deliveryLines=quoteDeliveryLines(q);
+  const excluded=(q.lines||[]).filter(l=>(l.name||"").trim()&&!isDeliveryLine(l));
+  const records=(q.deliveries||[]).map(d=>({...d,lines:deliveryRecordLines(q,d)})).filter(d=>d.lines.length)
+    .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   return `<section class="quote-flow" aria-labelledby="fq_delivery_title">
     <div class="quote-flow-head">
-      <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">주문 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품</div></div>
+      <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">납품 대상 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품${excluded.length?` · 작업/할인 ${fmt(excluded.length)}개 항목 제외`:""}</div></div>
       <div class="quote-flow-value">${fmt(delivered)} / ${fmt(ordered)}개<small>${remaining?`${fmt(remaining)}개 남음`:delivered?"납품 완료":"미납품"}</small></div>
     </div>
     <div class="quote-progress" role="progressbar" aria-label="납품 진행률" aria-valuenow="${delivered}" aria-valuemin="0" aria-valuemax="${ordered||0}"><span style="width:${rate}%"></span></div>
@@ -2408,13 +2439,13 @@ function deliveryPanelHtml(q,isNew){
       ${records.map(d=>`<div class="quote-record">
         <span class="date">${escapeHtml(shortDate(d.date))}</span>
         <details><summary>${escapeHtml(deliveryRecordLabel(q,d))}</summary>${(d.lines||[]).map(dl=>{const l=q.lines.find(x=>x.id===dl.line_id)||{};return `<div>${escapeHtml([l.name,l.color,l.spec].filter(Boolean).join(" · "))} × ${fmt(dl.qty)}</div>`}).join("")}${d.memo?`<div>${escapeHtml(d.memo)}</div>`:""}</details>
-        <span class="amount">${fmt(deliveryRecordQty(d))}개</span>
+        <span class="amount">${fmt(deliveryRecordQty(q,d))}개</span>
         <button class="rm" type="button" data-delivery-remove="${d.id}" aria-label="${escapeAttr(shortDate(d.date))} 납품 기록 삭제">×</button>
       </div>`).join("")}
       ${!records.length?'<div class="quote-flow-sub" style="padding:4px 0 12px">아직 납품 기록이 없습니다.</div>':""}
       ${qtDeliveryOpen?`<div class="quote-flow-form" id="fq_delivery_form">
         <div class="delivery-form-head"><div class="field"><label>납품일</label>${dateControlHtml("fd_date",localDate(),"납품일")}</div><button class="delivery-fill-all" type="button" id="fd_fill_all">남은 수량 전체 입력</button></div>
-        ${(q.lines||[]).map(l=>{
+        ${deliveryLines.map(l=>{
           const left=Math.max(0,(Number(l.qty)||0)-(done[l.id]||0));
           return `<label class="delivery-draft-line">
             <span class="name">${escapeHtml(l.name||"품목")}<small>${[l.color,l.spec].filter(Boolean).map(escapeHtml).join(" · ")} · 남음 ${fmt(left)}개</small></span>
@@ -2981,6 +3012,8 @@ function bindQtLines(e){
 
 async function submitQuote(isNew){
   const e=ensureQuoteLineIds(JSON.parse(JSON.stringify(qtEditing)));
+  const deliveryIds=new Set(quoteDeliveryLines(e).map(l=>l.id));
+  e.deliveries=(e.deliveries||[]).map(d=>({...d,lines:(d.lines||[]).filter(l=>deliveryIds.has(l.line_id)&&(Number(l.qty)||0)>0)})).filter(d=>d.lines.length);
   const done=quoteDeliveryQtyMap(e), original=db.quotes.find(q=>q.id===e.id);
   if(e.status==="취소"&&quoteDeliveredQty(e)>0){toast("납품 기록이 있는 견적입니다. 납품 기록을 먼저 확인·정정한 뒤 취소하세요");return;}
   for(const [id,qty] of Object.entries(done)){
