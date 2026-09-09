@@ -1206,7 +1206,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.76";
+const APP_VERSION = "v1.77";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2292,6 +2292,20 @@ function isDeliveryLine(l){
   if((Number(l.price)||0)<0) return false;
   return true;
 }
+/* 자수·패치 부착은 납품할 실물 수량과 함께 움직이는 후가공이다.
+   작업 행을 직접 수정하면 auto_qty=false로 바뀌어 부분 작업도 보존한다. */
+function isDecorationWorkItem(i){
+  if(!isWork(i))return false;
+  const text=`${i.name||""} ${i.code||""}`.toLowerCase();
+  return /자수|embroidery|emboridery|패치\s*부착|patch\s*attachment/.test(text);
+}
+function isDecorationWorkLine(l){return isDecorationWorkItem(db.items.find(i=>i.id===l?.item_id));}
+function quoteDecorationTargetQty(q){return quoteDeliveryLines(q).reduce((sum,l)=>sum+(Number(l.qty)||0),0);}
+function syncDecorationWorkQty(q){
+  const qty=quoteDecorationTargetQty(q);let changed=false;
+  (q.lines||[]).forEach(l=>{if(isDecorationWorkLine(l)&&l.auto_qty!==false&&Number(l.qty)!==qty){l.qty=qty;changed=true;}});
+  return changed;
+}
 function quoteDeliveryLines(q){ return (q.lines||[]).filter(isDeliveryLine); }
 function ensureQuoteLineIds(q){
   (q.lines||[]).forEach(l=>{ if(!l.id) l.id=crypto.randomUUID(); });
@@ -2797,6 +2811,7 @@ function renderQtDetail(){
         <button class="btn-line-add" id="fq_addLine">＋ 행 추가</button>
         <button class="btn-line-add" id="fq_sizeBtn">⊞ 옵션별 한번에</button>
       </div>
+      <div class="hint">자수·패치 부착은 셰프복·유니폼 등 납품 품목의 전체 수량에 자동으로 맞춰집니다. 작업 수량을 직접 고치면 해당 행은 수동 수량으로 유지됩니다.</div>
       <div id="fq_sizePanel"></div>
       <div id="fq_short"></div>
     </div>
@@ -2982,6 +2997,7 @@ function applySizePanel(e,it,color){
   // 품목도 품명도 없는 빈 행 정리 (새 견적의 기본 빈 행이 남지 않도록)
   e.lines=e.lines.filter(l=>(l.name||"").trim() || l.item_id);
   if(!e.lines.length) e.lines=[blankLine()];
+  syncDecorationWorkQty(e);
   szOpen=false;
   renderQtDetail();
   toast(added?`옵션 ${added}종을 품목에 넣었습니다${removed?` · ${removed}종 제거`:""}`:"수량이 입력된 옵션이 없습니다");
@@ -3052,7 +3068,9 @@ function applyItemPick(e,idx,v){
       l.spec=it.spec||"";
       if(it.sell_price) l.price=it.sell_price;
     }
-    l.price_auto=true;applyAutomaticPrice(e,l);
+    l.price_auto=true;
+    if(isDecorationWorkItem(it))l.auto_qty=true;else delete l.auto_qty;
+    applyAutomaticPrice(e,l);syncDecorationWorkQty(e);
   }else{ Object.assign(l,blankLine()); }
   renderQtDetail();
 }
@@ -3177,17 +3195,25 @@ function bindQtLines(e){
       if(mgEl) mgEl.textContent=quoteMarginText(e);
       renderShortage(e);
     };
+    if(el.dataset.f==="qty")el.onchange=()=>{
+      const line=e.lines[Number(el.dataset.idx)];
+      if(isDecorationWorkLine(line))line.auto_qty=false;
+      else syncDecorationWorkQty(e);
+      renderQtDetail();
+    };
   });
   form.querySelectorAll("[data-rm]").forEach(el=>{
     el.onclick=()=>{
       e.lines.splice(Number(el.dataset.rm),1);
       if(e.lines.length===0) e.lines.push(blankLine());
+      syncDecorationWorkQty(e);
       renderQtDetail();
     };
   });
 }
 
 async function submitQuote(isNew){
+  syncDecorationWorkQty(qtEditing);
   const e=ensureQuoteLineIds(JSON.parse(JSON.stringify(qtEditing)));
   const deliveryIds=new Set(quoteDeliveryLines(e).map(l=>l.id));
   e.deliveries=(e.deliveries||[]).map(d=>({...d,lines:(d.lines||[]).filter(l=>deliveryIds.has(l.line_id)&&(Number(l.qty)||0)>0)})).filter(d=>d.lines.length);
