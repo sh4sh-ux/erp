@@ -25,6 +25,6 @@ assert(html.includes('let currentView="dash";'), "dashboard is not the default v
 assert(html.includes('switchView("dash");'), "initial login does not open the dashboard");
 assert(html.includes('querySelectorAll(".nav-item,.mobile-nav-item")'), "desktop and mobile navigation are not bound together");
 assert(html.includes('id="dashNewQuote"') && html.includes('id="dashNewPayment"'), "dashboard quick actions are missing");
-assert(html.includes('const APP_VERSION = "v1.74";'), "app version was not updated");
+assert(html.includes('const APP_VERSION = "v1.75";'), "app version was not updated");
 
 console.log("PASS: desktop/mobile navigation order, dashboard default and quick actions");
