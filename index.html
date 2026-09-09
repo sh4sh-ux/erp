@@ -1029,7 +1029,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.71";
+const APP_VERSION = "v1.72";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3554,6 +3554,10 @@ async function shareQuote(q,docType){
 function stockKeyOf(m){ return [m.item_id,m.color||"",m.spec||""].join("|"); }
 // Customer-owned materials: independent of quote, sales, payments and company-owned stock.
 let materialDraft=null,materialSaving=false,materialEditingId="";
+function setMaterialSaving(saving){
+  materialSaving=!!saving;
+  document.querySelectorAll("[data-mm-edit],[data-mm-void],#mm_save").forEach(btn=>{btn.disabled=materialSaving;});
+}
 function newMaterialDraft(company_id=""){
   return {id:crypto.randomUUID(),company_id,date:localDate(),kind:"받음",material:"",qty:"",work_qty:"",per_unit:"1",source:"직접 주문",order_no:"",quote_id:"",work_item_id:"",memo:""};
 }
@@ -3708,13 +3712,13 @@ function renderMaterials(){
   });
   if(materialEditingId)document.getElementById("mm_edit_cancel").onclick=()=>{const company=d.company_id;materialEditingId="";materialDraft=newMaterialDraft(company);renderMaterials();};
   document.getElementById("mm_save").onclick=async()=>{
-    if(materialSaving)return;materialSaving=true;const btn=document.getElementById("mm_save");btn.disabled=true;
+    if(materialSaving)return;setMaterialSaving(true);
     try{
       const move=buildMaterialMove(d);
       if(move.kind==="작업 완료"&&move.order_no&&db.material_moves.some(m=>m.id!==materialEditingId&&!m.void_at&&m.kind==="작업 완료"&&m.company_id===move.company_id&&m.material===move.material&&m.source===move.source&&m.order_no===move.order_no)&&!confirm("같은 주문번호·자재의 작업 기록이 있습니다. 별도 회차의 추가 작업이 맞나요?"))return;
       const saved=materialEditingId?await updateMaterialMove(materialEditingId,move):await persistMaterialMove(move);
-      if(saved){const company=d.company_id;materialEditingId="";materialDraft=newMaterialDraft(company);renderMaterials();}
-    }catch(err){toast(err.message);}finally{materialSaving=false;document.querySelectorAll("[data-mm-void],#mm_save").forEach(b=>b.disabled=false);}
+      if(saved){const company=d.company_id;materialEditingId="";materialDraft=newMaterialDraft(company);setMaterialSaving(false);renderMaterials();}
+    }catch(err){toast(err.message);}finally{setMaterialSaving(false);}
   };
   document.querySelectorAll("[data-mm-edit]").forEach(btn=>{btn.onclick=()=>{
     const m=db.material_moves.find(x=>x.id===btn.dataset.mmEdit);if(!m||m.void_at)return;
@@ -3723,8 +3727,8 @@ function renderMaterials(){
   };});
   document.querySelectorAll("[data-mm-void]").forEach(btn=>{btn.onclick=async()=>{
     if(materialSaving||!confirm("기록을 취소하고 잔량을 다시 계산할까요? 원본 기록은 취소 이력으로 남습니다."))return;
-    materialSaving=true;btn.disabled=true;
-    try{if(await voidMaterialMove(btn.dataset.mmVoid)){if(materialEditingId===btn.dataset.mmVoid){materialEditingId="";materialDraft=newMaterialDraft(d.company_id);}renderMaterials();}}catch(err){toast(err.message);}finally{materialSaving=false;document.querySelectorAll("[data-mm-void],#mm_save").forEach(b=>b.disabled=false);}
+    setMaterialSaving(true);
+    try{if(await voidMaterialMove(btn.dataset.mmVoid)){if(materialEditingId===btn.dataset.mmVoid){materialEditingId="";materialDraft=newMaterialDraft(d.company_id);}setMaterialSaving(false);renderMaterials();}}catch(err){toast(err.message);}finally{setMaterialSaving(false);}
   };});
 }
 function currentStocks(){
