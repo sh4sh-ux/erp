@@ -366,6 +366,9 @@
   .tbl .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .tbl .rm:hover{background:var(--danger-soft);color:var(--danger)}
   .tbl-wrap{overflow-x:auto}
+  .item-data-table th+th,.item-data-table td+td{border-left:1px solid var(--line-2)}
+  .item-data-table tbody tr:not(.subtotal):hover{background:rgba(10,132,255,.025)}
+  .item-data-table .item-option{color:var(--ink-2)}
 
   /* ---------- payments ---------- */
   .pay-add{display:grid;grid-template-columns:126px minmax(0,1.1fr) minmax(0,1.25fr) 84px 100px 118px minmax(0,0.9fr) auto;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line-2);align-items:center}
@@ -430,7 +433,9 @@
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
     .stock-add .span2{grid-column:span 2}
-    #slBody .tbl{min-width:980px}
+    #slBody .tbl{min-width:1080px}
+    #ivTbl{min-width:620px}
+    #ivHist{min-width:900px}
     #slBody .card-head{flex-wrap:wrap;padding-bottom:8px}
     #slBody .card-head .legend{margin-left:0;width:100%;gap:8px;white-space:nowrap;overflow-x:auto}
     #view-sales .page-head{gap:8px}
@@ -736,7 +741,7 @@
         <div class="cols" style="grid-template-columns:1fr 1.15fr">
           <div class="card">
             <div class="card-head"><h3>현재고</h3></div>
-            <div class="tbl-wrap"><table class="tbl" id="ivTbl"></table></div>
+            <div class="tbl-wrap"><table class="tbl item-data-table" id="ivTbl"></table></div>
           </div>
           <div class="card">
             <div class="card-head"><h3>입출고 기록</h3></div>
@@ -750,7 +755,7 @@
               <input id="ivMemo" placeholder="메모 (선택)">
               <button class="btn-sm" id="ivAddBtn">추가</button>
             </div>
-            <div class="tbl-wrap"><table class="tbl" id="ivHist"></table></div>
+            <div class="tbl-wrap"><table class="tbl item-data-table" id="ivHist"></table></div>
           </div>
         </div>
       </section>
@@ -1024,7 +1029,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.69";
+const APP_VERSION = "v1.70";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3738,8 +3743,8 @@ function renderStock(){
     <tbody>${combos.map(c=>`
       <tr>
         <td>${escapeHtml(c.name)}</td>
-        <td class="sub">${escapeHtml(c.color||"—")}</td>
-        <td class="sub">${escapeHtml(c.spec||"—")}</td>
+        <td class="item-option">${escapeHtml(c.color||"—")}</td>
+        <td class="item-option">${escapeHtml(c.spec||"—")}</td>
         <td class="num" ${c.qty<=0?'style="color:var(--danger)"':""}>${fmt(c.qty)}</td>
       </tr>`).join("")}</tbody>`
     : `<tr><td><div class="empty">아직 재고 기록이 없습니다.<br>오른쪽에서 입고를 등록해 보세요.</div></td></tr>`;
@@ -3752,13 +3757,14 @@ function renderStock(){
     .slice(0,30);
   const histTbl=document.getElementById("ivHist");
   histTbl.innerHTML = hist.length ? `
-    <thead><tr><th>날짜</th><th>품목</th><th>구분</th><th style="text-align:right">수량</th><th>메모</th><th></th></tr></thead>
+    <thead><tr><th>날짜</th><th>품목</th><th>색상</th><th>규격/옵션</th><th>구분</th><th style="text-align:right">수량</th><th>메모</th><th></th></tr></thead>
     <tbody>${hist.map(m=>{
       const it=db.items.find(x=>x.id===m.item_id);
-      const detail=[m.color,m.spec].filter(Boolean).join("·");
       return `<tr>
         <td style="white-space:nowrap">${escapeHtml((m.date||"").slice(5))}</td>
-        <td>${escapeHtml(it?it.name:"(삭제된 품목)")}${detail?` <span class="sub">${escapeHtml(detail)}</span>`:""}</td>
+        <td>${escapeHtml(it?it.name:"(삭제된 품목)")}</td>
+        <td class="item-option">${escapeHtml(m.color||"—")}</td>
+        <td class="item-option">${escapeHtml(m.spec||"—")}</td>
         <td><span class="pill ${m.kind==="입고"?"in":"out"}">${escapeHtml(m.kind)}</span></td>
         <td class="num">${fmt(m.qty)}</td>
         <td class="sub">${escapeHtml(m.memo||"")}</td>
@@ -4060,7 +4066,8 @@ function renderSales(){
         if(buy) sMargin += supply - buy*r.qty; else sMarginUnknown++;
         return `<tr>
           <td>${escapeHtml(r.name)}</td>
-          <td class="sub">${escapeHtml([r.color,r.spec].filter(Boolean).join(" · ")||"—")}</td>
+          <td class="item-option">${escapeHtml(r.color||"—")}</td>
+          <td class="item-option">${escapeHtml(r.spec||"—")}</td>
           <td class="num">${fmt(r.qty)}</td>
           <td class="num">${fmt(r.price)}</td>
           <td class="num">${fmt(supply)}</td>
@@ -4075,12 +4082,12 @@ function renderSales(){
           <h3>${escapeHtml(coName(cid))}</h3>
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
-        <div class="tbl-wrap"><table class="tbl" style="table-layout:fixed">
-          <colgroup><col><col style="width:190px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
-          <thead><tr><th>품명</th><th>색상·규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
+        <div class="tbl-wrap"><table class="tbl item-data-table" style="table-layout:fixed">
+          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
+          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
           <tbody>${trs}
-            <tr style="background:var(--paper)">
-              <td style="font-weight:700">소계</td><td></td>
+            <tr class="subtotal" style="background:var(--paper)">
+              <td style="font-weight:700">소계</td><td></td><td></td>
               <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
               <td class="num" style="font-weight:700">${fmt(sSupply)}</td>
               <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>

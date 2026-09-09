@@ -76,6 +76,23 @@ document.querySelectorAll=()=>[1,2].map(()=>ruleRow({item_id:'a',color:'',spec:'
 assert.throws(()=>run('readCompanyPrices()'));
 document.querySelectorAll=originalQuery;
 console.log('PASS: company/option prices, fallback/zero, manual and delivered/legacy price preservation, rule validation');
+document.getElementById('slFrom').value='2026-09-01';
+document.getElementById('slTo').value='2026-09-30';
+document.getElementById('slCo').value='';
+document.getElementById('slStatus').value='all';
+run(`
+db.companies=[{id:'sales-co',name:'매출 거래처'}];
+db.items=[{id:'sales-item',name:'세트',buy_price:5000}];
+db.quotes=[{id:'sales-q',company_id:'sales-co',date:'2026-09-09',status:'수주',lines:[{item_id:'sales-item',name:'세트',color:'WH',spec:'2XL',qty:2,price:10000}]}];
+renderSales();
+`);
+const salesTable=elements.get('slBody').innerHTML;
+assert.ok(salesTable.includes('class="tbl item-data-table"'));
+assert.ok(salesTable.includes('<th>색상</th><th>규격/옵션</th>'));
+assert.ok(salesTable.includes('class="item-option">WH</td>'));
+assert.ok(salesTable.includes('class="item-option">2XL</td>'));
+assert.ok(!salesTable.includes('색상·규격/옵션'));
+console.log('PASS: sales item table separates color and specification columns');
 (async()=>{
   run('toast=()=>{};saveTable=async()=>false;qtEditing=JSON.parse(JSON.stringify(testQuote));qtEditing.memo="unsaved";');
   await run('submitQuote(false)');
