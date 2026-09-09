@@ -32,7 +32,14 @@ const run=s=>vm.runInContext(s,context);run(source);
   for(const qty of ['-1','0','1.5','abc'])assert.throws(()=>run(`buildMaterialMove({...newMaterialDraft('a'),material:'패치',qty:${JSON.stringify(qty)}})`));
   assert.throws(()=>run(`buildMaterialMove({...newMaterialDraft('a'),material:'패치',qty:'1',date:'2026-02-30'})`));
   assert.ok(run('BACKUP_TABLES.includes("material_moves")&&ERP_TABLES.includes("material_moves")'));
-  run('renderMaterials()');assert.ok(elements.get('materialContent').innerHTML.includes('견적서 없이 기록'));
+  run('renderMaterials()');
+  const materialsHTML=elements.get('materialContent').innerHTML;
+  assert.ok(materialsHTML.includes('견적서 없이 기록'));
+  assert.ok(materialsHTML.includes('id="mm_statement_company"'));
+  assert.ok(!materialsHTML.match(/id="mm_statement"[^>]*disabled/));
+  assert.equal(run('materialStatementCompanyId'),'a'); // only owner is selected automatically
+  run('let materialToast="";toast=message=>{materialToast=message};previewMaterialStatement("")');
+  assert.equal(run('materialToast'),'재고내역서를 만들 업체를 먼저 선택하세요');
   run(`const statement=materialStatementData('a','2026-09-04');`);
   assert.equal(run('statement.total'),90);
   assert.equal(run('statement.summary[0].received'),100);
