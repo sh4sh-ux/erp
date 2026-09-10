@@ -397,7 +397,9 @@
   .tbl .sub{color:var(--ink-3);font-size:12px}
   .tbl .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .tbl .rm:hover{background:var(--danger-soft);color:var(--danger)}
-  .tbl-wrap{overflow-x:auto}
+  /* 표 공통: 카드 안에서 좌우 여백을 두어 구분선이 카드 끝에 닿지 않게 한다.
+     (.tbl은 border-collapse라 셀 border-image 인셋이 무시되므로, 표 전체를 컨테이너 패딩으로 들여쓴다) */
+  .tbl-wrap{overflow-x:auto;padding:0 16px 4px}
   .item-data-table th+th,.item-data-table td+td{border-left:1px solid var(--line-2)}
   .item-data-table tbody tr:not(.subtotal):hover{background:rgba(67,85,232,.025)}
   .item-data-table .item-option{color:var(--ink-2)}
@@ -1636,7 +1638,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.96";
+const APP_VERSION = "v1.97";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -5126,8 +5128,8 @@ function renderSales(){
           <td class="num">${fmt(r.qty)}</td>
           <td class="num">${fmt(r.price)}</td>
           <td class="num">${fmt(supply)}</td>
-          <td class="num">${buy?fmt(supply-buy*r.qty):'<span class="sub">—</span>'}</td>
           <td class="num">${fmt(vat)}</td>
+          <td class="num">${buy?fmt(supply-buy*r.qty):'<span class="sub">—</span>'}</td>
         </tr>`;}).join("");
       totMargin+=sMargin; totMarginUnknown+=sMarginUnknown;
       totQty+=sQty; totSupply+=sSupply; totVat+=sVat;
@@ -5138,15 +5140,15 @@ function renderSales(){
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
         <div class="tbl-wrap"><table class="tbl item-data-table" style="table-layout:fixed">
-          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
-          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
+          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:100px"><col style="width:120px"></colgroup>
+          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th><th style="text-align:right">마진</th></tr></thead>
           <tbody>${trs}
             <tr class="subtotal" style="background:var(--paper)">
               <td style="font-weight:700">소계</td><td></td><td></td>
               <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
               <td class="num" style="font-weight:700">${fmt(sSupply)}</td>
-              <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>
               <td class="num" style="font-weight:700">${fmt(sVat)}</td>
+              <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>
             </tr>
           </tbody>
         </table></div>
