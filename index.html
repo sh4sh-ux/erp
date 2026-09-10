@@ -1657,7 +1657,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.99";
+const APP_VERSION = "v1.100";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3974,6 +3974,7 @@ function quoteStockNeeds(q){
   const delivered=quoteDeliveryQtyMap(q);
   (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
+    if((Number(l.price)||0)<0) return;   // 할인(음수 단가) 행은 실물이 아니므로 재고와 무관 (isDeliveryLine과 동일 기준)
     const expanded=expandBom(l.item_id,l.color,l.spec,q.legacy_stock?(Number(l.qty)||0):(delivered[l.id]||0));
     Object.entries(expanded).forEach(([k,n])=>{
       const [item_id]=k.split("|");
