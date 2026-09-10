@@ -1421,6 +1421,46 @@
     .shell .main>#view-items:not(.hidden),
     .shell .main>#view-quotes:not(.hidden){padding-bottom:calc(56px + env(safe-area-inset-bottom,0) + 16px)}
   }
+
+  /* ==========================================================================
+     대시보드 UI 다듬기 (v1.111) — THE EDIT UI Design System v1.0
+     · #view-dash 스코프 전용 (공통 .scr-hero/.stats/.stat/.card-head/.recent/.pill 은
+       미수금·수금·거래처 화면과 공유하므로 절대 건드리지 않음)
+     · 정보/계산/차트 데이터 무변경 — 위계·타이포·간격·정렬만 정리
+     ========================================================================== */
+  /* --- Hero KPI: 이달 매출을 가장 강하게, 보조정보는 차분하게 --- */
+  #view-dash .scr-hero{margin:4px 0 0}
+  #view-dash .scr-hero .lbl{font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:8px;letter-spacing:0}
+  #view-dash .scr-hero .big{font-size:32px;font-weight:700;letter-spacing:-.025em}
+  #view-dash .scr-hero .sub{margin-top:11px;font-size:13px;color:var(--text-secondary);font-weight:500}
+  #view-dash .scr-hero .sub b{color:var(--text-primary);font-weight:650}
+  /* --- KPI 위계: 수금·미수금(강조) > 마진·지급(기본) > 회신·계산서(조용) --- */
+  #view-dash .stats{gap:18px 36px}
+  #view-dash .stat .k{font-size:12px;color:var(--text-muted);font-weight:600}
+  #view-dash .stat .v{font-size:17px;font-weight:700}
+  #view-dash .stat .hint{font-size:11.5px;color:var(--text-muted)}
+  #view-dash .stat-key .v{font-size:20px;font-weight:750}
+  #view-dash .stat-key .k{color:var(--text-secondary)}
+  #view-dash .stat-soft .v{font-size:15px;font-weight:650}   /* .pos/.neg 의미색은 유지 */
+  /* --- 카드 섹션 제목 --- */
+  #view-dash .card-head h3{font-size:16px;font-weight:700;letter-spacing:-.01em}
+  #view-dash .legend{font-size:12px}
+  /* --- 최근 활동: 내용>금액>상태>날짜, 가벼운 구분선, 작은 배지 --- */
+  #view-dash .recent{padding:4px 6px 8px}
+  #view-dash .recent-item{gap:10px;padding:11px 10px;font-size:14px;border-radius:0}
+  #view-dash .recent-item:hover{background:var(--paper)}
+  #view-dash .recent-item + .recent-item{border-top:1px solid var(--line-2)}
+  #view-dash .recent-item .t{flex:1;min-width:0;font-weight:600;color:var(--text-primary)}
+  #view-dash .recent-item .ra{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;color:var(--text-primary)}
+  #view-dash .recent-item .pill{flex:0 0 auto;font-size:11px;padding:2px 8px;line-height:1.35}
+  #view-dash .recent-item .d{flex:0 0 auto;margin-left:2px;color:var(--text-muted);font-size:12px;min-width:36px;text-align:right}
+  @media(max-width:820px){
+    /* 모바일: 차트 세로 빈 공간 축소 + 최근 활동 배지 여백 축소 */
+    #view-dash .chart{height:150px;padding:14px 14px 10px}
+    #view-dash .scr-hero .big{font-size:30px}
+    #view-dash .recent-item{gap:8px;padding:10px 8px}
+    #view-dash .recent-item .ra{font-size:13.5px}
+  }
 </style>
 </head>
 <body>
@@ -1940,7 +1980,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.110";
+const APP_VERSION = "v1.111";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -5349,12 +5389,12 @@ function renderDash(){
   document.getElementById("dashStats").innerHTML=`
     <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
       <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:"매입단가 확인"}</div></button>
-    <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
+    <button type="button" class="stat stat-link stat-key" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div><div class="hint" style="margin-top:2px">지급 내역 보기</div></button>
-    <button type="button" class="stat stat-link" data-view-target="ar"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div><div class="hint" style="margin-top:2px">미수금 확인</div></button>
-    <button type="button" class="stat stat-link" data-view-target="quotes"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
+    <button type="button" class="stat stat-link stat-key" data-view-target="ar"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div><div class="hint" style="margin-top:2px">미수금 확인</div></button>
+    <button type="button" class="stat stat-link stat-soft" data-view-target="quotes"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
       <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></button>
-    <button type="button" class="stat stat-link" data-view-target="ar"><div class="k">계산서 미발행</div><div class="v ${untaxed.n?"neg":""}">${untaxed.n}건</div>
+    <button type="button" class="stat stat-link stat-soft" data-view-target="ar"><div class="k">계산서 미발행</div><div class="v ${untaxed.n?"neg":""}">${untaxed.n}건</div>
       <div class="hint" style="margin-top:2px">${untaxed.n?won(untaxed.amt):"모두 발행 완료"}</div></button>`;
   document.querySelectorAll("#dashStats [data-view-target]").forEach(el=>{
     el.onclick=()=>switchView(el.dataset.viewTarget);
@@ -5385,13 +5425,11 @@ function renderDash(){
 
   // 최근 활동
   const acts=[
-    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", html:
-      `<span class="pill ${QT_STATUS_CLASS[q.status]||'st-draft'}">${escapeHtml(q.status)}</span><span class="t">${escapeHtml(coName(q.company_id))} · ${won(quoteTotals(q).total)}</span>` })),
-    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", html:
-      `<span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span><span class="t">${escapeHtml(coName(p.company_id))} · ${won(p.amount)}</span>` }))
+    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", cls:QT_STATUS_CLASS[q.status]||'st-draft', badge:q.status, name:coName(q.company_id), amt:quoteTotals(q).total })),
+    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", cls:p.kind==="수금"?"in":"out", badge:p.kind, name:coName(p.company_id), amt:Number(p.amount)||0 }))
   ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||"")).slice(0,8);
   document.getElementById("dashRecent").innerHTML = acts.length
-    ? acts.map(a=>`<div class="recent-item">${a.html}<span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
+    ? acts.map(a=>`<div class="recent-item"><span class="t">${escapeHtml(a.name)}</span><span class="ra">${won(a.amt)}</span><span class="pill ${a.cls}">${escapeHtml(a.badge)}</span><span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
     : `<div class="empty">아직 활동 내역이 없습니다.</div>`;
 }
 
