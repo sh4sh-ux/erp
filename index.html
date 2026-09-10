@@ -1034,6 +1034,36 @@
     .material-balance-hero strong{font-size:28px}
     .qt-hero-num .v{font-size:27px}
   }
+
+  /* ==================================================================
+     v1.85 · 화면 공통 헤더 통일 — 히어로 숫자 + 인라인 스탯 + 입력영역 통일
+     · .scr-hero: 라벨 → 큰 숫자(30/700) → 부연 (현황·수금·미수금 공통)
+     · .stats: 카드 그리드 → 좌우 여분 없는 한 줄 라벨/값(인라인) — 히어로와 한 세트
+     · 상세내역 입력(.qline.head·.pay-add·.stock-add)도 배경 없이 통일
+     ================================================================== */
+  .scr-hero{margin:2px 0 2px}
+  .scr-hero .lbl{font-size:12.5px;color:var(--ink-3);font-weight:600;margin-bottom:7px}
+  .scr-hero .big{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums;display:inline-block}
+  .scr-hero .big.pos{color:var(--ok-ink,#13823D)} .scr-hero .big.neg{color:var(--danger)}
+  .scr-hero .big small{font-size:17px;font-weight:650;color:var(--ink-2);margin-left:2px}
+  .scr-hero .sub{margin-top:10px;font-size:12.5px;color:var(--ink-2);font-weight:500}
+  .scr-hero .sub b{color:var(--ink);font-weight:650}
+  .scr-hero .sub .sep{color:var(--ink-4);margin:0 8px}
+
+  .stats{display:flex;flex-wrap:wrap;gap:20px 40px;padding:20px 2px;margin:18px 0 24px;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);grid-template-columns:none}
+  .stat{background:transparent;border:0;border-radius:0;padding:0;min-height:0;box-shadow:none;text-align:left;display:block;flex:0 0 auto;width:max-content;max-width:100%}
+  .stat:hover{background:transparent;transform:none;box-shadow:none;border:0}
+  .stat.stat-link{cursor:pointer}
+  .stat.stat-link:hover .v{color:var(--primary)}
+  .stat .k{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+  .stat .v{font-size:17px;font-weight:750;letter-spacing:-.018em;margin-top:0}
+  .stat .hint{font-size:11px;color:var(--ink-3);margin-top:5px!important}
+
+  /* 상세내역 입력 영역 통일 (배경 없음) */
+  .qline.head{background:transparent;color:var(--ink-3)}
+  .pay-add,.stock-add{background:transparent}
+  .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
 </style>
 </head>
 <body>
@@ -1311,10 +1341,10 @@
           <div class="sp"></div>
           <input type="month" class="month-input" id="payMonth">
         </div>
+        <div class="scr-hero"><div class="lbl">이달 순현금</div><div class="big" id="paySumNet">0원</div></div>
         <div class="stats">
           <div class="stat"><div class="k">이달 수금</div><div class="v pos" id="paySumIn">0원</div></div>
-          <div class="stat"><div class="k">이달 지급</div><div class="v" id="paySumOut">0원</div></div>
-          <div class="stat"><div class="k">차액</div><div class="v" id="paySumNet">0원</div></div>
+          <div class="stat"><div class="k">이달 지급</div><div class="v neg" id="paySumOut">0원</div></div>
         </div>
         <div class="card">
           <div class="pay-add">
@@ -1345,6 +1375,7 @@
             <button class="btn-sm" id="dashNewQuote" type="button">+ 새 견적</button>
           </div>
         </div>
+        <div class="scr-hero" id="dashHero"></div>
         <div class="stats" id="dashStats"></div>
         <div class="dash-grid">
           <div class="card">
@@ -1402,17 +1433,16 @@
           </select>
           <button class="btn-sm" id="arCsvBtn">CSV 내보내기</button>
         </div>
+        <div class="scr-hero"><div class="lbl">미수금 합계 · 납품 − 수금</div><div class="big neg" id="arOpen">0원</div>
+          <div class="sub">미수 거래처 <b id="arCount">0곳</b></div></div>
         <div class="stats">
           <div class="stat"><div class="k">납품 총액</div><div class="v" id="arDelivered">0원</div>
             <div class="hint" id="arOrderedNote" style="margin-top:2px"></div></div>
           <div class="stat"><div class="k">수금 총액</div><div class="v pos" id="arPaid">0원</div></div>
-          <div class="stat"><div class="k">미수금 합계</div><div class="v neg" id="arOpen">0원</div>
-            <div class="hint" style="margin-top:2px">납품 − 수금</div></div>
           <div class="stat"><div class="k">미납품 잔액</div><div class="v" id="arPending">0원</div>
             <div class="hint" style="margin-top:2px">수주했지만 아직 납품 전</div></div>
           <div class="stat"><div class="k">계산서 미발행</div><div class="v" id="arUntaxed">0원</div>
             <div class="hint" id="arUntaxedNote" style="margin-top:2px"></div></div>
-          <div class="stat"><div class="k">미수 거래처</div><div class="v" id="arCount">0곳</div></div>
         </div>
         <div class="card">
           <div class="card-head"><h3>거래처별 미수금</h3><span class="legend">수주 견적 합계 − 수금 합계</span></div>
@@ -1521,7 +1551,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.84";
+const APP_VERSION = "v1.85";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -4529,7 +4559,7 @@ function renderPay(){
   document.getElementById("paySumOut").textContent=won(sumOut);
   const netEl=document.getElementById("paySumNet");
   netEl.textContent=(net>0?"+":"")+won(net);
-  netEl.className="v "+(net>0?"pos":net<0?"neg":"");
+  netEl.className="big "+(net>0?"pos":net<0?"neg":"");
 
   renderPayByCo(rows);
 
@@ -4613,9 +4643,11 @@ function renderDash(){
   const untaxed=db.quotes.filter(needsTax).reduce((a,q)=>({
     n:a.n+1, amt:a.amt+quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total }),{n:0,amt:0});
 
+  document.getElementById("dashHero").innerHTML=`
+    <div class="lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
+    <div class="big">${won(sales.total)}</div>
+    <div class="sub">납품 <b>${sales.count}건</b><span class="sep">·</span>미수금 <b>${won(openAr)}</b>${untaxed.n?`<span class="sep">·</span>계산서 미발행 <b class="amb" style="color:var(--warn-ink)">${untaxed.n}건</b>`:""}</div>`;
   document.getElementById("dashStats").innerHTML=`
-    <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 매출 (납품)</div><div class="v">${won(sales.total)}</div>
-      <div class="hint" style="margin-top:2px">${sales.count}건 · 매출 집계 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
       <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:"매입단가 확인"}</div></button>
     <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
