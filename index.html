@@ -695,7 +695,7 @@
   .nav-sec{padding:14px 11px 7px;color:#A3AAB4;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:none}
   .nav-item{min-height:44px;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600}
   .nav-item.on{background:var(--primary-soft);box-shadow:inset 3px 0 var(--primary)}
-  .main{padding:30px 34px 48px}
+  .main{padding:30px 34px 48px;--main-pb:48px}
   .view{width:100%;max-width:1480px;margin:0 auto}
   .page-head{min-height:46px;margin-bottom:22px;gap:10px}
   .page-head h2{font-size:25px;font-weight:730;letter-spacing:-.035em}
@@ -782,7 +782,7 @@
   #view-settings>.card{max-width:760px!important}
 
   @media(max-width:1120px){
-    .main{padding:26px 24px 42px}
+    .main{padding:26px 24px 42px;--main-pb:42px}
     .dash-grid{grid-template-columns:1fr}
     .cols{grid-template-columns:300px minmax(0,1fr)}
   }
@@ -1112,10 +1112,13 @@
       height:calc(100vh - 130px);display:flex;flex-direction:column;min-height:0;
     }
     #coList,#itList,#qtList{flex:1;max-height:none}
-    /* (4) 상세 폼 저장/버튼 줄을 하단에 고정 (견적·품목·거래처 공통, 스크롤 없이 항상 보이게) */
+    /* (4) 상세 폼 저장/버튼 줄을 하단에 고정 (견적·품목·거래처 공통, 스크롤 없이 항상 보이게).
+       ⚠️ sticky bottom은 스크롤 컨테이너(.main)의 *콘텐츠 박스*(=하단 패딩 위)를 기준으로 멈춘다.
+       .main 하단 패딩(--main-pb, 화면폭별 42~48px)만큼 바가 뷰포트 바닥에서 떠서 그 틈으로 뒤의
+       비고 등 내용이 저장바 아래에 비쳐 보였다 → bottom을 그 패딩만큼 음수로 내려 바닥에 딱 붙인다. */
     .detail .form-actions{
-      position:sticky;bottom:0;z-index:5;
-      margin:26px -36px 0;padding:14px 36px;
+      position:sticky;bottom:calc(-1 * var(--main-pb, 0px));z-index:5;
+      margin:26px -36px 0;padding:16px 36px 18px;
       background:var(--card);border-top:1px solid var(--line);
       box-shadow:0 -8px 18px -14px rgba(17,17,17,.25);
     }
@@ -1614,11 +1617,14 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.93";
+const APP_VERSION = "v1.94";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
 const BIZ_CERT_FILENAME = "사업자등록증.png";
+/* 사업자등록증 파일 위치 — 확장자를 몰라도 되도록 폴더+이름 접두어로 지정(폴더를 훑어 접두어로 매칭).
+   설정에서 링크/경로를 넣으면 그 값이 우선한다. 사용자 Dropbox: /02_Work/문서_THE EDIT/사업자등록증_디에디트(THE-EDIT)02 */
+const DEFAULT_BIZ_CERT_PATH = "/02_Work/문서_THE EDIT/사업자등록증_디에디트(THE-EDIT)02";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1744,6 +1750,21 @@ async function dbxDownload(path,retried){
   if(res.status===401) throw new Error(ERR_AUTH);
   if(!res.ok) throw new Error("다운로드 실패 "+res.status);
   return await res.text();
+}
+async function dbxDownloadBlob(path,retried){
+  const token=await needToken();
+  const res=await fetch("https://content.dropboxapi.com/2/files/download",{
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+token, "Dropbox-API-Arg":dbxArg({path}) }
+  });
+  if(res.status===409) return null;             // 파일 없음
+  if(res.status===401&&!retried){
+    if(!await refreshToken()) throw new Error(ERR_AUTH);
+    return await dbxDownloadBlob(path,true);
+  }
+  if(res.status===401) throw new Error(ERR_AUTH);
+  if(!res.ok) throw new Error("다운로드 실패 "+res.status);
+  return await res.blob();
 }
 async function dbxUpload(path,content){
   const token=await needToken();
@@ -2045,23 +2066,74 @@ async function shareBusinessCard(){
   toast("명함 이미지를 열었습니다");
 }
 
-/* 사업자등록증 보내기 — 명함 보내기와 같은 3단 fallback(공유 시트 → 링크 복사 → 열기).
-   기본 이미지는 없으므로 설정에서 링크를 넣어야 한다. */
-function bizCertUrl(){ return ((db.settings||{}).biz_cert_url || "").trim(); }
-async function bizCertFile(url){
-  const res=await fetch(url,{cache:"no-store"});
-  if(!res.ok) throw new Error("biz cert image fetch failed");
-  const blob=await res.blob();
-  return new File([blob],BIZ_CERT_FILENAME,{type:blob.type||"image/png"});
+/* 사업자등록증 보내기.
+   설정값(biz_cert_url)이 있으면 그것을, 없으면 기본 Dropbox 경로(DEFAULT_BIZ_CERT_PATH)를 쓴다.
+   - http(s) 링크면 그대로 받아서 공유
+   - "/"로 시작하면 Dropbox 경로 → 앱의 Dropbox 연결로 파일을 직접 내려받아 공유
+     (확장자를 몰라도 되도록, 정확 경로 실패 시 부모 폴더를 훑어 파일명 접두어로 찾는다) */
+function bizCertRef(){ return ((db.settings||{}).biz_cert_url || DEFAULT_BIZ_CERT_PATH || "").trim(); }
+function extToMime(name){
+  const e=(name.split(".").pop()||"").toLowerCase();
+  return e==="pdf"?"application/pdf":e==="png"?"image/png":e==="webp"?"image/webp":
+         (e==="jpg"||e==="jpeg")?"image/jpeg":"image/jpeg";
+}
+/* Dropbox 경로(또는 폴더+접두어)에서 파일 blob과 이름을 찾아 온다 */
+async function resolveBizCertFromDropbox(path){
+  // 1) 정확 경로로 바로 시도 (설정에 확장자까지 넣은 경우)
+  try{
+    const blob=await dbxDownloadBlob(path);
+    if(blob) return { blob, name:path.split("/").pop() };
+  }catch(err){ if(err && err.message===ERR_AUTH) throw err; }
+  // 2) 부모 폴더를 훑어 파일명 접두어로 매칭 (확장자 모름 대응)
+  const slash=path.lastIndexOf("/");
+  const folder=path.slice(0,slash), base=path.slice(slash+1).toLowerCase();
+  const entries=await dbxList(folder);
+  if(!entries) return null;                       // 폴더 접근 불가(권한/미존재)
+  const hit=entries.find(e=>e[".tag"]==="file" && (e.name||"").toLowerCase().startsWith(base));
+  if(!hit) return null;
+  const blob=await dbxDownloadBlob(hit.path_lower||hit.path_display);
+  return blob ? { blob, name:hit.name } : null;
 }
 async function shareBizCert(){
-  const url=bizCertUrl();
-  if(!url){ toast("사업자등록증 이미지 링크를 설정에서 등록해 주세요"); switchView("settings"); return; }
-  const shareUrl=absUrl(url);
+  const ref=bizCertRef();
+  if(!ref){ toast("사업자등록증 위치가 설정되어 있지 않습니다 — 설정에서 링크/경로를 넣어 주세요"); switchView("settings"); return; }
+
+  // (A) Dropbox 경로 — 앱의 Dropbox 연결로 직접 받아서 공유
+  if(ref.startsWith("/")){
+    if(!localStorage.getItem(LS.refresh) && !localStorage.getItem(LS.access)){
+      toast("Dropbox 연결 후 사용할 수 있습니다"); return;
+    }
+    let found;
+    try{ found=await resolveBizCertFromDropbox(ref); }
+    catch(err){
+      toast(err && err.message===ERR_AUTH ? "Dropbox 인증이 만료됐습니다 — 새로고침 후 다시 시도하세요" : "사업자등록증을 불러오지 못했습니다");
+      return;
+    }
+    if(!found){
+      toast("사업자등록증 파일을 찾지 못했습니다 — 파일명·폴더를 확인하거나 Full Dropbox 권한인지 확인하세요");
+      return;
+    }
+    const file=new File([found.blob], found.name||BIZ_CERT_FILENAME, {type:found.blob.type||extToMime(found.name||"")});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file]}); return; }
+      catch(err){ if(err && err.name==="AbortError") return; }
+    }
+    // 공유 시트 미지원(데스크탑 등) → 파일로 저장
+    downloadBlob(found.blob, found.name||BIZ_CERT_FILENAME);
+    toast("공유를 지원하지 않는 환경이라 사업자등록증을 파일로 저장했습니다");
+    return;
+  }
+
+  // (B) http(s) 링크 — 기존 방식(공유 시트 → 링크 복사 → 열기)
+  const shareUrl=absUrl(ref);
   if(navigator.share && navigator.canShare){
     try{
-      const file=await bizCertFile(shareUrl);
-      if(navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+      const res=await fetch(shareUrl,{cache:"no-store"});
+      if(res.ok){
+        const blob=await res.blob();
+        const file=new File([blob],BIZ_CERT_FILENAME,{type:blob.type||"image/png"});
+        if(navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+      }
     }catch(err){ if(err && err.name==="AbortError") return; }
   }
   if(navigator.share){
