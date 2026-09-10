@@ -1119,26 +1119,41 @@
   .material-record-qty.out{color:var(--warn-c)}
 
   @media(min-width:821px){
-    /* 데스크탑: 본문을 자체 스크롤러로 → 목록/저장버튼 고정 기준 확보 (상단바 64px 제외) */
+    /* 데스크탑: 본문이 스크롤러 (상단바 64px 제외) */
     .main{height:calc(100vh - 64px);overflow-y:auto}
-    /* (1) 좌측 목록 카드가 화면 높이를 꽉 채우고 내부 목록만 스크롤 */
+  }
+
+  /* ===== 두-패널 화면(거래처·품목·견적): 좌·우 패널을 화면 높이에 고정하고 각자 내부 스크롤 (더치페이식) =====
+     좌·우 카드 모두 sticky top + 화면 높이(calc)로 고정 → 페이지(프레임)는 고정되고,
+     긴 목록/긴 상세는 각 카드 안에서만 스크롤된다.
+     ⚠️ 981px+에서만 적용: 거래처·품목은 ≤980px에서 1단으로 접히므로(이때 고정 높이면 세로로 겹쳐 깨짐),
+        실제 2단 구간(≥981px)에서만 고정 프레임을 켠다. 단일 컬럼 화면·모바일은 무영향. */
+  @media(min-width:981px){
+    #view-companies .cols>.card,#view-items .cols>.card,
+    #view-quotes .quote-list-card,#view-quotes .quote-detail-card{
+      position:sticky;top:0;align-self:start;min-height:0;
+      height:calc(100vh - 214px);
+    }
+    /* 좌측: 카드는 넘침 숨기고 리스트만 스크롤 */
     #view-companies .cols>.card:first-child,
     #view-items .cols>.card:first-child,
     #view-quotes .quote-list-card{
-      position:sticky;top:0;align-self:start;
-      height:calc(100vh - 130px);display:flex;flex-direction:column;min-height:0;
+      display:flex;flex-direction:column;overflow:hidden;
     }
-    #coList,#itList,#qtList{flex:1;max-height:none}
-    /* (4) 상세 폼 저장/버튼 줄을 하단에 고정 (견적·품목·거래처 공통, 스크롤 없이 항상 보이게).
-       ⚠️ sticky bottom은 스크롤 컨테이너(.main)의 *콘텐츠 박스*(=하단 패딩 위)를 기준으로 멈춘다.
-       .main 하단 패딩(--main-pb, 화면폭별 42~48px)만큼 바가 뷰포트 바닥에서 떠서 그 틈으로 뒤의
-       비고 등 내용이 저장바 아래에 비쳐 보였다 → bottom을 그 패딩만큼 음수로 내려 바닥에 딱 붙인다. */
-    /* ⚠️ 마스터-디테일(견적·품목·거래처) 상세 폼에만 적용 — 설정 등 일반 카드의 버튼줄까지
-       하단 고정바로 만들면 안 된다(버튼이 카드 위에 붙고 아래가 텅 비어 보임). */
+    #coList,#itList,#qtList{flex:1;min-height:0;max-height:none;overflow:auto}
+    /* 우측: 상세 카드 자체가 스크롤러. .detail이 카드 높이를 채워 저장바가 항상 카드 바닥에 붙는다 */
+    #view-companies .cols>.card:last-child,
+    #view-items .cols>.card:last-child,
+    #view-quotes .quote-detail-card{overflow-y:auto}
+    #view-companies .cols>.card:last-child .detail,
+    #view-items .cols>.card:last-child .detail,
+    #view-quotes .quote-detail-card .detail{min-height:100%;padding-bottom:0}
+    /* 저장/버튼 줄: 우측 카드 스크롤러 바닥에 sticky 고정 (견적·품목·거래처만).
+       우측 카드가 스크롤러라 .main 패딩 보정이 필요 없다 → bottom:0. .detail 하단 패딩 0으로 바가 바닥에 딱. */
     #view-quotes .detail .form-actions,
     #view-items .detail .form-actions,
     #view-companies .detail .form-actions{
-      position:sticky;bottom:calc(-1 * var(--main-pb, 0px));z-index:5;
+      position:sticky;bottom:0;z-index:5;
       margin:26px -36px 0;padding:16px 36px 18px;
       background:var(--card);border-top:1px solid var(--line);
       box-shadow:0 -8px 18px -14px rgba(17,17,17,.25);
@@ -1638,7 +1653,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.97";
+const APP_VERSION = "v1.98";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
