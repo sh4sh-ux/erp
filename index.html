@@ -1061,13 +1061,18 @@
   .stat .hint{font-size:11px;color:var(--ink-3);margin-top:5px!important}
 
   /* 상세내역 입력 영역 통일 (배경 없음) */
-  .qline.head{background:transparent;color:var(--ink-3)}
+  .qline.head,.vline.head,.cline.head{background:transparent;color:var(--ink-3)}
   .pay-add,.stock-add{background:transparent}
   .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
 
   /* v1.86 · 거래처 상세 원장 (히어로 + 거래 내역 + 정보 폼 구획) */
   .co-ledger-h{font-size:14px;font-weight:750;letter-spacing:-.01em;margin:24px 0 4px}
   .co-ledger-h span{color:var(--ink-3);font-weight:600;font-size:12px;margin-left:6px}
+  .co-acts{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0 6px}
+  .co-acts .btn{flex:0 0 auto}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
 </style>
 </head>
 <body>
@@ -1555,7 +1560,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.86";
+const APP_VERSION = "v1.87";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2120,6 +2125,7 @@ function coLedger(cid){
 function coLedgerHtml(c){
   const r=arData().find(x=>x.cid===c.id)||{ordered:0,delivered:0,paid:0,open:0,pending:0,untaxed:0,untaxedCount:0,orders:0,lastDeliver:"",lastPay:""};
   const ev=coLedger(c.id);
+  const hasQuote=db.quotes.some(q=>q.company_id===c.id);
   const recent=[r.lastDeliver,r.lastPay].filter(Boolean).sort().slice(-1)[0]||"";
   const kindPill=k=>k==="납품"?'<span class="pill st-done">납품</span>':k==="수금"?'<span class="pill in">수금</span>':'<span class="pill out">지급</span>';
   const body=ev.length?ev.map(e=>`
@@ -2140,6 +2146,12 @@ function coLedgerHtml(c){
       <div class="stat"><div class="k">수금 누계</div><div class="v pos">${won(r.paid)}</div></div>
       <div class="stat"><div class="k">거래 횟수</div><div class="v">${fmt(r.orders)}건</div></div>
       <div class="stat"><div class="k">최근 거래</div><div class="v">${recent?escapeHtml(recent):"—"}</div></div>
+    </div>
+    <div class="co-acts">
+      <button type="button" class="btn primary" id="coActPay"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>수금 등록</button>
+      <button type="button" class="btn ghost" id="coActQuote">견적 작성</button>
+      <button type="button" class="btn ghost" id="coActStmt"${hasQuote?"":" disabled"}>거래명세서</button>
+      <button type="button" class="btn ghost" id="coActEdit">정보 수정</button>
     </div>
     <h3 class="co-ledger-h">거래 내역 <span>${ev.length}건</span></h3>
     <div class="tbl-wrap"><table class="tbl">
@@ -2192,7 +2204,33 @@ function renderCoDetail(){
   document.getElementById("coPriceAdd").onclick=()=>document.getElementById("coPriceRules").insertAdjacentHTML("beforeend",companyPriceRow());
   document.getElementById("coPriceRules").onclick=ev=>{if(ev.target.closest("[data-rule-remove]"))ev.target.closest("[data-price-rule]").remove();};
   if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ coSel=null; renderCoList(); renderCoDetail(); };
-  else document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
+  else {
+    document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
+    // 원장 액션 줄 — 실제 동작 연결
+    document.getElementById("coActPay").onclick=()=>{
+      switchView("payments");
+      const el=document.getElementById("payCo");
+      if(el){ el.value=c.id; updatePayQuotes(); }
+      setTimeout(()=>document.getElementById("payAmt")?.focus(),40);
+    };
+    document.getElementById("coActQuote").onclick=()=>{
+      switchView("quotes");
+      document.getElementById("qtNewBtn").click();
+      if(qtEditing){ qtEditing.company_id=c.id; applyCoQuoteMemo(qtEditing,""); renderQtDetail(); scrollToDetail("qtForm"); }
+    };
+    const stmt=document.getElementById("coActStmt");
+    if(stmt) stmt.onclick=()=>{
+      const q=db.quotes.filter(x=>x.company_id===c.id)
+        .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.no||"").localeCompare(a.no||""))[0];
+      if(!q) return;
+      qtDocType="거래명세서"; qtSel=q.id; qtEditing=null; qtBaseline="";
+      switchView("quotes"); renderQtList(); renderQtDetail(); scrollToDetail("qtForm");
+    };
+    document.getElementById("coActEdit").onclick=()=>{
+      const el=document.getElementById("f_name");
+      if(el){ el.scrollIntoView({behavior:"smooth",block:"center"}); el.focus({preventScroll:true}); }
+    };
+  }
 }
 
 async function submitCompany(c,isNew){
