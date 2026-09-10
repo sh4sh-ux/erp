@@ -1461,6 +1461,20 @@
     #view-dash .recent-item{gap:8px;padding:10px 8px}
     #view-dash .recent-item .ra{font-size:13.5px}
   }
+
+  /* ==========================================================================
+     대시보드 Hero 겹침 수정 (v1.112) — iOS Safari 전용 증상 대응, 대시보드만
+     · iOS는 overflow 스크롤 컨테이너(flex 자식) 안의 position:sticky 헤더를
+       흐름에서 빼내 바로 아래 히어로(이달 매출 금액) 위로 겹쳐 그리는 버그가 있어
+       746,350원이 상단에 잘려 제목 위로 올라와 보였다.
+     · 대시보드 제목줄만 고정(sticky)을 해제해 정상 흐름으로 되돌린다(제목은 그대로 상단,
+       스크롤 시 함께 올라감). 다른 화면(견적·거래처 등)의 sticky 헤더는 건드리지 않음.
+     · 데스크탑은 애초에 sticky가 아니라 영향 없음.
+     ========================================================================== */
+  @media(max-width:820px){
+    .shell .main>#view-dash>.page-head{position:static;top:auto;z-index:auto}
+    #view-dash .scr-hero{margin:14px 0 2px}
+  }
 </style>
 </head>
 <body>
@@ -1980,7 +1994,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.111";
+const APP_VERSION = "v1.112";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
