@@ -1195,7 +1195,7 @@
     display:flex;flex-direction:column;gap:2px}
   .rail-nav::-webkit-scrollbar{width:0}
   .rail-nav .nav-sec{padding:12px 12px 5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;
-    color:#A3AAB4;text-transform:none;white-space:nowrap;overflow:hidden}
+    color:#A3AAB4;text-transform:none;white-space:nowrap;overflow:visible;line-height:1.5}
   .rail-nav .nav-item{min-height:44px;height:44px;padding:0 12px;gap:13px;border-radius:12px;
     font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;flex:0 0 auto;width:100%}
   .rail-nav .nav-item svg{width:20px;height:20px;flex:0 0 20px}
@@ -1219,7 +1219,7 @@
   .shell .sidebar:not(:hover) .rail-act span,
   .shell .sidebar:not(:hover) .sync-text,
   .shell .sidebar:not(:hover) .tb-user{opacity:0;width:0;margin:0;padding:0;overflow:hidden;pointer-events:none}
-  .shell .sidebar:not(:hover) .nav-sec{height:0;padding:0;margin:0;opacity:0}
+  .shell .sidebar:not(:hover) .nav-sec{display:none}
   .shell .sidebar:not(:hover) .rail-logo,
   .shell .sidebar:not(:hover) .nav-item,
   .shell .sidebar:not(:hover) .rail-act,
@@ -1285,7 +1285,7 @@
     .shell .sidebar:not(:hover) .rail-brand,.shell .sidebar:not(:hover) .nav-item span,
     .shell .sidebar:not(:hover) .rail-act span,.shell .sidebar:not(:hover) .sync-text,
     .shell .sidebar:not(:hover) .tb-user{opacity:1;width:auto;margin:revert;padding:revert;pointer-events:auto}
-    .shell .sidebar:not(:hover) .nav-sec{height:auto;padding:12px 12px 5px;margin:revert;opacity:1}
+    .shell .sidebar:not(:hover) .nav-sec{display:block;height:auto;padding:12px 12px 5px;opacity:1}
     .shell .sidebar:not(:hover) .rail-logo,.shell .sidebar:not(:hover) .nav-item,
     .shell .sidebar:not(:hover) .rail-act,.shell .sidebar:not(:hover) .sync-state{justify-content:flex-start;padding-left:12px;padding-right:12px}
     .shell .sidebar:not(:hover) .tb-user{padding:2px 12px 6px}
@@ -1301,8 +1301,9 @@
     .shell .main>#view-ar:not(.hidden),
     .shell .main>#view-settings:not(.hidden){padding:16px 16px 28px}
     .shell .main>#view-materials:not(.hidden){padding:14px 14px 28px}
-    /* 버거가 헤더 왼쪽과 겹치지 않게 */
-    .shell .main>.view>.page-head{padding-left:52px}
+    /* 버거가 헤더 왼쪽과 겹치지 않게 + 스크롤해도 제목·버거 줄이 상단 고정 */
+    .shell .main>.view>.page-head{padding-left:52px;position:sticky;top:0;z-index:15;
+      background:var(--card);margin:0}
     .shell .main>#view-companies>.page-head,
     .shell .main>#view-items>.page-head,
     .shell .main>#view-quotes>.page-head{padding:16px 16px 12px 52px}
@@ -1818,7 +1819,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.106";
+const APP_VERSION = "v1.107";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2392,9 +2393,26 @@ function toggleNav(open){
   const sb=document.querySelector(".sidebar");
   const bd=document.getElementById("navBackdrop");
   const willOpen = open===undefined ? !sb.classList.contains("open") : open;
+  const wasOpen = sb.classList.contains("open");
   sb.classList.toggle("open",willOpen);
   bd.classList.toggle("show",willOpen);
+  // 앱 내 뒤로가기: 드로어가 열리면 history 항목 1개를 쌓고,
+  // 하드웨어/브라우저 back으로 닫히게 한다. (popstate 안에서는 pushState 안 함)
+  if(willOpen && !wasOpen){
+    if(!_navBackArmed){ _navBackArmed=true; try{history.pushState({erpDrawer:1},"");}catch(e){} }
+  } else if(!willOpen && wasOpen){
+    if(_navBackArmed && !_inNavPop){ _navBackArmed=false; try{history.back();}catch(e){} }
+  }
 }
+let _navBackArmed=false, _inNavPop=false;
+window.addEventListener("popstate", function(){
+  const sb=document.querySelector(".sidebar");
+  if(sb && sb.classList.contains("open")){
+    _inNavPop=true; _navBackArmed=false;
+    toggleNav(false);           // 드로어만 닫고 나감 (여기서 history.back 재호출 방지)
+    _inNavPop=false;
+  }
+});
 
 /* 모바일(단일 열)에서 목록 항목 선택 시 상세 폼으로 스크롤 */
 function scrollToDetail(formId){
