@@ -352,10 +352,8 @@
   .quote-flow-sub{margin-top:2px;color:var(--ink-3);font-size:12px}
   .quote-flow-value{text-align:right;font-size:14px;font-weight:700;white-space:nowrap}
   .quote-flow-value small{display:block;margin-top:2px;color:var(--danger);font-size:11.5px}
-  .quote-progress{height:6px;margin:0 15px 12px;border-radius:999px;background:var(--line-2);overflow:hidden}
-  .quote-progress span{display:block;height:100%;border-radius:inherit;background:var(--primary)}
-  .quote-flow-body{padding:0 15px 14px}
-  .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid var(--line-2);font-size:13px}
+  .quote-flow-body{padding:15px}
+  .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:12px 0;border-top:1px solid var(--line-2);font-size:13px}
   .quote-record:first-child{border-top:none}
   .quote-record .date{color:var(--ink-3)}
   .quote-record .amount{font-weight:700;text-align:right;white-space:nowrap}
@@ -373,7 +371,7 @@
   .delivery-fill-all{height:39px;padding:0 13px;border:1px solid rgba(67,85,232,.28);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:12.5px;font-weight:750;white-space:nowrap}
   .quote-flow-actions{display:flex;gap:8px}
   .quote-flow-actions .btn{flex:1;padding:10px 12px}
-  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:0 0 10px;font-size:13px}
+  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:12px 14px;padding:2px 0 14px;font-size:13.5px}
   .payment-totals span{color:var(--ink-2)}
   .payment-totals b{text-align:right}
   .payment-totals .balance{color:var(--danger)}
@@ -1610,7 +1608,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.91";
+const APP_VERSION = "v1.92";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3175,7 +3173,6 @@ function fillRemainingDeliveryInputs(inputs=document.querySelectorAll("[data-del
 function deliveryPanelHtml(q,isNew){
   ensureQuoteLineIds(q);
   const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q), remaining=Math.max(0,ordered-delivered);
-  const rate=ordered?Math.min(100,Math.round(delivered/ordered*100)):0;
   const done=quoteDeliveryQtyMap(q);
   const deliveryLines=quoteDeliveryLines(q);
   const excluded=(q.lines||[]).filter(l=>(l.name||"").trim()&&!isDeliveryLine(l));
@@ -3186,7 +3183,6 @@ function deliveryPanelHtml(q,isNew){
       <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">납품 대상 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품${excluded.length?` · 작업/할인 ${fmt(excluded.length)}개 항목 제외`:""}</div></div>
       <div class="quote-flow-value">${fmt(delivered)} / ${fmt(ordered)}개<small>${remaining?`${fmt(remaining)}개 남음`:delivered?"납품 완료":"미납품"}</small></div>
     </div>
-    <div class="quote-progress" role="progressbar" aria-label="납품 진행률" aria-valuenow="${delivered}" aria-valuemin="0" aria-valuemax="${ordered||0}"><span style="width:${rate}%"></span></div>
     <div class="quote-flow-body">
       <div class="quote-flow-sub">납품 기록 변경 후 아래 견적서 저장을 눌러 확정하세요.${q.legacy_stock?" 기존 견적은 이전 재고 처리 방식을 유지합니다.":" 새 견적의 출고는 납품 수량 기준입니다."}</div>
       ${records.map(d=>`<div class="quote-record">
