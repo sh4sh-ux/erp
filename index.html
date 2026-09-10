@@ -1073,6 +1073,16 @@
   .btn.primary{background:var(--primary);color:#fff}
   .btn.primary:hover{filter:brightness(1.06)}
   .btn[disabled]{opacity:.45;pointer-events:none}
+
+  /* v1.88 · 상세 화면 디테일 다듬기 — 섹션 제목 통일 + 히어로→스탯 리듬 정리 */
+  /* 견적 상세·거래처 원장의 섹션 제목을 같은 타이포로 통일 (여백은 문맥별 유지) */
+  .qt-sec-t,.co-ledger-h{font-size:13.5px;font-weight:730;letter-spacing:-.012em;color:var(--ink)}
+  .qt-sec-t .cnt,.co-ledger-h span{font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:0}
+  .qt-sec-t{margin-bottom:13px}          /* .qt-sec 가 섹션 간 간격 담당 */
+  .co-ledger-h{margin:24px 0 8px}        /* 원장은 폼 직속이라 자체 여백 */
+  .scr-hero .lbl{letter-spacing:.01em}
+  .scr-hero .sub{margin-top:9px}
+  .stats{margin:15px 0 26px;padding:18px 2px}
 </style>
 </head>
 <body>
@@ -1560,7 +1570,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.87";
+const APP_VERSION = "v1.88";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
