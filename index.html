@@ -104,9 +104,10 @@
   .list{max-height:calc(100vh - 240px);overflow:auto;padding:0}
   /* 더치페이 지출 목록식: 행은 카드 폭을 꽉 채우고(라운드 없음) 얇은 인셋 구분선으로 나눈다.
      → 선택 시 파란 기둥바가 카드 왼쪽 끝에 딱 붙어 흰 여백이 안 생긴다 */
-  .list-item{padding:12px 16px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
+  /* 좌우 여분 20px + 구분선 인셋도 20px로 맞춰 구분선이 상호명 시작~금액 끝과 정확히 일치 */
+  .list-item{padding:12px 20px;--div-inset:20px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
     border-bottom:1px solid var(--line);
-    border-image:linear-gradient(to right,transparent var(--div-inset,16px),var(--line) var(--div-inset,16px),var(--line) calc(100% - var(--div-inset,16px)),transparent calc(100% - var(--div-inset,16px))) 1}
+    border-image:linear-gradient(to right,transparent var(--div-inset,20px),var(--line) var(--div-inset,20px),var(--line) calc(100% - var(--div-inset,20px)),transparent calc(100% - var(--div-inset,20px))) 1}
   .list-item:last-child{border-bottom:none;border-image:none}
   .list-item:hover{background:var(--paper)}
   .list-item.on{background:var(--primary-soft)}
@@ -229,7 +230,7 @@
   }
 
   /* ---------- quote master / detail ---------- */
-  #view-quotes .quote-cols{grid-template-columns:minmax(320px,380px) minmax(0,1fr)}
+  #view-quotes .quote-cols{grid-template-columns:minmax(360px,440px) minmax(0,1fr)}
   #view-quotes .quote-list-card,#view-quotes .quote-detail-card{min-width:0}
   .quote-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line-2);background:#FBFCFD}
   .quote-filters label{min-width:0}
@@ -363,7 +364,7 @@
   .quote-flow-sub{margin-top:2px;color:var(--ink-3);font-size:12px}
   .quote-flow-value{text-align:right;font-size:14px;font-weight:700;white-space:nowrap}
   .quote-flow-value small{display:block;margin-top:2px;color:var(--danger);font-size:11.5px}
-  .quote-flow-body{padding:15px}
+  .quote-flow-body{padding:12px 15px}
   .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:12px 0;border-top:1px solid var(--line-2);font-size:13px}
   .quote-record:first-child{border-top:none}
   .quote-record .date{color:var(--ink-3)}
@@ -382,7 +383,7 @@
   .delivery-fill-all{height:39px;padding:0 13px;border:1px solid rgba(67,85,232,.28);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:12.5px;font-weight:750;white-space:nowrap}
   .quote-flow-actions{display:flex;gap:8px}
   .quote-flow-actions .btn{flex:1;padding:10px 12px}
-  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:12px 14px;padding:2px 0 14px;font-size:13.5px}
+  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:12px 14px;padding:0 0 14px;font-size:13.5px}
   .payment-totals span{color:var(--ink-2)}
   .payment-totals b{text-align:right}
   .payment-totals .balance{color:var(--danger)}
@@ -504,7 +505,7 @@
     #view-quotes .quick-row .date-control+button{min-height:48px}
     #view-quotes .quote-record{grid-template-columns:58px minmax(0,1fr) auto auto;gap:7px}
     #view-quotes .quote-flow-head{padding:13px}
-    #view-quotes .quote-flow-body{padding:0 13px 13px}
+    #view-quotes .quote-flow-body{padding:12px 13px 13px}
     #view-quotes .quote-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     #view-quotes .quote-form-actions .doc-sel,
     #view-quotes .quote-form-actions #qtSaveBtn,
@@ -567,13 +568,13 @@
   .page-head h2{font-size:24px;font-weight:650;letter-spacing:-.025em}
   .page-head .count{margin-left:4px;padding:3px 8px;background:transparent;border-color:transparent}
   .card{border-radius:12px;box-shadow:none}
-  .cols{grid-template-columns:340px minmax(0,1fr);gap:14px}
+  .cols{grid-template-columns:380px minmax(0,1fr);gap:14px}
   .list-head{padding:11px 12px}
   .search{min-height:40px;padding:7px 10px;border:1px solid transparent;border-radius:8px}
   .search:focus-within{border-color:var(--primary);background:var(--card)}
   .btn-add{width:40px;height:40px;border-radius:8px}
   .list{padding:0}
-  .list-item{min-height:54px;padding:9px 10px;border-radius:8px}
+  .list-item{min-height:54px;padding:9px 10px;border-radius:0}
   .avatar{width:34px;height:34px;border-radius:8px}
   .detail{padding:20px 22px}
   .field{margin-bottom:13px}
@@ -713,13 +714,13 @@
   .head-actions{gap:9px}
 
   .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:none}
-  .cols{grid-template-columns:320px minmax(0,1fr);gap:16px}
+  .cols{grid-template-columns:360px minmax(0,1fr);gap:16px}
   .list-head{padding:14px;border-bottom-color:var(--line)}
   .search{min-height:44px;padding:9px 11px;border:1px solid var(--line);background:#F7F8FA}
   .search:focus-within{background:#fff;box-shadow:0 0 0 3px var(--primary-soft)}
   .btn-add{width:44px;height:44px;border-radius:10px}
   .list{padding:0}
-  .list-item{min-height:60px;padding:10px 11px;border-radius:10px}
+  .list-item{min-height:60px;padding:10px 11px;border-radius:0}
   .list-item.on{background:var(--primary-soft)}
   .avatar{width:36px;height:36px;border-radius:9px}
   .li-name{font-size:14px;font-weight:680}
@@ -764,7 +765,7 @@
   .pay-add,.stock-add{padding:16px;gap:9px;background:#FAFBFC}
   #view-payments>.card,#view-stock>.cols>.card{overflow:hidden}
 
-  #view-quotes .quote-cols{grid-template-columns:minmax(300px,340px) minmax(0,1fr)}
+  #view-quotes .quote-cols{grid-template-columns:minmax(340px,400px) minmax(0,1fr)}
   .quote-filters{padding:13px 14px;background:#FAFBFC;border-bottom-color:var(--line)}
   .quote-filters input,.quote-filters select{height:42px;background:#fff}
   .quote-back{margin:16px 16px 0}
@@ -775,7 +776,7 @@
   .qtotals{gap:7px;padding:20px 4px 4px}
   .qtotals .row.grand .v{font-size:20px}
   .quote-flow-head{padding:16px 17px;background:#FAFBFC}
-  .quote-flow-body{padding:0 17px 16px}
+  .quote-flow-body{padding:12px 17px 16px}
   .quote-record{min-height:50px;padding:11px 0}
 
   .copy-note{margin-bottom:18px;padding:12px 15px;border-radius:10px;background:var(--primary-soft)}
@@ -1043,6 +1044,9 @@
   /* 입출고/기록 내역: 기록마다 좌우 여분 인셋 구분선을 두되, **일자 그룹과 무관하게 전체의 맨 끝 한 줄만** 없앤다.
      예전엔 `.material-record:last-child`가 '일자 그룹(.material-day)의 마지막'까지 지워, 1건짜리 날은 구분선이 통째로 사라졌다.
      (높은 특이도 + 늦은 선언 순서로 이전의 모든 :last-child·day-border 규칙을 확실히 덮는다.) */
+  /* 구분선 인셋을 기록 좌우 패딩(≈2px)에 맞춰 글자(날짜~수량)와 정확히 정렬 — 예전엔 16px라 글자 안쪽에 들어가 이질감.
+     바깥 여분은 카드/상세 패딩이 담당한다 */
+  .material-history{--div-inset:2px}
   .material-history .material-record{
     border-bottom:1px solid var(--line);
     border-image:linear-gradient(to right,transparent var(--div-inset), var(--line) var(--div-inset),
@@ -1653,7 +1657,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.98";
+const APP_VERSION = "v1.99";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
