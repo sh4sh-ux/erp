@@ -280,7 +280,7 @@
 
   /* ---------- 품목 규격/옵션·세트 구성품 편집 ---------- */
   .vlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
-  .vline{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .vline{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .vline:last-child{border-bottom:none}
   .vline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
   .vline input,.vline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
@@ -288,6 +288,10 @@
   .vline input.num{text-align:right}
   .vline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .vline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .vhandle{color:var(--ink-4);font-size:14px;line-height:1;cursor:grab;text-align:center;user-select:none;touch-action:none}
+  .vhandle:active{cursor:grabbing}
+  .vline.vdrag{opacity:.5;background:var(--primary-soft)}
+  .vline.vover{box-shadow:inset 0 2px 0 var(--primary)}
   .cline{display:grid;grid-template-columns:minmax(0,1.2fr) 90px 100px 64px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .cline:last-child{border-bottom:none}
   .cline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
@@ -447,7 +451,7 @@
     #view-stock .cols{grid-template-columns:1fr!important}
     .qlines,.vlines{overflow-x:auto}
     .qline{min-width:620px}
-    .vline{min-width:400px}
+    .vline{min-width:420px}
     .cline{min-width:440px}
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
@@ -1599,7 +1603,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.89";
+const APP_VERSION = "v1.90";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2554,9 +2558,10 @@ function renderItDetail(){
       </div>
       ${e.variants.length?`
       <div class="vlines">
-        <div class="vline head"><span>옵션명</span><span>매입단가</span><span>매출단가</span><span></span></div>
+        <div class="vline head"><span></span><span>옵션명</span><span>매입단가</span><span>매출단가</span><span></span></div>
         ${e.variants.map((v,idx)=>`
           <div class="vline">
+            <span class="vhandle" data-vh="${idx}" title="드래그해서 순서 변경">⠿</span>
             <input data-vf="spec" data-idx="${idx}" value="${escapeAttr(v.spec)}" placeholder="예: 30inch">
             <input type="number" inputmode="numeric" class="num" data-vf="buy_price" data-idx="${idx}" value="${v.buy_price||""}" placeholder="기본값">
             <input type="number" inputmode="numeric" class="num" data-vf="sell_price" data-idx="${idx}" value="${v.sell_price||""}" placeholder="기본값">
@@ -2646,11 +2651,49 @@ function renderItDetail(){
     form.querySelectorAll("[data-vrm]").forEach(el=>{
       el.onclick=()=>{ e.variants.splice(Number(el.dataset.vrm),1); renderItDetail(); };
     });
+    bindVariantReorder(form,e);
   }
 
   document.getElementById("itSaveBtn").onclick=()=>submitItem(isNew);
   if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; itEditing=null; renderItList(); renderItDetail(); };
   else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
+}
+
+/* 규격/옵션(사이즈) 행을 드래그해서 순서 변경 (포인터=마우스+터치 통합) */
+function bindVariantReorder(form,e){
+  const rows=[...form.querySelectorAll(".vline:not(.head)")];
+  form.querySelectorAll(".vhandle").forEach(handle=>{
+    handle.onpointerdown=(ev)=>{
+      ev.preventDefault();
+      const from=Number(handle.dataset.vh);
+      const row=handle.closest(".vline");
+      row.classList.add("vdrag");
+      let to=from;
+      const move=(me)=>{
+        let target=from;
+        rows.forEach((r,i)=>{
+          const b=r.getBoundingClientRect();
+          if(me.clientY>=b.top && me.clientY<=b.bottom) target=i;
+          r.classList.toggle("vover", false);
+        });
+        to=target;
+        if(to!==from) rows[to].classList.add("vover");
+      };
+      const up=()=>{
+        document.removeEventListener("pointermove",move);
+        document.removeEventListener("pointerup",up);
+        row.classList.remove("vdrag");
+        rows.forEach(r=>r.classList.remove("vover"));
+        if(to!==from && to>=0 && to<e.variants.length){
+          const [moved]=e.variants.splice(from,1);
+          e.variants.splice(to,0,moved);
+          renderItDetail();
+        }
+      };
+      document.addEventListener("pointermove",move);
+      document.addEventListener("pointerup",up);
+    };
+  });
 }
 
 /* 품명에 [코드]가 붙어 있고 코드칸이 비어 있으면 분리해 주겠다고 안내 */
@@ -3650,6 +3693,8 @@ document.addEventListener("click",ev=>{
   try{ el.showPicker(); }catch(_){ /* 미지원 — 기본 동작에 맡긴다 */ }
 });
 window.addEventListener("resize",closeItemPicker);
+/* 스크롤하면 고정(position:fixed) 팝오버가 버튼과 분리돼 떠 보이므로 닫는다 (capture로 .main 등 내부 스크롤러도 포착) */
+window.addEventListener("scroll",()=>{ if(ipPop) closeItemPicker(); },true);
 
 function bindQtLines(e){
   const form=document.getElementById("qtForm");
