@@ -101,12 +101,19 @@
   .btn-add{background:var(--primary);color:#fff;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;transition:.14s}
   .btn-add:hover{filter:brightness(1.05)}
 
-  .list{max-height:calc(100vh - 240px);overflow:auto;padding:6px}
-  .list-item{padding:11px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s}
+  .list{max-height:calc(100vh - 240px);overflow:auto;padding:0}
+  /* 더치페이 지출 목록식: 행은 카드 폭을 꽉 채우고(라운드 없음) 얇은 인셋 구분선으로 나눈다.
+     → 선택 시 파란 기둥바가 카드 왼쪽 끝에 딱 붙어 흰 여백이 안 생긴다 */
+  .list-item{padding:12px 16px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
+    border-bottom:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset,16px),var(--line) var(--div-inset,16px),var(--line) calc(100% - var(--div-inset,16px)),transparent calc(100% - var(--div-inset,16px))) 1}
+  .list-item:last-child{border-bottom:none;border-image:none}
   .list-item:hover{background:var(--paper)}
   .list-item.on{background:var(--primary-soft)}
   .avatar{width:36px;height:36px;border-radius:10px;background:var(--paper);display:grid;place-items:center;font-weight:640;font-size:14px;color:var(--ink-2);flex:0 0 auto}
   .list-item.on .avatar{background:#fff;color:var(--primary)}
+  /* 선택 행은 더치페이 지출 목록처럼 상호명/품명을 파란색(강조)으로 */
+  .list-item.on .li-name,.list-item.on .li-nm{color:var(--primary)}
   .li-body{min-width:0;flex:1}
   .li-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .li-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -563,7 +570,7 @@
   .search{min-height:40px;padding:7px 10px;border:1px solid transparent;border-radius:8px}
   .search:focus-within{border-color:var(--primary);background:var(--card)}
   .btn-add{width:40px;height:40px;border-radius:8px}
-  .list{padding:5px}
+  .list{padding:0}
   .list-item{min-height:54px;padding:9px 10px;border-radius:8px}
   .avatar{width:34px;height:34px;border-radius:8px}
   .detail{padding:20px 22px}
@@ -709,7 +716,7 @@
   .search{min-height:44px;padding:9px 11px;border:1px solid var(--line);background:#F7F8FA}
   .search:focus-within{background:#fff;box-shadow:0 0 0 3px var(--primary-soft)}
   .btn-add{width:44px;height:44px;border-radius:10px}
-  .list{padding:7px}
+  .list{padding:0}
   .list-item{min-height:60px;padding:10px 11px;border-radius:10px}
   .list-item.on{background:var(--primary-soft)}
   .avatar{width:36px;height:36px;border-radius:9px}
@@ -1031,8 +1038,16 @@
   .tbl .num{text-align:right;font-variant-numeric:tabular-nums}   /* th·td 공통 정렬 */
   .tbl .ctr{text-align:center}
   .tbl .subtotal td{font-weight:750;background:transparent;border-top:1px solid var(--sep2,#D4D4D8);border-bottom:0;border-image:none}
-  /* 리스트 기록도 동일한 좌우 여분 일자선 */
-  .material-record:last-child{border-bottom:0;border-image:none}
+  /* 입출고/기록 내역: 기록마다 좌우 여분 인셋 구분선을 두되, **일자 그룹과 무관하게 전체의 맨 끝 한 줄만** 없앤다.
+     예전엔 `.material-record:last-child`가 '일자 그룹(.material-day)의 마지막'까지 지워, 1건짜리 날은 구분선이 통째로 사라졌다.
+     (높은 특이도 + 늦은 선언 순서로 이전의 모든 :last-child·day-border 규칙을 확실히 덮는다.) */
+  .material-history .material-record{
+    border-bottom:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset), var(--line) var(--div-inset),
+      var(--line) calc(100% - var(--div-inset)), transparent calc(100% - var(--div-inset))) 1;
+  }
+  .material-history .material-day{border-top:0}
+  .material-history .material-day:last-child .material-record:last-child{border-bottom:0;border-image:none}
   /* 선택행: 왼쪽 파란 기둥바 + 직사각형 (영수증 앱 스타일) */
   .nav-item.on,.list-item.on,.material-owner.active{border-radius:0}
   /* 히어로 숫자 30px / 700 */
@@ -1116,7 +1131,11 @@
        ⚠️ sticky bottom은 스크롤 컨테이너(.main)의 *콘텐츠 박스*(=하단 패딩 위)를 기준으로 멈춘다.
        .main 하단 패딩(--main-pb, 화면폭별 42~48px)만큼 바가 뷰포트 바닥에서 떠서 그 틈으로 뒤의
        비고 등 내용이 저장바 아래에 비쳐 보였다 → bottom을 그 패딩만큼 음수로 내려 바닥에 딱 붙인다. */
-    .detail .form-actions{
+    /* ⚠️ 마스터-디테일(견적·품목·거래처) 상세 폼에만 적용 — 설정 등 일반 카드의 버튼줄까지
+       하단 고정바로 만들면 안 된다(버튼이 카드 위에 붙고 아래가 텅 비어 보임). */
+    #view-quotes .detail .form-actions,
+    #view-items .detail .form-actions,
+    #view-companies .detail .form-actions{
       position:sticky;bottom:calc(-1 * var(--main-pb, 0px));z-index:5;
       margin:26px -36px 0;padding:16px 36px 18px;
       background:var(--card);border-top:1px solid var(--line);
@@ -1617,7 +1636,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.95";
+const APP_VERSION = "v1.96";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2114,13 +2133,22 @@ async function shareBizCert(){
       return;
     }
     const file=new File([found.blob], found.name||BIZ_CERT_FILENAME, {type:found.blob.type||extToMime(found.name||"")});
+    // (1) 공유 시트 (모바일 등) → 메일·메신저로 바로 첨부
     if(navigator.canShare && navigator.canShare({files:[file]})){
       try{ await navigator.share({files:[file]}); return; }
       catch(err){ if(err && err.name==="AbortError") return; }
     }
-    // 공유 시트 미지원(데스크탑 등) → 파일로 저장
-    downloadBlob(found.blob, found.name||BIZ_CERT_FILENAME);
-    toast("공유를 지원하지 않는 환경이라 사업자등록증을 파일로 저장했습니다");
+    // (2) 명함 보내기처럼 — 다운로드 대신 클립보드 복사 → 새 탭 열기 (데스크탑)
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        const type=found.blob.type||"image/png";
+        await navigator.clipboard.write([new ClipboardItem({[type]:found.blob})]);
+        toast("사업자등록증 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요");
+        return;
+      }
+    }catch(err){ /* jpeg 등 클립보드 미지원 → 새 탭 열기로 폴백 */ }
+    try{ window.open(URL.createObjectURL(found.blob),"_blank","noopener"); toast("사업자등록증 이미지를 열었습니다"); }
+    catch(err){ downloadBlob(found.blob, found.name||BIZ_CERT_FILENAME); toast("사업자등록증 이미지를 저장했습니다"); }
     return;
   }
 
