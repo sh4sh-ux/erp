@@ -104,10 +104,10 @@
   .list{max-height:calc(100vh - 240px);overflow:auto;padding:0}
   /* 더치페이 지출 목록식: 행은 카드 폭을 꽉 채우고(라운드 없음) 얇은 인셋 구분선으로 나눈다.
      → 선택 시 파란 기둥바가 카드 왼쪽 끝에 딱 붙어 흰 여백이 안 생긴다 */
-  /* 좌우 여분 20px + 구분선 인셋도 20px로 맞춰 구분선이 상호명 시작~금액 끝과 정확히 일치 */
-  .list-item{padding:12px 20px;--div-inset:20px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
+  /* 글자는 좌우 15px로 답답하지 않게, 구분선은 인셋 10px로 글자보다 살짝 더 길게(더치페이식) */
+  .list-item{padding:12px 15px;--div-inset:10px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
     border-bottom:1px solid var(--line);
-    border-image:linear-gradient(to right,transparent var(--div-inset,20px),var(--line) var(--div-inset,20px),var(--line) calc(100% - var(--div-inset,20px)),transparent calc(100% - var(--div-inset,20px))) 1}
+    border-image:linear-gradient(to right,transparent var(--div-inset,10px),var(--line) var(--div-inset,10px),var(--line) calc(100% - var(--div-inset,10px)),transparent calc(100% - var(--div-inset,10px))) 1}
   .list-item:last-child{border-bottom:none;border-image:none}
   .list-item:hover{background:var(--paper)}
   .list-item.on{background:var(--primary-soft)}
@@ -1657,7 +1657,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.100";
+const APP_VERSION = "v1.101";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
