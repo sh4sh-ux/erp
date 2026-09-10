@@ -1230,19 +1230,19 @@
     background:var(--card);border:1px solid var(--line);border-radius:22px;
     overflow:hidden;display:flex;flex-direction:column;padding:0;box-shadow:none}
   .shell .main>.view{max-width:none;margin:0}
-  .shell .main>.view:not(.hidden){display:flex;flex-direction:column;flex:1;min-height:0}
-  /* 내용형 화면: 흰 카드 위에 패딩 + 스크롤 */
+  .shell .main>.view:not(.hidden){flex:1;min-height:0}
+  /* 내용형 화면: 자연 흐름(block) + 스크롤 — flex로 두면 카드가 줄어들며 잘림 */
   .shell .main>#view-dash:not(.hidden),
   .shell .main>#view-payments:not(.hidden),
   .shell .main>#view-stock:not(.hidden),
   .shell .main>#view-sales:not(.hidden),
   .shell .main>#view-ar:not(.hidden),
-  .shell .main>#view-settings:not(.hidden){padding:26px 30px 40px;overflow:auto}
-  .shell .main>#view-materials:not(.hidden){padding:22px 24px 40px;overflow:auto}
+  .shell .main>#view-settings:not(.hidden){display:block;padding:26px 30px 40px;overflow:auto}
+  .shell .main>#view-materials:not(.hidden){display:block;padding:22px 24px 40px;overflow:auto}
   /* 마스터-디테일: 큰 카드 안에서 구분선 하나로 좌/우 분할 */
   .shell .main>#view-companies:not(.hidden),
   .shell .main>#view-items:not(.hidden),
-  .shell .main>#view-quotes:not(.hidden){overflow:hidden}
+  .shell .main>#view-quotes:not(.hidden){display:flex;flex-direction:column;overflow:hidden}
   .shell .main>#view-companies>.page-head,
   .shell .main>#view-items>.page-head,
   .shell .main>#view-quotes>.page-head{padding:22px 26px 16px;margin:0;flex:0 0 auto}
@@ -1851,7 +1851,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.108";
+const APP_VERSION = "v1.109";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
