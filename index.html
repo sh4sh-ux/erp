@@ -1064,6 +1064,10 @@
   .qline.head{background:transparent;color:var(--ink-3)}
   .pay-add,.stock-add{background:transparent}
   .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
+
+  /* v1.86 · 거래처 상세 원장 (히어로 + 거래 내역 + 정보 폼 구획) */
+  .co-ledger-h{font-size:14px;font-weight:750;letter-spacing:-.01em;margin:24px 0 4px}
+  .co-ledger-h span{color:var(--ink-3);font-weight:600;font-size:12px;margin-left:6px}
 </style>
 </head>
 <body>
@@ -1551,7 +1555,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.85";
+const APP_VERSION = "v1.86";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2093,6 +2097,56 @@ function applyAutomaticPrice(q,line){
   const item=db.items.find(i=>i.id===line.item_id);
   if(item)line.price=companySell(q.company_id,item,line.color,line.spec);
 }
+/* 거래처 원장 — 이 거래처의 납품·수금(지급) 기록을 시간순으로 모은다 (표시 전용) */
+function coLedger(cid){
+  const ev=[];
+  db.quotes.forEach(q=>{
+    if(q.company_id!==cid) return;
+    (q.deliveries||[]).forEach(d=>{
+      const lines=deliveredLines(q,d);
+      const nm=lines.map(l=>l.name).filter(Boolean);
+      ev.push({ date:d.date||q.delivered_at||"", ts:d.created_at||"", kind:"납품", amt:quoteTotals({lines}).total,
+        no:q.no||"", desc:nm.length?(nm[0]+(nm.length>1?` 외 ${nm.length-1}건`:"")):"납품" });
+    });
+  });
+  (db.payments||[]).forEach(p=>{
+    if(p.company_id!==cid) return;
+    ev.push({ date:p.date||"", ts:p.created_at||"", kind:p.kind, amt:Number(p.amount)||0,
+      cls:p.kind==="수금"?"pos":"neg", sign:p.kind==="수금"?"+":"−",
+      no:p.quote_id?((db.quotes.find(q=>q.id===p.quote_id)||{}).no||""):"", desc:p.method||"" });
+  });
+  return ev.sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.ts||"").localeCompare(a.ts||""));
+}
+function coLedgerHtml(c){
+  const r=arData().find(x=>x.cid===c.id)||{ordered:0,delivered:0,paid:0,open:0,pending:0,untaxed:0,untaxedCount:0,orders:0,lastDeliver:"",lastPay:""};
+  const ev=coLedger(c.id);
+  const recent=[r.lastDeliver,r.lastPay].filter(Boolean).sort().slice(-1)[0]||"";
+  const kindPill=k=>k==="납품"?'<span class="pill st-done">납품</span>':k==="수금"?'<span class="pill in">수금</span>':'<span class="pill out">지급</span>';
+  const body=ev.length?ev.map(e=>`
+      <tr>
+        <td style="white-space:nowrap">${escapeHtml((e.date||"").slice(2))}</td>
+        <td>${kindPill(e.kind)}</td>
+        <td class="sub">${escapeHtml(e.desc||"")}${e.no?` · <span class="mono" style="color:var(--ink-3)">${escapeHtml(e.no)}</span>`:""}</td>
+        <td class="num"${e.cls?` style="color:var(--${e.cls==="pos"?"ok":"danger"})"`:""}>${e.sign||""}${fmt(e.amt)}</td>
+      </tr>`).join("")
+    :`<tr><td colspan="4"><div class="empty">아직 거래 내역이 없습니다.</div></td></tr>`;
+  return `
+    <div class="scr-hero"><div class="lbl">미수금 잔액 · 납품 − 수금</div>
+      <div class="big ${r.open>0?"neg":""}">${won(r.open)}</div>
+      <div class="sub">${c.type==="매입"?"매입 거래처":`미납품 <b>${won(r.pending)}</b>${r.untaxedCount?`<span class="sep">·</span>계산서 미발행 <b class="neg">${r.untaxedCount}건</b>`:""}`}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">납품 누계</div><div class="v">${won(r.delivered)}</div></div>
+      <div class="stat"><div class="k">수금 누계</div><div class="v pos">${won(r.paid)}</div></div>
+      <div class="stat"><div class="k">거래 횟수</div><div class="v">${fmt(r.orders)}건</div></div>
+      <div class="stat"><div class="k">최근 거래</div><div class="v">${recent?escapeHtml(recent):"—"}</div></div>
+    </div>
+    <h3 class="co-ledger-h">거래 내역 <span>${ev.length}건</span></h3>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>날짜</th><th>구분</th><th>내용</th><th class="num">금액</th></tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <h3 class="co-ledger-h" style="margin-top:28px">거래처 정보</h3>`;
+}
 function renderCoDetail(){
   const empty=document.getElementById("coEmpty");
   const form=document.getElementById("coForm");
@@ -2101,6 +2155,7 @@ function renderCoDetail(){
   empty.classList.add("hidden"); form.classList.remove("hidden");
   const isNew = coSel==="__new__";
   form.innerHTML=`
+    ${isNew?"":coLedgerHtml(c)}
     <div class="field"><label>상호 *</label><input id="f_name" value="${escapeAttr(c.name)}" placeholder="예: 한빛유통"></div>
     <div class="grid2">
       <div class="field"><label>구분</label>
