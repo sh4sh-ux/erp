@@ -1083,6 +1083,35 @@
   .scr-hero .lbl{letter-spacing:.01em}
   .scr-hero .sub{margin-top:9px}
   .stats{margin:15px 0 26px;padding:18px 2px}
+
+  /* v1.89 · 자재 내역 구분선 · 차감색 · 목록 꽉 채움 · 견적 저장버튼 고정 */
+  /* (2) 입출고 내역: 날짜당 1건이면 record:last-child 규칙 탓에 선이 안 그려짐 → 날짜 그룹 경계에 좌우 여분 일자선 */
+  .material-day{border-top:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset),var(--line) var(--div-inset),var(--line) calc(100% - var(--div-inset)),transparent calc(100% - var(--div-inset))) 1;}
+  .material-day:first-child{border-top:0;border-image:none}
+  .material-day+.material-day{margin-top:0}
+  /* (3) 차감(−) 수량 = 더치페이 주황 */
+  .material-record-qty.out{color:var(--warn-c)}
+
+  @media(min-width:821px){
+    /* 데스크탑: 본문을 자체 스크롤러로 → 목록/저장버튼 고정 기준 확보 (상단바 64px 제외) */
+    .main{height:calc(100vh - 64px);overflow-y:auto}
+    /* (1) 좌측 목록 카드가 화면 높이를 꽉 채우고 내부 목록만 스크롤 */
+    #view-companies .cols>.card:first-child,
+    #view-items .cols>.card:first-child,
+    #view-quotes .quote-list-card{
+      position:sticky;top:0;align-self:start;
+      height:calc(100vh - 130px);display:flex;flex-direction:column;min-height:0;
+    }
+    #coList,#itList,#qtList{flex:1;max-height:none}
+    /* (4) 상세 폼 저장/버튼 줄을 하단에 고정 (견적·품목·거래처 공통, 스크롤 없이 항상 보이게) */
+    .detail .form-actions{
+      position:sticky;bottom:0;z-index:5;
+      margin:26px -36px 0;padding:14px 36px;
+      background:var(--card);border-top:1px solid var(--line);
+      box-shadow:0 -8px 18px -14px rgba(17,17,17,.25);
+    }
+  }
 </style>
 </head>
 <body>
@@ -1570,7 +1599,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.88";
+const APP_VERSION = "v1.89";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
