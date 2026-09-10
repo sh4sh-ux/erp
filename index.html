@@ -1617,7 +1617,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.94";
+const APP_VERSION = "v1.95";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -4437,10 +4437,27 @@ async function emailQuote(q,docType){
   if((q.memo||"").trim()) lines.push("",`비고: ${q.memo.trim()}`);
   lines.push("","※ 상세 내역은 첨부한 이미지를 확인해 주세요.","감사합니다.");
   const body=lines.join("\n");
-  // 첨부용 이미지 저장 (메일은 자동 첨부 불가)
+
+  // (A) 파일 공유를 지원하는 환경(모바일 등) → 공유 시트로 이미지 + 문구를 함께 보낸다.
+  //     네이버메일·Gmail·메일 앱을 고르면 이미지가 자동 첨부되고 본문에 문구가 들어간다.
+  //     (받는사람 주소는 공유 시트로는 지정할 수 없어 메일 앱에서 직접 입력 — 아래 토스트로 안내)
   try{
     const p=await quoteImageParts(q,docType);
-    if(p) downloadBlob(p.blob,p.fname);
+    if(p){
+      const file=new File([p.blob],p.fname,{type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file], title:subject, text:body});
+          toast(to?`메일 앱을 선택해 보내세요 · 받는사람 ${to}`:"메일 앱을 선택해 보내세요");
+          return;
+        }catch(err){
+          if(err && err.name==="AbortError") return;   // 사용자가 취소
+          /* 그 외 오류는 아래 mailto로 폴백 */
+        }
+      }
+      // (B) 파일 공유 미지원(데스크탑 등) → 첨부용 이미지를 저장해두고 mailto로 받는사람·문구 채움
+      downloadBlob(p.blob,p.fname);
+    }
   }catch(err){}
   const mailto=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.location.href=mailto;
