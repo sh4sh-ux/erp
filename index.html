@@ -730,7 +730,7 @@
   .stat .k{color:var(--ink-3);font-size:12px;font-weight:650}
   .stat .v{margin-top:10px;font-size:23px;font-weight:760;letter-spacing:-.025em}
   .stat .hint{margin-top:5px!important}
-  .stat-link:hover{border-color:#BFD5F8;background:#FBFDFF}
+  .stat-link:hover{border-color:#CBCDF6;background:#FBFDFF}
   .dash-grid{grid-template-columns:minmax(0,1.35fr) minmax(340px,.85fr);gap:16px}
   .card-head{min-height:56px;padding:17px 20px 10px;border-bottom:1px solid var(--line-2)}
   .card-head h3{font-size:15px;font-weight:720}
@@ -816,7 +816,7 @@
   .nav-item.on::before,.list-item.on::before,.material-owner.active::before{
     content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0;background:var(--primary)
   }
-  .material-owner.active{border-color:#C9DCF9;background:var(--primary-soft)}
+  .material-owner.active{border-color:#CBCDF6;background:var(--primary-soft)}
   .material-balance-hero{margin-top:32px}
   .material-balance-hero strong{font-size:32px;letter-spacing:-1px}
   .material-history{border-top:1px solid var(--line)}
@@ -847,8 +847,8 @@
   .view{max-width:1360px}
   .nav-item,.list-item,.material-owner{outline:none}
   .nav-item.on,.list-item.on,.material-owner.active{border-radius:0 10px 10px 0}
-  .nav-item:focus-visible,.list-item:focus-visible,.material-owner:focus-visible{box-shadow:inset 0 0 0 2px rgba(36,119,243,.42)}
-  .nav-item.on:focus-visible,.list-item.on:focus-visible,.material-owner.active:focus-visible{box-shadow:inset 3px 0 var(--primary),inset 0 0 0 2px rgba(36,119,243,.34)}
+  .nav-item:focus-visible,.list-item:focus-visible,.material-owner:focus-visible{box-shadow:inset 0 0 0 2px rgba(91,95,230,.42)}
+  .nav-item.on:focus-visible,.list-item.on:focus-visible,.material-owner.active:focus-visible{box-shadow:inset 3px 0 var(--primary),inset 0 0 0 2px rgba(91,95,230,.34)}
   .material-owner.active::before{left:-1px}
   .material-history{max-height:none;overflow:visible;border-top:1px solid #D5DAE1}
   .material-record{padding:13px 2px;border-bottom-color:#D5DAE1}
@@ -937,6 +937,51 @@
   .p-etc .memo-text{margin-bottom:8px}
   .p-etc .notice{color:#D32F2F;line-height:1.7}
   .p-foot{margin-top:14px;text-align:center;color:#9AA0A8;font-size:11px}
+
+  /* ---------- v1.82: 견적서 작성 화면 레이아웃 + 공통 디테일 리디자인 ---------- */
+  :root{ --ink-4:#C2C8D2; }
+  /* 살짝 떠 있는 카드 · 넉넉한 여백 (참조 시안 느낌) */
+  .card{box-shadow:0 1px 2px rgba(24,28,40,.03),0 16px 42px -22px rgba(24,28,40,.18)}
+  .detail{padding:34px 36px 40px}
+  .page-head{margin-bottom:26px}
+  .page-head h2{font-size:27px;font-weight:760;letter-spacing:-.035em}
+  /* 버튼 · 입력 라운드 정리 */
+  .btn,.btn-sm,.btn-primary,.btn-add{border-radius:12px}
+  .btn.ghost{color:var(--ink-2)}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--ink-3);background:var(--paper)}
+  .field input,.field select,.field textarea,.month-input,.doc-sel,
+  .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
+  /* 견적 폼 히어로 (라벨 → 큰 합계 → 부연) */
+  .qt-hero{padding:0 2px 24px;margin-bottom:26px;border-bottom:1px solid var(--line-2)}
+  .qt-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  .qt-eyebrow .lbl{font-size:12.5px;font-weight:650;color:var(--ink-3);letter-spacing:.01em}
+  .qt-eyebrow .mono{font-family:var(--mono);font-weight:600;color:var(--ink-2);letter-spacing:-.02em}
+  .qt-hero-num{display:flex;align-items:flex-end;gap:11px}
+  .qt-hero-num .k{font-size:13px;font-weight:600;color:var(--ink-3);padding-bottom:9px}
+  .qt-hero-num .v{font-size:42px;font-weight:780;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+  .qt-hero-sub{margin-top:12px;font-size:13px;font-weight:500;color:var(--ink-2)}
+  .qt-hero-sub b{color:var(--ink);font-weight:650}
+  .qt-hero-sub .sep{color:var(--ink-4);margin:0 9px}
+  /* 섹션 그룹 */
+  .qt-sec{margin-bottom:28px}
+  .qt-sec-t{display:flex;align-items:baseline;gap:9px;font-size:13.5px;font-weight:730;letter-spacing:-.01em;margin-bottom:15px}
+  .qt-sec-t .cnt{font-size:12px;font-weight:600;color:var(--ink-3)}
+  /* 품목 합계 박스 */
+  .qtotals{margin-top:16px;padding:16px 16px 14px;background:var(--paper);border:1px solid var(--line-2);border-radius:12px;gap:8px}
+  .qtotals .row.grand{margin-top:3px;padding-top:11px;border-top:1px solid var(--line)}
+  .qtotals .row.grand .k{font-weight:700}
+  .qtotals .row.grand .v{font-size:20px;font-weight:780;color:var(--primary)}
+  /* 액션 줄 */
+  .quote-form-actions{margin-top:26px;padding-top:20px;border-top:1px solid var(--line-2);gap:9px}
+  .qline input,.qline select{border-radius:9px}
+  @media(max-width:820px){
+    .detail{padding:22px 16px}
+    .page-head h2{font-size:22px}
+    .qt-hero{padding-bottom:18px;margin-bottom:20px}
+    .qt-hero-num .v{font-size:34px}
+    .qt-sec{margin-bottom:22px}
+    .card{box-shadow:none}
+  }
 </style>
 </head>
 <body>
@@ -1424,7 +1469,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.81";
+const APP_VERSION = "v1.82";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -2991,36 +3036,52 @@ function renderQtDetail(){
   const t=quoteTotals(e);
   const coOpts=db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}" ${c.id===e.company_id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+  const totalQty=(e.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0);
+  const coNm=coName(e.company_id);
   form.innerHTML=`
     ${isNew&&qtCopySourceNo?`<div class="copy-note" role="status">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span><b>${escapeHtml(qtCopySourceNo)}</b>의 내용을 복사했습니다. 새 견적번호는 등록할 때 만들어집니다.</span>
     </div>`:""}
-    <div class="grid2">
-      <div class="field"><label>견적일자</label>${dateControlHtml("fq_date",e.date,"견적일자")}</div>
-      <div class="field"><label>거래처 *</label>
-        <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
+    <div class="qt-hero">
+      <div class="qt-eyebrow">
+        <span class="lbl">${isNew?"새 견적 작성":"견적서"}${!isNew&&e.no?` · <span class="mono">${escapeHtml(e.no)}</span>`:""}</span>
+        <span class="pill ${QT_STATUS_CLASS[e.status]||'st-draft'}">${escapeHtml(e.status)}</span>
       </div>
+      <div class="qt-hero-num"><span class="k">합계</span><span class="v" id="fq_heroTotal">${won(t.total)}</span></div>
+      <div class="qt-hero-sub"><b>${coNm?escapeHtml(coNm):"거래처 미선택"}</b><span class="sep">·</span>총 <b id="fq_heroQty">${fmt(totalQty)}</b>개<span class="sep">·</span>견적일 ${escapeHtml(e.date||"—")}</div>
     </div>
-    <div class="grid2">
-      <div class="field"><label>상태</label>
-        <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
-      </div>
-      <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일">
-        ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
-      </div>
-    </div>
-    <div class="field"><label>세금계산서 발행일</label>
-        <div class="quick-row">
-          ${dateControlHtml("fq_tax",e.tax_at||"","세금계산서 발행일")}
-          <button type="button" id="fq_taxToday">오늘</button>
+
+    <div class="qt-sec">
+      <div class="qt-sec-t">기본 정보</div>
+      <div class="grid2">
+        <div class="field"><label>견적일자</label>${dateControlHtml("fq_date",e.date,"견적일자")}</div>
+        <div class="field"><label>거래처 *</label>
+          <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
         </div>
-        <div class="hint">${isTaxed(e)
-          ? "발행 완료"
-          : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
-                            : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>상태</label>
+          <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일">
+          ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0"><label>세금계산서 발행일</label>
+          <div class="quick-row">
+            ${dateControlHtml("fq_tax",e.tax_at||"","세금계산서 발행일")}
+            <button type="button" id="fq_taxToday">오늘</button>
+          </div>
+          <div class="hint">${isTaxed(e)
+            ? "발행 완료"
+            : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
+                              : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+      </div>
     </div>
-    <div class="field"><label>품목</label>
+
+    <div class="qt-sec">
+      <div class="qt-sec-t">품목 <span class="cnt">${e.lines.length}건 · 총 ${fmt(totalQty)}개</span></div>
       <div class="qlines">
         <div class="qline head"><span>품목</span><span style="text-align:center">색상 · 규격/옵션</span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
@@ -3032,18 +3093,23 @@ function renderQtDetail(){
       <div class="hint">자수·패치 부착은 셰프복·유니폼 등 납품 품목의 전체 수량에 자동으로 맞춰집니다. 작업 수량을 직접 고치면 해당 행은 수동 수량으로 유지됩니다.</div>
       <div id="fq_sizePanel"></div>
       <div id="fq_short"></div>
+      <div class="qtotals">
+        <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
+        <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
+        <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
+        <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
+      </div>
+      <div class="hint" style="text-align:right;margin-top:6px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
     </div>
-    <div class="qtotals">
-      <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
-      <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
-      <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
-      <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
-    </div>
-    <div class="hint" style="text-align:right;margin-top:-2px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
+
     ${deliveryPanelHtml(e,isNew)}
     ${paymentPanelHtml(e,isNew)}
-    <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
-      <div class="hint hidden" id="fq_memoHint"></div>
+
+    <div class="qt-sec">
+      <div class="qt-sec-t">비고</div>
+      <div class="field" style="margin-bottom:0"><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
+        <div class="hint hidden" id="fq_memoHint"></div>
+      </div>
     </div>
     <div class="form-actions quote-form-actions">
       ${isNew?"":`<select class="doc-sel" id="fq_doc" title="인쇄·이미지·공유에 사용할 양식">
@@ -3411,6 +3477,8 @@ function bindQtLines(e){
       document.getElementById("fq_total").textContent=won(t.total);
       const mgEl=document.getElementById("fq_margin");
       if(mgEl) mgEl.textContent=quoteMarginText(e);
+      const heroEl=document.getElementById("fq_heroTotal");
+      if(heroEl) heroEl.textContent=won(t.total);
       renderShortage(e);
     };
     if(el.dataset.f==="qty")el.onchange=()=>{
