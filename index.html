@@ -2022,6 +2022,41 @@
     #view-settings .sup-form .sup-sec-t{font-size:15px;margin-bottom:12px}
     #view-settings .sup-form .sup-sec-h{display:block;margin-left:0;margin-top:2px}
   }
+
+  /* ==========================================================================
+     v1.133 — 설정 유틸 영역 UI 개선 (THE EDIT 디자인 시스템, #view-settings 하단 유틸만)
+       ⚠️ 기능 Logic 절대 무변경 — importFromAppFolder/copyAppUrl/resetDropboxConnection/
+          exportBackup/importBackup·Dropbox·file input(#bkFile)·모든 버튼 ID·바인딩 그대로.
+          v1.132 공급자 폼(.sup-form)·공통 .card/.btn 미변경(전부 .settings-util* 스코프).
+       3 유틸 카드를 .settings-utils 그리드로: §13 옛폴더|다른기기 2열 + 백업 full-width(데스크톱),
+       ≤820 1열. §11 border+무그림자+radius12+패딩, §7 제목 16/600, §8 설명 13/1.55,
+       §10 버튼 ghost 유지(복원만 hover danger 틴트, 시각만), §9 상태줄.
+     ========================================================================== */
+  /* §12·§13 레이아웃 — 옛폴더|다른기기 2열, 백업 full-width */
+  #view-settings .settings-utils{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:760px;align-items:stretch}
+  #view-settings .settings-utils .settings-util-backup{grid-column:1 / -1}
+  /* §11 카드 — 흰 배경·1px border·radius 12·무그림자 (공통 .card 미변경, 스코프 override) */
+  #view-settings .settings-utils .settings-util-card{margin:0;box-shadow:none;border:1px solid var(--border-default);border-radius:12px;display:flex}
+  #view-settings .settings-utils .settings-util-card>.detail{padding:20px;display:flex;flex-direction:column;width:100%}
+  /* §7 제목 16/600 */
+  #view-settings .settings-util-t{font-size:16px;font-weight:600;color:var(--text-primary);margin:0 0 6px;letter-spacing:-.01em}
+  /* §8 설명 13/1.55 secondary */
+  #view-settings .settings-util-desc{font-size:13px;font-weight:400;color:var(--text-secondary);line-height:1.55;margin:0 0 14px}
+  #view-settings .settings-util-desc b{color:var(--text-primary);font-weight:600}
+  /* §9 상태줄 (백업 현재 데이터 요약) */
+  #view-settings .settings-util-stat{font-size:13px;font-weight:500;color:var(--text-muted);margin:0 0 12px}
+  /* §10·§16 액션 — 버튼 하단 정렬, ghost 유지 */
+  #view-settings .settings-util-actions{margin-top:auto;padding-top:0;border-top:none;gap:8px}
+  #view-settings .settings-util-actions .btn{height:40px;font-size:14px;font-weight:600}
+  /* §20 복원(불러오기)만 hover 시 danger 톤 — 시각 표시만, Logic·의미 무변경 */
+  #view-settings .settings-util-actions #bkImportBtn:hover{color:var(--danger);border-color:var(--danger)}
+  /* §14 모바일 — 1열 스택, 패딩·간격 (≤820: 태블릿부터 1열) */
+  @media(max-width:820px){
+    #view-settings .settings-utils{grid-template-columns:1fr;gap:12px;max-width:none}
+    #view-settings .settings-utils .settings-util-backup{grid-column:auto}
+    #view-settings .settings-utils .settings-util-card>.detail{padding:16px}
+    #view-settings .settings-util-actions .btn{flex:1 1 auto}
+  }
 </style>
 </head>
 <body>
@@ -2461,16 +2496,17 @@
           </div>
         </div>
 
-        <div class="card" style="max-width:640px;margin-bottom:16px">
+        <div class="settings-utils">
+        <div class="card settings-util-card">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">옛 앱 폴더에서 가져오기</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">옛 앱 폴더에서 가져오기</h3>
+            <p class="settings-util-desc">
               Dropbox App key를 <b>Full Dropbox</b> 권한으로 바꾸면 저장 위치가
               <b>/07_Apps/거래처관리(ERP)/</b>로 옮겨집니다. 예전 데이터는 Dropbox의
               <b>앱/&lt;앱이름&gt;/</b> 안에 남아 있는데, 이 버튼을 누르면 앱이 찾아서 가져옵니다.
               <b>옛 폴더의 원본은 지우지 않습니다.</b>
             </p>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="importOldBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M12 10v6"/><path d="m9 13 3 3 3-3"/></svg>
                 옛 앱 폴더에서 가져오기</button>
@@ -2478,14 +2514,14 @@
           </div>
         </div>
 
-        <div class="card" style="max-width:640px;margin-bottom:16px">
+        <div class="card settings-util-card">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">다른 기기에서 이어 쓰기</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">다른 기기에서 이어 쓰기</h3>
+            <p class="settings-util-desc">
               다른 컴퓨터나 휴대폰에서도 같은 ERP 주소를 열고 같은 Dropbox 계정으로 연결하면
               이어서 사용할 수 있습니다. 데이터가 비어 보이면 Dropbox 연결을 다시 설정하세요.
             </p>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="copyAppUrlBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 ERP 주소 복사</button>
@@ -2496,15 +2532,15 @@
           </div>
         </div>
 
-        <div class="card" style="max-width:640px">
+        <div class="card settings-util-card settings-util-backup">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">데이터 백업</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">데이터 백업</h3>
+            <p class="settings-util-desc">
               거래처·품목·견적서·수금/지급·재고를 파일 하나로 내려받아 보관합니다.
               불러오기를 하면 <b>현재 데이터를 모두 덮어씁니다.</b>
             </p>
-            <div id="bkStat" class="hint" style="margin-bottom:14px"></div>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div id="bkStat" class="hint settings-util-stat"></div>
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="bkExportBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
                 백업 내려받기</button>
@@ -2514,6 +2550,7 @@
               <input type="file" id="bkFile" accept="application/json,.json" class="hidden">
             </div>
           </div>
+        </div>
         </div>
       </section>
 
@@ -2560,7 +2597,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.132";
+const APP_VERSION = "v1.133";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
