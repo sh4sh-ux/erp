@@ -1677,6 +1677,27 @@
     #view-payments #payByCo tr:last-child td:nth-child(4)::before{color:var(--text-secondary)}
   }
   /* ==========================================================================
+     v1.124 — 수금/지급 밀도 정밀화 (THE EDIT 디자인 시스템 수치, #view-payments만)
+       v1.121 구조(라벨·데스크톱 그리드·모바일 표 리플로우) 위에 스펙 수치만 맞춤:
+       입력 높이 42px·radius 10px·font 15px, 라벨 14/600, 데스크톱 열 간격 22px,
+       거래처별 집계/거래 내역 표 헤더 13/600·행 14px. 마크업·계산·기능·다른 화면 무변경.
+     ========================================================================== */
+  /* §8 Input density — 공통 .field/input/select 미변경, #view-payments 폼만 */
+  #view-payments .pay-add input,
+  #view-payments .pay-add select{min-height:42px;border-radius:10px;font-size:15px}
+  #view-payments .pay-add .pf>label{font-size:14px;font-weight:600}
+  @media(min-width:821px){
+    /* §8 Row gap 12 / Column gap 22 (기존 14/16) */
+    #view-payments .pay-add{gap:12px 22px}
+    /* §13 표 밀도 — 데스크톱만(모바일 2줄 리플로우는 nth-child 특이도로 유지) */
+    #view-payments .tbl th{font-size:13px;font-weight:600}
+    #view-payments .tbl td{font-size:14px}
+  }
+  @media(max-width:820px){
+    /* 모바일은 세로 밀도 위해 라벨만 살짝 작게(13.5) — 입력 높이는 42px 유지 */
+    #view-payments .pay-add .pf>label{font-size:13.5px}
+  }
+  /* ==========================================================================
      v1.122 — 견적 Desktop Detail Panel 스크롤 복구 (버그 수정, #view-quotes만)
        원인: v1.98 프레임 규칙이 남긴 `align-self:start`(line ~1138)가 v1.104 flex
        셸에서 컨테이너의 `align-items:stretch`를 눌러, 좌/우 카드가 행 높이(≈706px)에
@@ -2229,7 +2250,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.123";
+const APP_VERSION = "v1.124";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
