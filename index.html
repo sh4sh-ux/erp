@@ -1813,6 +1813,31 @@
   /* §9·§10 Detail Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이는 앱 공통 44px 유지) */
   #view-companies .detail .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
   #view-companies .detail .grid2{gap:12px 22px}
+  /* ==========================================================================
+     v1.127 — 품목관리 화면 UI 개선 (THE EDIT 디자인 시스템, #view-items 스코프만)
+       기능·검색·등록/수정/삭제·정렬·견적 품목 연결(itemSell 등) 로직·마크업 무변경.
+       공통 .field/.btn/.tbl/.card/.list-item 미변경 — 전부 #view-items 스코프.
+     ========================================================================== */
+  /* §4·§21 Master/Detail 34/66 — 거래처(v1.126)와 동일 패턴, 품목만 */
+  @media(min-width:1024px){
+    .shell #view-items .cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
+  /* §9·§10 Master List — 품목명 강조(15/600), 규격/옵션 보조(13), 행 높이 소폭 축소 */
+  #view-items .list-item{padding-top:10px;padding-bottom:10px}
+  #view-items .list-item .li-name{font-size:15px;font-weight:600}
+  #view-items .list-item .li-sub{font-size:13px}
+  /* §8 판매 단가 — 우측정렬·tabular, 살짝 강조 */
+  #view-items .list-item .li-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-primary)}
+  /* §5 검색 밀도 — 42px·15px (공통 .search 미변경) */
+  #view-items .list-head .search{min-height:42px}
+  #view-items .list-head .search input{font-size:15px}
+  /* §13·§14 Detail Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이는 앱 공통 44px 유지) */
+  #view-items .detail .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-items .detail .grid2{gap:12px 22px}
+  /* §15 모바일: 품목코드·품명 2열(inline 180px 1fr)을 1열로 — 품명이 안 잘리게 */
+  @media(max-width:560px){
+    #view-items .detail .grid2[style*="180px"]{grid-template-columns:1fr!important;gap:10px}
+  }
 </style>
 </head>
 <body>
@@ -2332,7 +2357,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.126";
+const APP_VERSION = "v1.127";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
