@@ -2057,6 +2057,14 @@
     #view-settings .settings-utils .settings-util-card>.detail{padding:16px}
     #view-settings .settings-util-actions .btn{flex:1 1 auto}
   }
+
+  /* ==========================================================================
+     v1.134 — 전체 UI 최종 Polish Pass (CSS만, 스코프 격리)
+       §5 매출 집계 모바일 secondary 라벨 '합계 (부가세 포함)'이 좁은 3열에서
+       글자 단위로 깨지던(포/함) 것 수정 — 한글 어절 단위 유지(공백에서만 줄바꿈).
+       #view-sales 스코프만. 계산·집계·다른 화면·공통 컴포넌트 무변경.
+     ========================================================================== */
+  #view-sales .sl-metric .mk,#view-sales .sl-hero-k{word-break:keep-all;overflow-wrap:normal}
 </style>
 </head>
 <body>
@@ -2597,7 +2605,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.133";
+const APP_VERSION = "v1.134";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
