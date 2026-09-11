@@ -1498,7 +1498,9 @@
   #view-quotes .qs-val.co{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
   #view-quotes .quote-summary .pill{flex:0 0 auto}
   #view-quotes .qs-amount{flex:0 0 auto;text-align:right;min-width:132px}
-  #view-quotes .qs-amt-k{font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:7px;white-space:nowrap}
+  /* 라벨 line-box(18px)+간격(3px)을 좌측 라벨(.qs-k+.qs-row gap)과 동일하게 맞춰
+     견적번호 값과 금액 값의 세로 시작 위치(Y축)를 정확히 정렬 (폰트 크기·위계는 그대로) */
+  #view-quotes .qs-amt-k{font-size:12.5px;font-weight:600;color:var(--text-muted);line-height:18px;margin-bottom:3px;white-space:nowrap}
   #view-quotes .qs-amt-v{font-size:33px;font-weight:780;letter-spacing:-.03em;line-height:1;color:var(--text-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
   @media(max-width:820px){
     #view-quotes .quote-summary{gap:12px}
@@ -2024,7 +2026,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.115";
+const APP_VERSION = "v1.116";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
