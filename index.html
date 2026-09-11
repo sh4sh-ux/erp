@@ -1688,6 +1688,28 @@
   @media(min-width:1024px){
     .shell #view-quotes .quote-cols>.card{align-self:stretch;min-height:0}
   }
+  /* ==========================================================================
+     v1.123 — Desktop Rail 공통 폴리싱 (≥1024px, #railNav 스코프만)
+       Rail 폭·구조·Hover Expand·switchView·아이콘 라이브러리 전부 무변경.
+       정돈감만: 메뉴 세로 간격 통일, 아이콘~라벨 간격 통일, 하단 유틸리티 영역을
+       Main Nav보다 조용하게(더 muted) 분리, 로그아웃은 hover에서만 danger tone.
+       선택/hover/전환은 이미 스펙 부합이라 유지. Main Panel·다른 화면·모바일 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    /* §6 메뉴 간 세로 간격 통일(2→4px, 한 덩어리로 읽히되 답답하지 않게) */
+    .shell #railNav .rail-nav{gap:4px}
+    /* §11 아이콘~라벨 간격 통일(13→12px) — Main Nav·유틸 동일해 라벨 시작선 정렬 */
+    .shell #railNav .rail-nav .nav-item,
+    .shell #railNav .rail-act{gap:12px}
+    /* §12 하단 유틸리티: Main Nav(아이콘 --ink-2)보다 한 단계 muted로 낮춤 + 상단 분리 */
+    .shell #railNav .rail-foot{padding-top:12px}
+    .shell #railNav .rail-act{color:var(--text-muted)}
+    .shell #railNav .rail-foot .tb-user{color:var(--text-muted)}
+    /* §9 hover: 약한 배경 + 아이콘 색 미세 변화(전체 검정 아닌 secondary까지만) */
+    .shell #railNav .rail-act:hover{background:var(--paper);color:var(--text-secondary)}
+    /* §14 로그아웃: 기본 neutral, hover에서만 danger tone */
+    .shell #railNav #logoutBtn:hover{color:var(--danger)}
+  }
 </style>
 </head>
 <body>
@@ -2207,7 +2229,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.122";
+const APP_VERSION = "v1.123";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
