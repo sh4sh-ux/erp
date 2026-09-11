@@ -1557,6 +1557,17 @@
     /* 상태·유효기간: 짧은 필드끼리 모바일에서도 한 줄(2열) — 세로 길이 축소 (거래처는 풀와이드 유지) */
     #view-quotes .qt-basic .grid2.pair{grid-template-columns:1fr 1fr;gap:10px}
   }
+
+  /* ==========================================================================
+     견적서 데스크탑 목록/상세 비율 정리 (v1.119) — #view-quotes 데스크탑만
+     · 공용 App Shell(레일 76px·gap·큰 카드 22px·max 1484px)은 그대로 — 전 화면 공유라 안 건드림
+     · 목록(master)이 고정 360px이라 넓은 화면에서 비율이 좁아지던 문제(1440px에서 27%)를
+       비례(34%, 320~440px clamp)로 바꿔 목표 32~36% / 상세 64~68%에 맞춤. 거래처·품목 화면은
+       공유 규칙(360px)을 그대로 두어 미변경. 모바일(≤820px)·다른 화면·기능·계산 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell #view-quotes .quote-cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
 </style>
 </head>
 <body>
@@ -2076,7 +2087,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.118";
+const APP_VERSION = "v1.119";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
