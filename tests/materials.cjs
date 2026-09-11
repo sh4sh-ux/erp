@@ -46,7 +46,14 @@ const run=s=>vm.runInContext(s,context);run(source);
   assert.ok(materialsHTML.includes('견적서 없이 기록'));
   assert.ok(materialsHTML.includes('id="mm_statement_company"'));
   assert.ok(!materialsHTML.match(/id="mm_statement"[^>]*disabled/));
-  assert.ok(materialsHTML.includes('material-day-head'));
+  // 입출고 내역이 날짜 그룹으로 렌더되고 실제 날짜·입출고 방향·수량이 값으로 노출되는지 검증.
+  // (구 legacy renderMaterialsLegacy는 .material-day-head 헤더를 썼으나, 현재 활성 renderMaterials는
+  //  <section class="material-day"> + 각 기록의 .material-record-date 로 날짜 그룹을 표현한다.)
+  assert.ok(materialsHTML.includes('class="material-day"'));                                     // 날짜 그룹 섹션
+  assert.ok(materialsHTML.includes('material-record-date'));                                     // 각 기록에 날짜 표시
+  assert.ok(materialsHTML.includes('2026. 9. 1.') && materialsHTML.includes('2026. 9. 2.'));    // 입고일·작업일 실제 값
+  assert.ok(materialsHTML.includes('material-record-qty in') && materialsHTML.includes('100개')); // 입고 +100개
+  assert.ok(materialsHTML.includes('material-record-qty out') && materialsHTML.includes('30개')); // 작업 완료 차감 30개(15작업×2)
   assert.ok(materialsHTML.includes('material-record-actions'));
   assert.ok(materialsHTML.includes('material-master'));
   assert.ok(materialsHTML.includes('material-owner active'));
