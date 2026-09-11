@@ -1568,6 +1568,27 @@
   @media(min-width:1024px){
     .shell #view-quotes .quote-cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
   }
+  /* ==========================================================================
+     v1.120 — Desktop Common Shell: 콘텐츠 안쪽 여백 통일 (데스크톱 ≥1024px만)
+       분석(§36) 결과 셸 프레임(레일 76·라운드 22·1484px·제목 27px·컨트롤 44px)은
+       이미 10개 화면 공통이고 자매앱(더치페이·영수증DB)과 맞춘 값이라 유지.
+       화면마다 실제로 달랐던 유일한 항목 = 콘텐츠 좌우/상단 여백
+       (내용형 26/30, 자재 22/24, 마스터-디테일 page-head 22/26)을 24px로 통일한다.
+       하단 40px·page-head 하단 16px(구분선 간격)은 유지. 981~1023px(태블릿)과
+       모바일(≤820px)은 앞선 규칙 그대로 — 이 블록이 ≥1024px에서만 덮는다.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden),
+    .shell .main>#view-materials:not(.hidden){padding:24px 24px 40px}
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding:24px 24px 16px}
+  }
 </style>
 </head>
 <body>
@@ -2087,7 +2108,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.119";
+const APP_VERSION = "v1.120";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
