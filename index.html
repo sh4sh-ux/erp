@@ -2070,6 +2070,16 @@
   @media(max-width:820px){
     #view-sales .sl-metric .mk .mk-sub{font-size:11px;font-weight:500;color:var(--text-muted);white-space:nowrap}
   }
+
+  /* ==========================================================================
+     v1.135 — Firebase Phase 1: Google 로그인 UI (인증만, 로그인 화면 스코프)
+       데이터 저장은 아직 Dropbox. Firestore read/write 없음. 기존 진입 로직 무변경.
+     ========================================================================== */
+  .g-auth{margin:4px 0 16px}
+  .login-card .btn-primary.g-login-btn{background:#fff;color:#222;border:1px solid var(--line);gap:9px}
+  .login-card .btn-primary.g-login-btn:hover{background:#F7F8FA}
+  .g-user-box{padding:12px 14px}
+  .g-user-box .g-logout-btn{width:auto;padding:8px 14px;font-size:13px}
 </style>
 </head>
 <body>
@@ -2081,6 +2091,21 @@
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
     </div>
     <h1>거래처 관리 ERP</h1>
+
+    <!-- Firebase Google 로그인 (Phase 1 — 인증만. 데이터 저장은 아직 Dropbox) -->
+    <div class="g-auth">
+      <button class="btn-primary g-login-btn" id="gLoginBtn" type="button">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Google로 로그인
+      </button>
+      <div id="gUserBox" class="note g-user-box hidden" style="text-align:left">
+        <div class="k g-user-name" id="gUserName" style="font-weight:600;color:var(--ink)"></div>
+        <div class="k g-user-email" id="gUserEmail" style="font-weight:400;opacity:.75;margin-top:2px"></div>
+        <button class="btn ghost g-logout-btn" id="gLogoutBtn" type="button" style="margin-top:12px">로그아웃</button>
+      </div>
+      <div id="gAuthErr" class="warn hidden" style="margin-top:10px"></div>
+    </div>
+
     <p>Dropbox 계정으로 연결하면 데이터가 <b>내 Dropbox에만</b> 저장됩니다. 별도 서버도, 추가 비용도 없습니다.</p>
     <div id="keyWarn" class="warn hidden"></div>
     <div class="note" style="text-align:left">
@@ -2610,7 +2635,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.134";
+const APP_VERSION = "v1.135";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6542,6 +6567,99 @@ async function init(){
   }
 }
 init();
+</script>
+
+<!-- =====================================================================
+     Firebase Phase 1 — Google 인증 전용 (별도 module 스크립트, 앱 로직과 격리)
+     · Firestore read/write 없음 · Dropbox 저장 로직 무변경 · db/렌더러 무변경
+     · 아래 firebaseConfig 에 실제 Firebase Web 앱 값을 넣으면 활성화됩니다.
+       값이 비어 있거나 "..." placeholder면 Firebase를 초기화하지 않아
+       기존 Dropbox 로그인/앱 동작에 전혀 영향이 없습니다.
+     ===================================================================== -->
+<script type="module">
+  /* ▼▼▼ 실제 Firebase Web 앱 config 로 교체하세요 (Console → 프로젝트 설정 → 내 앱) ▼▼▼ */
+  const firebaseConfig = {
+    apiKey: "...",
+    authDomain: "...",
+    projectId: "...",
+    storageBucket: "...",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+  /* ▲▲▲ 여기까지 ▲▲▲ */
+
+  const FB_VER = "10.12.2";
+  const gEl = id => document.getElementById(id);
+  const gErr = msg => { const e = gEl("gAuthErr"); if(e){ e.textContent = msg; e.classList.remove("hidden"); } };
+  const gClearErr = () => gEl("gAuthErr")?.classList.add("hidden");
+
+  function renderAuthUI(user){
+    const btn = gEl("gLoginBtn"), box = gEl("gUserBox");
+    if(user){
+      btn?.classList.add("hidden");
+      if(box){ box.classList.remove("hidden");
+        gEl("gUserName").textContent  = user.displayName || "(이름 없음)";
+        gEl("gUserEmail").textContent = user.email || ""; }
+    }else{
+      btn?.classList.remove("hidden");
+      box?.classList.add("hidden");
+    }
+  }
+
+  // config 미입력(placeholder) → Firebase 초기화하지 않음. 앱은 100% 기존대로.
+  const CONFIGURED = typeof firebaseConfig.apiKey === "string"
+      && firebaseConfig.apiKey.length > 10
+      && !firebaseConfig.apiKey.includes("...");
+
+  if(!CONFIGURED){
+    const btn = gEl("gLoginBtn");
+    if(btn) btn.onclick = () => gErr("Firebase 설정값(firebaseConfig)을 먼저 입력해 주세요.");
+  }else{
+    (async () => {
+      try{
+        const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-app.js`);
+        const { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+                getRedirectResult, signOut, onAuthStateChanged,
+                setPersistence, browserLocalPersistence }
+          = await import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-auth.js`);
+
+        const app  = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        try{ await setPersistence(auth, browserLocalPersistence); }catch(e){}   // 새로고침 후 유지
+        const provider = new GoogleAuthProvider();
+
+        // 리다이렉트 폴백으로 로그인한 경우 복귀 결과 처리
+        try{ await getRedirectResult(auth); }
+        catch(e){ gErr("로그인에 실패했습니다: " + (e?.code || e?.message || "")); }
+
+        onAuthStateChanged(auth, renderAuthUI);
+
+        const loginBtn = gEl("gLoginBtn");
+        if(loginBtn) loginBtn.onclick = async () => {
+          gClearErr();
+          try{
+            await signInWithPopup(auth, provider);           // 기본: 팝업
+          }catch(e){
+            const c = e?.code || "";
+            if(c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request"){
+              /* 사용자가 팝업을 닫음 — 조용히 무시(§9) */
+            }else if(c === "auth/popup-blocked" || c === "auth/operation-not-supported-in-this-environment"){
+              try{ await signInWithRedirect(auth, provider); }  // 폴백: 리다이렉트(카톡 인앱 등)
+              catch(e2){ gErr("로그인에 실패했습니다: " + (e2?.code || e2?.message || "")); }
+            }else{
+              gErr("로그인에 실패했습니다: " + (c || e?.message || "네트워크를 확인해 주세요."));
+            }
+          }
+        };
+
+        const logoutBtn = gEl("gLogoutBtn");
+        if(logoutBtn) logoutBtn.onclick = async () => { try{ await signOut(auth); }catch(e){} };
+      }catch(e){
+        // SDK 로드 실패(오프라인 등) — 기존 앱에 영향 없이 안내만
+        gErr("Firebase를 불러오지 못했습니다. 네트워크를 확인해 주세요.");
+      }
+    })();
+  }
 </script>
 </body>
 </html>
