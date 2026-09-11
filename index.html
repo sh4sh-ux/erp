@@ -1838,6 +1838,19 @@
   @media(max-width:560px){
     #view-items .detail .grid2[style*="180px"]{grid-template-columns:1fr!important;gap:10px}
   }
+  /* ==========================================================================
+     v1.128 — 업체 제공 자재 화면 UI 개선 (THE EDIT 디자인 시스템, #view-materials 스코프만)
+       ⚠️ 데이터 구조·차감·작업완료 연동·복구·중복차감 방지 Logic 절대 무변경 — CSS만.
+       기존 bespoke 레이아웃(거래처→자재→보유량→이력)을 재작성하지 않고,
+       자재명·수량 위계와 폼 밀도만 다른 승인 화면과 동일 언어로 정리.
+       .material-* 클래스는 이 화면 전용이지만 #view-materials로 한 번 더 스코프.
+     ========================================================================== */
+  /* §9·§10 이력 자재명·수량 위계 강조(자재명 14→15, 수량 14→15) — 우측정렬·tabular 유지 */
+  #view-materials .material-record-name{font-size:15px}
+  #view-materials .material-record-qty{font-size:15px;font-variant-numeric:tabular-nums}
+  /* §18 상세 입력 Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이 앱 공통 유지) */
+  #view-materials .material-entry-card .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-materials .material-entry-card .grid2{gap:12px 22px}
 </style>
 </head>
 <body>
@@ -2357,7 +2370,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.127";
+const APP_VERSION = "v1.128";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
