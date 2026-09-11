@@ -1791,6 +1791,28 @@
     #view-stock #ivHist td:nth-child(7){grid-area:memo;color:var(--text-muted);font-size:12.5px}
     #view-stock #ivHist td:nth-child(8){grid-area:rm;justify-self:end}
   }
+  /* ==========================================================================
+     v1.126 — 거래처 화면 UI 개선 (THE EDIT 디자인 시스템, #view-companies 스코프만)
+       기능·검색·등록/수정/삭제·원장·저장 로직 무변경. Detail 상단에 거래처명 헤더 한 줄만
+       추가(표시 전용). 공통 .field/.btn/.tbl/.card/.list-item 미변경 — 전부 #view-companies.
+     ========================================================================== */
+  /* §3·§21 Master/Detail 34/66 — 견적(v1.119)과 동일 패턴, 거래처만 */
+  @media(min-width:1024px){
+    .shell #view-companies .cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
+  /* §4 Master List — 거래처명 강조(15/600), 행 높이 소폭 축소 */
+  #view-companies .list-item{padding-top:10px;padding-bottom:10px}
+  #view-companies .list-item .li-name{font-size:15px;font-weight:600}
+  /* §5 검색 밀도 — 40~42px·15px (공통 .search 미변경) */
+  #view-companies .list-head .search{min-height:42px}
+  #view-companies .list-head .search input{font-size:15px}
+  /* §7 Detail 상단 거래처명 헤더 — 어떤 거래처인지 먼저 보이게 */
+  #view-companies .co-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:0 0 14px}
+  #view-companies .co-title .co-title-name{font-size:19px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em}
+  #view-companies .co-title .co-title-biz{font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+  /* §9·§10 Detail Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이는 앱 공통 44px 유지) */
+  #view-companies .detail .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-companies .detail .grid2{gap:12px 22px}
 </style>
 </head>
 <body>
@@ -2310,7 +2332,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.125";
+const APP_VERSION = "v1.126";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3019,7 +3041,9 @@ function coLedgerHtml(c){
         <td class="num"${e.cls?` style="color:var(--${e.cls==="pos"?"ok":"danger"})"`:""}>${e.sign||""}${fmt(e.amt)}</td>
       </tr>`).join("")
     :`<tr><td colspan="4"><div class="empty">아직 거래 내역이 없습니다.</div></td></tr>`;
+  const typePill=c.type==="매입"?'<span class="pill buy">매입</span>':c.type==="매출"?'<span class="pill sell">매출</span>':'';
   return `
+    <div class="co-title"><span class="co-title-name">${escapeHtml(c.name||"(이름 없음)")}</span>${typePill}${c.biz_no?`<span class="co-title-biz">${escapeHtml(c.biz_no)}</span>`:""}</div>
     <div class="scr-hero"><div class="lbl">미수금 잔액 · 납품 − 수금</div>
       <div class="big ${r.open>0?"neg":""}">${won(r.open)}</div>
       <div class="sub">${c.type==="매입"?"매입 거래처":`미납품 <b>${won(r.pending)}</b>${r.untaxedCount?`<span class="sep">·</span>계산서 미발행 <b class="neg">${r.untaxedCount}건</b>`:""}`}</div>
