@@ -1676,6 +1676,18 @@
     #view-payments #payByCo tr:last-child td:nth-child(3)::before,
     #view-payments #payByCo tr:last-child td:nth-child(4)::before{color:var(--text-secondary)}
   }
+  /* ==========================================================================
+     v1.122 — 견적 Desktop Detail Panel 스크롤 복구 (버그 수정, #view-quotes만)
+       원인: v1.98 프레임 규칙이 남긴 `align-self:start`(line ~1138)가 v1.104 flex
+       셸에서 컨테이너의 `align-items:stretch`를 눌러, 좌/우 카드가 행 높이(≈706px)에
+       맞춰지지 않고 콘텐츠 높이(예: 2889px)만큼 늘어나 `overflow-y:auto`가 발동하지
+       않았다(하단 합계·저장 버튼 접근 불가). 데스크톱(≥1024px)에서 두 카드의
+       align-self를 stretch로 되돌려 각 카드가 행 높이에 고정되고 내부에서만 세로
+       스크롤되게 한다. 폭·비율(v1.119)·레이아웃·다른 화면·모바일(≤820) 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell #view-quotes .quote-cols>.card{align-self:stretch;min-height:0}
+  }
 </style>
 </head>
 <body>
@@ -2195,7 +2207,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.121";
+const APP_VERSION = "v1.122";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
