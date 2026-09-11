@@ -2065,6 +2065,11 @@
        #view-sales 스코프만. 계산·집계·다른 화면·공통 컴포넌트 무변경.
      ========================================================================== */
   #view-sales .sl-metric .mk,#view-sales .sl-hero-k{word-break:keep-all;overflow-wrap:normal}
+  /* '합계' 라벨의 '(부가세 포함)'만 모바일에서 보조 톤으로 위계 낮춤 — 괄호부는 통째로만 줄바꿈.
+     데스크톱은 .mk(12.5/600) 상속 그대로라 변화 없음. */
+  @media(max-width:820px){
+    #view-sales .sl-metric .mk .mk-sub{font-size:11px;font-weight:500;color:var(--text-muted);white-space:nowrap}
+  }
 </style>
 </head>
 <body>
@@ -2421,7 +2426,7 @@
             <div class="sl-hero-meta">견적 <span id="slCount">0건</span> · 총 <span id="slQty">0</span>개</div>
           </div>
           <div class="sl-metrics">
-            <div class="sl-metric"><div class="mk">합계 (부가세 포함)</div><div class="mv" id="slTotal">0원</div></div>
+            <div class="sl-metric"><div class="mk">합계 <span class="mk-sub">(부가세 포함)</span></div><div class="mv" id="slTotal">0원</div></div>
             <div class="sl-metric"><div class="mk">세액</div><div class="mv" id="slVat">0원</div></div>
             <div class="sl-metric"><div class="mk">예상 마진</div><div class="mv" id="slMargin">0원</div><div class="mn" id="slMarginNote"></div></div>
           </div>
