@@ -1985,6 +1985,43 @@
     /* 합계 행에는 라벨 억제(빈 셀 hidden, 값만) */
     #view-ar #arTbl tr[style*="var(--paper)"] td::before{display:none}
   }
+
+  /* ==========================================================================
+     v1.132 — 공급자 정보 화면 UI 개선 (THE EDIT 디자인 시스템, #view-settings 스코프만)
+       ⚠️ 저장/불러오기(renderSettings/saveSettings)·db.settings key·견적서 출력 참조·Storage·
+          Backup/Restore 절대 무변경 — 마크업은 공급자 정보 폼 1개를 논리 섹션으로 재그룹(모든
+          input ID·바인딩·hint 그대로), 계좌는 단일 문자열 유지(필드 분할 없음). 나머지 유틸
+          카드(옛폴더/이어쓰기/백업)·공통 .field/.grid2/.btn/.card 미변경(스코프 격리).
+       §4 사업자 기본정보 / 연락처 / 계좌정보 / 자료 4섹션. §5 섹션 타이틀. §7 2열은 논리 쌍만.
+       §14 자료(링크)는 보조 톤. §9 라벨 14/600. §21 URL overflow 가드. §18/§19 모바일 1열·간격.
+     ========================================================================== */
+  /* §5 인트로 */
+  #view-settings .sup-form .sup-intro{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+  /* §6 섹션 — 카드 안 스페이싱/구분선(새 카드 만들지 않음) */
+  #view-settings .sup-form .sup-sec{margin-bottom:24px}
+  #view-settings .sup-form .sup-sec + .sup-sec{border-top:1px solid var(--border-light);padding-top:22px}
+  /* §5 섹션 타이틀 16/700 + 보조 helper */
+  #view-settings .sup-form .sup-sec-t{font-size:16px;font-weight:700;color:var(--text-primary);margin:0 0 14px;letter-spacing:-.01em}
+  #view-settings .sup-form .sup-sec-h{font-size:13px;font-weight:400;color:var(--text-secondary);margin-left:8px}
+  /* §9 라벨 14/600, 라벨~입력 6px */
+  #view-settings .sup-form .field{margin-bottom:14px}
+  #view-settings .sup-form .field:last-child{margin-bottom:0}
+  #view-settings .sup-form .field>label{font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+  /* §7 논리 쌍만 2열, 열 간격 22 */
+  #view-settings .sup-form .grid2{gap:12px 22px}
+  /* §8 입력 — 앱 공통 높이 유지, §21 URL overflow 가드 */
+  #view-settings .sup-form .field input{font-size:15px;min-width:0}
+  #view-settings .sup-form .hint{font-size:12px;color:var(--text-muted);margin-top:5px}
+  /* §14 자료(명함·사업자등록증 링크) 보조 톤 */
+  #view-settings .sup-form .sup-docs .sup-sec-t{color:var(--text-secondary)}
+  #view-settings .sup-form .sup-docs .field>label{color:var(--text-muted)}
+  /* §19 모바일 — 섹션 간격만 소폭 축소(그리드 1열은 공통 ≤560 규칙이 처리) */
+  @media(max-width:560px){
+    #view-settings .sup-form .sup-sec{margin-bottom:22px}
+    #view-settings .sup-form .sup-sec + .sup-sec{padding-top:20px}
+    #view-settings .sup-form .sup-sec-t{font-size:15px;margin-bottom:12px}
+    #view-settings .sup-form .sup-sec-h{display:block;margin-left:0;margin-top:2px}
+  }
 </style>
 </head>
 <body>
@@ -2384,27 +2421,42 @@
       <section class="view hidden" id="view-settings">
         <div class="page-head"><h2>공급자 정보</h2><div class="sp"></div></div>
         <div class="card" style="max-width:640px;margin-bottom:16px">
-          <div class="detail">
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:18px">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
-            <div class="grid2">
-              <div class="field"><label>상호 *</label><input id="st_name" placeholder="예: 스마트무역"></div>
-              <div class="field"><label>대표자</label><input id="st_ceo"></div>
-            </div>
-            <div class="grid2">
+          <div class="detail sup-form">
+            <p class="sup-intro">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">사업자 기본정보</h3>
+              <div class="grid2">
+                <div class="field"><label>상호 *</label><input id="st_name" placeholder="예: 스마트무역"></div>
+                <div class="field"><label>대표자</label><input id="st_ceo"></div>
+              </div>
               <div class="field"><label>사업자번호</label><input id="st_biz" placeholder="000-00-00000"></div>
-              <div class="field"><label>연락처</label><input id="st_phone"></div>
-            </div>
-            <div class="grid2">
-              <div class="field"><label>이메일</label><input id="st_email"></div>
+            </section>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">연락처</h3>
+              <div class="grid2">
+                <div class="field"><label>연락처</label><input id="st_phone"></div>
+                <div class="field"><label>이메일</label><input id="st_email"></div>
+              </div>
+              <div class="field"><label>주소</label><input id="st_address"></div>
+            </section>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">계좌정보</h3>
               <div class="field"><label>계좌번호</label><input id="st_bank" placeholder="예: 신한은행 110-000-000000"></div>
-            </div>
-            <div class="field"><label>주소</label><input id="st_address"></div>
-            <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
-              <div class="hint">상단 <b>명함 보내기</b> 버튼에서 사용됩니다.</div>
-            </div>
-            <div class="field"><label>사업자등록증 이미지 링크</label><input id="st_cert_url" placeholder="사업자등록증 이미지 링크 (Dropbox 등)">
-              <div class="hint">상단 <b>사업자등록증</b> 버튼에서 사용됩니다.</div>
-            </div>
+            </section>
+
+            <section class="sup-sec sup-docs">
+              <h3 class="sup-sec-t">자료 <span class="sup-sec-h">명함·사업자등록증 이미지 링크</span></h3>
+              <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
+                <div class="hint">상단 <b>명함 보내기</b> 버튼에서 사용됩니다.</div>
+              </div>
+              <div class="field"><label>사업자등록증 이미지 링크</label><input id="st_cert_url" placeholder="사업자등록증 이미지 링크 (Dropbox 등)">
+                <div class="hint">상단 <b>사업자등록증</b> 버튼에서 사용됩니다.</div>
+              </div>
+            </section>
+
             <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
           </div>
         </div>
@@ -2508,7 +2560,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.131";
+const APP_VERSION = "v1.132";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
