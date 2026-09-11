@@ -1480,6 +1480,31 @@
       border-bottom:none;height:auto;min-height:0;padding:12px 14px 2px;align-items:center}
     #view-dash .scr-hero{margin:6px 0 2px}
   }
+
+  /* ==========================================================================
+     견적서 상세 상단 Summary (v1.115) — #view-quotes 스코프 전용
+     · 좌: 견적서 번호(차분·작음)/거래처/작성일  ·  우: 금액(부가세 별도, 가장 강함)
+     · 두 블록 top 정렬(align-items:flex-start) — 견적번호와 금액의 세로 시작 위치만 맞춤
+     · 금액=공급가액(부가세 별도), 총수량·장식 아이콘 없음. 상태는 작은 배지로 최소화
+     · 공통 .qt-hero(패딩·하단 구분선)는 그대로 재사용, 새 카드 추가 없음
+     ========================================================================== */
+  #view-quotes .quote-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:nowrap}
+  #view-quotes .qs-info{min-width:0;display:flex;flex-direction:column;gap:10px}
+  #view-quotes .qs-row{display:flex;flex-direction:column;gap:3px;min-width:0}
+  #view-quotes .qs-k{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:0}
+  #view-quotes .qs-info .qs-line{display:flex;align-items:center;gap:8px;min-width:0}
+  #view-quotes .qs-no{font-size:15px;font-weight:650;color:var(--text-primary);white-space:nowrap;font-family:var(--mono);letter-spacing:-.01em}
+  #view-quotes .qs-val{font-size:15px;font-weight:600;color:var(--text-primary);min-width:0}
+  #view-quotes .qs-val.co{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+  #view-quotes .quote-summary .pill{flex:0 0 auto}
+  #view-quotes .qs-amount{flex:0 0 auto;text-align:right;min-width:132px}
+  #view-quotes .qs-amt-k{font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:7px;white-space:nowrap}
+  #view-quotes .qs-amt-v{font-size:33px;font-weight:780;letter-spacing:-.03em;line-height:1;color:var(--text-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+  @media(max-width:820px){
+    #view-quotes .quote-summary{gap:12px}
+    #view-quotes .qs-amt-v{font-size:26px}
+    #view-quotes .qs-val.co{max-width:150px}
+  }
 </style>
 </head>
 <body>
@@ -1999,7 +2024,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.114";
+const APP_VERSION = "v1.115";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3827,13 +3852,19 @@ function renderQtDetail(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span><b>${escapeHtml(qtCopySourceNo)}</b>의 내용을 복사했습니다. 새 견적번호는 등록할 때 만들어집니다.</span>
     </div>`:""}
-    <div class="qt-hero">
-      <div class="qt-eyebrow">
-        <span class="lbl">${isNew?"새 견적 작성":"견적서"}${!isNew&&e.no?` · <span class="mono">${escapeHtml(e.no)}</span>`:""}</span>
-        <span class="pill ${QT_STATUS_CLASS[e.status]||'st-draft'}">${escapeHtml(e.status)}</span>
+    <div class="qt-hero quote-summary">
+      <div class="qs-info">
+        <div class="qs-row">
+          <span class="qs-k">견적서 번호</span>
+          <span class="qs-line"><span class="qs-no">${isNew?"새 견적":escapeHtml(e.no||"—")}</span><span class="pill ${QT_STATUS_CLASS[e.status]||'st-draft'}">${escapeHtml(e.status)}</span></span>
+        </div>
+        <div class="qs-row"><span class="qs-k">거래처</span><span class="qs-val co">${coNm?escapeHtml(coNm):"거래처 미선택"}</span></div>
+        <div class="qs-row"><span class="qs-k">작성일</span><span class="qs-val">${escapeHtml(e.date||"—")}</span></div>
       </div>
-      <div class="qt-hero-num"><span class="k">합계</span><span class="v" id="fq_heroTotal">${won(t.total)}</span></div>
-      <div class="qt-hero-sub"><b>${coNm?escapeHtml(coNm):"거래처 미선택"}</b><span class="sep">·</span>총 <b id="fq_heroQty">${fmt(totalQty)}</b>개<span class="sep">·</span>견적일 ${escapeHtml(e.date||"—")}</div>
+      <div class="qs-amount">
+        <div class="qs-amt-k">금액 (부가세 별도)</div>
+        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>
+      </div>
     </div>
 
     <div class="qt-sec">
@@ -4266,7 +4297,7 @@ function bindQtLines(e){
       const mgEl=document.getElementById("fq_margin");
       if(mgEl) mgEl.textContent=quoteMarginText(e);
       const heroEl=document.getElementById("fq_heroTotal");
-      if(heroEl) heroEl.textContent=won(t.total);
+      if(heroEl) heroEl.textContent=won(t.supply);   /* Summary 금액 = 부가세 별도(공급가액) */
       renderShortage(e);
     };
     if(el.dataset.f==="qty")el.onchange=()=>{
