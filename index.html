@@ -1589,6 +1589,93 @@
     .shell .main>#view-items>.page-head,
     .shell .main>#view-quotes>.page-head{padding:24px 24px 16px}
   }
+  /* ==========================================================================
+     v1.121 — 수금/지급 화면 UI 개선 (디자인 시스템 v1.0, #view-payments 스코프만)
+       기능·계산·저장·마크업 ID·렌더러 전부 무변경. 거래 등록 Form에 라벨을 붙이고
+       논리적 그룹으로 재배치(데스크톱 4열 영역 / 모바일 1열+짧은 필드만 2열),
+       모바일에서 가로로 잘리던 표 2종을 2줄 카드형으로 리플로우. 공통 .field/.btn/
+       .tbl/.card/.shell 미변경 — 전부 #view-payments 스코프.
+     ========================================================================== */
+  /* ---- 거래 등록 Form: 라벨 + 그룹 배치 ---- */
+  #view-payments .pay-add .pf{display:flex;flex-direction:column;min-width:0}
+  #view-payments .pay-add .pf>label{font-size:12.5px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;letter-spacing:.01em}
+  #view-payments .pay-add .pf-date{grid-area:date}
+  #view-payments .pay-add .pf-co{grid-area:co}
+  #view-payments .pay-add .pf-kind{grid-area:kind}
+  #view-payments .pay-add .pf-method{grid-area:method}
+  #view-payments .pay-add .pf-quote{grid-area:quote}
+  #view-payments .pay-add .pf-amt{grid-area:amt}
+  #view-payments .pay-add .pf-memo{grid-area:memo}
+  #view-payments .pay-add .pf-btn{grid-area:btn;justify-content:flex-end}
+  #view-payments .pay-add .pf-amt input{text-align:right}
+  @media(min-width:821px){
+    #view-payments .pay-add{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-areas:
+        "date  co     kind   method"
+        "quote quote  amt    amt"
+        "memo  memo   memo   btn";
+      gap:14px 16px;align-items:end;padding:20px 22px;
+    }
+    #view-payments .pay-add .btn-sm{width:100%;min-height:40px}
+  }
+  @media(max-width:820px){
+    /* 짧은 필드(거래유형|결제방법)만 2열, 나머지는 풀와이드.
+       column을 명시적으로(!important) — ≤560px의 `.pay-add>*{grid-column:auto!important}`를 덮는다 */
+    #view-payments .pay-add{grid-template-columns:1fr 1fr;grid-template-areas:none;grid-auto-flow:row;gap:10px;padding:14px}
+    /* grid-area(행 이름)를 풀고 열만 지정 — 안 그러면 모든 필드가 한 행에 겹친다 */
+    #view-payments .pay-add>.pf{grid-column:1/-1!important;grid-row:auto!important}
+    #view-payments .pay-add>.pf-kind{grid-column:1/2!important}
+    #view-payments .pay-add>.pf-method{grid-column:2/3!important}
+    #view-payments .pay-add .pf>label{margin-bottom:4px;font-size:12px}
+    #view-payments .pay-add .btn-sm{width:100%;min-height:44px}
+  }
+  /* ---- 모바일 표 리플로우(가로 스크롤 대신 2줄 카드) ---- */
+  @media(max-width:820px){
+    /* 거래 내역(payTbl): 8열 → 거래처·금액 / 날짜·구분·방법·삭제 / 연결·메모 */
+    #view-payments #payTbl thead{display:none}
+    #view-payments #payTbl,#view-payments #payTbl tbody{display:block;width:100%}
+    #view-payments #payTbl tr{
+      display:grid;grid-template-columns:auto auto 1fr auto;
+      grid-template-areas:
+        "co    co    co     amt"
+        "date  kind  method rm"
+        "quote quote memo   memo";
+      gap:4px 8px;align-items:center;
+      padding:12px 4px;border-bottom:1px solid var(--line-2)}
+    #view-payments #payTbl tr:last-child{border-bottom:0}
+    #view-payments #payTbl tr:has(td .empty){display:block;padding:0}
+    #view-payments #payTbl td{display:block;border:0;padding:0;white-space:normal;font-size:13px}
+    #view-payments #payTbl td:nth-child(1){grid-area:date;color:var(--text-muted);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(2){grid-area:co;font-weight:600;color:var(--text-primary);font-size:14px}
+    #view-payments #payTbl td:nth-child(3){grid-area:quote;color:var(--text-muted);font-size:12px}
+    #view-payments #payTbl td:nth-child(4){grid-area:kind}
+    #view-payments #payTbl td:nth-child(5){grid-area:method;color:var(--text-secondary);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(6){grid-area:amt;text-align:right;font-weight:700;font-size:14px}
+    #view-payments #payTbl td:nth-child(7){grid-area:memo;color:var(--text-muted);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(8){grid-area:rm;justify-self:end}
+    /* 거래처별 집계(payByCo): 5열 → 거래처·차액 / 수금·지급 */
+    #view-payments #payByCo thead{display:none}
+    #view-payments #payByCo,#view-payments #payByCo tbody{display:block;width:100%}
+    #view-payments #payByCo tr{
+      display:grid;grid-template-columns:1fr auto;
+      grid-template-areas:"co net" "sin sout";
+      gap:3px 10px;align-items:baseline;
+      padding:11px 4px;border-bottom:1px solid var(--line-2)}
+    #view-payments #payByCo tr:last-child{border-bottom:0}
+    #view-payments #payByCo tr:has(td .empty){display:block;padding:0}
+    #view-payments #payByCo td{display:block;border:0;padding:0;text-align:left;white-space:normal}
+    #view-payments #payByCo td:nth-child(1){grid-area:co;font-weight:600;color:var(--text-primary);font-size:14px}
+    #view-payments #payByCo td:nth-child(2){display:none}   /* 건수 — 모바일 생략 */
+    #view-payments #payByCo td:nth-child(3){grid-area:sin;color:var(--text-secondary);font-size:12.5px}
+    #view-payments #payByCo td:nth-child(3)::before{content:"수금 ";color:var(--text-muted)}
+    #view-payments #payByCo td:nth-child(4){grid-area:sout;color:var(--text-secondary);font-size:12.5px;text-align:right}
+    #view-payments #payByCo td:nth-child(4)::before{content:"지급 ";color:var(--text-muted)}
+    #view-payments #payByCo td:nth-child(5){grid-area:net;text-align:right;font-weight:700;font-size:14px}
+    /* 합계 행: '건수' 칸이 비어 있어도 레이아웃 유지 */
+    #view-payments #payByCo tr:last-child td:nth-child(3)::before,
+    #view-payments #payByCo tr:last-child td:nth-child(4)::before{color:var(--text-secondary)}
+  }
 </style>
 </head>
 <body>
@@ -1880,14 +1967,14 @@
         </div>
         <div class="card">
           <div class="pay-add">
-            <input type="date" id="payDate">
-            <select id="payCo"></select>
-            <select id="payQuote"><option value="">건 지정 안 함</option></select>
-            <select id="payKind"><option>수금</option><option>지급</option></select>
-            <select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select>
-            <input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="금액">
-            <input id="payMemo" placeholder="메모 (선택)">
-            <button class="btn-sm" id="payAddBtn">추가</button>
+            <div class="pf pf-date"><label>거래일자</label><input type="date" id="payDate"></div>
+            <div class="pf pf-co"><label>거래처</label><select id="payCo"></select></div>
+            <div class="pf pf-kind"><label>거래 유형</label><select id="payKind"><option>수금</option><option>지급</option></select></div>
+            <div class="pf pf-method"><label>결제 방법</label><select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select></div>
+            <div class="pf pf-quote"><label>연결 항목</label><select id="payQuote"><option value="">건 지정 안 함</option></select></div>
+            <div class="pf pf-amt"><label>금액</label><input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="0"></div>
+            <div class="pf pf-memo"><label>메모</label><input id="payMemo" placeholder="선택 입력"></div>
+            <div class="pf pf-btn"><button class="btn-sm" id="payAddBtn">추가</button></div>
           </div>
           <div class="tbl-wrap"><table class="tbl" id="payTbl"></table></div>
         </div>
@@ -2108,7 +2195,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.120";
+const APP_VERSION = "v1.121";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
