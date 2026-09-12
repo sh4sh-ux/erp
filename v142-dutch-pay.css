@@ -1,4 +1,4 @@
-/* v1.144 — Dutch Pay desktop visual system.
+/* v1.145 — Dutch Pay desktop visual system.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
 .app-view-meta { display:none; }
 
@@ -273,9 +273,9 @@
      The master and detail panes now share one role-based type scale instead
      of inheriting view-specific weights and grey values from older releases. */
   .shell {
-    --panel-text:#171717;
+    --panel-text:#111113;
     --panel-secondary:#66666b;
-    --panel-muted:#9a9aa1;
+    --panel-muted:#b0b0b8;
     --panel-title-size:28px;
     --panel-heading-size:18px;
     --panel-body-size:14px;
@@ -293,14 +293,14 @@
     gap:9px;
     color:var(--panel-muted);
     font-size:11px;
-    font-weight:600;
+    font-weight:650;
     line-height:1.25;
     letter-spacing:.08em;
     text-transform:uppercase;
   }
   .shell .main>.view>.page-head .app-view-meta .version {
-    color:#b0b0b6;
-    font-weight:600;
+    color:var(--panel-muted);
+    font-weight:650;
     letter-spacing:0;
     text-transform:none;
   }
@@ -310,6 +310,27 @@
     font-weight:700;
     line-height:1.22;
     letter-spacing:-.035em;
+  }
+
+  /* Dutch Pay header rhythm: the identity/title block owns a quiet, fixed
+     header area before the master/detail workspace begins. */
+  .shell .main>#view-companies>.page-head,
+  .shell .main>#view-items>.page-head,
+  .shell .main>#view-quotes>.page-head {
+    min-height:164px;
+    padding:30px 28px 56px;
+    align-content:flex-start;
+    border-bottom:0;
+  }
+  .shell .main>.view>.page-head .count {
+    margin-left:2px;
+    padding:0;
+    color:var(--panel-muted);
+    background:transparent;
+    border:0;
+    border-radius:0;
+    font-size:12px;
+    font-weight:500;
   }
 
   /* Master/detail surfaces: identical typography for identical information roles. */
@@ -366,7 +387,7 @@
   .shell #view-quotes .qtotals .v {
     color:var(--panel-text);
     font-size:14px;
-    font-weight:700;
+    font-weight:600;
     font-variant-numeric:tabular-nums;
   }
   .shell #view-companies .field>label,
@@ -377,7 +398,7 @@
   .shell #view-quotes .tbl th {
     color:var(--panel-secondary);
     font-size:12px;
-    font-weight:600;
+    font-weight:500;
     line-height:1.35;
   }
   .shell #view-companies input,
