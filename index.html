@@ -2126,23 +2126,25 @@
      ========================================================================== */
   .app-brandbar{display:none}   /* 기본 숨김: 모바일·태블릿 (Brand Header는 데스크탑 전용) */
   @media(min-width:1024px){
-    /* ---- ① Brand Header ---- */
-    .shell>.main>.app-brandbar{display:flex;align-items:baseline;gap:8px;flex:0 0 auto;
-      height:46px;padding:0 24px;box-sizing:border-box;background:var(--card);
-      border-bottom:1px solid var(--border-light)}
-    .app-brandbar .abb-name{font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--text-secondary)}
-    .app-brandbar .abb-ver{font-size:12px;font-weight:500;color:var(--text-muted)}
-    /* Brand Header가 생긴 만큼 View 상단 여백을 줄여 content start가 과하게 내려가지 않게(Shell에서 해결) */
+    /* ---- ① Brand Meta line — 별도 band 아님. Page Title 바로 위 작은 meta 한 줄(v1.138b) ---- */
+    .shell>.main>.app-brandbar{display:flex;align-items:baseline;gap:5px;flex:0 0 auto;
+      padding:12px 24px 0;background:var(--card);line-height:1.2}
+    .app-brandbar .abb-name{font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--text-muted)}
+    .app-brandbar .abb-ver{font-size:11.5px;font-weight:600;color:var(--text-muted)}
+    .app-brandbar .abb-ver::before{content:"· "}
+    /* Rail 버전(ERP v1.138)과 중복 제거 — 데스크탑에서 Rail은 identity(ERP)만, 버전은 Main meta에서만 */
+    .shell .rail-brand .tb-ver{display:none}
+    /* meta line은 낮으므로 View 상단 여백만 소폭 줄여 Title이 meta 바로 아래 붙게(content start 최소 상승) */
     .shell .main>#view-dash:not(.hidden),
     .shell .main>#view-payments:not(.hidden),
     .shell .main>#view-stock:not(.hidden),
     .shell .main>#view-sales:not(.hidden),
     .shell .main>#view-ar:not(.hidden),
-    .shell .main>#view-settings:not(.hidden){padding-top:18px}
-    .shell .main>#view-materials:not(.hidden){padding-top:18px}
+    .shell .main>#view-settings:not(.hidden){padding-top:6px}
+    .shell .main>#view-materials:not(.hidden){padding-top:6px}
     .shell .main>#view-companies>.page-head,
     .shell .main>#view-items>.page-head,
-    .shell .main>#view-quotes>.page-head{padding-top:18px}
+    .shell .main>#view-quotes>.page-head{padding-top:6px}
 
     /* ---- ② Rail 아이콘 고정 76px 컬럼(grid) → 정중앙 + 전환 중 이동 0 ---- */
     .shell .rail-nav{padding-left:0;padding-right:0}
