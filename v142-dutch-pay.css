@@ -114,7 +114,7 @@
     overflow-y:auto;
     overflow-x:visible;
   }
-  .shell .rail-nav .nav-sec { display:none; }
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-sec { display:none; }
   .shell .rail-nav .nav-item { color:#8e8e93; }
   .shell .rail-nav .nav-item:hover,
   .shell .rail-foot .rail-act:hover { background:#ececf0; color:#111113; }
@@ -124,9 +124,9 @@
 
   .shell .rail-brand,
   .shell .rail-foot .tb-user { display:none; }
-  .shell .rail-nav .nav-item>span,
-  .shell .rail-foot .rail-act>span,
-  .shell .rail-foot .sync-state>.sync-text {
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .sync-state>.sync-text {
     position:absolute;
     left:52px;
     top:50%;
@@ -151,11 +151,11 @@
     white-space:nowrap;
     transition:opacity .12s ease,transform .12s ease;
   }
-  .shell .rail-nav .nav-item:hover>span,
-  .shell .rail-nav .nav-item:focus-visible>span,
-  .shell .rail-foot .rail-act:hover>span,
-  .shell .rail-foot .rail-act:focus-visible>span,
-  .shell .rail-foot .sync-state:hover>.sync-text {
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item:hover>span,
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item:focus-visible>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act:hover>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act:focus-visible>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .sync-state:hover>.sync-text {
     width:max-content;
     padding:6px 9px;
     opacity:1;
