@@ -1,19 +1,20 @@
-/* v1.146 — Dutch Pay v6.20 measured desktop visual system.
+/* v1.147 — Dutch Pay v6.20 computed-style parity.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
 .app-view-meta { display:none; }
 
 @media (min-width:1024px) {
   :root {
-    --ink:#111113;
-    --ink-2:#66666b;
-    --ink-3:#a1a1aa;
+    --ink:#111;
+    --ink-2:#666;
+    --ink-3:#b0b0b8;
     --paper:#f7f7f8;
     --card:#fff;
-    --line:#e5e5ea;
-    --line-2:#efeff1;
+    --line:#ebebed;
+    --line-2:#ebebed;
     --nav-bg:#f1f2f6;
     --primary:#4355e8;
-    --primary-soft:rgba(67,85,232,.10);
+    --primary-soft:#eeeffe;
+    --primary-text:#2636b8;
     --shadow:none;
     --shadow-sm:none;
     --r:12px;
@@ -276,8 +277,8 @@
      The master and detail panes now share one role-based type scale instead
      of inheriting view-specific weights and grey values from older releases. */
   .shell {
-    --panel-text:#111113;
-    --panel-secondary:#66666b;
+    --panel-text:#111;
+    --panel-secondary:#666;
     --panel-muted:#b0b0b8;
     --panel-title-size:23px;
     --panel-heading-size:18px;
@@ -293,11 +294,11 @@
     display:flex;
     flex:0 0 100%;
     align-items:center;
-    gap:9px;
+    gap:7px;
     color:var(--panel-muted);
     font-size:11px;
     font-weight:600;
-    line-height:1.25;
+    line-height:normal;
     margin-bottom:4px;
     letter-spacing:.8px;
     text-transform:uppercase;
@@ -308,6 +309,9 @@
     font-weight:600;
     line-height:1.4;
     letter-spacing:.2px;
+    padding:1px 2px;
+    border:1px solid transparent;
+    border-radius:4px;
     text-transform:none;
   }
   .shell .main>.view>.page-head h2 {
@@ -505,7 +509,7 @@
 
   /* Dutch Pay v6.20 .sec-label: section labels are not list-item titles. */
   .shell #view-quotes .qt-sec-t {
-    color:#66666b;
+    color:#666;
     font-size:12px;
     font-weight:600;
     line-height:1.35;
@@ -516,5 +520,55 @@
     font-size:11px;
     font-weight:400;
     letter-spacing:normal;
+  }
+
+  /* Live v6.20 editor overrides .field-inp background to --card. */
+  .shell #view-companies .detail input,
+  .shell #view-companies .detail select,
+  .shell #view-companies .detail textarea,
+  .shell #view-items .detail input,
+  .shell #view-items .detail select,
+  .shell #view-items .detail textarea,
+  .shell #view-quotes .detail input,
+  .shell #view-quotes .detail select,
+  .shell #view-quotes .detail textarea { background:#fff; line-height:normal; }
+
+  /* v6.20 compact left-panel input (.pin-row input), measured at 32px. */
+  .shell #view-companies .search,
+  .shell #view-items .search,
+  .shell #view-quotes .search {
+    min-height:32px;
+    padding:7px 10px;
+    background:#fff;
+  }
+  .shell #view-companies .search input,
+  .shell #view-items .search input,
+  .shell #view-quotes .search input { font-size:13px; }
+  .shell #view-companies .btn-add,
+  .shell #view-items .btn-add,
+  .shell #view-quotes .btn-add { width:32px; height:32px; min-height:32px; }
+  .shell #view-quotes .quote-filters input,
+  .shell #view-quotes .quote-filters select { background:#fff; }
+
+  .shell #view-companies .list-item.on,
+  .shell #view-items .list-item.on,
+  .shell #view-quotes .list-item.on { background:#eeeffe; }
+  .shell #view-companies .list-item.on::before,
+  .shell #view-items .list-item.on::before,
+  .shell #view-quotes .list-item.on::before { width:3px; background:#4355e8; }
+  .shell #view-companies .list-item .li-name,
+  .shell #view-items .list-item .li-name,
+  .shell #view-quotes .list-item .li-nm { line-height:normal; }
+  .shell #view-companies .list-item.on .li-name,
+  .shell #view-items .list-item.on .li-name,
+  .shell #view-quotes .list-item.on .li-nm { color:#2636b8; }
+  .shell #view-companies .li-sub,
+  .shell #view-items .li-sub,
+  .shell #view-quotes .li-date { margin-top:3px; line-height:1.35; }
+  .shell .rail-nav .nav-item { color:#b0b0b8; }
+  .shell .rail-nav .nav-item.on {
+    color:#2636b8;
+    background:#eeeffe;
+    box-shadow:inset 0 0 0 1px rgba(67,85,232,.28);
   }
 }
