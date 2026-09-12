@@ -2087,6 +2087,29 @@
   @media(max-width:820px){
     .shell .main>#view-payments>.page-head{position:static;top:auto;z-index:auto}
   }
+
+  /* ==========================================================================
+     v1.137 — Desktop App Shell 통일 (≥1024px만) — Dutch Pay / Receipt DB와 동일 제품군 구조
+       목적: [Rail] [gap] [Main카드] 처럼 두 덩어리로 보이던 데스크탑 외곽을,
+             하나의 큰 흰색 App Window 안에서 "Rail | Main"으로 나뉘는 구조로 통일.
+       방법(외곽 chrome만): ① .shell = App Frame(흰 배경·1px border·radius 18·overflow hidden·
+             바깥 여백 24·중앙정렬·gap 0·안쪽 padding 0), ② .rail-gutter = 프레임 내부 왼쪽 영역
+             (흰 배경 + 오른쪽 divider만), ③ Main 자체 카드(테두리/라운드/그림자) 제거 → 외곽 radius는
+             프레임 한 곳만 담당. 높이는 프레임 고정(100dvh-48)·긴 페이지는 내부 뷰가 스크롤(기존과 동일).
+       ⚠️ Rail 내부(아이콘·메뉴·selected·hover·collapsed/expanded 동작·sync·logout)·Main 내부 UI
+          (Typography/Card/Table/Form/Filter/Button/Hero/Badge)·계산/렌더러/저장·모바일(≤820)·
+          태블릿(821~1023)은 전부 무변경. 이 블록은 ≥1024px에서만 외곽 배치를 덮는다.
+     ========================================================================== */
+  @media(min-width:1024px){
+    /* App Frame — Rail+Main을 하나의 흰 창으로 (바깥은 옅은 gray 페이지 배경) */
+    .shell{background:var(--card);border:1px solid var(--border-default);border-radius:18px;
+      overflow:hidden;gap:0;padding:0;margin:24px auto;height:calc(100dvh - 48px);
+      max-width:min(1484px, calc(100vw - 48px));box-shadow:none}
+    /* Rail은 프레임 내부 왼쪽 영역 — 흰 배경 + 오른쪽 divider만(자체 카드 아님) */
+    .rail-gutter{background:var(--card);border-right:1px solid var(--border-light)}
+    /* Main 자체 카드 외곽 제거 — 외곽 radius/border는 프레임이 담당 */
+    .shell>.main{border:0;border-radius:0;box-shadow:none}
+  }
 </style>
 </head>
 <body>
@@ -2627,7 +2650,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.136";
+const APP_VERSION = "v1.137";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
