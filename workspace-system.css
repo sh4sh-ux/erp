@@ -1,0 +1,120 @@
+/* v1.151: ERP-wide Dutch Pay typography and control contract.
+   Table separators 1.5/1/2 are the user's explicit ERP rule.
+   Print documents and tablet/mobile are deliberately outside this stylesheet. */
+@media screen and (min-width:1024px) {
+  .shell .main {
+    --control-height:32px;
+    --sans:-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    font-family:var(--sans); font-size:13px; color:#111;
+  }
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,.ip-btn,.btn,.btn-sm,.btn-add,.quote-date-all,.quote-filter-reset) {
+    box-sizing:border-box; height:var(--control-height); min-height:var(--control-height);
+    font-family:var(--sans); font-size:13px; font-weight:400; line-height:normal; letter-spacing:normal;
+    border-radius:9px;
+  }
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,.ip-btn) {
+    background-color:#fff; color:#111; border:1px solid #d4d4d8; padding:6px 12px;
+  }
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .ip-btn { padding-right:28px; }
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) select {
+    appearance:none; padding-right:32px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23666' stroke-width='1.4'/%3E%3C/svg%3E");
+    background-position:right 12px center;background-repeat:no-repeat;background-size:12px;
+  }
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) textarea {font:400 13px/1.4 var(--sans);color:#111;background:#fff;border:1px solid #d4d4d8;border-radius:9px;padding:9px 12px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .search {height:32px;min-height:32px;background:#fff;border:1px solid #d4d4d8;border-radius:9px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .search input {height:auto;min-height:0;padding:0;border:0;background:transparent;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) #qtAllDates {height:32px;min-height:32px;font-size:12px;padding:0 12px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.field>label,.pf>label,.filter-label,.quote-period-label,.qt-sec-t,.qs-k,.qs-amt-k,.k,.lbl,.mk,.sup-sec-t) {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.hint,.sub,.li-sub,.li-date,.material-owner-meta,.material-record-meta,.workspace-caption) {font:400 11px/1.35 var(--sans);color:#b0b0b8;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.li-name,.li-nm,.material-owner-line>span,.material-record-name) {font:500 13.5px/normal var(--sans);letter-spacing:-.1px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.list-item.on .li-name,.list-item.on .li-nm,.material-owner.active .material-owner-line>span) {font-weight:600;color:#2636b8;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.num,.amt,.li-amt,.material-record-qty) {text-align:right;font-variant-numeric:tabular-nums;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(input.num,input[inputmode=numeric],.qline .qty,.qline .price) {text-align:right;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.list-item,.material-owner) {min-height:64px;padding:12px 28px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-owner.active {border-left:3px solid #4355e8;background:#eeeffe;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .card {box-shadow:none;border-radius:0;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl-wrap {padding:0 20px;overflow:auto;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl {border-collapse:collapse;width:100%;font:400 13px/1.4 var(--sans);}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl :is(th,td) {padding:12px 12px;border-left:0;border-right:0;border-bottom:1px solid #ebebed;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl th {font:400 12px/1.35 var(--sans);color:#b0b0b8;border-bottom:1.5px solid #d4d4d8;background:#f7f7f8;position:sticky;top:0;z-index:1;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl :is(th.num,td.num) {text-align:right;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl tfoot :is(th,td) {border-top:2px solid #d4d4d8;font-weight:700;background:transparent;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qtable {padding:0 16px;border:0;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qline {border:0;border-bottom:1px solid #ebebed;padding:10px 12px;align-items:center;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qline.head {border-bottom:1.5px solid #d4d4d8;color:#b0b0b8;font:400 12px/1.35 var(--sans);}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qtotals {border-top:2px solid #d4d4d8;margin:0 16px;padding:16px 12px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-record {border-bottom:1px solid #ebebed;padding:12px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-history {padding:0 16px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-section-head {border-bottom:1.5px solid #d4d4d8;padding:12px;}
+
+  /* Desktop panel geometry shared by every menu. */
+  .shell .main>:is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings):not(.hidden) {height:100%;min-height:0;max-height:none;padding:0;}
+  .shell .main>.view>.page-head {height:144px;min-height:144px;margin:0;padding:30px 28px 20px;border-bottom:1px solid #ebebed;}
+  .shell .main>.view>.page-head h2 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;}
+  .shell .main>:is(#view-dash,#view-payments,#view-stock,#view-sales,#view-ar,#view-settings).workspace-split:not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr);overflow:hidden;gap:0;}
+  .shell .workspace-split>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid #ebebed;}
+  .shell .workspace-heading {grid-column:2;grid-row:1;padding:28px 34px 21px;border-bottom:1px solid #ebebed;background:#fff;}
+  .shell .workspace-heading h3 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;margin:8px 0;}
+  .shell .workspace-left {grid-column:1;grid-row:2;background:#fafafa;border-right:1px solid #ebebed;overflow:auto;min-height:0;padding:18px 28px;}
+  .shell .workspace-right {grid-column:2;grid-row:2;background:#fff;overflow:auto;min-width:0;min-height:0;padding:26px 34px;}
+  .shell .workspace-split>.cols,.shell .workspace-split>.dash-grid {display:none;}
+  .shell .workspace-left :is(.stats,.filter-bar,.sl-summary,.sl-metrics) {display:flex;flex-direction:column;align-items:stretch;gap:14px;}
+  .shell .workspace-left .stat {width:100%;padding:12px 0;}
+  .shell .workspace-left .head-actions {margin-bottom:16px;flex-wrap:wrap;}
+  .shell .workspace-left .card,.shell .workspace-right .card {border:0;background:transparent;max-width:none;}
+  .shell .workspace-right .pay-add {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0 0 24px;}
+  .shell .workspace-right .pay-add .pf {grid-column:auto;min-width:0;}
+  .shell .workspace-right .stock-add {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .shell .workspace-right .stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .shell .workspace-right .sup-form {padding:0;}
+  .shell .workspace-left .settings-utils {display:block;}
+
+  /* Existing master/detail DOM remains intact; the header seam reaches the top. */
+  .shell .main>:is(#view-quotes,#view-companies,#view-items):not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr);}
+  .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head {grid-column:1;grid-row:1;border-right:1px solid #ebebed;background:#fafafa;}
+  .shell :is(#view-quotes,#view-companies,#view-items)>.cols {display:contents;}
+  .shell :is(#view-quotes,#view-companies,#view-items)>.cols>.card:first-child {grid-column:1;grid-row:2;width:360px;max-width:360px;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+  .shell :is(#view-quotes,#view-companies,#view-items)>.cols>.card:last-child {grid-column:2;grid-row:1/3;overflow:auto;min-height:0;}
+  .shell :is(#coList,#itList,#qtList) {flex:1;min-height:0;overflow:auto;}
+  .shell .main :is(#coForm,#itForm,#qtForm) {padding:0 34px 26px;}
+  .shell .main :is(#coForm,#itForm)::before {display:block;position:sticky;top:0;z-index:5;height:144px;margin:0 -34px 26px;padding:46px 34px 20px;background:#fff;border-bottom:1px solid #ebebed;font:700 24px/1.2 var(--sans);}
+  .shell #coForm::before {content:'거래처 정보';}
+  .shell #itForm::before {content:'품목 정보';}
+  .shell #qtForm>.quote-summary {position:sticky;top:0;z-index:5;height:144px;min-height:144px;margin:0 -34px 26px;padding:20px 34px;background:#fff;border-bottom:1px solid #ebebed;}
+  .shell #qtForm .qs-info {display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;}
+  .shell #qtForm .qs-row {gap:3px;}
+  .shell #qtForm .qs-amt-v {font-size:24px;}
+  .shell .main :is(#coForm,#itForm,#qtForm) .form-actions {position:sticky;bottom:0;background:#fff;z-index:4;}
+  .shell .workspace-export {position:relative;}
+  .shell .workspace-export summary {cursor:pointer;list-style:none;height:32px;padding:5px 9px;border:1px solid #d4d4d8;border-radius:9px;}
+  .shell .workspace-export[open] .btn-sm {position:absolute;right:0;top:36px;z-index:20;white-space:nowrap;}
+
+  .shell .main #view-materials:not(.hidden) {display:flex;flex-direction:column;overflow:hidden;}
+  .shell #view-materials>.page-head {background:linear-gradient(to right,#fafafa 360px,#fff 360px);position:relative;}
+  .shell #view-materials>.page-head::after {content:'';position:absolute;left:359px;top:0;bottom:0;border-right:1px solid #ebebed;}
+  .shell #view-materials>.copy-note {margin:0;padding:8px 28px;font-size:11px;flex:none;}
+  .shell #materialContent {flex:1;min-height:0;overflow:hidden;}
+  .shell #materialContent .material-master {display:grid;grid-template-columns:360px minmax(0,1fr);height:100%;border:0;overflow:hidden;}
+  .shell #materialContent .material-owners {min-width:0;overflow:auto;background:#fafafa;border-right:1px solid #ebebed;}
+  .shell #materialContent .material-owner-list {display:flex;flex-direction:column;}
+  .shell #materialContent .material-owner {width:100%;max-width:none;text-align:left;flex:0 0 auto;height:64px;}
+  .shell .main #view-materials :is(.material-stepper button,.material-type-tab) {box-sizing:border-box;height:32px;min-height:32px;font:400 13px/normal var(--sans);}
+  .shell #materialContent .material-detail {padding:26px 34px;overflow:auto;min-width:0;}
+  .shell #materialContent .material-detail-head {position:sticky;top:-26px;z-index:3;background:#fff;padding:16px 0;flex-wrap:wrap;}
+  .shell #materialContent .material-quick {display:flex;flex-wrap:wrap;gap:10px;}
+  .shell .main :is(#qtSearch,#coSearch,#itSearch) {border:0;height:auto;min-height:0;padding:0;background:transparent;box-shadow:none;}
+  .shell .main #view-quotes .qlines {padding:0 16px;border:0;}
+  .shell .main #view-quotes .qline.head>:is(:nth-child(3),:nth-child(4),:nth-child(5)) {text-align:right;}
+  .shell .main #view-payments .workspace-right .pay-add {grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;padding:0 0 24px;}
+  .shell .main #view-payments .workspace-right .pay-add .pf {grid-area:auto;grid-column:auto;}
+  .shell .main #view-stock .workspace-right .stock-add {grid-template-columns:repeat(2,minmax(0,1fr));}
+  .shell .main #view-dash .workspace-right .stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .shell .main #view-materials:not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr) auto;}
+  .shell .main #view-materials>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid #ebebed;}
+  .shell .main #view-materials>.copy-note {grid-column:1;grid-row:3;border-radius:0;}
+  .shell .main #view-materials #materialContent,.shell .main #view-materials .material-master {display:contents;}
+  .shell .main #view-materials .material-owners {grid-column:1;grid-row:2;min-height:0;}
+  .shell .main #view-materials .material-detail {grid-column:2;grid-row:1/4;min-height:0;padding-top:0;}
+  .shell .main #view-materials .material-detail-head {top:0;min-height:144px;margin:0 -34px 24px;padding:24px 34px;border-bottom:1px solid #ebebed;}
+}

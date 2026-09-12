@@ -1,6 +1,6 @@
-/* ERP service worker — v1.150 fixed quote filters */
-const CACHE = "erp-shell-v58-v150";
-const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
+/* ERP service worker — v1.151 shared workspace system */
+const CACHE = "erp-shell-v59-v151";
+const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1511","./workspace-layout.js?v=1511","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e => {
