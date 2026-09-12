@@ -312,6 +312,7 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
 
 ## Changelog
+- `v1.146` — **더치페이 v6.20 원본 CSS 실측값 적용(≥1024px)**. `sh4sh-ux/dutch-pay` main(v6.20)의 실제 Desktop CSS를 기준으로 프레임 30px/최대 1484px, Rail 76px·버튼 48px, Header 144px·padding 30/28/20, 제목 23/700, 입력 42px·14/400·radius 9·border `#D4D4D8`·background `#F7F7F8`, 라벨 12/600, 목록 행 64px·이름 13.5/500(선택 600)·금액 13.5/700·보조문자 11/400을 그대로 매핑. v1.145의 추정값(164px Header·28px Title 등)을 제거. 모바일/태블릿과 기능·계산·저장·Dropbox 로직은 무변경. sw.js CACHE v53→v54.
 - `v1.145` — **더치페이 기준 Desktop Header·Typography 정밀 통일(≥1024px)**. Master/Detail 화면의 Header를 `meta → title → 여백` 순서와 164px 높이로 통일하고, 제목 28/700·본문 14/400·목록명 15/600·금액 14/600·라벨 12/500·보조문자 12/400 및 더치페이 muted `#B0B0B8`로 역할별 규칙을 재정의. 건수 표시는 pill을 없애고 제목 옆 보조문자로 정리. 모바일/태블릿과 기능·계산·저장·Dropbox 로직은 무변경. sw.js CACHE v52→v53.
 - `v1.144` — **거래처·품목 Master 목록 약칭 제거**. 목록 왼쪽의 상호/품목코드 앞글자 박스(`avatar`)와 전용 `initials()` helper를 제거해 이름이 바로 첫 기준선에서 시작하도록 정리. 선택·검색·상세 열기와 데이터 로직은 무변경. sw.js CACHE v51→v52.
 - `v1.143` — **더치페이식 Desktop 패널 Typography 통일(≥1024px)**. 각 View 제목 위에 `THE EDIT ERP · v1.143` 메타를 APP_VERSION에서 자동 생성해 누락된 버전을 복원하고, 거래처·품목·견적서의 좌측 목록과 우측 상세에 역할별 공통 글자 토큰(페이지 제목·정보 제목·본문·보조정보·필드 라벨·금액)을 적용. 동일 역할은 양쪽 패널에서 같은 크기·굵기·색상·행간을 사용하며 모바일/태블릿과 계산·저장·Dropbox/Firebase 로직은 무변경. sw.js CACHE v50→v51.
