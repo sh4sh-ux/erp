@@ -1,29 +1,28 @@
-/* v1.141 Step 1B — Desktop App Frame uses Dutch Pay shell geometry.
-   Business logic/views/mobile untouched. ERP horizontal capacity remains wider by design. */
+/* v1.141 Step 2 — Desktop Rail only.
+   App frame from Step 1B is retained. Business logic, views and mobile untouched. */
 @media(min-width:1024px){
   html,body{min-height:100%;background:var(--bg-page,#F7F7F8)}
   body{margin:0}
-  .shell{
-    width:calc(100% - 64px);
-    max-width:1520px;
-    min-height:660px;
-    height:auto;
-    margin:0 auto;
-    padding:0;
-    gap:0;
-    overflow:hidden;
-    background:var(--bg-card,#fff);
-    border:1px solid var(--border-default,#E2E2E2);
-    border-radius:18px;
-    box-shadow:none;
-  }
-  body:has(>.shell){
-    box-sizing:border-box;
-    min-height:100vh;
-    padding:48px 32px 80px;
-  }
-  .shell>.main{min-height:660px;border:0;border-radius:0;box-shadow:none}
-  .shell>.rail-gutter{min-height:660px;background:var(--bg-card,#fff);border-right:1px solid var(--border-light,#ECECEC)}
-  #tbVer{font-size:0}
-  #tbVer::after{content:"v1.141 · STEP 1B";font-size:11px}
+  body:has(>.shell){box-sizing:border-box;min-height:100vh;padding:48px 32px 80px}
+  .shell{width:calc(100% - 64px);max-width:1520px;min-height:660px;height:auto;margin:0 auto;padding:0;gap:0;overflow:hidden;background:var(--bg-card,#fff);border:1px solid var(--border-default,#E2E2E2);border-radius:18px;box-shadow:none}
+  .shell>.main{min-height:660px;border:0;border-radius:0;box-shadow:none;flex:1 1 auto;min-width:0}
+
+  /* STEP 2: desktop Rail becomes a stable 76px icon rail. No hover width change. */
+  .shell>.rail-gutter{flex:0 0 76px!important;width:76px!important;min-width:76px!important;min-height:660px;overflow:hidden;position:relative;background:var(--bg-card,#fff);border-right:1px solid var(--border-light,#ECECEC);transition:none!important}
+  .shell>.rail-gutter>.sidebar{width:76px!important;min-width:76px!important;height:100%;padding-left:0!important;padding-right:0!important;overflow:hidden;transition:none!important;background:transparent!important;border:0!important;box-shadow:none!important}
+  .shell>.rail-gutter:hover,.shell>.rail-gutter>.sidebar:hover{width:76px!important;min-width:76px!important;flex-basis:76px!important;transition:none!important}
+
+  /* Keep every rail icon on the same fixed center line. */
+  .shell .rail-logo,.shell .rail-nav .nav-item,.shell .rail-foot .rail-act,.shell .rail-foot .sync-state{display:grid!important;grid-template-columns:76px!important;justify-content:normal!important;padding-left:0!important;padding-right:0!important;gap:0!important}
+  .shell .rail-logo>.rail-mark,.shell .rail-nav .nav-item>svg,.shell .rail-foot .rail-act>svg,.shell .rail-foot .sync-state>.sync-dot{grid-column:1;justify-self:center!important}
+
+  /* STEP 2 intentionally hides expanded labels/section headings; Main never moves on hover. */
+  .shell .rail-nav .nav-sec,.shell .rail-nav .nav-item>span,.shell .rail-foot .rail-act>span,.shell .rail-foot .sync-state>.sync-text,.shell .rail-foot .tb-user{display:none!important}
+
+  /* Brand/version: compact, always visible in the rail instead of hidden #tbVer. */
+  .shell .rail-logo{height:auto!important;min-height:68px!important;align-content:start!important;padding-top:14px!important;overflow:visible!important}
+  .shell .rail-logo>.rail-brand{display:block!important;position:absolute!important;top:42px!important;left:0!important;width:76px!important;margin:0!important;padding:0!important;opacity:1!important;overflow:visible!important;white-space:nowrap!important;text-align:center!important;font-size:0!important;pointer-events:none!important}
+  .shell .rail-brand::before{content:"ERP"!important;font-size:10px!important;font-weight:700!important;letter-spacing:.02em!important;color:var(--text-secondary,#666)!important}
+  .shell .rail-brand #tbVer{display:block!important;margin-top:1px!important;padding:0!important;font-size:0!important;font-weight:400!important;color:var(--text-muted,#9A9A9A)!important;opacity:1!important}
+  .shell .rail-brand #tbVer::after{content:"v1.141"!important;font-size:9px!important;letter-spacing:0!important}
 }
