@@ -1,2 +1,29 @@
-/* v1.141 Step 1 — Desktop App Frame live preview. Business logic/view/mobile untouched. */
-@media(min-width:1024px){html,body{min-height:100%;background:var(--bg-page,#F7F7F8)}.shell{width:calc(100% - 64px);max-width:1520px;height:calc(100dvh - 80px);min-height:660px;margin:40px auto;padding:0;gap:0;overflow:hidden;background:var(--bg-card,#fff);border:1px solid var(--border-default,#E2E2E2);border-radius:18px;box-shadow:none}.shell>.main{height:100%;min-height:0;border:0;border-radius:0;box-shadow:none}.shell>.rail-gutter{height:100%;min-height:0;background:var(--bg-card,#fff);border-right:1px solid var(--border-light,#ECECEC)}#tbVer{font-size:0}#tbVer::after{content:"v1.141 · STEP 1";font-size:11px}}
+/* v1.141 Step 1B — Desktop App Frame uses Dutch Pay shell geometry.
+   Business logic/views/mobile untouched. ERP horizontal capacity remains wider by design. */
+@media(min-width:1024px){
+  html,body{min-height:100%;background:var(--bg-page,#F7F7F8)}
+  body{margin:0}
+  .shell{
+    width:calc(100% - 64px);
+    max-width:1520px;
+    min-height:660px;
+    height:auto;
+    margin:0 auto;
+    padding:0;
+    gap:0;
+    overflow:hidden;
+    background:var(--bg-card,#fff);
+    border:1px solid var(--border-default,#E2E2E2);
+    border-radius:18px;
+    box-shadow:none;
+  }
+  body:has(>.shell){
+    box-sizing:border-box;
+    min-height:100vh;
+    padding:48px 32px 80px;
+  }
+  .shell>.main{min-height:660px;border:0;border-radius:0;box-shadow:none}
+  .shell>.rail-gutter{min-height:660px;background:var(--bg-card,#fff);border-right:1px solid var(--border-light,#ECECEC)}
+  #tbVer{font-size:0}
+  #tbVer::after{content:"v1.141 · STEP 1B";font-size:11px}
+}
