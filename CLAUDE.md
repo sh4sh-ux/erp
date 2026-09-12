@@ -312,6 +312,7 @@ git push -u origin main     # 라이브 반영 — 사용자 승인 후에만
 - GitHub Pages는 main에서 배포 — 병합 전에는 라이브에 반영되지 않음
 
 ## Changelog
+- `v1.149` — 사용자 비교 화면의 compact 입력을 기준으로 수정: 일반/선택/품목/검색 32px·13px, 날짜는 실제 .dp-txt 기준 36.2px·13px. v1.148의 42px 일괄 확대 제거. Desktop CSS만 변경.
 - `v1.148` — Desktop 모든 한 줄 입력(검색·필터·기본정보·품목 선택 버튼·색상·규격·수량·단가) 42px/14px/400으로 통일. 검색 32px 예외 삭제. 필터·섹션·품목 열 라벨 12px/600/#666, 요약 본문 14px/400/#111, 보조문자 11px/400/#B0B0B8. 업무 JS 무변경.
 - `v1.147` — 실제 Chrome의 Dutch Pay v6.20과 ERP 계산 스타일 비교. 선택선 5→3px, 선택 배경 #EEEFFE, 선택 이름 #2636B8, 편집 입력 배경 white, 목록명 행간 normal, 메타 행간 1.35, 좌측 간편 입력 13px/32px, 원본 텍스트·구분선 색상 적용. 폰트 family/제목 크기는 이미 동일함을 확인. 기능 JS 무변경.
 - `v1.146` — **더치페이 v6.20 원본 CSS 실측값 적용(≥1024px)**. `sh4sh-ux/dutch-pay` main(v6.20)의 실제 Desktop CSS를 기준으로 프레임 30px/최대 1484px, Rail 76px·버튼 48px, Header 144px·padding 30/28/20, 제목 23/700, 입력 42px·14/400·radius 9·border `#D4D4D8`·background `#F7F7F8`, 라벨 12/600, 목록 행 64px·이름 13.5/500(선택 600)·금액 13.5/700·보조문자 11/400을 그대로 매핑. v1.145의 추정값(164px Header·28px Title 등)을 제거. 모바일/태블릿과 기능·계산·저장·Dropbox 로직은 무변경. sw.js CACHE v53→v54.

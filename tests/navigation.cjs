@@ -25,10 +25,10 @@ assert(html.includes('let currentView="dash";'), "dashboard is not the default v
 assert(html.includes('switchView("dash");'), "initial login does not open the dashboard");
 assert(html.includes('querySelectorAll(".nav-item,.mobile-nav-item")'), "desktop and mobile navigation are not bound together");
 assert(html.includes('id="dashNewQuote"') && html.includes('id="dashNewPayment"'), "dashboard quick actions are missing");
-assert(html.includes('const APP_VERSION = "v1.148";'), "app version was not updated");
-assert(html.includes('href="./v142-dutch-pay.css?v=1481"'), "Dutch Pay desktop stylesheet is not linked directly");
+assert(html.includes('const APP_VERSION = "v1.149";'), "app version was not updated");
+assert(html.includes('href="./v142-dutch-pay.css?v=1491"'), "Dutch Pay desktop stylesheet is not linked directly");
 assert(
-  html.indexOf('href="./v142-dutch-pay.css?v=1481"') > html.lastIndexOf("</style>"),
+  html.indexOf('href="./v142-dutch-pay.css?v=1491"') > html.lastIndexOf("</style>"),
   "Dutch Pay stylesheet must load after the legacy inline stylesheet",
 );
 assert(html.includes('meta.className="app-view-meta"'), "desktop view version meta is missing");
@@ -46,7 +46,7 @@ const desktopShell = fs.readFileSync(path.join(__dirname, "..", "v142-dutch-pay.
   "height:144px",
   "padding:30px 28px 20px",
   "--panel-title-size:23px",
-  "min-height:42px",
+  "min-height:32px",
   "border:1px solid #d4d4d8",
   "min-height:64px",
   "font-size:13.5px",

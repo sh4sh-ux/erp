@@ -1,4 +1,4 @@
-/* v1.148 — unified desktop controls and panel typography.
+/* v1.149 — compact Dutch Pay input controls.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
 .app-view-meta { display:none; }
 
@@ -456,13 +456,13 @@
   .shell #view-items select,
   .shell #view-quotes input,
   .shell #view-quotes select {
-    height:42px;
-    min-height:42px;
-    padding:9px 12px;
+    height:32px;
+    min-height:32px;
+    padding:7px 10px;
     border:1px solid #d4d4d8;
     border-radius:9px;
     background:#fff;
-    font-size:14px;
+    font-size:13px;
     font-weight:400;
   }
   .shell #view-companies textarea,
@@ -484,16 +484,16 @@
   .shell #view-companies .search,
   .shell #view-items .search,
   .shell #view-quotes .search {
-    height:42px;
-    min-height:42px;
-    padding:9px 12px;
+    height:32px;
+    min-height:32px;
+    padding:7px 10px;
     border:1px solid #d4d4d8;
     border-radius:9px;
     background:#fff;
   }
   .shell #view-companies .btn-add,
   .shell #view-items .btn-add,
-  .shell #view-quotes .btn-add { width:42px; height:42px; border-radius:9px; }
+  .shell #view-quotes .btn-add { width:32px; height:32px; min-height:32px; border-radius:9px; }
   .shell #view-quotes .quote-filters { padding:0 28px 18px; }
 
   /* Search owns the Dutch Pay field border; its child input stays unboxed. */
@@ -566,26 +566,34 @@
     letter-spacing:-.1px;
   }
 
-  /* A picker button is also a single-line field. Keep every editor at 42px. */
+  /* Match the reference's compact .pin-row control, including item pickers. */
   .shell :is(#view-companies,#view-items,#view-quotes) .ip-btn {
     box-sizing:border-box;
-    height:42px;
-    min-height:42px;
-    padding:9px 26px 9px 12px;
+    height:32px;
+    min-height:32px;
+    padding:7px 26px 7px 10px;
     border:1px solid #d4d4d8;
     border-radius:9px;
     background:#fff;
     color:#111;
     font-family:var(--sans);
-    font-size:14px;
+    font-size:13px;
     font-weight:400;
     line-height:normal;
     letter-spacing:normal;
   }
   .shell :is(#view-companies,#view-items,#view-quotes) :is(input,select,textarea) {
     font-family:var(--sans);
+    font-size:13px;
     letter-spacing:normal;
     line-height:normal;
+  }
+  /* Reference .dp-txt: 13px x 1.4 + 8px vertical padding + 2px border. */
+  .shell :is(#view-companies,#view-items,#view-quotes) input:is([type=date],[type=month]) {
+    height:36.2px;
+    min-height:36.2px;
+    padding:8px 10px;
+    line-height:1.4;
   }
   .shell #view-quotes :is(.filter-label,.quote-period-label,.qt-sec-t,.quote-flow-title,.qline.head,.qs-k,.qs-amt-k),
   .shell :is(#view-companies,#view-items,#view-quotes) .field>label {
