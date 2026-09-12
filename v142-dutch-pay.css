@@ -1,4 +1,4 @@
-/* v1.147 — Dutch Pay v6.20 computed-style parity.
+/* v1.148 — unified desktop controls and panel typography.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
 .app-view-meta { display:none; }
 
@@ -456,11 +456,12 @@
   .shell #view-items select,
   .shell #view-quotes input,
   .shell #view-quotes select {
+    height:42px;
     min-height:42px;
     padding:9px 12px;
     border:1px solid #d4d4d8;
     border-radius:9px;
-    background:#f7f7f8;
+    background:#fff;
     font-size:14px;
     font-weight:400;
   }
@@ -470,7 +471,7 @@
     padding:9px 12px;
     border:1px solid #d4d4d8;
     border-radius:9px;
-    background:#f7f7f8;
+    background:#fff;
     font-size:14px;
     font-weight:400;
   }
@@ -483,11 +484,12 @@
   .shell #view-companies .search,
   .shell #view-items .search,
   .shell #view-quotes .search {
+    height:42px;
     min-height:42px;
     padding:9px 12px;
     border:1px solid #d4d4d8;
     border-radius:9px;
-    background:#f7f7f8;
+    background:#fff;
   }
   .shell #view-companies .btn-add,
   .shell #view-items .btn-add,
@@ -533,23 +535,6 @@
   .shell #view-quotes .detail select,
   .shell #view-quotes .detail textarea { background:#fff; line-height:normal; }
 
-  /* v6.20 compact left-panel input (.pin-row input), measured at 32px. */
-  .shell #view-companies .search,
-  .shell #view-items .search,
-  .shell #view-quotes .search {
-    min-height:32px;
-    padding:7px 10px;
-    background:#fff;
-  }
-  .shell #view-companies .search input,
-  .shell #view-items .search input,
-  .shell #view-quotes .search input { font-size:13px; }
-  .shell #view-companies .btn-add,
-  .shell #view-items .btn-add,
-  .shell #view-quotes .btn-add { width:32px; height:32px; min-height:32px; }
-  .shell #view-quotes .quote-filters input,
-  .shell #view-quotes .quote-filters select { background:#fff; }
-
   .shell #view-companies .list-item.on,
   .shell #view-items .list-item.on,
   .shell #view-quotes .list-item.on { background:#eeeffe; }
@@ -577,6 +562,62 @@
   .shell #view-quotes .li-amt,
   .shell #view-quotes .qtotals .v {
     font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif;
+    line-height:normal;
+    letter-spacing:-.1px;
+  }
+
+  /* A picker button is also a single-line field. Keep every editor at 42px. */
+  .shell :is(#view-companies,#view-items,#view-quotes) .ip-btn {
+    box-sizing:border-box;
+    height:42px;
+    min-height:42px;
+    padding:9px 26px 9px 12px;
+    border:1px solid #d4d4d8;
+    border-radius:9px;
+    background:#fff;
+    color:#111;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:400;
+    line-height:normal;
+    letter-spacing:normal;
+  }
+  .shell :is(#view-companies,#view-items,#view-quotes) :is(input,select,textarea) {
+    font-family:var(--sans);
+    letter-spacing:normal;
+    line-height:normal;
+  }
+  .shell #view-quotes :is(.filter-label,.quote-period-label,.qt-sec-t,.quote-flow-title,.qline.head,.qs-k,.qs-amt-k),
+  .shell :is(#view-companies,#view-items,#view-quotes) .field>label {
+    color:#666;
+    font-family:var(--sans);
+    font-size:12px;
+    font-weight:600;
+    line-height:1.35;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes .filter-label { min-height:16px; margin-bottom:8px; }
+  .shell #view-quotes :is(.qs-no,.qs-val) {
+    color:#111;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:400;
+    line-height:normal;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes :is(.quote-filter-summary,.ip-btn .cd,.hint,.qt-sec-t .cnt) {
+    color:#b0b0b8;
+    font-family:var(--sans);
+    font-size:11px;
+    font-weight:400;
+    line-height:1.35;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes .qline .amt {
+    color:#111;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif;
+    font-size:13.5px;
+    font-weight:700;
     line-height:normal;
     letter-spacing:-.1px;
   }
