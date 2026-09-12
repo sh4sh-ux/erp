@@ -9,13 +9,13 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="ERP">
-<meta name="theme-color" content="#0A84FF">
+<meta name="theme-color" content="#4355E8">
 <style>
   :root{
     --ink:#0B1220; --ink-2:#5A6577; --ink-3:#8A94A6;
     --paper:#F2F4F7; --card:#FFFFFF;
     --line:#E5E9EF; --line-2:#EEF1F5;
-    --primary:#0A84FF; --primary-soft:rgba(10,132,255,.10);
+    --primary:#4355E8; --primary-soft:rgba(67,85,232,.10);
     --danger:#FF3B30; --danger-soft:rgba(255,59,48,.10);
     --ok:#34C759; --ok-soft:rgba(52,199,89,.12);
     --warn-c:#FF9F0A; --warn-soft:rgba(255,159,10,.14);
@@ -101,30 +101,42 @@
   .btn-add{background:var(--primary);color:#fff;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;transition:.14s}
   .btn-add:hover{filter:brightness(1.05)}
 
-  .list{max-height:calc(100vh - 240px);overflow:auto;padding:6px}
-  .list-item{padding:11px 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s}
+  .list{max-height:calc(100vh - 240px);overflow:auto;padding:0}
+  /* 더치페이 지출 목록식: 행은 카드 폭을 꽉 채우고(라운드 없음) 얇은 인셋 구분선으로 나눈다.
+     → 선택 시 파란 기둥바가 카드 왼쪽 끝에 딱 붙어 흰 여백이 안 생긴다 */
+  /* 글자는 좌우 30px, 구분선은 인셋 10px로 글자보다 더 길게(더치페이식) */
+  .list-item{padding:12px 30px;--div-inset:10px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:11px;transition:.12s;
+    border-bottom:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset,10px),var(--line) var(--div-inset,10px),var(--line) calc(100% - var(--div-inset,10px)),transparent calc(100% - var(--div-inset,10px))) 1}
+  .list-item:last-child{border-bottom:none;border-image:none}
   .list-item:hover{background:var(--paper)}
   .list-item.on{background:var(--primary-soft)}
   .avatar{width:36px;height:36px;border-radius:10px;background:var(--paper);display:grid;place-items:center;font-weight:640;font-size:14px;color:var(--ink-2);flex:0 0 auto}
   .list-item.on .avatar{background:#fff;color:var(--primary)}
+  /* 선택 행은 더치페이 지출 목록처럼 상호명/품명을 파란색(강조)으로 */
+  .list-item.on .li-name,.list-item.on .li-nm{color:var(--primary)}
   .li-body{min-width:0;flex:1}
   .li-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .li-sub{font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .li-right{text-align:right;flex:0 0 auto}
   .li-amt{font-size:13px;font-weight:640;font-variant-numeric:tabular-nums}
   .li-code{font-size:11.5px;font-weight:600;color:var(--ink-3);background:var(--paper);border-radius:5px;padding:1px 5px;margin-left:4px}
+  .li-title{display:flex;align-items:baseline;gap:7px;min-width:0}
+  .li-title .li-nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .li-no{flex:0 0 auto;font-size:12px;font-weight:500;color:var(--ink-3)}
+  .li-date{margin-top:3px;font-size:12.5px;font-weight:550;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;flex:0 0 auto}
-  .pill.buy{background:#FFF1E6;color:#C05617}
-  .pill.sell{background:#E7F6EC;color:#1E7A3E}
+  .pill.buy{background:var(--warn-soft);color:var(--warn-ink)}      /* 매입 · 주황 */
+  .pill.sell{background:var(--ok-soft);color:var(--ok-ink)}          /* 매출 · 초록 */
   .pill.st-draft{background:var(--paper);color:var(--ink-2)}
-  .pill.st-sent{background:var(--primary-soft);color:var(--primary)}
-  .pill.st-won{background:var(--ok-soft);color:#1E7A3E}
+  .pill.st-sent{background:var(--primary-soft);color:var(--primary-ink)}
+  .pill.st-won{background:var(--ok-soft);color:var(--ok-ink)}
   .pill.st-lost{background:var(--danger-soft);color:var(--danger)}
-  .pill.st-done{background:#1E7A3E;color:#fff}
-  .pill.set{background:#EFE9FD;color:#6B46C1}
-  .pill.work{background:#E7F0FF;color:#0B5CAD}
-  .pill.in{background:var(--ok-soft);color:#1E7A3E}
-  .pill.out{background:var(--warn-soft);color:#B26A00}
+  .pill.st-done{background:var(--ok);color:#fff}
+  .pill.set{background:var(--primary-soft);color:var(--primary-ink)}  /* 세트 · 파랑 */
+  .pill.work{background:var(--warn-soft);color:var(--warn-ink)}       /* 작업 · 주황 */
+  .pill.in{background:var(--ok-soft);color:var(--ok-ink)}
+  .pill.out{background:var(--warn-soft);color:var(--warn-ink)}
   .empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.7}
   .empty-actions{display:flex;justify-content:center;gap:8px;margin-top:14px}
   .empty .btn{padding:9px 13px;font-size:13px}
@@ -151,7 +163,7 @@
   .btn.ghost:hover{color:var(--ink)}
   .doc-sel{padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-weight:600;font-size:14px;outline:none;cursor:pointer}
   .doc-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
-  .copy-note{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px;padding:11px 13px;border:1px solid rgba(10,132,255,.22);border-radius:10px;background:var(--primary-soft);color:#0868C5;font-size:13px;line-height:1.55}
+  .copy-note{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px;padding:11px 13px;border:1px solid rgba(67,85,232,.22);border-radius:10px;background:var(--primary-soft);color:#2636B8;font-size:13px;line-height:1.55}
   .copy-note svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px}
 
   /* ---------- 업체 제공 자재 ---------- */
@@ -161,7 +173,7 @@
   .material-owners-head h3,.material-detail-head h3,.material-section-head h3{margin:0}
   .material-owner-list{display:flex;align-items:stretch;gap:7px;overflow:auto;padding-bottom:2px}
   .material-owner{flex:0 0 190px;padding:10px 12px;border:1px solid transparent;border-radius:9px;background:transparent;text-align:left;color:var(--ink);cursor:pointer}
-  .material-owner:hover{background:var(--paper)}.material-owner.active{border-color:rgba(10,132,255,.22);background:var(--primary-soft);box-shadow:inset 0 -2px var(--primary)}
+  .material-owner:hover{background:var(--paper)}.material-owner.active{border-color:rgba(67,85,232,.22);background:var(--primary-soft);box-shadow:inset 0 -2px var(--primary)}
   .material-owner-line{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:750}
   .material-owner-line b{color:var(--primary);font-variant-numeric:tabular-nums}
   .material-owner-meta{margin-top:5px;color:var(--ink-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -178,8 +190,8 @@
   .material-stepper button{border:0;background:var(--paper);font-size:19px}.material-stepper input{min-width:0;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);border-radius:0;text-align:center;font-weight:750}
   .material-detail-form{margin-top:18px}.material-entry-card{padding:18px;border:1px solid var(--line);background:#FBFCFD;box-shadow:none}.material-entry-card[hidden]{display:none}
   .material-report-head,.material-section-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:14px}
-  .material-balance-box{padding:12px 14px;border:1px solid rgba(10,132,255,.2);border-radius:10px;background:var(--primary-soft);color:#0868C5;font-size:14px;font-weight:650;margin:-3px 0 16px}
-  .material-entry-card.editing{border-color:rgba(10,132,255,.45);box-shadow:0 0 0 3px var(--primary-soft)}
+  .material-balance-box{padding:12px 14px;border:1px solid rgba(67,85,232,.2);border-radius:10px;background:var(--primary-soft);color:#2636B8;font-size:14px;font-weight:650;margin:-3px 0 16px}
+  .material-entry-card.editing{border-color:rgba(67,85,232,.45);box-shadow:0 0 0 3px var(--primary-soft)}
   .material-edit-pill{font-size:12px;font-weight:700;color:var(--primary);background:var(--primary-soft);padding:4px 8px;border-radius:999px}
   .material-form-actions{display:flex;gap:10px;margin-top:12px}
   .material-form-actions .btn.save{width:auto}
@@ -193,10 +205,10 @@
   .material-record-main{min-width:0}
   .material-record-line{display:flex;align-items:center;gap:8px;min-width:0}
   .material-record-kind{flex:0 0 auto;padding:2px 7px;border-radius:6px;background:var(--paper);color:var(--ink-2);font-size:11.5px;font-weight:700}
-  .material-record-kind.in{background:var(--ok-soft);color:#1E7A3E}
-  .material-record-kind.out{background:var(--warn-soft);color:#9A5B00}
+  .material-record-kind.in{background:var(--ok-soft);color:#13823D}
+  .material-record-kind.out{background:var(--warn-soft);color:#B45F00}
   .material-record-qty{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
-  .material-record-qty.in{color:#1E7A3E}.material-record-qty.out{color:#B45F06}
+  .material-record-qty.in{color:#13823D}.material-record-qty.out{color:#B45F00}
   .material-record-name{margin-top:3px;font-size:13px;font-weight:650}
   .material-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;white-space:nowrap}
   .material-record-actions .btn{padding:7px 10px;font-size:12px}
@@ -218,7 +230,7 @@
   }
 
   /* ---------- quote master / detail ---------- */
-  #view-quotes .quote-cols{grid-template-columns:minmax(320px,380px) minmax(0,1fr)}
+  #view-quotes .quote-cols{grid-template-columns:minmax(360px,440px) minmax(0,1fr)}
   #view-quotes .quote-list-card,#view-quotes .quote-detail-card{min-width:0}
   .quote-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line-2);background:#FBFCFD}
   .quote-filters label{min-width:0}
@@ -230,7 +242,7 @@
   .quote-period-label{color:var(--ink-2);font-size:13px;font-weight:650}
   .quote-date-all{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink-2);font-size:13px;font-weight:650;transition:.14s}
   .quote-date-all:hover{border-color:var(--primary);color:var(--primary)}
-  .quote-date-all.active{border-color:rgba(10,132,255,.28);background:var(--primary-soft);color:var(--primary)}
+  .quote-date-all.active{border-color:rgba(67,85,232,.28);background:var(--primary-soft);color:var(--primary)}
   .quote-filter-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px}
   .quote-filter-summary{color:var(--ink-3);font-size:12px}
   .quote-filter-reset{padding:7px 10px;border-radius:8px;color:var(--ink-2);font-size:12.5px;font-weight:600}
@@ -257,11 +269,11 @@
   .line-btns{display:flex;gap:8px}
   .line-btns>*{flex:1}
   .shortbox{border:1.5px solid var(--warn-c);background:var(--warn-soft);border-radius:12px;padding:12px 14px;margin-top:10px}
-  .shortbox .hd{font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .shortbox .hd{font-size:13px;font-weight:700;color:#B45F00;margin-bottom:8px;display:flex;align-items:center;gap:6px}
   .shortbox .row{display:flex;gap:10px;font-size:13px;padding:3px 0;color:#6B4700}
   .shortbox .row .nm{flex:1;min-width:0}
   .shortbox .row .v{font-variant-numeric:tabular-nums;white-space:nowrap}
-  .shortbox .ft{font-size:12px;color:#8A5A00;margin-top:8px}
+  .shortbox .ft{font-size:12px;color:#B45F00;margin-top:8px}
   .szpanel{border:1.5px solid var(--primary);border-radius:12px;padding:14px;margin-top:10px;background:var(--primary-soft)}
   .szpanel .szhead{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-bottom:10px}
   .szpanel select,.szpanel input{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;outline:none;width:100%;background:var(--card)}
@@ -280,7 +292,7 @@
 
   /* ---------- 품목 규격/옵션·세트 구성품 편집 ---------- */
   .vlines{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
-  .vline{display:grid;grid-template-columns:minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
+  .vline{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .vline:last-child{border-bottom:none}
   .vline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
   .vline input,.vline select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;width:100%;font-size:13.5px;outline:none}
@@ -288,6 +300,10 @@
   .vline input.num{text-align:right}
   .vline .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .vline .rm:hover{background:var(--danger-soft);color:var(--danger)}
+  .vhandle{color:var(--ink-4);font-size:14px;line-height:1;cursor:grab;text-align:center;user-select:none;touch-action:none}
+  .vhandle:active{cursor:grabbing}
+  .vline.vdrag{opacity:.5;background:var(--primary-soft)}
+  .vline.vover{box-shadow:inset 0 2px 0 var(--primary)}
   .cline{display:grid;grid-template-columns:minmax(0,1.2fr) 90px 100px 64px 28px;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line-2);align-items:center}
   .cline:last-child{border-bottom:none}
   .cline.head{background:var(--paper);padding:7px 10px;font-size:11.5px;font-weight:600;color:var(--ink-3)}
@@ -348,16 +364,14 @@
   .quote-flow-sub{margin-top:2px;color:var(--ink-3);font-size:12px}
   .quote-flow-value{text-align:right;font-size:14px;font-weight:700;white-space:nowrap}
   .quote-flow-value small{display:block;margin-top:2px;color:var(--danger);font-size:11.5px}
-  .quote-progress{height:6px;margin:0 15px 12px;border-radius:999px;background:var(--line-2);overflow:hidden}
-  .quote-progress span{display:block;height:100%;border-radius:inherit;background:var(--primary)}
-  .quote-flow-body{padding:0 15px 14px}
-  .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:10px 0;border-top:1px solid var(--line-2);font-size:13px}
+  .quote-flow-body{padding:12px 15px}
+  .quote-record{display:grid;grid-template-columns:82px minmax(0,1fr) auto auto;gap:9px;align-items:center;padding:12px 0;border-top:1px solid var(--line-2);font-size:13px}
   .quote-record:first-child{border-top:none}
   .quote-record .date{color:var(--ink-3)}
   .quote-record .amount{font-weight:700;text-align:right;white-space:nowrap}
   .quote-record .rm{width:28px;height:28px;border-radius:8px;color:var(--ink-3)}
   .quote-record .rm:hover{background:var(--danger-soft);color:var(--danger)}
-  .quote-flow-add{width:100%;padding:10px;border:1px solid rgba(10,132,255,.25);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:13.5px;font-weight:700}
+  .quote-flow-add{width:100%;padding:10px;border:1px solid rgba(67,85,232,.25);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:13.5px;font-weight:700}
   .quote-flow-form{display:grid;gap:10px;margin-top:10px;padding:12px;border:1px solid var(--line-2);border-radius:10px;background:var(--paper)}
   .quote-flow-form .field{margin:0}
   .delivery-draft-line{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center}
@@ -366,10 +380,10 @@
   .delivery-draft-line input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;text-align:right}
   .delivery-form-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
   .delivery-form-head .field{margin:0}
-  .delivery-fill-all{height:39px;padding:0 13px;border:1px solid rgba(10,132,255,.28);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:12.5px;font-weight:750;white-space:nowrap}
+  .delivery-fill-all{height:39px;padding:0 13px;border:1px solid rgba(67,85,232,.28);border-radius:9px;background:var(--primary-soft);color:var(--primary);font-size:12.5px;font-weight:750;white-space:nowrap}
   .quote-flow-actions{display:flex;gap:8px}
   .quote-flow-actions .btn{flex:1;padding:10px 12px}
-  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:0 0 10px;font-size:13px}
+  .payment-totals{display:grid;grid-template-columns:1fr auto;gap:12px 14px;padding:0 0 14px;font-size:13.5px}
   .payment-totals span{color:var(--ink-2)}
   .payment-totals b{text-align:right}
   .payment-totals .balance{color:var(--danger)}
@@ -384,9 +398,11 @@
   .tbl .sub{color:var(--ink-3);font-size:12px}
   .tbl .rm{color:var(--ink-3);width:26px;height:26px;border-radius:7px;display:grid;place-items:center}
   .tbl .rm:hover{background:var(--danger-soft);color:var(--danger)}
-  .tbl-wrap{overflow-x:auto}
+  /* 표 공통: 카드 안에서 좌우 여백을 두어 구분선이 카드 끝에 닿지 않게 한다.
+     (.tbl은 border-collapse라 셀 border-image 인셋이 무시되므로, 표 전체를 컨테이너 패딩으로 들여쓴다) */
+  .tbl-wrap{overflow-x:auto;padding:0 16px 4px}
   .item-data-table th+th,.item-data-table td+td{border-left:1px solid var(--line-2)}
-  .item-data-table tbody tr:not(.subtotal):hover{background:rgba(10,132,255,.025)}
+  .item-data-table tbody tr:not(.subtotal):hover{background:rgba(67,85,232,.025)}
   .item-data-table .item-option{color:var(--ink-2)}
 
   /* ---------- payments ---------- */
@@ -404,7 +420,7 @@
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm)}
   .stat .k{font-size:12px;color:var(--ink-3);font-weight:600}
   .stat .v{font-size:21px;font-weight:720;letter-spacing:0;margin-top:4px;font-variant-numeric:tabular-nums}
-  .stat .v.pos{color:#1E7A3E}
+  .stat .v.pos{color:#13823D}
   .stat .v.neg{color:var(--danger)}
   .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
   @media(max-width:980px){.dash-grid{grid-template-columns:1fr}}
@@ -447,7 +463,7 @@
     #view-stock .cols{grid-template-columns:1fr!important}
     .qlines,.vlines{overflow-x:auto}
     .qline{min-width:620px}
-    .vline{min-width:400px}
+    .vline{min-width:420px}
     .cline{min-width:440px}
     .tbl td{white-space:nowrap}
     .stock-add{grid-template-columns:1fr 1fr}
@@ -489,7 +505,7 @@
     #view-quotes .quick-row .date-control+button{min-height:48px}
     #view-quotes .quote-record{grid-template-columns:58px minmax(0,1fr) auto auto;gap:7px}
     #view-quotes .quote-flow-head{padding:13px}
-    #view-quotes .quote-flow-body{padding:0 13px 13px}
+    #view-quotes .quote-flow-body{padding:12px 13px 13px}
     #view-quotes .quote-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     #view-quotes .quote-form-actions .doc-sel,
     #view-quotes .quote-form-actions #qtSaveBtn,
@@ -552,13 +568,13 @@
   .page-head h2{font-size:24px;font-weight:650;letter-spacing:-.025em}
   .page-head .count{margin-left:4px;padding:3px 8px;background:transparent;border-color:transparent}
   .card{border-radius:12px;box-shadow:none}
-  .cols{grid-template-columns:340px minmax(0,1fr);gap:14px}
+  .cols{grid-template-columns:380px minmax(0,1fr);gap:14px}
   .list-head{padding:11px 12px}
   .search{min-height:40px;padding:7px 10px;border:1px solid transparent;border-radius:8px}
   .search:focus-within{border-color:var(--primary);background:var(--card)}
   .btn-add{width:40px;height:40px;border-radius:8px}
-  .list{padding:5px}
-  .list-item{min-height:54px;padding:9px 10px;border-radius:8px}
+  .list{padding:0}
+  .list-item{min-height:54px;padding:12px 24px;border-radius:0}
   .avatar{width:34px;height:34px;border-radius:8px}
   .detail{padding:20px 22px}
   .field{margin-bottom:13px}
@@ -578,7 +594,7 @@
   .card-head{padding:14px 16px 0}
   .tbl th{padding:9px 12px;font-size:11px;font-weight:600}
   .tbl td{padding:10px 12px}
-  .tbl tbody tr:hover{background:rgba(10,132,255,.025)}
+  .tbl tbody tr:hover{background:rgba(67,85,232,.025)}
   .pay-add,.stock-add{padding:12px;gap:7px}
   .pay-add input,.pay-add select,.stock-add input,.stock-add select{min-height:40px;border-radius:8px}
   .quote-filters{padding:10px 12px;gap:7px;background:var(--paper)}
@@ -597,7 +613,7 @@
   .head-actions{display:flex;align-items:center;gap:8px}
   .head-action-secondary{background:var(--card);color:var(--ink-2);border:1px solid var(--line)}
   .stat-link{display:block;width:100%;text-align:left;transition:border-color .14s,background .14s,transform .14s}
-  .stat-link:hover{border-color:rgba(10,132,255,.38);background:#FBFDFF}
+  .stat-link:hover{border-color:rgba(67,85,232,.38);background:#FBFDFF}
   .stat-link:active{transform:translateY(1px)}
   @media(max-width:820px){
     .topbar{height:56px;padding:0 12px}
@@ -655,22 +671,27 @@
   }
 
   /* ---------- v1.78: 업체 제공 자재에서 확장한 공통 작업 화면 ---------- */
+  /* v1.83 리스킨: 더치페이와 동일한 팔레트(파랑 #4355E8 · 초록 #1DAD53 · 빨강 #E53E3E · 주황 #FF9500) */
   :root{
-    --ink:#171A1F;
-    --ink-2:#5F6875;
-    --ink-3:#98A0AC;
-    --paper:#F5F6F8;
+    --ink:#111;          /* dutch-pay --label */
+    --ink-2:#666;        /* --label2 */
+    --ink-3:#B0B0B8;     /* --label3 */
+    --ink-4:#D4D4D8;     /* --sep2 (히어로 구분점) */
+    --paper:#F7F7F8;     /* --bg */
     --card:#FFFFFF;
-    --line:#E2E5E9;
-    --line-2:#ECEEF1;
-    --primary:#2477F3;
-    --primary-soft:#EDF4FF;
-    --danger:#F04438;
-    --danger-soft:#FFF0EE;
-    --ok:#26A65B;
-    --ok-soft:#EAF8F0;
-    --warn-c:#F59E0B;
-    --warn-soft:#FFF7E8;
+    --line:#EBEBED;      /* --sep */
+    --line-2:#F3F3F5;    /* --fill */
+    --primary:#4355E8;      /* --blue */
+    --primary-soft:#EEEFFE; /* --blue-bg */
+    --primary-ink:#2636B8;  /* --blue-txt */
+    --danger:#E53E3E;       /* --red */
+    --danger-soft:#FFF0F0;  /* --red-bg */
+    --ok:#1DAD53;           /* --green */
+    --ok-soft:#EDFAF3;      /* --green-bg */
+    --ok-ink:#13823D;       /* --green-txt */
+    --warn-c:#FF9500;       /* --txn-amber */
+    --warn-soft:#FFF3E3;    /* amber 배경(파생) */
+    --warn-ink:#B45F00;     /* amber 글자(가독성 확보) */
     --r:14px;
     --r-sm:9px;
   }
@@ -684,7 +705,7 @@
   .nav-sec{padding:14px 11px 7px;color:#A3AAB4;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:none}
   .nav-item{min-height:44px;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600}
   .nav-item.on{background:var(--primary-soft);box-shadow:inset 3px 0 var(--primary)}
-  .main{padding:30px 34px 48px}
+  .main{padding:30px 34px 48px;--main-pb:48px}
   .view{width:100%;max-width:1480px;margin:0 auto}
   .page-head{min-height:46px;margin-bottom:22px;gap:10px}
   .page-head h2{font-size:25px;font-weight:730;letter-spacing:-.035em}
@@ -693,17 +714,19 @@
   .head-actions{gap:9px}
 
   .card{border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:none}
-  .cols{grid-template-columns:320px minmax(0,1fr);gap:16px}
+  .cols{grid-template-columns:360px minmax(0,1fr);gap:16px}
   .list-head{padding:14px;border-bottom-color:var(--line)}
   .search{min-height:44px;padding:9px 11px;border:1px solid var(--line);background:#F7F8FA}
   .search:focus-within{background:#fff;box-shadow:0 0 0 3px var(--primary-soft)}
   .btn-add{width:44px;height:44px;border-radius:10px}
-  .list{padding:7px}
-  .list-item{min-height:60px;padding:10px 11px;border-radius:10px}
+  .list{padding:0}
+  .list-item{min-height:60px;padding:12px 18px;border-radius:0}
   .list-item.on{background:var(--primary-soft)}
   .avatar{width:36px;height:36px;border-radius:9px}
   .li-name{font-size:14px;font-weight:680}
   .li-sub{margin-top:2px;font-size:12px}
+  .li-title .li-nm{font-size:14px;font-weight:680}
+  .li-date{margin-top:3px;font-size:12px}
   .detail{padding:28px 30px}
   .detail-empty{padding:76px 24px}
 
@@ -728,7 +751,7 @@
   .stat .k{color:var(--ink-3);font-size:12px;font-weight:650}
   .stat .v{margin-top:10px;font-size:23px;font-weight:760;letter-spacing:-.025em}
   .stat .hint{margin-top:5px!important}
-  .stat-link:hover{border-color:#BFD5F8;background:#FBFDFF}
+  .stat-link:hover{border-color:#CDD3F7;background:#FBFDFF}
   .dash-grid{grid-template-columns:minmax(0,1.35fr) minmax(340px,.85fr);gap:16px}
   .card-head{min-height:56px;padding:17px 20px 10px;border-bottom:1px solid var(--line-2)}
   .card-head h3{font-size:15px;font-weight:720}
@@ -742,7 +765,7 @@
   .pay-add,.stock-add{padding:16px;gap:9px;background:#FAFBFC}
   #view-payments>.card,#view-stock>.cols>.card{overflow:hidden}
 
-  #view-quotes .quote-cols{grid-template-columns:minmax(300px,340px) minmax(0,1fr)}
+  #view-quotes .quote-cols{grid-template-columns:minmax(340px,400px) minmax(0,1fr)}
   .quote-filters{padding:13px 14px;background:#FAFBFC;border-bottom-color:var(--line)}
   .quote-filters input,.quote-filters select{height:42px;background:#fff}
   .quote-back{margin:16px 16px 0}
@@ -753,7 +776,7 @@
   .qtotals{gap:7px;padding:20px 4px 4px}
   .qtotals .row.grand .v{font-size:20px}
   .quote-flow-head{padding:16px 17px;background:#FAFBFC}
-  .quote-flow-body{padding:0 17px 16px}
+  .quote-flow-body{padding:12px 17px 16px}
   .quote-record{min-height:50px;padding:11px 0}
 
   .copy-note{margin-bottom:18px;padding:12px 15px;border-radius:10px;background:var(--primary-soft)}
@@ -769,7 +792,7 @@
   #view-settings>.card{max-width:760px!important}
 
   @media(max-width:1120px){
-    .main{padding:26px 24px 42px}
+    .main{padding:26px 24px 42px;--main-pb:42px}
     .dash-grid{grid-template-columns:1fr}
     .cols{grid-template-columns:300px minmax(0,1fr)}
   }
@@ -812,9 +835,9 @@
   .nav-item,.list-item,.material-owner{position:relative}
   .nav-item.on,.list-item.on,.material-owner.active{box-shadow:none}
   .nav-item.on::before,.list-item.on::before,.material-owner.active::before{
-    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0;background:var(--primary)
+    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:0;background:var(--primary)
   }
-  .material-owner.active{border-color:#C9DCF9;background:var(--primary-soft)}
+  .material-owner.active{border-color:#CDD3F7;background:var(--primary-soft)}
   .material-balance-hero{margin-top:32px}
   .material-balance-hero strong{font-size:32px;letter-spacing:-1px}
   .material-history{border-top:1px solid var(--line)}
@@ -826,7 +849,7 @@
   .material-record-line{gap:7px}
   .material-record-name{margin:0;font-size:14px;font-weight:720}
   .material-record-kind{padding:3px 7px;border-radius:6px;font-size:11px;line-height:1.35}
-  .material-record-kind.work{background:var(--ok-soft);color:#1E7A3E}
+  .material-record-kind.work{background:var(--ok-soft);color:#13823D}
   .material-record-meta{margin-top:5px;color:var(--ink-2);font-size:12.5px;line-height:1.5}
   .material-record-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:24px}
   .material-record-actions{flex-wrap:wrap}
@@ -845,13 +868,13 @@
   .view{max-width:1360px}
   .nav-item,.list-item,.material-owner{outline:none}
   .nav-item.on,.list-item.on,.material-owner.active{border-radius:0 10px 10px 0}
-  .nav-item:focus-visible,.list-item:focus-visible,.material-owner:focus-visible{box-shadow:inset 0 0 0 2px rgba(36,119,243,.42)}
-  .nav-item.on:focus-visible,.list-item.on:focus-visible,.material-owner.active:focus-visible{box-shadow:inset 3px 0 var(--primary),inset 0 0 0 2px rgba(36,119,243,.34)}
+  .nav-item:focus-visible,.list-item:focus-visible,.material-owner:focus-visible{box-shadow:inset 0 0 0 2px rgba(67,85,232,.42)}
+  .nav-item.on:focus-visible,.list-item.on:focus-visible,.material-owner.active:focus-visible{box-shadow:inset 3px 0 var(--primary),inset 0 0 0 2px rgba(67,85,232,.34)}
   .material-owner.active::before{left:-1px}
   .material-history{max-height:none;overflow:visible;border-top:1px solid #D5DAE1}
   .material-record{padding:13px 2px;border-bottom-color:#D5DAE1}
   .material-record-side{padding-top:20px;gap:6px}
-  .material-record-qty.out{color:#D46A00}
+  .material-record-qty.out{color:#B45F00}
   .material-record-actions .btn{min-height:32px;padding:5px 8px;font-size:11.5px}
   .item-data-table th+th,.item-data-table td+td,.tbl th+th,.tbl td+td{border-left:0!important}
   .tbl th{background:#fff;border-bottom-color:#D8DDE4}
@@ -935,6 +958,1256 @@
   .p-etc .memo-text{margin-bottom:8px}
   .p-etc .notice{color:#D32F2F;line-height:1.7}
   .p-foot{margin-top:14px;text-align:center;color:#9AA0A8;font-size:11px}
+
+  /* ---------- v1.82: 견적서 작성 화면 레이아웃 + 공통 디테일 리디자인 ---------- */
+  :root{ --ink-4:#D4D4D8; }
+  /* 살짝 떠 있는 카드 · 넉넉한 여백 (참조 시안 느낌) */
+  .card{box-shadow:0 1px 2px rgba(24,28,40,.03),0 16px 42px -22px rgba(24,28,40,.18)}
+  .detail{padding:34px 36px 40px}
+  .page-head{margin-bottom:26px}
+  .page-head h2{font-size:27px;font-weight:760;letter-spacing:-.035em}
+  /* 버튼 · 입력 라운드 정리 */
+  .btn,.btn-sm,.btn-primary,.btn-add{border-radius:12px}
+  .btn.ghost{color:var(--ink-2)}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--ink-3);background:var(--paper)}
+  .field input,.field select,.field textarea,.month-input,.doc-sel,
+  .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
+  /* 견적 폼 히어로 (라벨 → 큰 합계 → 부연) */
+  .qt-hero{padding:0 2px 24px;margin-bottom:26px;border-bottom:1px solid var(--line-2)}
+  .qt-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+  .qt-eyebrow .lbl{font-size:12.5px;font-weight:650;color:var(--ink-3);letter-spacing:.01em}
+  .qt-eyebrow .mono{font-family:var(--mono);font-weight:600;color:var(--ink-2);letter-spacing:-.02em}
+  .qt-hero-num{display:flex;align-items:flex-end;gap:11px}
+  .qt-hero-num .k{font-size:13px;font-weight:600;color:var(--ink-3);padding-bottom:9px}
+  .qt-hero-num .v{font-size:42px;font-weight:780;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+  .qt-hero-sub{margin-top:12px;font-size:13px;font-weight:500;color:var(--ink-2)}
+  .qt-hero-sub b{color:var(--ink);font-weight:650}
+  .qt-hero-sub .sep{color:var(--ink-4);margin:0 9px}
+  /* 섹션 그룹 */
+  .qt-sec{margin-bottom:28px}
+  .qt-sec-t{display:flex;align-items:baseline;gap:9px;font-size:13.5px;font-weight:730;letter-spacing:-.01em;margin-bottom:15px}
+  .qt-sec-t .cnt{font-size:12px;font-weight:600;color:var(--ink-3)}
+  /* 품목 합계 박스 */
+  .qtotals{margin-top:16px;padding:16px 16px 14px;background:var(--paper);border:1px solid var(--line-2);border-radius:12px;gap:8px}
+  .qtotals .row.grand{margin-top:3px;padding-top:11px;border-top:1px solid var(--line)}
+  .qtotals .row.grand .k{font-weight:700}
+  .qtotals .row.grand .v{font-size:20px;font-weight:780;color:var(--primary)}
+  /* 액션 줄 */
+  .quote-form-actions{margin-top:26px;padding-top:20px;border-top:1px solid var(--line-2);gap:9px}
+  .qline input,.qline select{border-radius:9px}
+  @media(max-width:820px){
+    .detail{padding:22px 16px}
+    .page-head h2{font-size:22px}
+    .qt-hero{padding-bottom:18px;margin-bottom:20px}
+    .qt-hero-num .v{font-size:34px}
+    .qt-sec{margin-bottom:22px}
+    .card{box-shadow:none}
+  }
+
+  /* ==================================================================
+     v1.84 · 공통 표 / 구분선 / 선택 표준 정의 (더치페이 상세내역 양식)
+     ── 앞으로 표·리스트는 이 정의를 그대로 재사용할 것 ──
+     · 구분선: 카드 안에서 좌우 16px 여분을 둔 "완전 일자선"(둥근 끝 없음).
+       더치페이의 border-image 그라데이션 기법으로 구현 → .hairline 유틸.
+     · 표(.tbl): 배경색 없음(헤더·행·hover 모두 투명), 세로 칸선 없음,
+       헤더 라벨과 데이터는 같은 정렬(.num=우, .ctr=중앙)로 맞춘다.
+     · 선택행(왼쪽 파란 기둥바): 영수증 앱처럼 직사각형(라운드 0).
+     · 히어로 숫자: 30px / 700.
+     ================================================================== */
+  :root{ --div-inset:16px; }
+  /* 재사용 유틸: 좌우 여분 일자 구분선 (아래 표·기록에 적용) */
+  .tbl td,
+  .material-record,
+  .quote-record{
+    border-bottom:1px solid var(--line);
+    border-image:linear-gradient(to right,
+      transparent var(--div-inset), var(--line) var(--div-inset),
+      var(--line) calc(100% - var(--div-inset)), transparent calc(100% - var(--div-inset))) 1;
+  }
+  /* 표: 배경 없음 · 세로선 없음 · 더치페이 상세내역 양식 */
+  .tbl{background:transparent}
+  .tbl th{background:transparent;color:var(--ink-3);font-weight:600;font-size:11.5px;padding:11px 14px}
+  .tbl thead th{
+    border-bottom:1px solid var(--sep2,#D4D4D8);
+    border-image:linear-gradient(to right,
+      transparent var(--div-inset), var(--sep2,#D4D4D8) var(--div-inset),
+      var(--sep2,#D4D4D8) calc(100% - var(--div-inset)), transparent calc(100% - var(--div-inset))) 1;
+  }
+  .tbl td{padding:13px 14px}
+  .tbl tbody tr:last-child td{border-bottom:0;border-image:none}
+  .tbl tbody tr:hover,
+  .item-data-table tbody tr:not(.subtotal):hover{background:transparent}
+  .item-data-table th+th,.item-data-table td+td,.tbl th+th,.tbl td+td{border-left:0!important}
+  .tbl .num{text-align:right;font-variant-numeric:tabular-nums}   /* th·td 공통 정렬 */
+  .tbl .ctr{text-align:center}
+  .tbl .subtotal td{font-weight:750;background:transparent;border-top:1px solid var(--sep2,#D4D4D8);border-bottom:0;border-image:none}
+  /* 입출고/기록 내역: 기록마다 좌우 여분 인셋 구분선을 두되, **일자 그룹과 무관하게 전체의 맨 끝 한 줄만** 없앤다.
+     예전엔 `.material-record:last-child`가 '일자 그룹(.material-day)의 마지막'까지 지워, 1건짜리 날은 구분선이 통째로 사라졌다.
+     (높은 특이도 + 늦은 선언 순서로 이전의 모든 :last-child·day-border 규칙을 확실히 덮는다.) */
+  /* 구분선 인셋을 기록 좌우 패딩(≈2px)에 맞춰 글자(날짜~수량)와 정확히 정렬 — 예전엔 16px라 글자 안쪽에 들어가 이질감.
+     바깥 여분은 카드/상세 패딩이 담당한다 */
+  .material-history{--div-inset:2px}
+  .material-history .material-record{
+    border-bottom:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset), var(--line) var(--div-inset),
+      var(--line) calc(100% - var(--div-inset)), transparent calc(100% - var(--div-inset))) 1;
+  }
+  .material-history .material-day{border-top:0}
+  .material-history .material-day:last-child .material-record:last-child{border-bottom:0;border-image:none}
+  /* 선택행: 왼쪽 파란 기둥바 + 직사각형 (영수증 앱 스타일) */
+  .nav-item.on,.list-item.on,.material-owner.active{border-radius:0}
+  /* 히어로 숫자 30px / 700 */
+  .material-balance-hero strong{font-size:30px;font-weight:700;letter-spacing:-.5px}
+  .qt-hero-num .v{font-size:30px;font-weight:700;letter-spacing:-.02em}
+  @media(max-width:820px){
+    .material-balance-hero strong{font-size:28px}
+    .qt-hero-num .v{font-size:27px}
+  }
+
+  /* ==================================================================
+     v1.85 · 화면 공통 헤더 통일 — 히어로 숫자 + 인라인 스탯 + 입력영역 통일
+     · .scr-hero: 라벨 → 큰 숫자(30/700) → 부연 (현황·수금·미수금 공통)
+     · .stats: 카드 그리드 → 좌우 여분 없는 한 줄 라벨/값(인라인) — 히어로와 한 세트
+     · 상세내역 입력(.qline.head·.pay-add·.stock-add)도 배경 없이 통일
+     ================================================================== */
+  .scr-hero{margin:2px 0 2px}
+  .scr-hero .lbl{font-size:12.5px;color:var(--ink-3);font-weight:600;margin-bottom:7px}
+  .scr-hero .big{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums;display:inline-block}
+  .scr-hero .big.pos{color:var(--ok-ink,#13823D)} .scr-hero .big.neg{color:var(--danger)}
+  .scr-hero .big small{font-size:17px;font-weight:650;color:var(--ink-2);margin-left:2px}
+  .scr-hero .sub{margin-top:10px;font-size:12.5px;color:var(--ink-2);font-weight:500}
+  .scr-hero .sub b{color:var(--ink);font-weight:650}
+  .scr-hero .sub .sep{color:var(--ink-4);margin:0 8px}
+
+  .stats{display:flex;flex-wrap:wrap;gap:20px 40px;padding:20px 2px;margin:18px 0 24px;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);grid-template-columns:none}
+  .stat{background:transparent;border:0;border-radius:0;padding:0;min-height:0;box-shadow:none;text-align:left;display:block;flex:0 0 auto;width:max-content;max-width:100%}
+  .stat:hover{background:transparent;transform:none;box-shadow:none;border:0}
+  .stat.stat-link{cursor:pointer}
+  .stat.stat-link:hover .v{color:var(--primary)}
+  .stat .k{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+  .stat .v{font-size:17px;font-weight:750;letter-spacing:-.018em;margin-top:0}
+  .stat .hint{font-size:11px;color:var(--ink-3);margin-top:5px!important}
+
+  /* 상세내역 입력 영역 통일 (배경 없음) */
+  .qline.head,.vline.head,.cline.head{background:transparent;color:var(--ink-3)}
+  .pay-add,.stock-add{background:transparent}
+  .pay-add input,.pay-add select,.stock-add input,.stock-add select{border-radius:11px}
+
+  /* v1.86 · 거래처 상세 원장 (히어로 + 거래 내역 + 정보 폼 구획) */
+  .co-ledger-h{font-size:14px;font-weight:750;letter-spacing:-.01em;margin:24px 0 4px}
+  .co-ledger-h span{color:var(--ink-3);font-weight:600;font-size:12px;margin-left:6px}
+  .co-acts{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0 6px}
+  .co-acts .btn{flex:0 0 auto}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+
+  /* v1.88 · 상세 화면 디테일 다듬기 — 섹션 제목 통일 + 히어로→스탯 리듬 정리 */
+  /* 견적 상세·거래처 원장의 섹션 제목을 같은 타이포로 통일 (여백은 문맥별 유지) */
+  .qt-sec-t,.co-ledger-h{font-size:13.5px;font-weight:730;letter-spacing:-.012em;color:var(--ink)}
+  .qt-sec-t .cnt,.co-ledger-h span{font-size:12px;font-weight:600;color:var(--ink-3);letter-spacing:0}
+  .qt-sec-t{margin-bottom:13px}          /* .qt-sec 가 섹션 간 간격 담당 */
+  .co-ledger-h{margin:24px 0 8px}        /* 원장은 폼 직속이라 자체 여백 */
+  .scr-hero .lbl{letter-spacing:.01em}
+  .scr-hero .sub{margin-top:9px}
+  .stats{margin:15px 0 26px;padding:18px 2px}
+
+  /* v1.89 · 자재 내역 구분선 · 차감색 · 목록 꽉 채움 · 견적 저장버튼 고정 */
+  /* (2) 입출고 내역: 날짜당 1건이면 record:last-child 규칙 탓에 선이 안 그려짐 → 날짜 그룹 경계에 좌우 여분 일자선 */
+  .material-day{border-top:1px solid var(--line);
+    border-image:linear-gradient(to right,transparent var(--div-inset),var(--line) var(--div-inset),var(--line) calc(100% - var(--div-inset)),transparent calc(100% - var(--div-inset))) 1;}
+  .material-day:first-child{border-top:0;border-image:none}
+  .material-day+.material-day{margin-top:0}
+  /* (3) 차감(−) 수량 = 더치페이 주황 */
+  .material-record-qty.out{color:var(--warn-c)}
+
+  @media(min-width:821px){
+    /* 데스크탑: 본문이 스크롤러 (상단바 64px 제외) */
+    .main{height:calc(100vh - 64px);overflow-y:auto}
+  }
+
+  /* ===== 두-패널 화면(거래처·품목·견적): 좌·우 패널을 화면 높이에 고정하고 각자 내부 스크롤 (더치페이식) =====
+     좌·우 카드 모두 sticky top + 화면 높이(calc)로 고정 → 페이지(프레임)는 고정되고,
+     긴 목록/긴 상세는 각 카드 안에서만 스크롤된다.
+     ⚠️ 981px+에서만 적용: 거래처·품목은 ≤980px에서 1단으로 접히므로(이때 고정 높이면 세로로 겹쳐 깨짐),
+        실제 2단 구간(≥981px)에서만 고정 프레임을 켠다. 단일 컬럼 화면·모바일은 무영향. */
+  @media(min-width:981px){
+    #view-companies .cols>.card,#view-items .cols>.card,
+    #view-quotes .quote-list-card,#view-quotes .quote-detail-card{
+      position:sticky;top:0;align-self:start;min-height:0;
+      height:calc(100vh - 214px);
+    }
+    /* 좌측: 카드는 넘침 숨기고 리스트만 스크롤 */
+    #view-companies .cols>.card:first-child,
+    #view-items .cols>.card:first-child,
+    #view-quotes .quote-list-card{
+      display:flex;flex-direction:column;overflow:hidden;
+    }
+    #coList,#itList,#qtList{flex:1;min-height:0;max-height:none;overflow:auto}
+    /* 우측: 상세 카드 자체가 스크롤러. .detail이 카드 높이를 채워 저장바가 항상 카드 바닥에 붙는다 */
+    #view-companies .cols>.card:last-child,
+    #view-items .cols>.card:last-child,
+    #view-quotes .quote-detail-card{overflow-y:auto}
+    #view-companies .cols>.card:last-child .detail,
+    #view-items .cols>.card:last-child .detail,
+    #view-quotes .quote-detail-card .detail{min-height:100%;padding-bottom:0}
+    /* 저장/버튼 줄: 우측 카드 스크롤러 바닥에 sticky 고정 (견적·품목·거래처만).
+       우측 카드가 스크롤러라 .main 패딩 보정이 필요 없다 → bottom:0. .detail 하단 패딩 0으로 바가 바닥에 딱. */
+    #view-quotes .detail .form-actions,
+    #view-items .detail .form-actions,
+    #view-companies .detail .form-actions{
+      position:sticky;bottom:0;z-index:5;
+      margin:26px -36px 0;padding:16px 36px 18px;
+      background:var(--card);border-top:1px solid var(--line);
+      box-shadow:0 -8px 18px -14px rgba(17,17,17,.25);
+    }
+  }
+
+  /* ==================================================================
+     v1.104 · 더치페이식 셸 — 아이콘 레일(호버 펼침) + 큰 창 하나(구분선 분할)
+     · 상단바/하단 탭바 제거 → 왼쪽 아이콘 레일 하나로 통합
+     · 마스터-디테일(거래처·품목·견적)은 카드 2개 → 큰 카드 안에서 세로 구분선 하나로
+     · 레일은 마우스 올리면 펼쳐짐(내용 안 밀고 위에 뜸, 닫힘 지연). 모바일은 햄버거 드로어
+     ================================================================== */
+  .topbar,.mobile-nav{display:none!important}
+
+  /* 프레임 — 더치페이와 동일 치수: 전체 폭 max 1484 중앙정렬 / 레일 76 / 왼쪽 360 / 오른쪽 나머지 */
+  .shell{display:flex;gap:10px;height:100dvh;min-height:0;overflow:hidden;
+    background:var(--paper);padding:14px;box-sizing:border-box;align-items:stretch;
+    grid-template-columns:none;max-width:1484px;margin:0 auto}
+
+  /* ---- 아이콘 레일 (호버 펼침 오버레이) ---- */
+  .rail-gutter{flex:0 0 76px;position:relative;align-self:stretch}
+  .shell .sidebar{position:absolute;top:0;left:0;bottom:0;width:76px;height:auto;
+    display:flex;flex-direction:column;background:transparent;border:0;border-radius:18px;
+    padding:0;margin:0;overflow:hidden;z-index:60;box-shadow:none;
+    transition:width .2s ease .28s, box-shadow .2s ease .28s, background .2s ease .28s, border-color .2s ease}
+  .shell .sidebar:hover{width:216px;background:var(--card);border:1px solid var(--line);
+    box-shadow:0 16px 46px rgba(16,24,40,.17);transition-delay:0s}
+  .rail-logo{display:flex;align-items:center;gap:11px;height:56px;flex:0 0 auto;
+    padding:0 12px;box-sizing:border-box;cursor:pointer}
+  .rail-mark{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--primary);
+    display:grid;place-items:center}
+  .rail-brand{font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;transition:opacity .12s}
+  .rail-brand .tb-ver{font-weight:500;font-size:11px;color:var(--ink-3);margin-left:5px;padding:0}
+  .rail-nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px 8px;
+    display:flex;flex-direction:column;gap:2px}
+  .rail-nav::-webkit-scrollbar{width:0}
+  .rail-nav .nav-sec{padding:12px 12px 5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;
+    color:#A3AAB4;text-transform:none;white-space:nowrap;overflow:visible;line-height:1.5}
+  .rail-nav .nav-item{min-height:44px;height:44px;padding:0 12px;gap:13px;border-radius:12px;
+    font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;flex:0 0 auto;width:100%}
+  .rail-nav .nav-item svg{width:20px;height:20px;flex:0 0 20px}
+  .rail-nav .nav-item span{white-space:nowrap;transition:opacity .12s}
+  .rail-nav .nav-item.on{background:var(--primary-soft);color:var(--primary);border-radius:12px}
+  .rail-nav .nav-item.on::before{display:none}
+  .rail-foot{flex:0 0 auto;padding:8px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:2px}
+  .rail-foot .sync-state{height:40px;padding:0 12px;gap:10px;overflow:hidden;color:var(--ink-3);font-size:11.5px}
+  .rail-foot .sync-dot{width:8px;height:8px}
+  .rail-foot .tb-user{padding:2px 12px 6px;font-size:12px;color:var(--ink-2);gap:8px;overflow:hidden;white-space:nowrap}
+  .rail-act{display:flex;align-items:center;gap:13px;height:44px;padding:0 12px;border-radius:12px;
+    color:var(--ink-2);white-space:nowrap;overflow:hidden}
+  .rail-act:hover{background:var(--paper);color:var(--ink)}
+  .rail-act svg{width:20px;height:20px;flex:0 0 20px}
+  .rail-act span{transition:opacity .12s}
+
+  /* 접힘: 라벨/부가텍스트 숨김, 아이콘 가운데 */
+  .shell .sidebar:not(:hover) .rail-brand,
+  .shell .sidebar:not(:hover) .nav-item span,
+  .shell .sidebar:not(:hover) .rail-act span,
+  .shell .sidebar:not(:hover) .sync-text,
+  .shell .sidebar:not(:hover) .tb-user{opacity:0;width:0;margin:0;padding:0;overflow:hidden;pointer-events:none}
+  .shell .sidebar:not(:hover) .nav-sec{display:none}
+  .shell .sidebar:not(:hover) .rail-logo,
+  .shell .sidebar:not(:hover) .nav-item,
+  .shell .sidebar:not(:hover) .rail-act,
+  .shell .sidebar:not(:hover) .sync-state{justify-content:center;padding-left:0;padding-right:0}
+
+  /* ---- 큰 카드 (본문 프레임) ---- */
+  .shell>.main{flex:1;min-width:0;height:auto;max-width:none;margin:0;position:relative;
+    background:var(--card);border:1px solid var(--line);border-radius:22px;
+    overflow:hidden;display:flex;flex-direction:column;padding:0;box-shadow:none}
+  .shell .main>.view{max-width:none;margin:0}
+  .shell .main>.view:not(.hidden){flex:1;min-height:0}
+  /* 내용형 화면: 자연 흐름(block) + 스크롤 — flex로 두면 카드가 줄어들며 잘림 */
+  .shell .main>#view-dash:not(.hidden),
+  .shell .main>#view-payments:not(.hidden),
+  .shell .main>#view-stock:not(.hidden),
+  .shell .main>#view-sales:not(.hidden),
+  .shell .main>#view-ar:not(.hidden),
+  .shell .main>#view-settings:not(.hidden){display:block;padding:26px 30px 40px;overflow:auto}
+  .shell .main>#view-materials:not(.hidden){display:block;padding:22px 24px 40px;overflow:auto}
+  /* 마스터-디테일: 큰 카드 안에서 구분선 하나로 좌/우 분할 */
+  .shell .main>#view-companies:not(.hidden),
+  .shell .main>#view-items:not(.hidden),
+  .shell .main>#view-quotes:not(.hidden){display:flex;flex-direction:column;overflow:hidden}
+  .shell .main>#view-companies>.page-head,
+  .shell .main>#view-items>.page-head,
+  .shell .main>#view-quotes>.page-head{padding:22px 26px 16px;margin:0;flex:0 0 auto}
+  .shell #view-companies .cols,
+  .shell #view-items .cols,
+  .shell #view-quotes .quote-cols{display:flex;gap:0;flex:1;min-height:0;
+    grid-template-columns:none;border-top:1px solid var(--line);align-items:stretch}
+  .shell #view-companies .cols>.card,
+  .shell #view-items .cols>.card,
+  .shell #view-quotes .quote-cols>.card{flex:1 1 0;min-width:0;background:transparent;
+    border:0;border-radius:0;box-shadow:none;padding:0;position:static;height:auto;overflow:auto}
+  .shell #view-companies .cols>.card:first-child,
+  .shell #view-items .cols>.card:first-child,
+  .shell #view-quotes .quote-cols>.card:first-child{flex:0 0 360px;max-width:360px}
+  .shell #view-companies .cols>.card+.card,
+  .shell #view-items .cols>.card+.card,
+  .shell #view-quotes .quote-cols>.card+.card{border-left:1px solid var(--line)}
+  /* 목록 내부 스크롤 캡 제거 → 좌측 패널(카드)이 스크롤러 */
+  .shell #coList,.shell #itList,.shell #qtList{max-height:none;overflow:visible;flex:none;display:block}
+  .shell .main .list{max-height:none}
+  /* 좌측 패널을 더치페이처럼 깔끔하게 — 필터 틴트 밴드 제거(구분선만 유지) */
+  .shell #view-quotes .quote-filters{background:transparent}
+  .shell #view-companies .list-head,.shell #view-items .list-head,.shell #view-quotes .list-head{background:transparent}
+
+  /* 햄버거 (모바일 전용) */
+  .m-burger{display:none;position:absolute;top:20px;left:20px;z-index:120;
+    width:38px;height:38px;place-items:center;border-radius:10px;color:var(--ink-2);background:transparent}
+  .m-burger:hover{background:var(--paper)}
+
+  /* 필터바 (매출집계·미수금 — 제목 아래 컨트롤 줄) */
+  .filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px}
+  .filter-bar .month-input{flex:0 0 auto;min-width:0}
+  .filter-bar input.month-input{width:150px}
+  .filter-bar select.month-input{width:auto;min-width:130px;max-width:210px}
+  .filter-bar .date-control{flex:0 0 auto;width:150px;max-width:150px}
+  .filter-bar>.btn-sm{margin-left:auto}
+
+  /* ---- 모바일: 레일 → 햄버거 드로어 ---- */
+  @media(max-width:820px){
+    .shell{gap:0;padding:10px}
+    .rail-gutter{flex:0 0 0;width:0;overflow:visible}
+    .shell .sidebar{position:fixed;top:0;left:0;bottom:0;width:270px;height:auto;
+      background:var(--card);border:0;border-right:1px solid var(--line);border-radius:0;
+      transform:translateX(-105%);box-shadow:0 12px 40px rgba(11,18,32,.18);z-index:200;
+      transition:transform .24s cubic-bezier(.22,.7,.3,1)}
+    .shell .sidebar.open{transform:translateX(0)}
+    /* 드로어는 항상 라벨 보임 (접힘 규칙 :not(:hover)와 같은 특이도로 뒤에서 덮는다) */
+    .shell .sidebar:not(:hover) .rail-brand,.shell .sidebar:not(:hover) .nav-item span,
+    .shell .sidebar:not(:hover) .rail-act span,.shell .sidebar:not(:hover) .sync-text,
+    .shell .sidebar:not(:hover) .tb-user{opacity:1;width:auto;margin:revert;padding:revert;pointer-events:auto}
+    .shell .sidebar:not(:hover) .nav-sec{display:block;height:auto;padding:12px 12px 5px;opacity:1}
+    .shell .sidebar:not(:hover) .rail-logo,.shell .sidebar:not(:hover) .nav-item,
+    .shell .sidebar:not(:hover) .rail-act,.shell .sidebar:not(:hover) .sync-state{justify-content:flex-start;padding-left:12px;padding-right:12px}
+    .shell .sidebar:not(:hover) .tb-user{padding:2px 12px 6px}
+    .nav-backdrop{position:fixed;inset:0;top:0;z-index:150;background:rgba(11,18,32,.34)}
+    .nav-backdrop.show{opacity:1;pointer-events:auto}
+    .shell>.main{border-radius:16px}
+    .m-burger{display:grid}
+    /* 내용형 화면 모바일 패딩 축소 */
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden){padding:16px 16px 28px}
+    .shell .main>#view-materials:not(.hidden){padding:14px 14px 28px}
+    /* === 통일 고정 헤더 ===
+       모든 화면: 제목줄(햄버거+제목+핵심액션)을 한 줄 고정 높이(--m-head-h)로 상단 고정.
+       리스트 화면(거래처·품목·견적): 그 아래 검색창(.list-head)까지 함께 고정. */
+    :root{--m-head-h:58px}
+    .shell .main>.view>.page-head{
+      position:sticky;top:0;z-index:15;background:var(--card);
+      height:var(--m-head-h);min-height:var(--m-head-h);
+      margin:0;padding:0 14px 0 60px;
+      display:flex;align-items:center;flex-wrap:nowrap;gap:8px;overflow:hidden;
+      border-bottom:1px solid var(--line-2)}
+    .shell .main>.view>.page-head h2{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+    .shell .main>.view>.page-head .page-title{min-width:0;flex:0 1 auto}
+    .shell .main>.view>.page-head .page-title p{display:none}
+    .shell .main>.view>.page-head .count{flex:0 0 auto}
+    .shell .main>.view>.page-head .sp{display:block;flex:1 1 auto;min-width:6px;margin:0}
+    .shell #view-quotes .page-head h2,.shell #view-sales .page-head h2{margin-right:0;width:auto}
+    .shell .main>.view>.page-head .head-actions{flex:0 0 auto;width:auto;display:flex;gap:6px;margin:0}
+    /* 마스터-디테일 page-head는 데스크탑 규칙(id 특이도)이 padding을 잡으므로 모바일에서 같은 특이도로 덮는다 */
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding:0 14px 0 60px}
+    .shell #view-dash .head-actions{width:auto;display:flex;grid-template-columns:none}
+    .shell .main>.view>.page-head .head-actions .btn-sm,
+    .shell .main>.view>.page-head .btn-sm{min-height:34px;padding:6px 10px;font-size:12.5px;white-space:nowrap}
+    .shell .main>.view>.page-head .month-input{min-height:34px;flex:0 0 auto;max-width:130px}
+    /* 리스트 검색창을 헤더 바로 아래에 고정 */
+    .shell #view-companies .list-head,
+    .shell #view-items .list-head,
+    .shell #view-quotes .list-head{position:sticky;top:var(--m-head-h);z-index:14;background:var(--card)}
+    /* 매출집계·미수금 필터바: 헤더 아래 본문 첫 줄로 스크롤 */
+    .shell #view-sales .filter-bar,.shell #view-ar .filter-bar{padding:12px 14px 0}
+    .shell #view-sales .filter-bar .month-input,.shell #view-ar .filter-bar .month-input{min-height:40px}
+    /* 모바일: 마스터-디테일은 1열 + 화면 전체 스크롤 (기존 동작 유지) */
+    .shell .main>#view-companies:not(.hidden),
+    .shell .main>#view-items:not(.hidden),
+    .shell .main>#view-quotes:not(.hidden){overflow:auto}
+    .shell #view-companies .cols,.shell #view-items .cols,.shell #view-quotes .quote-cols{flex-direction:column;border-top:0}
+    .shell #view-companies .cols>.card,
+    .shell #view-items .cols>.card,
+    .shell #view-quotes .quote-cols>.card{flex:none;overflow:visible;height:auto}
+    .shell #view-companies .cols>.card+.card,
+    .shell #view-items .cols>.card+.card,
+    .shell #view-quotes .quote-cols>.card+.card{border-left:0;border-top:1px solid var(--line)}
+    .shell #view-companies .cols>.card:first-child,
+    .shell #view-items .cols>.card:first-child,
+    .shell #view-quotes .quote-cols>.card:first-child{flex:none;max-width:none}
+  }
+
+  /* ==========================================================================
+     THE EDIT UI Design System v1.0 — Design Token / Typography (v1.110)
+     · canonical 토큰을 정의하고 기존 별칭(--ink/--paper/--line 등)을 여기에 연결.
+     · 색상만 스펙 팔레트로 정렬(파급 최소). 반경(--radius-*)·타이포(--fs-*)는
+       정의만 해두고 화면별 적용은 다음 단계에서 진행(이번엔 body만 --fs-body 연결).
+     · CSS 삭제 없음 — late override 블록으로만 추가.
+     ========================================================================== */
+  :root{
+    /* 색상 */
+    --text-primary:#171717; --text-secondary:#666666; --text-muted:#9A9A9A;
+    --bg-page:#F7F7F8; --bg-card:#FFFFFF;
+    --border-light:#ECECEC; --border-default:#E2E2E2; --border-strong:#CFCFCF;
+    --primary:#4355E8;   /* THE EDIT Blue — 유지 */
+    /* 반경 (정의만, 이번 단계에서 --r/--r-sm에 연결하지 않음) */
+    --radius-card:12px; --radius-control:10px;
+    /* 타이포 스케일 */
+    --fs-page:28px; --fs-section:18px; --fs-title:16px; --fs-body:15px;
+    --fs-label:14px; --fs-table-header:13px; --fs-caption:13px;
+    /* 기존 별칭 → canonical 연결 (색상만) */
+    --ink:var(--text-primary); --ink-2:var(--text-secondary); --ink-3:var(--text-muted);
+    --paper:var(--bg-page); --card:var(--bg-card); --line:var(--border-default);
+  }
+  body{font-size:var(--fs-body)}
+
+  /* ==========================================================================
+     모바일 하단 내비게이션 (v1.110)
+     · 데스크탑: 표시 안 함(기존 아이콘 레일 유지, 변경 없음)
+     · 모바일(≤820px): 5개 균등 탭(홈·견적서·수금/지급·재고·더보기) + 햄버거 숨김
+     · '더보기'는 기존 드로어(toggleNav) 재사용, switchView/.mobile-nav-item 재사용
+     ========================================================================== */
+  .bottom-nav{display:none}
+  @media(max-width:820px){
+    .bottom-nav{
+      display:flex;position:fixed;left:0;right:0;bottom:0;z-index:100;
+      background:var(--bg-card);border-top:1px solid var(--border-default);
+      padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0)}
+    .bottom-nav>button{
+      flex:1 1 0;min-width:0;height:56px;background:none;border:0;border-radius:0;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+      color:var(--text-muted);font-size:11px;font-weight:600;line-height:1;padding:0}
+    .bottom-nav>button svg{width:22px;height:22px;flex:0 0 auto}
+    .bottom-nav>button span{white-space:nowrap;letter-spacing:-.01em}
+    /* 선택 = Primary Blue만 (옛 .mobile-nav-item 알약 배경·밑줄은 무력화) */
+    .bottom-nav>button.on{color:var(--primary);background:none}
+    .bottom-nav>button.on::after{display:none}
+    /* 하단 탭이 생겼으니 햄버거 숨김 (동시 표시 금지) */
+    .m-burger{display:none!important}
+    /* 햄버거가 사라진 만큼 제목 좌측 여백 원복(60→14px) */
+    .shell .main>.view>.page-head{padding-left:14px}
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding-left:14px}
+    /* 본문 마지막 내용이 하단 탭에 가리지 않도록 스크롤 여백 확보 */
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden),
+    .shell .main>#view-materials:not(.hidden),
+    .shell .main>#view-companies:not(.hidden),
+    .shell .main>#view-items:not(.hidden),
+    .shell .main>#view-quotes:not(.hidden){padding-bottom:calc(56px + env(safe-area-inset-bottom,0) + 16px)}
+  }
+
+  /* ==========================================================================
+     대시보드 UI 다듬기 (v1.111) — THE EDIT UI Design System v1.0
+     · #view-dash 스코프 전용 (공통 .scr-hero/.stats/.stat/.card-head/.recent/.pill 은
+       미수금·수금·거래처 화면과 공유하므로 절대 건드리지 않음)
+     · 정보/계산/차트 데이터 무변경 — 위계·타이포·간격·정렬만 정리
+     ========================================================================== */
+  /* --- Hero KPI: 이달 매출을 가장 강하게, 보조정보는 차분하게 --- */
+  #view-dash .scr-hero{margin:4px 0 0}
+  #view-dash .scr-hero .lbl{font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:8px;letter-spacing:0}
+  #view-dash .scr-hero .big{font-size:32px;font-weight:700;letter-spacing:-.025em}
+  #view-dash .scr-hero .sub{margin-top:11px;font-size:13px;color:var(--text-secondary);font-weight:500}
+  #view-dash .scr-hero .sub b{color:var(--text-primary);font-weight:650}
+  /* --- KPI 위계: 수금·미수금(강조) > 마진·지급(기본) > 회신·계산서(조용) --- */
+  #view-dash .stats{gap:18px 36px}
+  #view-dash .stat .k{font-size:12px;color:var(--text-muted);font-weight:600}
+  #view-dash .stat .v{font-size:17px;font-weight:700}
+  #view-dash .stat .hint{font-size:11.5px;color:var(--text-muted)}
+  #view-dash .stat-key .v{font-size:20px;font-weight:750}
+  #view-dash .stat-key .k{color:var(--text-secondary)}
+  #view-dash .stat-soft .v{font-size:15px;font-weight:650}   /* .pos/.neg 의미색은 유지 */
+  /* --- 카드 섹션 제목 --- */
+  #view-dash .card-head h3{font-size:16px;font-weight:700;letter-spacing:-.01em}
+  #view-dash .legend{font-size:12px}
+  /* --- 최근 활동: 내용>금액>상태>날짜, 가벼운 구분선, 작은 배지 --- */
+  #view-dash .recent{padding:4px 6px 8px}
+  #view-dash .recent-item{gap:10px;padding:11px 10px;font-size:14px;border-radius:0}
+  #view-dash .recent-item:hover{background:var(--paper)}
+  #view-dash .recent-item + .recent-item{border-top:1px solid var(--line-2)}
+  #view-dash .recent-item .t{flex:1;min-width:0;font-weight:600;color:var(--text-primary)}
+  #view-dash .recent-item .ra{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600;color:var(--text-primary)}
+  #view-dash .recent-item .pill{flex:0 0 auto;font-size:11px;padding:2px 8px;line-height:1.35}
+  #view-dash .recent-item .d{flex:0 0 auto;margin-left:2px;color:var(--text-muted);font-size:12px;min-width:36px;text-align:right}
+  @media(max-width:820px){
+    /* 모바일: 차트 세로 빈 공간 축소 + 최근 활동 배지 여백 축소 */
+    #view-dash .chart{height:128px;padding:10px 14px 8px}
+    #view-dash .scr-hero .big{font-size:30px}
+    #view-dash .recent-item{gap:8px;padding:10px 8px}
+    #view-dash .recent-item .ra{font-size:13.5px}
+  }
+
+  /* ==========================================================================
+     대시보드 Hero 겹침 수정 (v1.112) — iOS Safari 전용 증상 대응, 대시보드만
+     · iOS는 overflow 스크롤 컨테이너(flex 자식) 안의 position:sticky 헤더를
+       흐름에서 빼내 바로 아래 히어로(이달 매출 금액) 위로 겹쳐 그리는 버그가 있어
+       746,350원이 상단에 잘려 제목 위로 올라와 보였다.
+     · 대시보드 제목줄만 고정(sticky)을 해제해 정상 흐름으로 되돌린다(제목은 그대로 상단,
+       스크롤 시 함께 올라감). 다른 화면(견적·거래처 등)의 sticky 헤더는 건드리지 않음.
+     · 데스크탑은 애초에 sticky가 아니라 영향 없음.
+     ========================================================================== */
+  @media(max-width:820px){
+    /* 대시보드 상단 정보 블록 (v1.113):
+       제목줄(대시보드+버튼) + Hero(라벨·금액·부연)를 하나의 블록으로 묶는다.
+       · 제목줄 sticky 해제(v1.112) + 제목~Hero 사이 구분선 제거 + 간격 축소
+       · Hero~KPI 사이 구분선/간격은 .stats 의 border-top 으로 유지(변경 없음) */
+    .shell .main>#view-dash>.page-head{position:static;top:auto;z-index:auto;
+      border-bottom:none;height:auto;min-height:0;padding:12px 14px 2px;align-items:center}
+    #view-dash .scr-hero{margin:6px 0 2px}
+  }
+
+  /* ==========================================================================
+     견적서 상세 상단 Summary (v1.115) — #view-quotes 스코프 전용
+     · 좌: 견적서 번호(차분·작음)/거래처/작성일  ·  우: 금액(부가세 별도, 가장 강함)
+     · 두 블록 top 정렬(align-items:flex-start) — 견적번호와 금액의 세로 시작 위치만 맞춤
+     · 금액=공급가액(부가세 별도), 총수량·장식 아이콘 없음. 상태는 작은 배지로 최소화
+     · 공통 .qt-hero(패딩·하단 구분선)는 그대로 재사용, 새 카드 추가 없음
+     ========================================================================== */
+  #view-quotes .quote-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:nowrap}
+  #view-quotes .qs-info{min-width:0;display:flex;flex-direction:column;gap:10px}
+  #view-quotes .qs-row{display:flex;flex-direction:column;gap:3px;min-width:0}
+  #view-quotes .qs-k{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:0}
+  #view-quotes .qs-info .qs-line{display:flex;align-items:center;gap:8px;min-width:0}
+  #view-quotes .qs-no{font-size:15px;font-weight:650;color:var(--text-primary);white-space:nowrap;font-family:var(--mono);letter-spacing:-.01em}
+  #view-quotes .qs-val{font-size:15px;font-weight:600;color:var(--text-primary);min-width:0}
+  #view-quotes .qs-val.co{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+  #view-quotes .quote-summary .pill{flex:0 0 auto}
+  #view-quotes .qs-amount{flex:0 0 auto;text-align:right;min-width:132px}
+  /* 라벨 line-box(18px)+간격(3px)을 좌측 라벨(.qs-k+.qs-row gap)과 동일하게 맞춰
+     견적번호 값과 금액 값의 세로 시작 위치(Y축)를 정확히 정렬 (폰트 크기·위계는 그대로) */
+  #view-quotes .qs-amt-k{font-size:12.5px;font-weight:600;color:var(--text-muted);line-height:18px;margin-bottom:3px;white-space:nowrap}
+  #view-quotes .qs-amt-v{font-size:33px;font-weight:780;letter-spacing:-.03em;line-height:1;color:var(--text-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
+  @media(max-width:820px){
+    #view-quotes .quote-summary{gap:12px}
+    #view-quotes .qs-amt-v{font-size:26px}
+    #view-quotes .qs-val.co{max-width:150px}
+  }
+
+  /* ==========================================================================
+     견적 품목 입력 정리 (v1.117) — #view-quotes 스코프, 품목 화면만
+     · 합계 라벨 위계(16/600)만 소폭 보정 (값 20/780·행 14px은 그대로)
+     · 모바일: 데스크탑 표를 가로 스크롤로 축소하지 않고 한 품목을 3줄로 재배치
+       1행 품명 [삭제]  ·  2행 규격/옵션  ·  3행 수량 · 단가 · 금액(자동계산·읽기전용)
+     · 마크업/계산/기능 무변경 — grid-template-areas 재배치 + 금액 강조만
+     ========================================================================== */
+  #view-quotes .qtotals .row.grand .k{font-size:16px;font-weight:600}
+  @media(max-width:820px){
+    #view-quotes .qlines{overflow-x:visible}
+    #view-quotes .qline.head{display:none}   /* 스택 레이아웃에선 열 머리글 대신 배치로 구분 */
+    #view-quotes .qline{
+      min-width:0;
+      grid-template-columns:0.8fr 1fr minmax(92px,1.15fr);
+      grid-template-areas:
+        "name  name  rm"
+        "spec  spec  spec"
+        "qty   price amt";
+      gap:8px 10px;padding:12px;align-items:center}
+    #view-quotes .qline>.ip-btn,
+    #view-quotes .qline>input[data-f="name"]{grid-area:name;min-width:0}
+    #view-quotes .qline>.dual,
+    #view-quotes .qline>select[data-f="vspec"],
+    #view-quotes .qline>input[data-f="spec"]{grid-area:spec;min-width:0}
+    #view-quotes .qline>input[data-f="qty"]{grid-area:qty;text-align:right}
+    #view-quotes .qline>input[data-f="price"]{grid-area:price;text-align:right}
+    #view-quotes .qline>.amt{grid-area:amt;text-align:right;align-self:center;
+      font-size:15px;font-weight:700;color:var(--text-primary)}   /* 자동계산 값 — 입력칸과 구분 */
+    #view-quotes .qline>.rm{grid-area:rm;justify-self:end}
+    #view-quotes .qline input,#view-quotes .qline select{min-height:40px;font-size:15px}
+    #view-quotes .qline .dual{gap:8px}
+    #view-quotes .qline .dual select,#view-quotes .qline .dual input{font-size:14px;padding:9px 8px;text-align:left}
+  }
+
+  /* ==========================================================================
+     견적서 기본정보 Form 밀도 정리 (v1.118) — #view-quotes .qt-basic 스코프 전용
+     · 공통 .field/input/select는 손대지 않음(다른 화면·품목·비고 무영향)
+     · 세로 길이 축소: 필드 간격·라벨~입력 간격만 조밀하게. 기능/필드/순서 무변경
+     · 상태·유효기간은 짧은 필드라 모바일에서도 2열 유지(한 줄 절약)
+     ========================================================================== */
+  #view-quotes .qt-basic .field{margin-bottom:12px}
+  #view-quotes .qt-basic .field label{margin-bottom:6px;font-size:13.5px;font-weight:600;color:var(--text-secondary)}
+  #view-quotes .qt-basic .grid2{gap:10px 12px;margin-bottom:0}
+  @media(max-width:820px){
+    #view-quotes .qt-basic .field{margin-bottom:10px}
+    #view-quotes .qt-basic .field label{margin-bottom:5px}
+    /* 상태·유효기간: 짧은 필드끼리 모바일에서도 한 줄(2열) — 세로 길이 축소 (거래처는 풀와이드 유지) */
+    #view-quotes .qt-basic .grid2.pair{grid-template-columns:1fr 1fr;gap:10px}
+  }
+
+  /* ==========================================================================
+     견적서 데스크탑 목록/상세 비율 정리 (v1.119) — #view-quotes 데스크탑만
+     · 공용 App Shell(레일 76px·gap·큰 카드 22px·max 1484px)은 그대로 — 전 화면 공유라 안 건드림
+     · 목록(master)이 고정 360px이라 넓은 화면에서 비율이 좁아지던 문제(1440px에서 27%)를
+       비례(34%, 320~440px clamp)로 바꿔 목표 32~36% / 상세 64~68%에 맞춤. 거래처·품목 화면은
+       공유 규칙(360px)을 그대로 두어 미변경. 모바일(≤820px)·다른 화면·기능·계산 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell #view-quotes .quote-cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
+  /* ==========================================================================
+     v1.120 — Desktop Common Shell: 콘텐츠 안쪽 여백 통일 (데스크톱 ≥1024px만)
+       분석(§36) 결과 셸 프레임(레일 76·라운드 22·1484px·제목 27px·컨트롤 44px)은
+       이미 10개 화면 공통이고 자매앱(더치페이·영수증DB)과 맞춘 값이라 유지.
+       화면마다 실제로 달랐던 유일한 항목 = 콘텐츠 좌우/상단 여백
+       (내용형 26/30, 자재 22/24, 마스터-디테일 page-head 22/26)을 24px로 통일한다.
+       하단 40px·page-head 하단 16px(구분선 간격)은 유지. 981~1023px(태블릿)과
+       모바일(≤820px)은 앞선 규칙 그대로 — 이 블록이 ≥1024px에서만 덮는다.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden),
+    .shell .main>#view-materials:not(.hidden){padding:24px 24px 40px}
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding:24px 24px 16px}
+  }
+  /* ==========================================================================
+     v1.121 — 수금/지급 화면 UI 개선 (디자인 시스템 v1.0, #view-payments 스코프만)
+       기능·계산·저장·마크업 ID·렌더러 전부 무변경. 거래 등록 Form에 라벨을 붙이고
+       논리적 그룹으로 재배치(데스크톱 4열 영역 / 모바일 1열+짧은 필드만 2열),
+       모바일에서 가로로 잘리던 표 2종을 2줄 카드형으로 리플로우. 공통 .field/.btn/
+       .tbl/.card/.shell 미변경 — 전부 #view-payments 스코프.
+     ========================================================================== */
+  /* ---- 거래 등록 Form: 라벨 + 그룹 배치 ---- */
+  #view-payments .pay-add .pf{display:flex;flex-direction:column;min-width:0}
+  #view-payments .pay-add .pf>label{font-size:12.5px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;letter-spacing:.01em}
+  #view-payments .pay-add .pf-date{grid-area:date}
+  #view-payments .pay-add .pf-co{grid-area:co}
+  #view-payments .pay-add .pf-kind{grid-area:kind}
+  #view-payments .pay-add .pf-method{grid-area:method}
+  #view-payments .pay-add .pf-quote{grid-area:quote}
+  #view-payments .pay-add .pf-amt{grid-area:amt}
+  #view-payments .pay-add .pf-memo{grid-area:memo}
+  #view-payments .pay-add .pf-btn{grid-area:btn;justify-content:flex-end}
+  #view-payments .pay-add .pf-amt input{text-align:right}
+  @media(min-width:821px){
+    #view-payments .pay-add{
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-areas:
+        "date  co     kind   method"
+        "quote quote  amt    amt"
+        "memo  memo   memo   btn";
+      gap:14px 16px;align-items:end;padding:20px 22px;
+    }
+    #view-payments .pay-add .btn-sm{width:100%;min-height:40px}
+  }
+  @media(max-width:820px){
+    /* 짧은 필드(거래유형|결제방법)만 2열, 나머지는 풀와이드.
+       column을 명시적으로(!important) — ≤560px의 `.pay-add>*{grid-column:auto!important}`를 덮는다 */
+    #view-payments .pay-add{grid-template-columns:1fr 1fr;grid-template-areas:none;grid-auto-flow:row;gap:10px;padding:14px}
+    /* grid-area(행 이름)를 풀고 열만 지정 — 안 그러면 모든 필드가 한 행에 겹친다 */
+    #view-payments .pay-add>.pf{grid-column:1/-1!important;grid-row:auto!important}
+    #view-payments .pay-add>.pf-kind{grid-column:1/2!important}
+    #view-payments .pay-add>.pf-method{grid-column:2/3!important}
+    #view-payments .pay-add .pf>label{margin-bottom:4px;font-size:12px}
+    #view-payments .pay-add .btn-sm{width:100%;min-height:44px}
+  }
+  /* ---- 모바일 표 리플로우(가로 스크롤 대신 2줄 카드) ---- */
+  @media(max-width:820px){
+    /* 거래 내역(payTbl): 8열 → 거래처·금액 / 날짜·구분·방법·삭제 / 연결·메모 */
+    #view-payments #payTbl thead{display:none}
+    #view-payments #payTbl,#view-payments #payTbl tbody{display:block;width:100%}
+    #view-payments #payTbl tr{
+      display:grid;grid-template-columns:auto auto 1fr auto;
+      grid-template-areas:
+        "co    co    co     amt"
+        "date  kind  method rm"
+        "quote quote memo   memo";
+      gap:4px 8px;align-items:center;
+      padding:12px 4px;border-bottom:1px solid var(--line-2)}
+    #view-payments #payTbl tr:last-child{border-bottom:0}
+    #view-payments #payTbl tr:has(td .empty){display:block;padding:0}
+    #view-payments #payTbl td{display:block;border:0;padding:0;white-space:normal;font-size:13px}
+    #view-payments #payTbl td:nth-child(1){grid-area:date;color:var(--text-muted);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(2){grid-area:co;font-weight:600;color:var(--text-primary);font-size:14px}
+    #view-payments #payTbl td:nth-child(3){grid-area:quote;color:var(--text-muted);font-size:12px}
+    #view-payments #payTbl td:nth-child(4){grid-area:kind}
+    #view-payments #payTbl td:nth-child(5){grid-area:method;color:var(--text-secondary);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(6){grid-area:amt;text-align:right;font-weight:700;font-size:14px}
+    #view-payments #payTbl td:nth-child(7){grid-area:memo;color:var(--text-muted);font-size:12.5px}
+    #view-payments #payTbl td:nth-child(8){grid-area:rm;justify-self:end}
+    /* 거래처별 집계(payByCo): 5열 → 거래처·차액 / 수금·지급 */
+    #view-payments #payByCo thead{display:none}
+    #view-payments #payByCo,#view-payments #payByCo tbody{display:block;width:100%}
+    #view-payments #payByCo tr{
+      display:grid;grid-template-columns:1fr auto;
+      grid-template-areas:"co net" "sin sout";
+      gap:3px 10px;align-items:baseline;
+      padding:11px 4px;border-bottom:1px solid var(--line-2)}
+    #view-payments #payByCo tr:last-child{border-bottom:0}
+    #view-payments #payByCo tr:has(td .empty){display:block;padding:0}
+    #view-payments #payByCo td{display:block;border:0;padding:0;text-align:left;white-space:normal}
+    #view-payments #payByCo td:nth-child(1){grid-area:co;font-weight:600;color:var(--text-primary);font-size:14px}
+    #view-payments #payByCo td:nth-child(2){display:none}   /* 건수 — 모바일 생략 */
+    #view-payments #payByCo td:nth-child(3){grid-area:sin;color:var(--text-secondary);font-size:12.5px}
+    #view-payments #payByCo td:nth-child(3)::before{content:"수금 ";color:var(--text-muted)}
+    #view-payments #payByCo td:nth-child(4){grid-area:sout;color:var(--text-secondary);font-size:12.5px;text-align:right}
+    #view-payments #payByCo td:nth-child(4)::before{content:"지급 ";color:var(--text-muted)}
+    #view-payments #payByCo td:nth-child(5){grid-area:net;text-align:right;font-weight:700;font-size:14px}
+    /* 합계 행: '건수' 칸이 비어 있어도 레이아웃 유지 */
+    #view-payments #payByCo tr:last-child td:nth-child(3)::before,
+    #view-payments #payByCo tr:last-child td:nth-child(4)::before{color:var(--text-secondary)}
+  }
+  /* ==========================================================================
+     v1.124 — 수금/지급 밀도 정밀화 (THE EDIT 디자인 시스템 수치, #view-payments만)
+       v1.121 구조(라벨·데스크톱 그리드·모바일 표 리플로우) 위에 스펙 수치만 맞춤:
+       입력 높이 42px·radius 10px·font 15px, 라벨 14/600, 데스크톱 열 간격 22px,
+       거래처별 집계/거래 내역 표 헤더 13/600·행 14px. 마크업·계산·기능·다른 화면 무변경.
+     ========================================================================== */
+  /* §8 Input density — 공통 .field/input/select 미변경, #view-payments 폼만 */
+  #view-payments .pay-add input,
+  #view-payments .pay-add select{min-height:42px;border-radius:10px;font-size:15px}
+  #view-payments .pay-add .pf>label{font-size:14px;font-weight:600}
+  @media(min-width:821px){
+    /* §8 Row gap 12 / Column gap 22 (기존 14/16) */
+    #view-payments .pay-add{gap:12px 22px}
+    /* §13 표 밀도 — 데스크톱만(모바일 2줄 리플로우는 nth-child 특이도로 유지) */
+    #view-payments .tbl th{font-size:13px;font-weight:600}
+    #view-payments .tbl td{font-size:14px}
+  }
+  @media(max-width:820px){
+    /* 모바일은 세로 밀도 위해 라벨만 살짝 작게(13.5) — 입력 높이는 42px 유지 */
+    #view-payments .pay-add .pf>label{font-size:13.5px}
+  }
+  /* ==========================================================================
+     v1.122 — 견적 Desktop Detail Panel 스크롤 복구 (버그 수정, #view-quotes만)
+       원인: v1.98 프레임 규칙이 남긴 `align-self:start`(line ~1138)가 v1.104 flex
+       셸에서 컨테이너의 `align-items:stretch`를 눌러, 좌/우 카드가 행 높이(≈706px)에
+       맞춰지지 않고 콘텐츠 높이(예: 2889px)만큼 늘어나 `overflow-y:auto`가 발동하지
+       않았다(하단 합계·저장 버튼 접근 불가). 데스크톱(≥1024px)에서 두 카드의
+       align-self를 stretch로 되돌려 각 카드가 행 높이에 고정되고 내부에서만 세로
+       스크롤되게 한다. 폭·비율(v1.119)·레이아웃·다른 화면·모바일(≤820) 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell #view-quotes .quote-cols>.card{align-self:stretch;min-height:0}
+  }
+  /* ==========================================================================
+     v1.123 — Desktop Rail 공통 폴리싱 (≥1024px, #railNav 스코프만)
+       Rail 폭·구조·Hover Expand·switchView·아이콘 라이브러리 전부 무변경.
+       정돈감만: 메뉴 세로 간격 통일, 아이콘~라벨 간격 통일, 하단 유틸리티 영역을
+       Main Nav보다 조용하게(더 muted) 분리, 로그아웃은 hover에서만 danger tone.
+       선택/hover/전환은 이미 스펙 부합이라 유지. Main Panel·다른 화면·모바일 무변경.
+     ========================================================================== */
+  @media(min-width:1024px){
+    /* §6 메뉴 간 세로 간격 통일(2→4px, 한 덩어리로 읽히되 답답하지 않게) */
+    .shell #railNav .rail-nav{gap:4px}
+    /* §11 아이콘~라벨 간격 통일(13→12px) — Main Nav·유틸 동일해 라벨 시작선 정렬 */
+    .shell #railNav .rail-nav .nav-item,
+    .shell #railNav .rail-act{gap:12px}
+    /* §12 하단 유틸리티: Main Nav(아이콘 --ink-2)보다 한 단계 muted로 낮춤 + 상단 분리 */
+    .shell #railNav .rail-foot{padding-top:12px}
+    .shell #railNav .rail-act{color:var(--text-muted)}
+    .shell #railNav .rail-foot .tb-user{color:var(--text-muted)}
+    /* §9 hover: 약한 배경 + 아이콘 색 미세 변화(전체 검정 아닌 secondary까지만) */
+    .shell #railNav .rail-act:hover{background:var(--paper);color:var(--text-secondary)}
+    /* §14 로그아웃: 기본 neutral, hover에서만 danger tone */
+    .shell #railNav #logoutBtn:hover{color:var(--danger)}
+  }
+  /* ==========================================================================
+     v1.125 — 재고 화면 UI 개선 (THE EDIT 디자인 시스템, #view-stock 스코프만)
+       기능·재고 계산·저장·렌더러 로직 무변경(현재고 표에 '상태' 배지 열만 추가 —
+       판정은 기존 '재고 소진(0 이하)' 기준 그대로, 표시 전용). 공통 .field/.btn/
+       .tbl/.card 미변경 — 전부 #view-stock 스코프.
+     ========================================================================== */
+  /* §9·§11 재고 상태 배지 — 작게, 행 높이 안 키움 */
+  #view-stock .stk-st{text-align:center}
+  #view-stock .stk-badge{display:inline-block;font-size:11.5px;font-weight:600;line-height:1.5;
+    padding:2px 9px;border-radius:999px;white-space:nowrap}
+  #view-stock .stk-badge.ok{background:#EDFAF3;color:#13823D}
+  #view-stock .stk-badge.out{background:#FFF0F0;color:var(--danger)}
+  /* §8 재고 수량 tabular-nums(정렬 안정) */
+  #view-stock .tbl td.num{font-variant-numeric:tabular-nums}
+  /* §5 입출고 폼 입력 밀도(공통 .field 미변경, #view-stock .stock-add만) */
+  #view-stock .stock-add input,
+  #view-stock .stock-add select{min-height:42px;border-radius:10px;font-size:15px}
+  @media(min-width:821px){
+    /* §7 표 밀도 — 헤더 13/600·2px 구분선, 행 14px (모바일 리플로우는 아래서 덮음) */
+    #view-stock .tbl th{font-size:13px;font-weight:600}
+    #view-stock .tbl thead th{border-bottom:2px solid var(--border-default)}
+    #view-stock .tbl td{font-size:14px}
+  }
+  /* §10 모바일 표 리플로우(가로 스크롤 대신 2줄 카드) */
+  @media(max-width:820px){
+    /* 현재고(ivTbl): 5열 → 품목·현재고 / 색상·규격·상태 */
+    #view-stock #ivTbl thead{display:none}
+    #view-stock #ivTbl,#view-stock #ivTbl tbody{display:block;width:100%;min-width:0}
+    #view-stock #ivTbl tr{display:grid;grid-template-columns:auto 1fr auto;
+      grid-template-areas:"name name qty" "color spec status";
+      gap:4px 8px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line-2)}
+    #view-stock #ivTbl tr:last-child{border-bottom:0}
+    #view-stock #ivTbl tr:has(td .empty){display:block;padding:0}
+    #view-stock #ivTbl td{display:block;border:0;padding:0;white-space:normal}
+    #view-stock #ivTbl td:nth-child(1){grid-area:name;font-weight:600;color:var(--text-primary);font-size:14.5px}
+    #view-stock #ivTbl td:nth-child(2){grid-area:color;color:var(--text-secondary);font-size:12.5px}
+    #view-stock #ivTbl td:nth-child(3){grid-area:spec;color:var(--text-secondary);font-size:12.5px}
+    #view-stock #ivTbl td:nth-child(4){grid-area:qty;text-align:right;font-weight:700;font-size:15px}
+    #view-stock #ivTbl td:nth-child(5){grid-area:status;justify-self:end}
+    /* 입출고 기록(ivHist): 8열 → 품목·수량 / 날짜·구분·색상·규격·삭제 / 메모 */
+    #view-stock #ivHist thead{display:none}
+    #view-stock #ivHist,#view-stock #ivHist tbody{display:block;width:100%;min-width:0}
+    #view-stock #ivHist tr{display:grid;grid-template-columns:auto auto auto 1fr auto;
+      grid-template-areas:
+        "name  name  name  name  qty"
+        "date  kind  color spec  rm"
+        "memo  memo  memo  memo  memo";
+      gap:4px 8px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line-2)}
+    #view-stock #ivHist tr:last-child{border-bottom:0}
+    #view-stock #ivHist tr:has(td .empty){display:block;padding:0}
+    #view-stock #ivHist td{display:block;border:0;padding:0;white-space:normal;font-size:13px}
+    #view-stock #ivHist td:nth-child(1){grid-area:date;color:var(--text-muted);font-size:12.5px}
+    #view-stock #ivHist td:nth-child(2){grid-area:name;font-weight:600;color:var(--text-primary);font-size:14px}
+    #view-stock #ivHist td:nth-child(3){grid-area:color;color:var(--text-secondary);font-size:12px}
+    #view-stock #ivHist td:nth-child(4){grid-area:spec;color:var(--text-secondary);font-size:12px}
+    #view-stock #ivHist td:nth-child(5){grid-area:kind}
+    #view-stock #ivHist td:nth-child(6){grid-area:qty;text-align:right;font-weight:700;font-size:14px}
+    #view-stock #ivHist td:nth-child(7){grid-area:memo;color:var(--text-muted);font-size:12.5px}
+    #view-stock #ivHist td:nth-child(8){grid-area:rm;justify-self:end}
+  }
+  /* ==========================================================================
+     v1.126 — 거래처 화면 UI 개선 (THE EDIT 디자인 시스템, #view-companies 스코프만)
+       기능·검색·등록/수정/삭제·원장·저장 로직 무변경. Detail 상단에 거래처명 헤더 한 줄만
+       추가(표시 전용). 공통 .field/.btn/.tbl/.card/.list-item 미변경 — 전부 #view-companies.
+     ========================================================================== */
+  /* §3·§21 Master/Detail 34/66 — 견적(v1.119)과 동일 패턴, 거래처만 */
+  @media(min-width:1024px){
+    .shell #view-companies .cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
+  /* §4 Master List — 거래처명 강조(15/600), 행 높이 소폭 축소 */
+  #view-companies .list-item{padding-top:10px;padding-bottom:10px}
+  #view-companies .list-item .li-name{font-size:15px;font-weight:600}
+  /* §5 검색 밀도 — 40~42px·15px (공통 .search 미변경) */
+  #view-companies .list-head .search{min-height:42px}
+  #view-companies .list-head .search input{font-size:15px}
+  /* §7 Detail 상단 거래처명 헤더 — 어떤 거래처인지 먼저 보이게 */
+  #view-companies .co-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;margin:0 0 14px}
+  #view-companies .co-title .co-title-name{font-size:19px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em}
+  #view-companies .co-title .co-title-biz{font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+  /* §9·§10 Detail Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이는 앱 공통 44px 유지) */
+  #view-companies .detail .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-companies .detail .grid2{gap:12px 22px}
+  /* ==========================================================================
+     v1.127 — 품목관리 화면 UI 개선 (THE EDIT 디자인 시스템, #view-items 스코프만)
+       기능·검색·등록/수정/삭제·정렬·견적 품목 연결(itemSell 등) 로직·마크업 무변경.
+       공통 .field/.btn/.tbl/.card/.list-item 미변경 — 전부 #view-items 스코프.
+     ========================================================================== */
+  /* §4·§21 Master/Detail 34/66 — 거래처(v1.126)와 동일 패턴, 품목만 */
+  @media(min-width:1024px){
+    .shell #view-items .cols>.card:first-child{flex:0 0 clamp(340px,34%,440px);max-width:440px}
+  }
+  /* §9·§10 Master List — 품목명 강조(15/600), 규격/옵션 보조(13), 행 높이 소폭 축소 */
+  #view-items .list-item{padding-top:10px;padding-bottom:10px}
+  #view-items .list-item .li-name{font-size:15px;font-weight:600}
+  #view-items .list-item .li-sub{font-size:13px}
+  /* §8 판매 단가 — 우측정렬·tabular, 살짝 강조 */
+  #view-items .list-item .li-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-primary)}
+  /* §5 검색 밀도 — 42px·15px (공통 .search 미변경) */
+  #view-items .list-head .search{min-height:42px}
+  #view-items .list-head .search input{font-size:15px}
+  /* §13·§14 Detail Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이는 앱 공통 44px 유지) */
+  #view-items .detail .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-items .detail .grid2{gap:12px 22px}
+  /* §15 모바일: 품목코드·품명 2열(inline 180px 1fr)을 1열로 — 품명이 안 잘리게 */
+  @media(max-width:560px){
+    #view-items .detail .grid2[style*="180px"]{grid-template-columns:1fr!important;gap:10px}
+  }
+  /* ==========================================================================
+     v1.128 — 업체 제공 자재 화면 UI 개선 (THE EDIT 디자인 시스템, #view-materials 스코프만)
+       ⚠️ 데이터 구조·차감·작업완료 연동·복구·중복차감 방지 Logic 절대 무변경 — CSS만.
+       기존 bespoke 레이아웃(거래처→자재→보유량→이력)을 재작성하지 않고,
+       자재명·수량 위계와 폼 밀도만 다른 승인 화면과 동일 언어로 정리.
+       .material-* 클래스는 이 화면 전용이지만 #view-materials로 한 번 더 스코프.
+     ========================================================================== */
+  /* §9·§10 이력 자재명·수량 위계 강조(자재명 14→15, 수량 14→15) — 우측정렬·tabular 유지 */
+  #view-materials .material-record-name{font-size:15px}
+  #view-materials .material-record-qty{font-size:15px;font-variant-numeric:tabular-nums}
+  /* §18 상세 입력 Form 밀도 — 라벨 14/600, 2열 열 간격 22px (입력 높이 앱 공통 유지) */
+  #view-materials .material-entry-card .field>label{font-size:14px;font-weight:600;color:var(--text-secondary)}
+  #view-materials .material-entry-card .grid2{gap:12px 22px}
+
+  /* ==========================================================================
+     v1.130 — 매출 집계/분석 화면 UI 개선 (THE EDIT 디자인 시스템, #view-sales 스코프만)
+       ⚠️ 계산식·집계 Logic·데이터 구조 절대 무변경 — renderSales/salesData 미변경.
+       KPI 6개 균등 카드 → Hero(매출액=공급가액, 부가세 별도) + Secondary compact로 위계 재구성
+       (마크업은 IDs 동일 유지 → textContent 주입 그대로). 표 밀도(§12)·필터 밀도(§3)·
+       모바일 hero+compact(§15)·8열 표 라벨 chip 2줄 재배치(§14, 가로 스크롤 제거·컬럼 삭제 없음).
+       공통 .stats/.stat/.card/.tbl/.item-data-table/.filter-bar/.month-input 미변경(스코프 격리).
+     ========================================================================== */
+  /* §3 기간 필터 밀도 — 입력 42px·radius 10·14px (공통 .month-input 미변경) */
+  #view-sales .filter-bar{gap:8px 10px}
+  #view-sales .filter-bar .month-input{min-height:42px;border-radius:10px;font-size:14px}
+  /* §4·§5 Hero(매출액) + Secondary compact metrics */
+  #view-sales .sl-summary{display:flex;flex-wrap:wrap;align-items:stretch;gap:14px 30px;margin-bottom:22px}
+  #view-sales .sl-hero{flex:1 1 240px;min-width:0}
+  #view-sales .sl-hero-k{font-size:13px;font-weight:600;color:var(--text-secondary)}
+  #view-sales .sl-hero-sub{font-size:12px;font-weight:500;color:var(--text-muted);margin-left:6px}
+  #view-sales .sl-hero-v{font-size:33px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-top:4px;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  #view-sales .sl-hero-meta{font-size:13px;color:var(--text-muted);margin-top:6px;font-variant-numeric:tabular-nums}
+  #view-sales .sl-metrics{flex:1 1 340px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 18px;align-content:center}
+  #view-sales .sl-metric{min-width:0}
+  #view-sales .sl-metric .mk{font-size:12.5px;font-weight:600;color:var(--text-muted)}
+  #view-sales .sl-metric .mv,#view-sales #slMargin{font-size:17px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;margin-top:3px}
+  #view-sales #slMargin.pos{color:#13823D}
+  #view-sales #slMargin.neg{color:var(--danger)}
+  #view-sales .sl-metric .mn{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+  /* §11·§12 거래처별 집계 카드 헤더 + 상세표 밀도 (셀 세로선 금지·헤더 13/600·본문 14/500) */
+  #view-sales .card-head h3{font-size:16px;font-weight:700}
+  #view-sales .item-data-table th{font-size:13px;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border-default);padding:10px 14px}
+  #view-sales .item-data-table td{font-size:14px;padding:11px 14px;border-bottom:1px solid var(--border-light)}
+  #view-sales .item-data-table th+th,#view-sales .item-data-table td+td{border-left:0}
+  #view-sales .item-data-table .num{font-weight:500}
+  /* §15·§14 모바일 — Hero+compact grid, 8열 표를 라벨 chip 2줄 재배치(가로 스크롤 제거) */
+  @media(max-width:820px){
+    #view-sales .sl-summary{gap:12px 16px;margin-bottom:18px}
+    #view-sales .sl-hero{flex:1 1 100%}
+    #view-sales .sl-hero-v{font-size:30px}
+    #view-sales .sl-metrics{flex:1 1 100%;gap:8px 12px}
+    #view-sales .sl-metric .mv,#view-sales #slMargin{font-size:15px}
+    #view-sales .tbl-wrap{overflow-x:visible;padding:0 2px}
+    #view-sales #slBody .tbl{min-width:0}
+    #view-sales .item-data-table thead{display:none}
+    #view-sales .item-data-table,#view-sales .item-data-table tbody{display:block}
+    #view-sales .item-data-table tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:2px;padding:10px 4px;border-bottom:1px solid var(--border-light)}
+    #view-sales .item-data-table tr:last-child{border-bottom:none}
+    #view-sales .item-data-table td{display:inline-flex;align-items:baseline;gap:4px;border:0!important;padding:0;font-size:13px;font-weight:500;text-align:left}
+    #view-sales .item-data-table td:nth-child(1){flex:1 1 100%;font-size:14px;font-weight:600;color:var(--text-primary)}
+    #view-sales .item-data-table td:nth-child(6){font-weight:600;color:var(--text-primary)}
+    #view-sales .item-data-table td::before{color:var(--text-muted);font-size:11px;font-weight:600}
+    #view-sales .item-data-table td:nth-child(2)::before{content:"색상"}
+    #view-sales .item-data-table td:nth-child(3)::before{content:"규격"}
+    #view-sales .item-data-table td:nth-child(4)::before{content:"수량"}
+    #view-sales .item-data-table td:nth-child(5)::before{content:"단가"}
+    #view-sales .item-data-table td:nth-child(6)::before{content:"공급가"}
+    #view-sales .item-data-table td:nth-child(7)::before{content:"세액"}
+    #view-sales .item-data-table td:nth-child(8)::before{content:"마진"}
+    #view-sales .item-data-table tr.subtotal{background:var(--paper);border-top:1px solid var(--border-default);border-bottom:none;margin-top:2px;border-radius:8px;padding:10px 8px}
+    #view-sales .item-data-table tr.subtotal td:empty{display:none}
+    #view-sales .item-data-table tr.subtotal td:nth-child(1){flex:1 1 100%}
+    /* §11 거래처 카드 요약 legend — 모바일에서 잘리지 않고 줄바꿈 */
+    #view-sales #slBody .card-head .legend{white-space:normal;overflow-x:visible;flex-wrap:wrap;row-gap:2px}
+  }
+
+  /* ==========================================================================
+     v1.131 — 미수금 화면 UI 개선 (THE EDIT 디자인 시스템, #view-ar 스코프만)
+       ⚠️ 계산식·집계 Logic·데이터 구조·수금/납품 연동 절대 무변경 — renderAr/renderArByQuote/arData 미변경.
+       화면은 이미 Hero(.scr-hero)+Secondary(.stats inline)+표 구조를 갖춤. 위계/밀도만 정리:
+       ① §8 Hero 색을 danger 빨강 → 검정(마크업 big neg→big, 라벨이 '미수금' 의미 전달).
+       ② §16 필터·§10 표 밀도(th 13/600·2px border-default·td 14/500, 셀 세로선 없음).
+       ③ §17·§18 모바일 — 거래처별(8열)·건별(7열) 표를 2줄 compact row로 재배치해
+          '미수금/잔액'이 가로 스크롤 없이 바로 보이게(:has(th8)로 두 뷰 CSS만 구분, renderer 무변경).
+       공통 .scr-hero/.stats/.stat/.card/.tbl/.filter-bar/.month-input 미변경(스코프 격리).
+     ========================================================================== */
+  /* §16 필터 밀도 (공통 .month-input 미변경) */
+  #view-ar .filter-bar{gap:8px 10px}
+  #view-ar .filter-bar .month-input{min-height:42px;border-radius:10px;font-size:14px}
+  /* §5·§6 secondary 라벨 (값은 이미 17px inline) */
+  #view-ar .stat .k{font-size:13px;font-weight:600;color:var(--text-secondary)}
+  /* §10 거래처별/건별 표 밀도 */
+  #view-ar .card-head h3{font-size:16px;font-weight:700}
+  #view-ar .tbl th{font-size:13px;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border-default);padding:10px 14px}
+  #view-ar .tbl td{font-size:14px;padding:11px 14px;border-bottom:1px solid var(--border-light)}
+
+  /* §17·§18 모바일 — 표를 2줄 compact row로 (미수금/잔액이 바로 보이게, 가로 스크롤 제거) */
+  @media(max-width:820px){
+    #view-ar .tbl-wrap{overflow-x:visible;padding:0 2px}
+    #view-ar #arTbl thead{display:none}
+    #view-ar #arTbl,#view-ar #arTbl tbody{display:block}
+    #view-ar #arTbl tr{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;row-gap:2px;padding:11px 4px;border-bottom:1px solid var(--border-light)}
+    #view-ar #arTbl tr:last-child{border-bottom:none}
+    #view-ar #arTbl td{display:inline-flex;align-items:baseline;gap:4px;border:0!important;padding:0;font-size:13px;font-weight:500;text-align:left;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+    #view-ar #arTbl td::before{color:var(--text-muted);font-size:11px;font-weight:600}
+    /* 빈 셀·Empty state·colspan(연결 안된 수금 안내) 예외 */
+    #view-ar #arTbl td:empty{display:none}
+    #view-ar #arTbl td:has(.empty){display:block!important;flex:1 1 100%!important;order:0!important;white-space:normal;color:var(--text-secondary)}
+    #view-ar #arTbl td:has(.empty)::before{display:none!important}
+    #view-ar #arTbl td[colspan]{display:block;flex:1 1 100%;order:9;white-space:normal;line-height:1.5}
+    #view-ar #arTbl td[colspan]::before{display:none!important}
+    /* 합계 행(인라인 background:var(--paper)) */
+    #view-ar #arTbl tr[style*="var(--paper)"]{background:var(--paper);border-radius:8px;padding:10px 8px;margin-top:2px}
+
+    /* --- 거래처별 (thead th 8개): 거래처 + 미수금 을 1행에 --- */
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(1){flex:1 1 auto;order:1;font-size:15px;font-weight:600;color:var(--text-primary)}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(5){order:2;margin-left:auto;font-size:15px;font-weight:700}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(5)::before{content:"미수금"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(2){order:3}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(3){order:4}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(4){order:5}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(6){order:6}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(7){order:7}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(8){order:8}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(2)::before{content:"납품"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(3)::before{content:"납품액"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(4)::before{content:"수금"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(6)::before{content:"미납품"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(7)::before{content:"미발행"}
+    #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(8)::before{content:"최근수금"}
+
+    /* --- 건별 (thead th 7개, 8번째 없음): 견적번호·거래처 + 잔액 을 1행에 --- */
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(1){order:1;color:var(--text-muted)}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(2){order:2;font-size:15px;font-weight:600;color:var(--text-primary)}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(6){order:3;margin-left:auto;font-size:15px;font-weight:700}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(6)::before{content:"잔액"}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(3){order:4}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(4){order:5}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(5){order:6}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(7){order:7}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(3)::before{content:"납품일"}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(4)::before{content:"납품액"}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(5)::before{content:"수금"}
+    #view-ar #arTbl:not(:has(thead th:nth-child(8))) td:nth-child(7)::before{content:"계산서"}
+    /* 합계 행에는 라벨 억제(빈 셀 hidden, 값만) */
+    #view-ar #arTbl tr[style*="var(--paper)"] td::before{display:none}
+  }
+
+  /* ==========================================================================
+     v1.132 — 공급자 정보 화면 UI 개선 (THE EDIT 디자인 시스템, #view-settings 스코프만)
+       ⚠️ 저장/불러오기(renderSettings/saveSettings)·db.settings key·견적서 출력 참조·Storage·
+          Backup/Restore 절대 무변경 — 마크업은 공급자 정보 폼 1개를 논리 섹션으로 재그룹(모든
+          input ID·바인딩·hint 그대로), 계좌는 단일 문자열 유지(필드 분할 없음). 나머지 유틸
+          카드(옛폴더/이어쓰기/백업)·공통 .field/.grid2/.btn/.card 미변경(스코프 격리).
+       §4 사업자 기본정보 / 연락처 / 계좌정보 / 자료 4섹션. §5 섹션 타이틀. §7 2열은 논리 쌍만.
+       §14 자료(링크)는 보조 톤. §9 라벨 14/600. §21 URL overflow 가드. §18/§19 모바일 1열·간격.
+     ========================================================================== */
+  /* §5 인트로 */
+  #view-settings .sup-form .sup-intro{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+  /* §6 섹션 — 카드 안 스페이싱/구분선(새 카드 만들지 않음) */
+  #view-settings .sup-form .sup-sec{margin-bottom:24px}
+  #view-settings .sup-form .sup-sec + .sup-sec{border-top:1px solid var(--border-light);padding-top:22px}
+  /* §5 섹션 타이틀 16/700 + 보조 helper */
+  #view-settings .sup-form .sup-sec-t{font-size:16px;font-weight:700;color:var(--text-primary);margin:0 0 14px;letter-spacing:-.01em}
+  #view-settings .sup-form .sup-sec-h{font-size:13px;font-weight:400;color:var(--text-secondary);margin-left:8px}
+  /* §9 라벨 14/600, 라벨~입력 6px */
+  #view-settings .sup-form .field{margin-bottom:14px}
+  #view-settings .sup-form .field:last-child{margin-bottom:0}
+  #view-settings .sup-form .field>label{font-size:14px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+  /* §7 논리 쌍만 2열, 열 간격 22 */
+  #view-settings .sup-form .grid2{gap:12px 22px}
+  /* §8 입력 — 앱 공통 높이 유지, §21 URL overflow 가드 */
+  #view-settings .sup-form .field input{font-size:15px;min-width:0}
+  #view-settings .sup-form .hint{font-size:12px;color:var(--text-muted);margin-top:5px}
+  /* §14 자료(명함·사업자등록증 링크) 보조 톤 */
+  #view-settings .sup-form .sup-docs .sup-sec-t{color:var(--text-secondary)}
+  #view-settings .sup-form .sup-docs .field>label{color:var(--text-muted)}
+  /* §19 모바일 — 섹션 간격만 소폭 축소(그리드 1열은 공통 ≤560 규칙이 처리) */
+  @media(max-width:560px){
+    #view-settings .sup-form .sup-sec{margin-bottom:22px}
+    #view-settings .sup-form .sup-sec + .sup-sec{padding-top:20px}
+    #view-settings .sup-form .sup-sec-t{font-size:15px;margin-bottom:12px}
+    #view-settings .sup-form .sup-sec-h{display:block;margin-left:0;margin-top:2px}
+  }
+
+  /* ==========================================================================
+     v1.133 — 설정 유틸 영역 UI 개선 (THE EDIT 디자인 시스템, #view-settings 하단 유틸만)
+       ⚠️ 기능 Logic 절대 무변경 — importFromAppFolder/copyAppUrl/resetDropboxConnection/
+          exportBackup/importBackup·Dropbox·file input(#bkFile)·모든 버튼 ID·바인딩 그대로.
+          v1.132 공급자 폼(.sup-form)·공통 .card/.btn 미변경(전부 .settings-util* 스코프).
+       3 유틸 카드를 .settings-utils 그리드로: §13 옛폴더|다른기기 2열 + 백업 full-width(데스크톱),
+       ≤820 1열. §11 border+무그림자+radius12+패딩, §7 제목 16/600, §8 설명 13/1.55,
+       §10 버튼 ghost 유지(복원만 hover danger 틴트, 시각만), §9 상태줄.
+     ========================================================================== */
+  /* §12·§13 레이아웃 — 옛폴더|다른기기 2열, 백업 full-width */
+  #view-settings .settings-utils{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:760px;align-items:stretch}
+  #view-settings .settings-utils .settings-util-backup{grid-column:1 / -1}
+  /* §11 카드 — 흰 배경·1px border·radius 12·무그림자 (공통 .card 미변경, 스코프 override) */
+  #view-settings .settings-utils .settings-util-card{margin:0;box-shadow:none;border:1px solid var(--border-default);border-radius:12px;display:flex}
+  #view-settings .settings-utils .settings-util-card>.detail{padding:20px;display:flex;flex-direction:column;width:100%}
+  /* §7 제목 16/600 */
+  #view-settings .settings-util-t{font-size:16px;font-weight:600;color:var(--text-primary);margin:0 0 6px;letter-spacing:-.01em}
+  /* §8 설명 13/1.55 secondary */
+  #view-settings .settings-util-desc{font-size:13px;font-weight:400;color:var(--text-secondary);line-height:1.55;margin:0 0 14px}
+  #view-settings .settings-util-desc b{color:var(--text-primary);font-weight:600}
+  /* §9 상태줄 (백업 현재 데이터 요약) */
+  #view-settings .settings-util-stat{font-size:13px;font-weight:500;color:var(--text-muted);margin:0 0 12px}
+  /* §10·§16 액션 — 버튼 하단 정렬, ghost 유지 */
+  #view-settings .settings-util-actions{margin-top:auto;padding-top:0;border-top:none;gap:8px}
+  #view-settings .settings-util-actions .btn{height:40px;font-size:14px;font-weight:600}
+  /* §20 복원(불러오기)만 hover 시 danger 톤 — 시각 표시만, Logic·의미 무변경 */
+  #view-settings .settings-util-actions #bkImportBtn:hover{color:var(--danger);border-color:var(--danger)}
+  /* §14 모바일 — 1열 스택, 패딩·간격 (≤820: 태블릿부터 1열) */
+  @media(max-width:820px){
+    #view-settings .settings-utils{grid-template-columns:1fr;gap:12px;max-width:none}
+    #view-settings .settings-utils .settings-util-backup{grid-column:auto}
+    #view-settings .settings-utils .settings-util-card>.detail{padding:16px}
+    #view-settings .settings-util-actions .btn{flex:1 1 auto}
+  }
+
+  /* ==========================================================================
+     v1.134 — 전체 UI 최종 Polish Pass (CSS만, 스코프 격리)
+       §5 매출 집계 모바일 secondary 라벨 '합계 (부가세 포함)'이 좁은 3열에서
+       글자 단위로 깨지던(포/함) 것 수정 — 한글 어절 단위 유지(공백에서만 줄바꿈).
+       #view-sales 스코프만. 계산·집계·다른 화면·공통 컴포넌트 무변경.
+     ========================================================================== */
+  #view-sales .sl-metric .mk,#view-sales .sl-hero-k{word-break:keep-all;overflow-wrap:normal}
+  /* '합계' 라벨의 '(부가세 포함)'만 모바일에서 보조 톤으로 위계 낮춤 — 괄호부는 통째로만 줄바꿈.
+     데스크톱은 .mk(12.5/600) 상속 그대로라 변화 없음. */
+  @media(max-width:820px){
+    #view-sales .sl-metric .mk .mk-sub{font-size:11px;font-weight:500;color:var(--text-muted);white-space:nowrap}
+  }
+
+  /* ==========================================================================
+     v1.136 — 수금/지급 모바일 sticky 헤더 겹침 수정 (#view-payments, ≤820px만)
+       증상(iOS): ① 거래 등록 '추가'(파란 버튼) 텍스트가 상단 헤더에 가려 잘림,
+                  ② 스크롤 시 첫 리스트 항목이 상단 헤더/월 선택(필터) 영역에 가려짐.
+       원인: v1.112의 대시보드와 동일 — iOS Safari가 overflow:auto 스크롤 컨테이너 안의
+             position:sticky 헤더를 흐름에서 빼내 바로 아래로 스크롤되는 내용 위에 겹쳐 그림
+             (헤드리스 Chromium에선 정상이라 안 잡힘). #view-payments도 display:block;overflow:auto
+             내용형 화면이라 같은 잠재 이슈였음(v1.112 changelog에서 예고).
+       수정: 대시보드와 동일하게 payments 제목줄만 position:static으로 고정 해제 → 겹침 제거.
+             제목·월 선택은 정상 흐름의 최상단에 남고 스크롤 시 함께 올라감(월 선택 정상 동작).
+       ⚠️ #view-payments 모바일 page-head의 position/offset만 변경. 리스트 구조·데이터·
+          수금/지급 계산·Bottom Nav·데스크탑·다른 화면 전부 무변경.
+     ========================================================================== */
+  @media(max-width:820px){
+    .shell .main>#view-payments>.page-head{position:static;top:auto;z-index:auto}
+  }
+
+  /* ==========================================================================
+     v1.137 — Desktop App Shell 통일 (≥1024px만) — Dutch Pay / Receipt DB와 동일 제품군 구조
+       목적: [Rail] [gap] [Main카드] 처럼 두 덩어리로 보이던 데스크탑 외곽을,
+             하나의 큰 흰색 App Window 안에서 "Rail | Main"으로 나뉘는 구조로 통일.
+       방법(외곽 chrome만): ① .shell = App Frame(흰 배경·1px border·radius 18·overflow hidden·
+             바깥 여백 24·중앙정렬·gap 0·안쪽 padding 0), ② .rail-gutter = 프레임 내부 왼쪽 영역
+             (흰 배경 + 오른쪽 divider만), ③ Main 자체 카드(테두리/라운드/그림자) 제거 → 외곽 radius는
+             프레임 한 곳만 담당. 높이는 프레임 고정(100dvh-48)·긴 페이지는 내부 뷰가 스크롤(기존과 동일).
+       ⚠️ Rail 내부(아이콘·메뉴·selected·hover·collapsed/expanded 동작·sync·logout)·Main 내부 UI
+          (Typography/Card/Table/Form/Filter/Button/Hero/Badge)·계산/렌더러/저장·모바일(≤820)·
+          태블릿(821~1023)은 전부 무변경. 이 블록은 ≥1024px에서만 외곽 배치를 덮는다.
+     ========================================================================== */
+  @media(min-width:1024px){
+    /* App Frame — Rail+Main을 하나의 흰 창으로 (바깥은 옅은 gray 페이지 배경) */
+    .shell{background:var(--card);border:1px solid var(--border-default);border-radius:18px;
+      overflow:hidden;gap:0;padding:0;margin:24px auto;height:calc(100dvh - 48px);
+      max-width:min(1484px, calc(100vw - 48px));box-shadow:none}
+    /* Rail은 프레임 내부 왼쪽 영역 — 흰 배경 + 오른쪽 divider만(자체 카드 아님) */
+    .rail-gutter{background:var(--card);border-right:1px solid var(--border-light)}
+    /* Main 자체 카드 외곽 제거 — 외곽 radius/border는 프레임이 담당 */
+    .shell>.main{border:0;border-radius:0;box-shadow:none}
+  }
+
+  /* ==========================================================================
+     v1.138 — Desktop App Shell 마무리 (≥1024px만) — Dutch Pay / Receipt DB 제품군 통일
+       ① Shell 상단 Brand Header 1개(APP META + VERSION) → 각 View 제목 위 2단 위계.
+          View page-head/h2/renderer/markup 무변경(Shell 레벨 형제 요소 1개 추가).
+          버전은 APP_VERSION 재사용(#brandbarVer, init에서 주입) — 하드코딩 없음.
+       ② Rail 아이콘 정확 중앙정렬 — collapsed에서 flex gap이 빈 라벨 공간을 예약해
+          아이콘이 rail center(63) 대비 6px 왼쪽(57)이던 것을, 고정 76px 아이콘 컬럼(grid)
+          으로 교체해 collapsed·expanded 모두 center=63(±1px)·전환 중 아이콘 이동 0.
+       ③ expand/collapse 애니메이션 동기화 — width에 걸린 0.28s 지연을 제거해
+          rail 폭과 label opacity가 같은 창에서 함께 움직이도록(하나가 접히듯).
+       ⚠️ 전부 ≥1024 스코프. Rail 기능/순서/selected/switchView·Main 내부 UI·계산·저장·
+          모바일(≤820)·태블릿(821~1023) 무변경. 공통 .card/.btn/.field/.tbl 미변경.
+     ========================================================================== */
+  .app-brandbar{display:none}   /* 기본 숨김: 모바일·태블릿 (Brand Header는 데스크탑 전용) */
+  @media(min-width:1024px){
+    /* ---- ① Brand Meta line — 별도 band 아님. Page Title 바로 위 작은 meta 한 줄(v1.138b) ---- */
+    .shell>.main>.app-brandbar{display:flex;align-items:baseline;gap:5px;flex:0 0 auto;
+      padding:12px 24px 0;background:var(--card);line-height:1.2}
+    .app-brandbar .abb-name{font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--text-muted)}
+    .app-brandbar .abb-ver{font-size:11.5px;font-weight:600;color:var(--text-muted)}
+    .app-brandbar .abb-ver::before{content:"· "}
+    /* Rail 버전(ERP v1.138)과 중복 제거 — 데스크탑에서 Rail은 identity(ERP)만, 버전은 Main meta에서만 */
+    .shell .rail-brand .tb-ver{display:none}
+    /* meta line은 낮으므로 View 상단 여백만 소폭 줄여 Title이 meta 바로 아래 붙게(content start 최소 상승) */
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden){padding-top:6px}
+    .shell .main>#view-materials:not(.hidden){padding-top:6px}
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding-top:6px}
+
+    /* ---- ② Rail 아이콘 고정 76px 컬럼(grid) → 정중앙 + 전환 중 이동 0 ---- */
+    .shell .rail-nav{padding-left:0;padding-right:0}
+    .shell .rail-foot{padding-left:0;padding-right:0}
+    .shell .rail-logo,
+    .shell .rail-nav .nav-item,
+    .shell .rail-foot .rail-act,
+    .shell .rail-foot .sync-state{
+      display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:0;
+      padding-left:0;padding-right:0;min-width:0}
+    .shell .rail-logo>.rail-mark,
+    .shell .rail-nav .nav-item>svg,
+    .shell .rail-foot .rail-act>svg,
+    .shell .rail-foot .sync-state>.sync-dot{justify-self:center}
+    .shell .rail-logo>.rail-brand,
+    .shell .rail-nav .nav-item>span,
+    .shell .rail-foot .rail-act>span,
+    .shell .rail-foot .sync-state>.sync-text{justify-self:start;padding-right:14px}
+    /* collapsed 옛 규칙(justify-content:center;padding:0)이 grid center를 흔들지 않게 같은 특이도로 정리 */
+    .shell .sidebar:not(:hover) .rail-logo,
+    .shell .sidebar:not(:hover) .nav-item,
+    .shell .sidebar:not(:hover) .rail-act,
+    .shell .sidebar:not(:hover) .sync-state{justify-content:normal;padding-left:0;padding-right:0}
+
+    /* ---- ③ expand/collapse 동기화 (width 0.28s 지연 제거 → label과 함께 접힘/펼침) ---- */
+    .shell .sidebar{transition:width .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease}
+    .shell .sidebar:hover{transition:width .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease}
+    .shell .sidebar .rail-brand,
+    .shell .sidebar .nav-item>span,
+    .shell .sidebar .rail-act>span,
+    .shell .sidebar .sync-text,
+    .shell .sidebar .tb-user{transition:opacity .16s ease}
+  }
+
+  /* ==========================================================================
+     v1.139 — Rail overlay → in-flow layout 전환 (≥821px 공통, 모바일 ≤820 유지)
+       문제(v1.138 실측): Rail(.sidebar)이 position:absolute·z-index:60로 76→216px 확장되며
+             .main(왼쪽 x=101 고정) 위를 140px 덮어 Page Title/KPI/Form 좌측이 가려짐.
+       수정: Rail을 flex 흐름에 편입 — .rail-gutter가 폭(flex-basis)을 담당(76→216, hover),
+             .sidebar는 position:static·width:100%로 gutter를 채움(오버레이·z-index 제거).
+             .main(flex:1)이 남은 폭을 차지 → Rail 펼침 시 자연스럽게 줄어들고 겹침 0px.
+       애니메이션 동기: gutter flex-basis .2s ease → .main 폭이 같은 프레임에서 재계산(동시 이동),
+             label opacity .18s ease → Rail 폭·Main 이동·label이 하나의 동작으로 느껴짐.
+             (기존 width 0.28s 지연·오버레이 hover 카드(border/shadow) 제거.)
+       ⚠️ ≥821 스코프. 모바일(≤820 드로어)·아이콘 grid 중앙정렬(≥1024)·label transition·
+          selected/hover·메뉴 순서·switchView·View markup·renderer·계산/저장·Dropbox/Firebase 무변경.
+     ========================================================================== */
+  @media(min-width:821px){
+    /* gutter가 폭을 담당: collapsed 76 / hover expanded 216, flex-basis transition */
+    .shell .rail-gutter{flex:0 0 76px;min-width:0;overflow:hidden;position:relative;transition:flex-basis .2s ease}
+    .shell .rail-gutter:hover{flex-basis:216px}
+    /* sidebar 오버레이 폐기 → gutter를 채우는 in-flow 요소(자리 차지, Main 위로 안 뜸) */
+    .shell .sidebar{position:relative;top:auto;left:auto;bottom:auto;z-index:auto;
+      width:100%;height:100%;border:0;border-radius:0;box-shadow:none;background:transparent;
+      transition:none}
+    .shell .sidebar:hover{width:100%;border:0;border-radius:0;box-shadow:none;background:transparent}
+    /* label은 폭 변화와 동기 fade(같은 창) */
+    .shell .sidebar .rail-brand,
+    .shell .sidebar .nav-item>span,
+    .shell .sidebar .rail-act>span,
+    .shell .sidebar .sync-text,
+    .shell .sidebar .tb-user{transition:opacity .18s ease}
+  }
 </style>
 </head>
 <body>
@@ -972,84 +2245,96 @@
 
 <!-- ==================== APP ==================== -->
 <div id="appView" class="hidden">
-  <div class="topbar">
-    <button class="menu-btn" id="menuBtn" title="메뉴">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="tb-brand" id="brandBtn" title="새로고침"><span class="m"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>ERP<span class="tb-ver" id="tbVer"></span></div>
-    <div class="tb-right">
-      <button class="biz-card-btn" id="bizCardBtn" title="명함 보내기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h4"/><path d="M7 14h7"/><circle cx="17" cy="11" r="1.5"/></svg>
-        <span class="txt">명함 보내기</span>
-      </button>
-      <span class="sync-state" id="syncState" role="status" aria-live="polite" title="Dropbox 동기화 대기 중">
-        <span class="sync-dot" aria-hidden="true"></span><span class="sync-text" id="syncText">대기 중</span>
-      </span>
-      <span class="tb-user" id="tbUser"></span>
-      <button class="icon-btn" id="refreshBtn" title="Dropbox에서 새로고침">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
-      </button>
-      <button class="icon-btn" id="logoutBtn" title="로그아웃">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-      </button>
-    </div>
-  </div>
+  <button class="m-burger" id="menuBtn" title="메뉴" aria-label="메뉴">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
 
   <div class="shell">
-    <aside class="sidebar">
-      <div class="nav-sec">현황</div>
-      <button class="nav-item" data-view="dash">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        대시보드
+    <div class="rail-gutter">
+    <aside class="sidebar" id="railNav" aria-label="메뉴">
+      <button class="rail-logo" id="brandBtn" title="새로고침">
+        <span class="rail-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+        <span class="rail-brand">ERP<span class="tb-ver" id="tbVer"></span></span>
       </button>
-      <div class="nav-sec">업무</div>
-      <button class="nav-item" data-view="quotes">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
-        견적서
-      </button>
-      <button class="nav-item" data-view="materials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18v14H3zM3 7l9-5 9 5M12 7v14"/></svg>업체 제공 자재</button>
-      <button class="nav-item" data-view="payments">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-        수금/지급
-      </button>
-      <button class="nav-item" data-view="stock">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg>
-        재고
-      </button>
-      <div class="nav-sec">기준정보</div>
-      <button class="nav-item" data-view="companies">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
-        거래처
-      </button>
-      <button class="nav-item" data-view="items">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-        품목
-      </button>
-      <div class="nav-sec">분석</div>
-      <button class="nav-item" data-view="sales">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
-        매출 집계
-      </button>
-      <button class="nav-item" data-view="ar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        미수금
-      </button>
-      <div class="nav-sec">설정</div>
-      <button class="nav-item" data-view="settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        공급자 정보
-      </button>
+      <nav class="rail-nav">
+        <div class="nav-sec">현황</div>
+        <button class="nav-item" data-view="dash">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>대시보드</span>
+        </button>
+        <div class="nav-sec">업무</div>
+        <button class="nav-item" data-view="quotes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
+          <span>견적서</span>
+        </button>
+        <button class="nav-item" data-view="materials">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v14H3zM3 7l9-5 9 5M12 7v14"/></svg>
+          <span>업체 제공 자재</span>
+        </button>
+        <button class="nav-item" data-view="payments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          <span>수금/지급</span>
+        </button>
+        <button class="nav-item" data-view="stock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg>
+          <span>재고</span>
+        </button>
+        <div class="nav-sec">기준정보</div>
+        <button class="nav-item" data-view="companies">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+          <span>거래처</span>
+        </button>
+        <button class="nav-item" data-view="items">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span>품목</span>
+        </button>
+        <div class="nav-sec">분석</div>
+        <button class="nav-item" data-view="sales">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+          <span>매출 집계</span>
+        </button>
+        <button class="nav-item" data-view="ar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span>미수금</span>
+        </button>
+        <div class="nav-sec">설정</div>
+        <button class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>공급자 정보</span>
+        </button>
+      </nav>
+      <div class="rail-foot">
+        <span class="sync-state" id="syncState" role="status" aria-live="polite" title="Dropbox 동기화 대기 중">
+          <span class="sync-dot" aria-hidden="true"></span><span class="sync-text" id="syncText">대기 중</span>
+        </span>
+        <span class="tb-user" id="tbUser"></span>
+        <button class="rail-act" id="bizCardBtn" title="명함 보내기">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h4"/><path d="M7 14h7"/><circle cx="17" cy="11" r="1.5"/></svg>
+          <span>명함 보내기</span>
+        </button>
+        <button class="rail-act" id="bizCertBtn" title="사업자등록증 보내기">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
+          <span>사업자등록증</span>
+        </button>
+        <button class="rail-act" id="refreshBtn" title="Dropbox에서 새로고침">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+          <span>새로고침</span>
+        </button>
+        <button class="rail-act" id="logoutBtn" title="로그아웃">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>로그아웃</span>
+        </button>
+      </div>
     </aside>
+    </div>
     <div class="nav-backdrop" id="navBackdrop"></div>
-    <nav class="mobile-nav" aria-label="빠른 메뉴">
-      <button class="mobile-nav-item" data-view="dash" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg><span>현황</span></button>
-      <button class="mobile-nav-item" data-view="quotes" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg><span>견적</span></button>
-      <button class="mobile-nav-item" data-view="materials" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v14H3zM3 7l9-5 9 5M12 7v14"/></svg><span>업체 자재</span></button>
-      <button class="mobile-nav-item" data-view="payments" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span>수금</span></button>
-      <button class="mobile-nav-item" data-view="stock" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg><span>재고</span></button>
-    </nav>
 
     <main class="main">
+      <!-- Shell 상단 Brand Header (데스크탑 ≥1024 전용, v1.138) — 각 View page-head/제목 위 2단 위계 -->
+      <div class="app-brandbar" aria-hidden="true">
+        <span class="abb-name">THE EDIT ERP</span>
+        <span class="abb-ver" id="brandbarVer"></span>
+      </div>
 
       <!-- ========== 거래처 ========== -->
       <section class="view" id="view-companies">
@@ -1212,21 +2497,21 @@
           <div class="sp"></div>
           <input type="month" class="month-input" id="payMonth">
         </div>
+        <div class="scr-hero"><div class="lbl">이달 순현금</div><div class="big" id="paySumNet">0원</div></div>
         <div class="stats">
           <div class="stat"><div class="k">이달 수금</div><div class="v pos" id="paySumIn">0원</div></div>
-          <div class="stat"><div class="k">이달 지급</div><div class="v" id="paySumOut">0원</div></div>
-          <div class="stat"><div class="k">차액</div><div class="v" id="paySumNet">0원</div></div>
+          <div class="stat"><div class="k">이달 지급</div><div class="v neg" id="paySumOut">0원</div></div>
         </div>
         <div class="card">
           <div class="pay-add">
-            <input type="date" id="payDate">
-            <select id="payCo"></select>
-            <select id="payQuote"><option value="">건 지정 안 함</option></select>
-            <select id="payKind"><option>수금</option><option>지급</option></select>
-            <select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select>
-            <input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="금액">
-            <input id="payMemo" placeholder="메모 (선택)">
-            <button class="btn-sm" id="payAddBtn">추가</button>
+            <div class="pf pf-date"><label>거래일자</label><input type="date" id="payDate"></div>
+            <div class="pf pf-co"><label>거래처</label><select id="payCo"></select></div>
+            <div class="pf pf-kind"><label>거래 유형</label><select id="payKind"><option>수금</option><option>지급</option></select></div>
+            <div class="pf pf-method"><label>결제 방법</label><select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select></div>
+            <div class="pf pf-quote"><label>연결 항목</label><select id="payQuote"><option value="">건 지정 안 함</option></select></div>
+            <div class="pf pf-amt"><label>금액</label><input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="0"></div>
+            <div class="pf pf-memo"><label>메모</label><input id="payMemo" placeholder="선택 입력"></div>
+            <div class="pf pf-btn"><button class="btn-sm" id="payAddBtn">추가</button></div>
           </div>
           <div class="tbl-wrap"><table class="tbl" id="payTbl"></table></div>
         </div>
@@ -1246,6 +2531,7 @@
             <button class="btn-sm" id="dashNewQuote" type="button">+ 새 견적</button>
           </div>
         </div>
+        <div class="scr-hero" id="dashHero"></div>
         <div class="stats" id="dashStats"></div>
         <div class="dash-grid">
           <div class="card">
@@ -1264,9 +2550,8 @@
 
       <!-- ========== 매출 집계 ========== -->
       <section class="view hidden" id="view-sales">
-        <div class="page-head">
-          <h2>매출 집계</h2>
-          <div class="sp"></div>
+        <div class="page-head"><h2>매출 집계</h2><div class="sp"></div></div>
+        <div class="filter-bar">
           <input type="date" class="month-input" id="slFrom">
           <span style="color:var(--ink-3)">~</span>
           <input type="date" class="month-input" id="slTo">
@@ -1277,22 +2562,25 @@
           </select>
           <button class="btn-sm" id="slCsvBtn">CSV 내보내기</button>
         </div>
-        <div class="stats">
-          <div class="stat"><div class="k">견적 건수</div><div class="v" id="slCount">0건</div></div>
-          <div class="stat"><div class="k">총 수량</div><div class="v" id="slQty">0</div></div>
-          <div class="stat"><div class="k">공급가액</div><div class="v" id="slSupply">0원</div></div>
-          <div class="stat"><div class="k">세액</div><div class="v" id="slVat">0원</div></div>
-          <div class="stat"><div class="k">합계</div><div class="v" id="slTotal">0원</div></div>
-          <div class="stat"><div class="k">마진</div><div class="v" id="slMargin">0원</div><div class="hint" id="slMarginNote" style="margin-top:2px"></div></div>
+        <div class="sl-summary">
+          <div class="sl-hero">
+            <div class="sl-hero-k">매출액 <span class="sl-hero-sub">공급가액 · 부가세 별도</span></div>
+            <div class="sl-hero-v" id="slSupply">0원</div>
+            <div class="sl-hero-meta">견적 <span id="slCount">0건</span> · 총 <span id="slQty">0</span>개</div>
+          </div>
+          <div class="sl-metrics">
+            <div class="sl-metric"><div class="mk">합계 <span class="mk-sub">(부가세 포함)</span></div><div class="mv" id="slTotal">0원</div></div>
+            <div class="sl-metric"><div class="mk">세액</div><div class="mv" id="slVat">0원</div></div>
+            <div class="sl-metric"><div class="mk">예상 마진</div><div class="mv" id="slMargin">0원</div><div class="mn" id="slMarginNote"></div></div>
+          </div>
         </div>
         <div id="slBody"></div>
       </section>
 
       <!-- ========== 미수금 ========== -->
       <section class="view hidden" id="view-ar">
-        <div class="page-head">
-          <h2>미수금</h2>
-          <div class="sp"></div>
+        <div class="page-head"><h2>미수금</h2><div class="sp"></div></div>
+        <div class="filter-bar">
           <select class="month-input" id="arView">
             <option value="co">거래처별</option>
             <option value="quote">건별</option>
@@ -1303,17 +2591,16 @@
           </select>
           <button class="btn-sm" id="arCsvBtn">CSV 내보내기</button>
         </div>
+        <div class="scr-hero"><div class="lbl">미수금 합계 · 납품 − 수금</div><div class="big" id="arOpen">0원</div>
+          <div class="sub">미수 거래처 <b id="arCount">0곳</b></div></div>
         <div class="stats">
           <div class="stat"><div class="k">납품 총액</div><div class="v" id="arDelivered">0원</div>
             <div class="hint" id="arOrderedNote" style="margin-top:2px"></div></div>
           <div class="stat"><div class="k">수금 총액</div><div class="v pos" id="arPaid">0원</div></div>
-          <div class="stat"><div class="k">미수금 합계</div><div class="v neg" id="arOpen">0원</div>
-            <div class="hint" style="margin-top:2px">납품 − 수금</div></div>
           <div class="stat"><div class="k">미납품 잔액</div><div class="v" id="arPending">0원</div>
             <div class="hint" style="margin-top:2px">수주했지만 아직 납품 전</div></div>
           <div class="stat"><div class="k">계산서 미발행</div><div class="v" id="arUntaxed">0원</div>
             <div class="hint" id="arUntaxedNote" style="margin-top:2px"></div></div>
-          <div class="stat"><div class="k">미수 거래처</div><div class="v" id="arCount">0곳</div></div>
         </div>
         <div class="card">
           <div class="card-head"><h3>거래처별 미수금</h3><span class="legend">수주 견적 합계 − 수금 합계</span></div>
@@ -1325,38 +2612,57 @@
       <section class="view hidden" id="view-settings">
         <div class="page-head"><h2>공급자 정보</h2><div class="sp"></div></div>
         <div class="card" style="max-width:640px;margin-bottom:16px">
-          <div class="detail">
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:18px">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
-            <div class="grid2">
-              <div class="field"><label>상호 *</label><input id="st_name" placeholder="예: 스마트무역"></div>
-              <div class="field"><label>대표자</label><input id="st_ceo"></div>
-            </div>
-            <div class="grid2">
+          <div class="detail sup-form">
+            <p class="sup-intro">견적서 인쇄 시 공급자 란에 표시되는 내 사업자 정보입니다.</p>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">사업자 기본정보</h3>
+              <div class="grid2">
+                <div class="field"><label>상호 *</label><input id="st_name" placeholder="예: 스마트무역"></div>
+                <div class="field"><label>대표자</label><input id="st_ceo"></div>
+              </div>
               <div class="field"><label>사업자번호</label><input id="st_biz" placeholder="000-00-00000"></div>
-              <div class="field"><label>연락처</label><input id="st_phone"></div>
-            </div>
-            <div class="grid2">
-              <div class="field"><label>이메일</label><input id="st_email"></div>
+            </section>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">연락처</h3>
+              <div class="grid2">
+                <div class="field"><label>연락처</label><input id="st_phone"></div>
+                <div class="field"><label>이메일</label><input id="st_email"></div>
+              </div>
+              <div class="field"><label>주소</label><input id="st_address"></div>
+            </section>
+
+            <section class="sup-sec">
+              <h3 class="sup-sec-t">계좌정보</h3>
               <div class="field"><label>계좌번호</label><input id="st_bank" placeholder="예: 신한은행 110-000-000000"></div>
-            </div>
-            <div class="field"><label>주소</label><input id="st_address"></div>
-            <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
-              <div class="hint">상단 <b>명함 보내기</b> 버튼에서 사용됩니다.</div>
-            </div>
+            </section>
+
+            <section class="sup-sec sup-docs">
+              <h3 class="sup-sec-t">자료 <span class="sup-sec-h">명함·사업자등록증 이미지 링크</span></h3>
+              <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
+                <div class="hint">상단 <b>명함 보내기</b> 버튼에서 사용됩니다.</div>
+              </div>
+              <div class="field"><label>사업자등록증 이미지 링크</label><input id="st_cert_url" placeholder="사업자등록증 이미지 링크 (Dropbox 등)">
+                <div class="hint">상단 <b>사업자등록증</b> 버튼에서 사용됩니다.</div>
+              </div>
+            </section>
+
             <div class="form-actions"><button class="btn save" id="stSaveBtn">저장</button></div>
           </div>
         </div>
 
-        <div class="card" style="max-width:640px;margin-bottom:16px">
+        <div class="settings-utils">
+        <div class="card settings-util-card">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">옛 앱 폴더에서 가져오기</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">옛 앱 폴더에서 가져오기</h3>
+            <p class="settings-util-desc">
               Dropbox App key를 <b>Full Dropbox</b> 권한으로 바꾸면 저장 위치가
               <b>/07_Apps/거래처관리(ERP)/</b>로 옮겨집니다. 예전 데이터는 Dropbox의
               <b>앱/&lt;앱이름&gt;/</b> 안에 남아 있는데, 이 버튼을 누르면 앱이 찾아서 가져옵니다.
               <b>옛 폴더의 원본은 지우지 않습니다.</b>
             </p>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="importOldBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><path d="M12 10v6"/><path d="m9 13 3 3 3-3"/></svg>
                 옛 앱 폴더에서 가져오기</button>
@@ -1364,14 +2670,14 @@
           </div>
         </div>
 
-        <div class="card" style="max-width:640px;margin-bottom:16px">
+        <div class="card settings-util-card">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">다른 기기에서 이어 쓰기</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">다른 기기에서 이어 쓰기</h3>
+            <p class="settings-util-desc">
               다른 컴퓨터나 휴대폰에서도 같은 ERP 주소를 열고 같은 Dropbox 계정으로 연결하면
               이어서 사용할 수 있습니다. 데이터가 비어 보이면 Dropbox 연결을 다시 설정하세요.
             </p>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="copyAppUrlBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 ERP 주소 복사</button>
@@ -1382,15 +2688,15 @@
           </div>
         </div>
 
-        <div class="card" style="max-width:640px">
+        <div class="card settings-util-card settings-util-backup">
           <div class="detail">
-            <h3 style="font-size:15px;font-weight:660;margin-bottom:8px">데이터 백업</h3>
-            <p style="font-size:13px;color:var(--ink-2);margin-bottom:16px;line-height:1.6">
+            <h3 class="settings-util-t">데이터 백업</h3>
+            <p class="settings-util-desc">
               거래처·품목·견적서·수금/지급·재고를 파일 하나로 내려받아 보관합니다.
               불러오기를 하면 <b>현재 데이터를 모두 덮어씁니다.</b>
             </p>
-            <div id="bkStat" class="hint" style="margin-bottom:14px"></div>
-            <div class="form-actions" style="margin-top:0;border-top:none;padding-top:0">
+            <div id="bkStat" class="hint settings-util-stat"></div>
+            <div class="form-actions settings-util-actions">
               <button class="btn ghost" id="bkExportBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
                 백업 내려받기</button>
@@ -1401,10 +2707,35 @@
             </div>
           </div>
         </div>
+        </div>
       </section>
 
     </main>
   </div>
+
+  <!-- 모바일 하단 내비게이션 (v1.110) — 데스크탑에서는 CSS로 숨김 -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="모바일 메뉴">
+    <button class="mobile-nav-item" data-view="dash" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      <span>홈</span>
+    </button>
+    <button class="mobile-nav-item" data-view="quotes" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h3"/></svg>
+      <span>견적서</span>
+    </button>
+    <button class="mobile-nav-item" data-view="payments" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      <span>수금/지급</span>
+    </button>
+    <button class="mobile-nav-item" data-view="stock" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35"/><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2H2Z"/><path d="M10 12h4"/></svg>
+      <span>재고</span>
+    </button>
+    <button class="bottom-more" id="moreNavBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>
+      <span>더보기</span>
+    </button>
+  </nav>
 </div>
 
 <!-- ==================== PRINT ==================== -->
@@ -1422,10 +2753,14 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.80";
+const APP_VERSION = "v1.139";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
+const BIZ_CERT_FILENAME = "사업자등록증.png";
+/* 사업자등록증 파일 위치 — 확장자를 몰라도 되도록 폴더+이름 접두어로 지정(폴더를 훑어 접두어로 매칭).
+   설정에서 링크/경로를 넣으면 그 값이 우선한다. 사용자 Dropbox: /02_Work/문서_THE EDIT/사업자등록증_디에디트(THE-EDIT)02 */
+const DEFAULT_BIZ_CERT_PATH = "/02_Work/문서_THE EDIT/사업자등록증_디에디트(THE-EDIT)02";
 
 /* ---------- 상수 ---------- */
 const REDIRECT_URI = window.location.origin + window.location.pathname.replace(/index\.html$/, "");
@@ -1551,6 +2886,21 @@ async function dbxDownload(path,retried){
   if(res.status===401) throw new Error(ERR_AUTH);
   if(!res.ok) throw new Error("다운로드 실패 "+res.status);
   return await res.text();
+}
+async function dbxDownloadBlob(path,retried){
+  const token=await needToken();
+  const res=await fetch("https://content.dropboxapi.com/2/files/download",{
+    method:"POST",
+    headers:{ "Authorization":"Bearer "+token, "Dropbox-API-Arg":dbxArg({path}) }
+  });
+  if(res.status===409) return null;             // 파일 없음
+  if(res.status===401&&!retried){
+    if(!await refreshToken()) throw new Error(ERR_AUTH);
+    return await dbxDownloadBlob(path,true);
+  }
+  if(res.status===401) throw new Error(ERR_AUTH);
+  if(!res.ok) throw new Error("다운로드 실패 "+res.status);
+  return await res.blob();
 }
 async function dbxUpload(path,content){
   const token=await needToken();
@@ -1852,6 +3202,100 @@ async function shareBusinessCard(){
   toast("명함 이미지를 열었습니다");
 }
 
+/* 사업자등록증 보내기.
+   설정값(biz_cert_url)이 있으면 그것을, 없으면 기본 Dropbox 경로(DEFAULT_BIZ_CERT_PATH)를 쓴다.
+   - http(s) 링크면 그대로 받아서 공유
+   - "/"로 시작하면 Dropbox 경로 → 앱의 Dropbox 연결로 파일을 직접 내려받아 공유
+     (확장자를 몰라도 되도록, 정확 경로 실패 시 부모 폴더를 훑어 파일명 접두어로 찾는다) */
+function bizCertRef(){ return ((db.settings||{}).biz_cert_url || DEFAULT_BIZ_CERT_PATH || "").trim(); }
+function extToMime(name){
+  const e=(name.split(".").pop()||"").toLowerCase();
+  return e==="pdf"?"application/pdf":e==="png"?"image/png":e==="webp"?"image/webp":
+         (e==="jpg"||e==="jpeg")?"image/jpeg":"image/jpeg";
+}
+/* Dropbox 경로(또는 폴더+접두어)에서 파일 blob과 이름을 찾아 온다 */
+async function resolveBizCertFromDropbox(path){
+  // 1) 정확 경로로 바로 시도 (설정에 확장자까지 넣은 경우)
+  try{
+    const blob=await dbxDownloadBlob(path);
+    if(blob) return { blob, name:path.split("/").pop() };
+  }catch(err){ if(err && err.message===ERR_AUTH) throw err; }
+  // 2) 부모 폴더를 훑어 파일명 접두어로 매칭 (확장자 모름 대응)
+  const slash=path.lastIndexOf("/");
+  const folder=path.slice(0,slash), base=path.slice(slash+1).toLowerCase();
+  const entries=await dbxList(folder);
+  if(!entries) return null;                       // 폴더 접근 불가(권한/미존재)
+  const hit=entries.find(e=>e[".tag"]==="file" && (e.name||"").toLowerCase().startsWith(base));
+  if(!hit) return null;
+  const blob=await dbxDownloadBlob(hit.path_lower||hit.path_display);
+  return blob ? { blob, name:hit.name } : null;
+}
+async function shareBizCert(){
+  const ref=bizCertRef();
+  if(!ref){ toast("사업자등록증 위치가 설정되어 있지 않습니다 — 설정에서 링크/경로를 넣어 주세요"); switchView("settings"); return; }
+
+  // (A) Dropbox 경로 — 앱의 Dropbox 연결로 직접 받아서 공유
+  if(ref.startsWith("/")){
+    if(!localStorage.getItem(LS.refresh) && !localStorage.getItem(LS.access)){
+      toast("Dropbox 연결 후 사용할 수 있습니다"); return;
+    }
+    let found;
+    try{ found=await resolveBizCertFromDropbox(ref); }
+    catch(err){
+      toast(err && err.message===ERR_AUTH ? "Dropbox 인증이 만료됐습니다 — 새로고침 후 다시 시도하세요" : "사업자등록증을 불러오지 못했습니다");
+      return;
+    }
+    if(!found){
+      toast("사업자등록증 파일을 찾지 못했습니다 — 파일명·폴더를 확인하거나 Full Dropbox 권한인지 확인하세요");
+      return;
+    }
+    const file=new File([found.blob], found.name||BIZ_CERT_FILENAME, {type:found.blob.type||extToMime(found.name||"")});
+    // (1) 공유 시트 (모바일 등) → 메일·메신저로 바로 첨부
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file]}); return; }
+      catch(err){ if(err && err.name==="AbortError") return; }
+    }
+    // (2) 명함 보내기처럼 — 다운로드 대신 클립보드 복사 → 새 탭 열기 (데스크탑)
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        const type=found.blob.type||"image/png";
+        await navigator.clipboard.write([new ClipboardItem({[type]:found.blob})]);
+        toast("사업자등록증 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요");
+        return;
+      }
+    }catch(err){ /* jpeg 등 클립보드 미지원 → 새 탭 열기로 폴백 */ }
+    try{ window.open(URL.createObjectURL(found.blob),"_blank","noopener"); toast("사업자등록증 이미지를 열었습니다"); }
+    catch(err){ downloadBlob(found.blob, found.name||BIZ_CERT_FILENAME); toast("사업자등록증 이미지를 저장했습니다"); }
+    return;
+  }
+
+  // (B) http(s) 링크 — 기존 방식(공유 시트 → 링크 복사 → 열기)
+  const shareUrl=absUrl(ref);
+  if(navigator.share && navigator.canShare){
+    try{
+      const res=await fetch(shareUrl,{cache:"no-store"});
+      if(res.ok){
+        const blob=await res.blob();
+        const file=new File([blob],BIZ_CERT_FILENAME,{type:blob.type||"image/png"});
+        if(navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; }
+      }
+    }catch(err){ if(err && err.name==="AbortError") return; }
+  }
+  if(navigator.share){
+    try{ await navigator.share({url:shareUrl}); return; }
+    catch(err){ if(err && err.name==="AbortError") return; }
+  }
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(shareUrl);
+      toast("사업자등록증 이미지 링크를 복사했습니다 — 붙여넣기로 보내세요");
+      return;
+    }
+  }catch(err){}
+  window.open(shareUrl,"_blank","noopener");
+  toast("사업자등록증 이미지를 열었습니다");
+}
+
 /* ---------- 뷰 전환 ---------- */
 let currentView="dash";
 const renderers={
@@ -1872,6 +3316,9 @@ function switchView(v){
   document.querySelectorAll(".view").forEach(el=>el.classList.add("hidden"));
   document.getElementById("view-"+v).classList.remove("hidden");
   document.querySelectorAll(".nav-item,.mobile-nav-item").forEach(el=>el.classList.toggle("on",el.dataset.view===v));
+  // 하단 탭 '더보기'는 2차 메뉴(거래처·품목·자재·매출·미수금·설정) 화면일 때만 강조
+  const _mnav=document.getElementById("moreNavBtn");
+  if(_mnav) _mnav.classList.toggle("on",["companies","items","materials","sales","ar","settings"].indexOf(v)>=0);
   toggleNav(false);
   window.scrollTo(0,0);
   renderCurrentView();
@@ -1883,9 +3330,26 @@ function toggleNav(open){
   const sb=document.querySelector(".sidebar");
   const bd=document.getElementById("navBackdrop");
   const willOpen = open===undefined ? !sb.classList.contains("open") : open;
+  const wasOpen = sb.classList.contains("open");
   sb.classList.toggle("open",willOpen);
   bd.classList.toggle("show",willOpen);
+  // 앱 내 뒤로가기: 드로어가 열리면 history 항목 1개를 쌓고,
+  // 하드웨어/브라우저 back으로 닫히게 한다. (popstate 안에서는 pushState 안 함)
+  if(willOpen && !wasOpen){
+    if(!_navBackArmed){ _navBackArmed=true; try{history.pushState({erpDrawer:1},"");}catch(e){} }
+  } else if(!willOpen && wasOpen){
+    if(_navBackArmed && !_inNavPop){ _navBackArmed=false; try{history.back();}catch(e){} }
+  }
 }
+let _navBackArmed=false, _inNavPop=false;
+window.addEventListener("popstate", function(){
+  const sb=document.querySelector(".sidebar");
+  if(sb && sb.classList.contains("open")){
+    _inNavPop=true; _navBackArmed=false;
+    toggleNav(false);           // 드로어만 닫고 나감 (여기서 history.back 재호출 방지)
+    _inNavPop=false;
+  }
+});
 
 /* 모바일(단일 열)에서 목록 항목 선택 시 상세 폼으로 스크롤 */
 function scrollToDetail(formId){
@@ -1964,6 +3428,65 @@ function applyAutomaticPrice(q,line){
   const item=db.items.find(i=>i.id===line.item_id);
   if(item)line.price=companySell(q.company_id,item,line.color,line.spec);
 }
+/* 거래처 원장 — 이 거래처의 납품·수금(지급) 기록을 시간순으로 모은다 (표시 전용) */
+function coLedger(cid){
+  const ev=[];
+  db.quotes.forEach(q=>{
+    if(q.company_id!==cid) return;
+    (q.deliveries||[]).forEach(d=>{
+      const lines=deliveredLines(q,d);
+      const nm=lines.map(l=>l.name).filter(Boolean);
+      ev.push({ date:d.date||q.delivered_at||"", ts:d.created_at||"", kind:"납품", amt:quoteTotals({lines}).total,
+        no:q.no||"", desc:nm.length?(nm[0]+(nm.length>1?` 외 ${nm.length-1}건`:"")):"납품" });
+    });
+  });
+  (db.payments||[]).forEach(p=>{
+    if(p.company_id!==cid) return;
+    ev.push({ date:p.date||"", ts:p.created_at||"", kind:p.kind, amt:Number(p.amount)||0,
+      cls:p.kind==="수금"?"pos":"neg", sign:p.kind==="수금"?"+":"−",
+      no:p.quote_id?((db.quotes.find(q=>q.id===p.quote_id)||{}).no||""):"", desc:p.method||"" });
+  });
+  return ev.sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.ts||"").localeCompare(a.ts||""));
+}
+function coLedgerHtml(c){
+  const r=arData().find(x=>x.cid===c.id)||{ordered:0,delivered:0,paid:0,open:0,pending:0,untaxed:0,untaxedCount:0,orders:0,lastDeliver:"",lastPay:""};
+  const ev=coLedger(c.id);
+  const hasQuote=db.quotes.some(q=>q.company_id===c.id);
+  const recent=[r.lastDeliver,r.lastPay].filter(Boolean).sort().slice(-1)[0]||"";
+  const kindPill=k=>k==="납품"?'<span class="pill st-done">납품</span>':k==="수금"?'<span class="pill in">수금</span>':'<span class="pill out">지급</span>';
+  const body=ev.length?ev.map(e=>`
+      <tr>
+        <td style="white-space:nowrap">${escapeHtml((e.date||"").slice(2))}</td>
+        <td>${kindPill(e.kind)}</td>
+        <td class="sub">${escapeHtml(e.desc||"")}${e.no?` · <span class="mono" style="color:var(--ink-3)">${escapeHtml(e.no)}</span>`:""}</td>
+        <td class="num"${e.cls?` style="color:var(--${e.cls==="pos"?"ok":"danger"})"`:""}>${e.sign||""}${fmt(e.amt)}</td>
+      </tr>`).join("")
+    :`<tr><td colspan="4"><div class="empty">아직 거래 내역이 없습니다.</div></td></tr>`;
+  const typePill=c.type==="매입"?'<span class="pill buy">매입</span>':c.type==="매출"?'<span class="pill sell">매출</span>':'';
+  return `
+    <div class="co-title"><span class="co-title-name">${escapeHtml(c.name||"(이름 없음)")}</span>${typePill}${c.biz_no?`<span class="co-title-biz">${escapeHtml(c.biz_no)}</span>`:""}</div>
+    <div class="scr-hero"><div class="lbl">미수금 잔액 · 납품 − 수금</div>
+      <div class="big ${r.open>0?"neg":""}">${won(r.open)}</div>
+      <div class="sub">${c.type==="매입"?"매입 거래처":`미납품 <b>${won(r.pending)}</b>${r.untaxedCount?`<span class="sep">·</span>계산서 미발행 <b class="neg">${r.untaxedCount}건</b>`:""}`}</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">납품 누계</div><div class="v">${won(r.delivered)}</div></div>
+      <div class="stat"><div class="k">수금 누계</div><div class="v pos">${won(r.paid)}</div></div>
+      <div class="stat"><div class="k">거래 횟수</div><div class="v">${fmt(r.orders)}건</div></div>
+      <div class="stat"><div class="k">최근 거래</div><div class="v">${recent?escapeHtml(recent):"—"}</div></div>
+    </div>
+    <div class="co-acts">
+      <button type="button" class="btn primary" id="coActPay"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>수금 등록</button>
+      <button type="button" class="btn ghost" id="coActQuote">견적 작성</button>
+      <button type="button" class="btn ghost" id="coActStmt"${hasQuote?"":" disabled"}>거래명세서</button>
+      <button type="button" class="btn ghost" id="coActEdit">정보 수정</button>
+    </div>
+    <h3 class="co-ledger-h">거래 내역 <span>${ev.length}건</span></h3>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>날짜</th><th>구분</th><th>내용</th><th class="num">금액</th></tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <h3 class="co-ledger-h" style="margin-top:28px">거래처 정보</h3>`;
+}
 function renderCoDetail(){
   const empty=document.getElementById("coEmpty");
   const form=document.getElementById("coForm");
@@ -1972,6 +3495,7 @@ function renderCoDetail(){
   empty.classList.add("hidden"); form.classList.remove("hidden");
   const isNew = coSel==="__new__";
   form.innerHTML=`
+    ${isNew?"":coLedgerHtml(c)}
     <div class="field"><label>상호 *</label><input id="f_name" value="${escapeAttr(c.name)}" placeholder="예: 한빛유통"></div>
     <div class="grid2">
       <div class="field"><label>구분</label>
@@ -2008,7 +3532,33 @@ function renderCoDetail(){
   document.getElementById("coPriceAdd").onclick=()=>document.getElementById("coPriceRules").insertAdjacentHTML("beforeend",companyPriceRow());
   document.getElementById("coPriceRules").onclick=ev=>{if(ev.target.closest("[data-rule-remove]"))ev.target.closest("[data-price-rule]").remove();};
   if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ coSel=null; renderCoList(); renderCoDetail(); };
-  else document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
+  else {
+    document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
+    // 원장 액션 줄 — 실제 동작 연결
+    document.getElementById("coActPay").onclick=()=>{
+      switchView("payments");
+      const el=document.getElementById("payCo");
+      if(el){ el.value=c.id; updatePayQuotes(); }
+      setTimeout(()=>document.getElementById("payAmt")?.focus(),40);
+    };
+    document.getElementById("coActQuote").onclick=()=>{
+      switchView("quotes");
+      document.getElementById("qtNewBtn").click();
+      if(qtEditing){ qtEditing.company_id=c.id; applyCoQuoteMemo(qtEditing,""); renderQtDetail(); scrollToDetail("qtForm"); }
+    };
+    const stmt=document.getElementById("coActStmt");
+    if(stmt) stmt.onclick=()=>{
+      const q=db.quotes.filter(x=>x.company_id===c.id)
+        .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.no||"").localeCompare(a.no||""))[0];
+      if(!q) return;
+      qtDocType="거래명세서"; qtSel=q.id; qtEditing=null; qtBaseline="";
+      switchView("quotes"); renderQtList(); renderQtDetail(); scrollToDetail("qtForm");
+    };
+    document.getElementById("coActEdit").onclick=()=>{
+      const el=document.getElementById("f_name");
+      if(el){ el.scrollIntoView({behavior:"smooth",block:"center"}); el.focus({preventScroll:true}); }
+    };
+  }
 }
 
 async function submitCompany(c,isNew){
@@ -2293,9 +3843,10 @@ function renderItDetail(){
       </div>
       ${e.variants.length?`
       <div class="vlines">
-        <div class="vline head"><span>옵션명</span><span>매입단가</span><span>매출단가</span><span></span></div>
+        <div class="vline head"><span></span><span>옵션명</span><span>매입단가</span><span>매출단가</span><span></span></div>
         ${e.variants.map((v,idx)=>`
           <div class="vline">
+            <span class="vhandle" data-vh="${idx}" title="드래그해서 순서 변경">⠿</span>
             <input data-vf="spec" data-idx="${idx}" value="${escapeAttr(v.spec)}" placeholder="예: 30inch">
             <input type="number" inputmode="numeric" class="num" data-vf="buy_price" data-idx="${idx}" value="${v.buy_price||""}" placeholder="기본값">
             <input type="number" inputmode="numeric" class="num" data-vf="sell_price" data-idx="${idx}" value="${v.sell_price||""}" placeholder="기본값">
@@ -2385,11 +3936,49 @@ function renderItDetail(){
     form.querySelectorAll("[data-vrm]").forEach(el=>{
       el.onclick=()=>{ e.variants.splice(Number(el.dataset.vrm),1); renderItDetail(); };
     });
+    bindVariantReorder(form,e);
   }
 
   document.getElementById("itSaveBtn").onclick=()=>submitItem(isNew);
   if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; itEditing=null; renderItList(); renderItDetail(); };
   else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
+}
+
+/* 규격/옵션(사이즈) 행을 드래그해서 순서 변경 (포인터=마우스+터치 통합) */
+function bindVariantReorder(form,e){
+  const rows=[...form.querySelectorAll(".vline:not(.head)")];
+  form.querySelectorAll(".vhandle").forEach(handle=>{
+    handle.onpointerdown=(ev)=>{
+      ev.preventDefault();
+      const from=Number(handle.dataset.vh);
+      const row=handle.closest(".vline");
+      row.classList.add("vdrag");
+      let to=from;
+      const move=(me)=>{
+        let target=from;
+        rows.forEach((r,i)=>{
+          const b=r.getBoundingClientRect();
+          if(me.clientY>=b.top && me.clientY<=b.bottom) target=i;
+          r.classList.toggle("vover", false);
+        });
+        to=target;
+        if(to!==from) rows[to].classList.add("vover");
+      };
+      const up=()=>{
+        document.removeEventListener("pointermove",move);
+        document.removeEventListener("pointerup",up);
+        row.classList.remove("vdrag");
+        rows.forEach(r=>r.classList.remove("vover"));
+        if(to!==from && to>=0 && to<e.variants.length){
+          const [moved]=e.variants.splice(from,1);
+          e.variants.splice(to,0,moved);
+          renderItDetail();
+        }
+      };
+      document.addEventListener("pointermove",move);
+      document.addEventListener("pointerup",up);
+    };
+  });
 }
 
 /* 품명에 [코드]가 붙어 있고 코드칸이 비어 있으면 분리해 주겠다고 안내 */
@@ -2792,8 +4381,8 @@ function renderQtList(){
     return `
     <div class="list-item ${x.id===qtSel?'on':''}" data-id="${x.id}">
       <div class="li-body">
-        <div class="li-name">${escapeHtml(coName(x.company_id))}</div>
-        <div class="li-sub">${escapeHtml(x.no)} · ${escapeHtml(x.date)}${x.status==="발송"&&x.sent_at?` · 발송 ${escapeHtml(x.sent_at)}`:""}${isDelivered(x)?` · 납품 ${escapeHtml(x.delivered_at)}`:""}</div>
+        <div class="li-title"><span class="li-nm">${escapeHtml(coName(x.company_id))}</span><span class="li-no">${escapeHtml(x.no)}</span></div>
+        <div class="li-date">${escapeHtml(x.date)}${x.status==="발송"&&x.sent_at?` · 발송 ${escapeHtml(x.sent_at)}`:""}${isDelivered(x)?` · 납품 ${escapeHtml(x.delivered_at)}`:""}</div>
       </div>
       <div class="li-right">
         <div class="li-amt">${won(t.total)}</div>
@@ -2829,7 +4418,6 @@ function fillRemainingDeliveryInputs(inputs=document.querySelectorAll("[data-del
 function deliveryPanelHtml(q,isNew){
   ensureQuoteLineIds(q);
   const ordered=quoteOrderedQty(q), delivered=quoteDeliveredQty(q), remaining=Math.max(0,ordered-delivered);
-  const rate=ordered?Math.min(100,Math.round(delivered/ordered*100)):0;
   const done=quoteDeliveryQtyMap(q);
   const deliveryLines=quoteDeliveryLines(q);
   const excluded=(q.lines||[]).filter(l=>(l.name||"").trim()&&!isDeliveryLine(l));
@@ -2840,7 +4428,6 @@ function deliveryPanelHtml(q,isNew){
       <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">납품 대상 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품${excluded.length?` · 작업/할인 ${fmt(excluded.length)}개 항목 제외`:""}</div></div>
       <div class="quote-flow-value">${fmt(delivered)} / ${fmt(ordered)}개<small>${remaining?`${fmt(remaining)}개 남음`:delivered?"납품 완료":"미납품"}</small></div>
     </div>
-    <div class="quote-progress" role="progressbar" aria-label="납품 진행률" aria-valuenow="${delivered}" aria-valuemin="0" aria-valuemax="${ordered||0}"><span style="width:${rate}%"></span></div>
     <div class="quote-flow-body">
       <div class="quote-flow-sub">납품 기록 변경 후 아래 견적서 저장을 눌러 확정하세요.${q.legacy_stock?" 기존 견적은 이전 재고 처리 방식을 유지합니다.":" 새 견적의 출고는 납품 수량 기준입니다."}</div>
       ${records.map(d=>`<div class="quote-record">
@@ -2989,38 +4576,60 @@ function renderQtDetail(){
   const t=quoteTotals(e);
   const coOpts=db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}" ${c.id===e.company_id?"selected":""}>${escapeHtml(c.name)}</option>`).join("");
+  const totalQty=(e.lines||[]).reduce((s,l)=>s+(Number(l.qty)||0),0);
+  const coNm=coName(e.company_id);
   form.innerHTML=`
     ${isNew&&qtCopySourceNo?`<div class="copy-note" role="status">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span><b>${escapeHtml(qtCopySourceNo)}</b>의 내용을 복사했습니다. 새 견적번호는 등록할 때 만들어집니다.</span>
     </div>`:""}
-    <div class="grid2">
-      <div class="field"><label>견적일자</label>${dateControlHtml("fq_date",e.date,"견적일자")}</div>
-      <div class="field"><label>거래처 *</label>
-        <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>상태</label>
-        <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
-      </div>
-      <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일">
-        ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
-      </div>
-    </div>
-    <div class="field"><label>세금계산서 발행일</label>
-        <div class="quick-row">
-          ${dateControlHtml("fq_tax",e.tax_at||"","세금계산서 발행일")}
-          <button type="button" id="fq_taxToday">오늘</button>
+    <div class="qt-hero quote-summary">
+      <div class="qs-info">
+        <div class="qs-row">
+          <span class="qs-k">견적서 번호</span>
+          <span class="qs-line"><span class="qs-no">${isNew?"새 견적":escapeHtml(e.no||"—")}</span><span class="pill ${QT_STATUS_CLASS[e.status]||'st-draft'}">${escapeHtml(e.status)}</span></span>
         </div>
-        <div class="hint">${isTaxed(e)
-          ? "발행 완료"
-          : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
-                            : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+        <div class="qs-row"><span class="qs-k">거래처</span><span class="qs-val co">${coNm?escapeHtml(coNm):"거래처 미선택"}</span></div>
+        <div class="qs-row"><span class="qs-k">작성일</span><span class="qs-val">${escapeHtml(e.date||"—")}</span></div>
+      </div>
+      <div class="qs-amount">
+        <div class="qs-amt-k">금액 (부가세 별도)</div>
+        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>
+      </div>
     </div>
-    <div class="field"><label>품목</label>
+
+    <div class="qt-sec qt-basic">
+      <div class="qt-sec-t">기본 정보</div>
+      <div class="grid2">
+        <div class="field"><label>견적일자</label>${dateControlHtml("fq_date",e.date,"견적일자")}</div>
+        <div class="field"><label>거래처 *</label>
+          <select id="fq_co"><option value="">— 선택 —</option>${coOpts}</select>
+        </div>
+      </div>
+      <div class="grid2 pair">
+        <div class="field"><label>상태</label>
+          <select id="fq_status">${QT_STATUS.map(s=>`<option ${s===e.status?"selected":""}>${s}</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>유효기간</label><input id="fq_valid" value="${escapeAttr(e.valid||"")}" placeholder="예: 견적일로부터 1주일">
+          ${e.status==="발송"&&e.sent_at?`<div class="hint">${escapeHtml(e.sent_at)} 발송${daysSince(e.sent_at)>0?` · ${daysSince(e.sent_at)}일째 회신 대기`:""}</div>`:""}
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0"><label>세금계산서 발행일</label>
+          <div class="quick-row">
+            ${dateControlHtml("fq_tax",e.tax_at||"","세금계산서 발행일")}
+            <button type="button" id="fq_taxToday">오늘</button>
+          </div>
+          <div class="hint">${isTaxed(e)
+            ? "발행 완료"
+            : (isDelivered(e) ? '<b style="color:var(--danger)">납품했지만 아직 미발행</b>입니다'
+                              : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+      </div>
+    </div>
+
+    <div class="qt-sec">
+      <div class="qt-sec-t">품목 <span class="cnt">${e.lines.length}건 · 총 ${fmt(totalQty)}개</span></div>
       <div class="qlines">
-        <div class="qline head"><span>품목</span><span style="text-align:center">색상 · 규격/옵션</span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
+        <div class="qline head"><span>품목</span><span class="dual" style="text-align:center"><span>색상</span><span>규격/옵션</span></span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>
         ${e.lines.map((l,idx)=>qtLineHtml(l,idx)).join("")}
       </div>
       <div class="line-btns">
@@ -3030,18 +4639,23 @@ function renderQtDetail(){
       <div class="hint">자수·패치 부착은 셰프복·유니폼 등 납품 품목의 전체 수량에 자동으로 맞춰집니다. 작업 수량을 직접 고치면 해당 행은 수동 수량으로 유지됩니다.</div>
       <div id="fq_sizePanel"></div>
       <div id="fq_short"></div>
+      <div class="qtotals">
+        <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
+        <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
+        <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
+        <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
+      </div>
+      <div class="hint" style="text-align:right;margin-top:6px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
     </div>
-    <div class="qtotals">
-      <div class="row"><span class="k">공급가액</span><span class="v" id="fq_supply">${won(t.supply)}</span></div>
-      <div class="row"><span class="k">부가세 (10%)</span><span class="v" id="fq_vat">${won(t.vat)}</span></div>
-      <div class="row grand"><span class="k">합계</span><span class="v" id="fq_total">${won(t.total)}</span></div>
-      <div class="row"><span class="k" style="font-size:12.5px;color:var(--ink-3)">예상 마진</span><span class="v" id="fq_margin" style="font-size:12.5px;font-weight:600;color:var(--ink-3)">${quoteMarginText(e)}</span></div>
-    </div>
-    <div class="hint" style="text-align:right;margin-top:-2px">마진은 내부 확인용 — 견적서 출력물에는 나오지 않습니다</div>
+
     ${deliveryPanelHtml(e,isNew)}
     ${paymentPanelHtml(e,isNew)}
-    <div class="field"><label>비고</label><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
-      <div class="hint hidden" id="fq_memoHint"></div>
+
+    <div class="qt-sec">
+      <div class="qt-sec-t">비고</div>
+      <div class="field" style="margin-bottom:0"><textarea id="fq_memo" placeholder="납기, 결제조건 등">${escapeHtml(e.memo)}</textarea>
+        <div class="hint hidden" id="fq_memoHint"></div>
+      </div>
     </div>
     <div class="form-actions quote-form-actions">
       ${isNew?"":`<select class="doc-sel" id="fq_doc" title="인쇄·이미지·공유에 사용할 양식">
@@ -3059,7 +4673,10 @@ function renderQtDetail(){
         이미지</button>
       <button class="btn ghost" id="qtShareBtn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
-        공유</button>`}
+        공유</button>
+      <button class="btn ghost" id="qtMailBtn" title="거래처 이메일로 보내기 (메일 앱 열기)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        이메일</button>`}
       ${isNew?'<button class="btn ghost" id="qtCancelBtn">취소</button>':'<button class="btn del" id="qtDelBtn">삭제</button>'}
     </div>`;
   document.getElementById("fq_date").onchange=ev=>{ e.date=ev.target.value; refreshDateControl("fq_date"); };
@@ -3098,6 +4715,7 @@ function renderQtDetail(){
     document.getElementById("qtPrintBtn").onclick=()=>printQuote(qtEditing,qtDocType);
     document.getElementById("qtImgBtn").onclick=()=>saveQuoteImage(qtEditing,qtDocType);
     document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing,qtDocType);
+    document.getElementById("qtMailBtn").onclick=()=>emailQuote(qtEditing,qtDocType);
   }
 }
 
@@ -3354,20 +4972,20 @@ document.addEventListener("mousedown",ev=>{
   if(ipPop && !ipPop.contains(ev.target) && !ev.target.closest(".ip-btn")) closeItemPicker();
 });
 
-/* 날짜·월 입력: **비어 있을 때만** 칸을 누르면 달력이 열린다.
-   값이 있는 칸은 기본 동작에 맡겨 숫자로 직접 고칠 수 있게 한다 —
-   달력이 열려 있으면 키 입력을 달력이 가져가 직접 입력이 막히기 때문 (v1.40에서 겪은 문제).
-   값이 있는 칸도 오른쪽 달력 아이콘을 누르면 그대로 달력이 열린다.
-   모바일(iOS)은 원래 칸을 누르면 달력이 뜨므로 영향 없음. */
+/* 날짜·월 입력: 칸을 누르면 **값이 있든 없든** 항상 달력이 열린다 (사용자 요청, v1.91).
+   v1.40~v1.45에서는 값이 있는 칸은 직접 타이핑을 살리려고 달력을 안 열었지만,
+   사용자가 "일자 입력칸은 전부 달력이 뜨는 게 좋다"고 해 그 제한을 없앴다.
+   달력을 닫으면 여전히 키보드로 직접 수정할 수 있고, 모바일(iOS)은 원래 탭하면 달력이 뜬다. */
 document.addEventListener("click",ev=>{
   const el=ev.target;
   if(!(el instanceof HTMLInputElement)) return;
   if(el.type!=="date" && el.type!=="month") return;
   if(el.readOnly || el.disabled || typeof el.showPicker!=="function") return;
-  if(el.value) return;                 // 이미 값이 있으면 직접 입력 우선
   try{ el.showPicker(); }catch(_){ /* 미지원 — 기본 동작에 맡긴다 */ }
 });
 window.addEventListener("resize",closeItemPicker);
+/* 스크롤하면 고정(position:fixed) 팝오버가 버튼과 분리돼 떠 보이므로 닫는다 (capture로 .main 등 내부 스크롤러도 포착) */
+window.addEventListener("scroll",()=>{ if(ipPop) closeItemPicker(); },true);
 
 function bindQtLines(e){
   const form=document.getElementById("qtForm");
@@ -3409,6 +5027,8 @@ function bindQtLines(e){
       document.getElementById("fq_total").textContent=won(t.total);
       const mgEl=document.getElementById("fq_margin");
       if(mgEl) mgEl.textContent=quoteMarginText(e);
+      const heroEl=document.getElementById("fq_heroTotal");
+      if(heroEl) heroEl.textContent=won(t.supply);   /* Summary 금액 = 부가세 별도(공급가액) */
       renderShortage(e);
     };
     if(el.dataset.f==="qty")el.onchange=()=>{
@@ -3478,6 +5098,7 @@ function quoteStockNeeds(q){
   const delivered=quoteDeliveryQtyMap(q);
   (q.lines||[]).forEach(l=>{
     if(!l.item_id || l.item_id==="__free__") return;
+    if((Number(l.price)||0)<0) return;   // 할인(음수 단가) 행은 실물이 아니므로 재고와 무관 (isDeliveryLine과 동일 기준)
     const expanded=expandBom(l.item_id,l.color,l.spec,q.legacy_stock?(Number(l.qty)||0):(delivered[l.id]||0));
     Object.entries(expanded).forEach(([k,n])=>{
       const [item_id]=k.split("|");
@@ -3704,7 +5325,7 @@ function openPrintPreview(q,docType){
     <div class="pv-bar">
       <button class="btn ghost" id="pvCloseBtn">닫기</button>
       <div class="sp"></div>
-      ${q?'<button class="btn ghost" id="pvImgBtn">이미지</button><button class="btn ghost" id="pvShareBtn">공유</button>':""}
+      ${q?'<button class="btn ghost" id="pvImgBtn">이미지</button><button class="btn ghost" id="pvShareBtn">공유</button><button class="btn ghost" id="pvMailBtn">이메일</button>':""}
       <button class="btn save" id="pvPrintBtn">인쇄·PDF</button>
     </div>
     <div class="pv-sheet"><div class="pv-scale">${inner}</div></div>
@@ -3728,6 +5349,7 @@ function openPrintPreview(q,docType){
   if(q){
     document.getElementById("pvImgBtn").onclick=()=>saveQuoteImage(q,docType);
     document.getElementById("pvShareBtn").onclick=()=>shareQuote(q,docType);
+    document.getElementById("pvMailBtn").onclick=()=>emailQuote(q,docType);
   }
 }
 function closePrintPreview(){
@@ -3965,6 +5587,56 @@ async function shareQuote(q,docType){
   // 3) 파일 저장
   downloadBlob(p.blob,p.fname);
   toast("공유를 지원하지 않는 브라우저라 파일로 저장했습니다");
+}
+
+/* 거래처 이메일로 견적서 보내기 — mailto로 받는사람·제목·본문을 채워 메일 앱을 연다.
+   메일은 파일을 자동 첨부할 수 없으므로, 이미지를 먼저 저장해 두고 사용자가 첨부하도록 안내한다. */
+async function emailQuote(q,docType){
+  const d=docOf(docType);
+  const label=DOC_TYPES[docType]?docType:"견적서";
+  const co=coById(q.company_id);
+  const to=(co&&co.email||"").trim();
+  const t=quoteTotals(q);
+  const supplier=((db.settings||{}).name||"").trim();
+  const subject=`[${supplier||"견적"}] ${label} ${q.no||""}`.trim();
+  const lines=[
+    `${co?co.name+" ":""}담당자님, 안녕하세요.`,
+    `${supplier?supplier+" ":""}${label}를 보내드립니다.`,
+    "",
+    `· ${d.noLabel}: ${q.no||"-"}`,
+    `· ${d.dateLabel}: ${q.date||"-"}`,
+    `· ${d.grand}: ${won(t.total)} (공급가액 ${won(t.supply)} + 세액 ${won(t.vat)})`,
+  ];
+  if(d.showValid && q.valid) lines.push(`· 유효기간: ${q.valid}`);
+  if((q.memo||"").trim()) lines.push("",`비고: ${q.memo.trim()}`);
+  lines.push("","※ 상세 내역은 첨부한 이미지를 확인해 주세요.","감사합니다.");
+  const body=lines.join("\n");
+
+  // (A) 파일 공유를 지원하는 환경(모바일 등) → 공유 시트로 이미지 + 문구를 함께 보낸다.
+  //     네이버메일·Gmail·메일 앱을 고르면 이미지가 자동 첨부되고 본문에 문구가 들어간다.
+  //     (받는사람 주소는 공유 시트로는 지정할 수 없어 메일 앱에서 직접 입력 — 아래 토스트로 안내)
+  try{
+    const p=await quoteImageParts(q,docType);
+    if(p){
+      const file=new File([p.blob],p.fname,{type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file], title:subject, text:body});
+          toast(to?`메일 앱을 선택해 보내세요 · 받는사람 ${to}`:"메일 앱을 선택해 보내세요");
+          return;
+        }catch(err){
+          if(err && err.name==="AbortError") return;   // 사용자가 취소
+          /* 그 외 오류는 아래 mailto로 폴백 */
+        }
+      }
+      // (B) 파일 공유 미지원(데스크탑 등) → 첨부용 이미지를 저장해두고 mailto로 받는사람·문구 채움
+      downloadBlob(p.blob,p.fname);
+    }
+  }catch(err){}
+  const mailto=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=mailto;
+  toast(to?"메일 앱을 열었습니다 — 저장된 이미지를 첨부해 보내세요":"거래처 이메일이 없어 받는사람은 비어 있습니다 — 이미지를 첨부해 보내세요");
+  return mailto;
 }
 
 /* =====================================================================
@@ -4263,15 +5935,17 @@ function renderStock(){
 
   const tbl=document.getElementById("ivTbl");
   tbl.innerHTML = combos.length ? `
-    <thead><tr><th>품목</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">현재고</th></tr></thead>
-    <tbody>${combos.map(c=>`
-      <tr>
+    <thead><tr><th>품목</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">현재고</th><th style="text-align:center">상태</th></tr></thead>
+    <tbody>${combos.map(c=>{
+      const out=c.qty<=0;   /* 품절 판정 = 기존 '재고 소진(0 이하)' 기준 그대로, 표시 전용 */
+      return `<tr>
         <td>${escapeHtml(c.name)}</td>
         <td class="item-option">${escapeHtml(c.color||"—")}</td>
         <td class="item-option">${escapeHtml(c.spec||"—")}</td>
-        <td class="num" ${c.qty<=0?'style="color:var(--danger)"':""}>${fmt(c.qty)}</td>
-      </tr>`).join("")}</tbody>`
-    : `<tr><td><div class="empty">아직 재고 기록이 없습니다.<br>오른쪽에서 입고를 등록해 보세요.</div></td></tr>`;
+        <td class="num" ${out?'style="color:var(--danger)"':""}>${fmt(c.qty)}</td>
+        <td class="stk-st"><span class="stk-badge ${out?"out":"ok"}">${out?"품절":"정상"}</span></td>
+      </tr>`;}).join("")}</tbody>`
+    : `<tr><td><div class="empty">등록된 재고가 없습니다.<br>오른쪽에서 입고를 등록해 보세요.</div></td></tr>`;
 
   const hist=(db.stock_moves||[]).filter(m=>{
       const it=db.items.find(x=>x.id===m.item_id);
@@ -4355,7 +6029,7 @@ function renderPayByCo(rows){
         <td class="num">${fmt(r.n)}건</td>
         <td class="num">${r.inSum?fmt(r.inSum):'<span class="sub">—</span>'}</td>
         <td class="num">${r.outSum?fmt(r.outSum):'<span class="sub">—</span>'}</td>
-        <td class="num" style="color:${r.net>0?"#1E7A3E":r.net<0?"var(--danger)":"var(--ink-3)"}">${fmt(r.net)}</td>
+        <td class="num" style="color:${r.net>0?"#13823D":r.net<0?"var(--danger)":"var(--ink-3)"}">${fmt(r.net)}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
         <td style="font-weight:700">합계</td><td></td>
@@ -4407,7 +6081,7 @@ function renderPay(){
   document.getElementById("paySumOut").textContent=won(sumOut);
   const netEl=document.getElementById("paySumNet");
   netEl.textContent=(net>0?"+":"")+won(net);
-  netEl.className="v "+(net>0?"pos":net<0?"neg":"");
+  netEl.className="big "+(net>0?"pos":net<0?"neg":"");
 
   renderPayByCo(rows);
 
@@ -4491,17 +6165,19 @@ function renderDash(){
   const untaxed=db.quotes.filter(needsTax).reduce((a,q)=>({
     n:a.n+1, amt:a.amt+quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total }),{n:0,amt:0});
 
+  document.getElementById("dashHero").innerHTML=`
+    <div class="lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
+    <div class="big">${won(sales.total)}</div>
+    <div class="sub">납품 <b>${sales.count}건</b><span class="sep">·</span>미수금 <b>${won(openAr)}</b>${untaxed.n?`<span class="sep">·</span>계산서 미발행 <b class="amb" style="color:var(--warn-ink)">${untaxed.n}건</b>`:""}</div>`;
   document.getElementById("dashStats").innerHTML=`
-    <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 매출 (납품)</div><div class="v">${won(sales.total)}</div>
-      <div class="hint" style="margin-top:2px">${sales.count}건 · 매출 집계 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
       <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:"매입단가 확인"}</div></button>
-    <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
+    <button type="button" class="stat stat-link stat-key" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div><div class="hint" style="margin-top:2px">지급 내역 보기</div></button>
-    <button type="button" class="stat stat-link" data-view-target="ar"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div><div class="hint" style="margin-top:2px">미수금 확인</div></button>
-    <button type="button" class="stat stat-link" data-view-target="quotes"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
+    <button type="button" class="stat stat-link stat-key" data-view-target="ar"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div><div class="hint" style="margin-top:2px">미수금 확인</div></button>
+    <button type="button" class="stat stat-link stat-soft" data-view-target="quotes"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
       <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></button>
-    <button type="button" class="stat stat-link" data-view-target="ar"><div class="k">계산서 미발행</div><div class="v ${untaxed.n?"neg":""}">${untaxed.n}건</div>
+    <button type="button" class="stat stat-link stat-soft" data-view-target="ar"><div class="k">계산서 미발행</div><div class="v ${untaxed.n?"neg":""}">${untaxed.n}건</div>
       <div class="hint" style="margin-top:2px">${untaxed.n?won(untaxed.amt):"모두 발행 완료"}</div></button>`;
   document.querySelectorAll("#dashStats [data-view-target]").forEach(el=>{
     el.onclick=()=>switchView(el.dataset.viewTarget);
@@ -4532,13 +6208,11 @@ function renderDash(){
 
   // 최근 활동
   const acts=[
-    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", html:
-      `<span class="pill ${QT_STATUS_CLASS[q.status]||'st-draft'}">${escapeHtml(q.status)}</span><span class="t">${escapeHtml(coName(q.company_id))} · ${won(quoteTotals(q).total)}</span>` })),
-    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", html:
-      `<span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span><span class="t">${escapeHtml(coName(p.company_id))} · ${won(p.amount)}</span>` }))
+    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", cls:QT_STATUS_CLASS[q.status]||'st-draft', badge:q.status, name:coName(q.company_id), amt:quoteTotals(q).total })),
+    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", cls:p.kind==="수금"?"in":"out", badge:p.kind, name:coName(p.company_id), amt:Number(p.amount)||0 }))
   ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||"")).slice(0,8);
   document.getElementById("dashRecent").innerHTML = acts.length
-    ? acts.map(a=>`<div class="recent-item">${a.html}<span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
+    ? acts.map(a=>`<div class="recent-item"><span class="t">${escapeHtml(a.name)}</span><span class="ra">${won(a.amt)}</span><span class="pill ${a.cls}">${escapeHtml(a.badge)}</span><span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
     : `<div class="empty">아직 활동 내역이 없습니다.</div>`;
 }
 
@@ -4598,8 +6272,8 @@ function renderSales(){
           <td class="num">${fmt(r.qty)}</td>
           <td class="num">${fmt(r.price)}</td>
           <td class="num">${fmt(supply)}</td>
-          <td class="num">${buy?fmt(supply-buy*r.qty):'<span class="sub">—</span>'}</td>
           <td class="num">${fmt(vat)}</td>
+          <td class="num">${buy?fmt(supply-buy*r.qty):'<span class="sub">—</span>'}</td>
         </tr>`;}).join("");
       totMargin+=sMargin; totMarginUnknown+=sMarginUnknown;
       totQty+=sQty; totSupply+=sSupply; totVat+=sVat;
@@ -4610,15 +6284,15 @@ function renderSales(){
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
         <div class="tbl-wrap"><table class="tbl item-data-table" style="table-layout:fixed">
-          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:120px"><col style="width:100px"></colgroup>
-          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">마진</th><th style="text-align:right">세액</th></tr></thead>
+          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:100px"><col style="width:120px"></colgroup>
+          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th><th style="text-align:right">마진</th></tr></thead>
           <tbody>${trs}
             <tr class="subtotal" style="background:var(--paper)">
               <td style="font-weight:700">소계</td><td></td><td></td>
               <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
               <td class="num" style="font-weight:700">${fmt(sSupply)}</td>
-              <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>
               <td class="num" style="font-weight:700">${fmt(sVat)}</td>
+              <td class="num" style="font-weight:700">${sMarginUnknown===rows.length?'<span class="sub">—</span>':fmt(sMargin)}</td>
             </tr>
           </tbody>
         </table></div>
@@ -4836,6 +6510,7 @@ function renderSettings(){
   document.getElementById("st_address").value=s.address||"";
   const cardUrl=(s.business_card_url||DEFAULT_BUSINESS_CARD_URL).trim();
   document.getElementById("st_card_url").value=cardUrl===LEGACY_BUSINESS_CARD_URL ? DEFAULT_BUSINESS_CARD_URL : cardUrl;
+  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();
   document.getElementById("bkStat").textContent=
     `현재 데이터 — 거래처 ${db.companies.length} · 품목 ${db.items.length} · 견적서 ${db.quotes.length} · 수금/지급 ${db.payments.length} · 재고기록 ${(db.stock_moves||[]).length}`;
 }
@@ -4851,6 +6526,7 @@ async function saveSettings(){
     bank:document.getElementById("st_bank").value.trim(),
     address:document.getElementById("st_address").value.trim(),
     business_card_url:businessCardUrl,
+    biz_cert_url:document.getElementById("st_cert_url").value.trim(),
   };
   await saveTable("settings",db.settings);
 }
@@ -4910,8 +6586,10 @@ async function init(){
 
   // 이벤트 연결
   document.getElementById("tbVer").textContent=APP_VERSION;
+  { const _bbv=document.getElementById("brandbarVer"); if(_bbv) _bbv.textContent=APP_VERSION; }  // v1.138 Brand Header 버전(동일 소스 재사용)
   document.getElementById("brandBtn").onclick=()=>{ if(guardQtLeave()) location.reload(); };
   document.getElementById("bizCardBtn").onclick=shareBusinessCard;
+  document.getElementById("bizCertBtn").onclick=shareBizCert;
   document.getElementById("connectBtn").onclick=startLogin;
   document.getElementById("logoutBtn").onclick=()=>{ if(guardQtLeave()) logout(); };
   document.getElementById("importOldBtn").onclick=importFromAppFolder;
@@ -4921,6 +6599,7 @@ async function init(){
   });
   document.getElementById("menuBtn").onclick=()=>toggleNav();
   document.getElementById("navBackdrop").onclick=()=>toggleNav(false);
+  { const _mb=document.getElementById("moreNavBtn"); if(_mb) _mb.onclick=()=>toggleNav(true); }
   document.getElementById("coNewBtn").onclick=()=>{ coSel="__new__"; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
   document.getElementById("coSearch").oninput=e=>{ coFilter=e.target.value; renderCoList(); };
   document.getElementById("coType").onchange=renderCoList;
