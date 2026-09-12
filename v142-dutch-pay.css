@@ -1,4 +1,4 @@
-/* v1.143 — Dutch Pay desktop visual system.
+/* v1.144 — Dutch Pay desktop visual system.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
 .app-view-meta { display:none; }
 
@@ -319,6 +319,10 @@
     color:var(--panel-text);
     font-size:var(--panel-body-size);
     font-weight:400;
+  }
+  .shell #view-companies .list-item,
+  .shell #view-items .list-item {
+    gap:0;
   }
   .shell #view-companies .list-item .li-name,
   .shell #view-items .list-item .li-name,

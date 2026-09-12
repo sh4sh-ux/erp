@@ -111,8 +111,6 @@
   .list-item:last-child{border-bottom:none;border-image:none}
   .list-item:hover{background:var(--paper)}
   .list-item.on{background:var(--primary-soft)}
-  .avatar{width:36px;height:36px;border-radius:10px;background:var(--paper);display:grid;place-items:center;font-weight:640;font-size:14px;color:var(--ink-2);flex:0 0 auto}
-  .list-item.on .avatar{background:#fff;color:var(--primary)}
   /* 선택 행은 더치페이 지출 목록처럼 상호명/품명을 파란색(강조)으로 */
   .list-item.on .li-name,.list-item.on .li-nm{color:var(--primary)}
   .li-body{min-width:0;flex:1}
@@ -575,7 +573,6 @@
   .btn-add{width:40px;height:40px;border-radius:8px}
   .list{padding:0}
   .list-item{min-height:54px;padding:12px 24px;border-radius:0}
-  .avatar{width:34px;height:34px;border-radius:8px}
   .detail{padding:20px 22px}
   .field{margin-bottom:13px}
   .field label{margin-bottom:5px;font-size:12px}
@@ -722,7 +719,6 @@
   .list{padding:0}
   .list-item{min-height:60px;padding:12px 18px;border-radius:0}
   .list-item.on{background:var(--primary-soft)}
-  .avatar{width:36px;height:36px;border-radius:9px}
   .li-name{font-size:14px;font-weight:680}
   .li-sub{margin-top:2px;font-size:12px}
   .li-title .li-nm{font-size:14px;font-weight:680}
@@ -2222,7 +2218,7 @@
     .shell>.main{flex:1 1 auto;min-width:0}
   }
 </style>
-<link rel="stylesheet" href="./v142-dutch-pay.css?v=1431">
+<link rel="stylesheet" href="./v142-dutch-pay.css?v=1441">
 </head>
 <body>
 
@@ -2761,7 +2757,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.143";
+const APP_VERSION = "v1.144";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3147,7 +3143,6 @@ function setSyncState(kind,text){
   const now=new Date().toLocaleString("ko-KR");
   box.title=kind==="syncing"?"Dropbox와 동기화 중":kind==="error"?`Dropbox ${text} — 다시 시도해 주세요`:`마지막 Dropbox ${text} · ${now}`;
 }
-function initials(name){ return (name||"?").trim().slice(0,2); }
 function coName(id){ const c=db.companies.find(x=>x.id===id); return c ? c.name : "(삭제된 거래처)"; }
 function coById(id){ return db.companies.find(x=>x.id===id); }
 
@@ -3389,7 +3384,6 @@ function renderCoList(){
   }
   list.innerHTML=rows.map(c=>`
     <div class="list-item ${c.id===coSel?'on':''}" data-id="${c.id}">
-      <div class="avatar">${escapeHtml(initials(c.name))}</div>
       <div class="li-body">
         <div class="li-name">${escapeHtml(c.name||"(이름 없음)")}</div>
         <div class="li-sub">${escapeHtml(c.contact||c.phone||c.biz_no||"—")}</div>
@@ -3747,7 +3741,6 @@ function renderItList(){
         : (i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"");
     return `
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
-      <div class="avatar">${escapeHtml(initials(i.code||i.name))}</div>
       <div class="li-body">
         <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}${i.code?` <span class="li-code">${escapeHtml(i.code)}</span>`:""}</div>
         <div class="li-sub">${escapeHtml(sub)}</div>
