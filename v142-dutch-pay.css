@@ -1,0 +1,269 @@
+/* v1.142 — Dutch Pay desktop visual system.
+   Desktop presentation only: application logic and tablet/mobile layout are untouched. */
+@media (min-width:1024px) {
+  :root {
+    --ink:#111113;
+    --ink-2:#66666b;
+    --ink-3:#a1a1aa;
+    --paper:#f7f7f8;
+    --card:#fff;
+    --line:#e5e5ea;
+    --line-2:#efeff1;
+    --primary:#4355e8;
+    --primary-soft:rgba(67,85,232,.10);
+    --shadow:none;
+    --shadow-sm:none;
+    --r:12px;
+    --r-sm:9px;
+    --sans:-apple-system,"SF Pro Text","Helvetica Neue",Arial,"Apple SD Gothic Neo",sans-serif;
+  }
+
+  html,body {
+    min-height:100%;
+    background:#f2f2f7;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    letter-spacing:-.01em;
+  }
+  body { margin:0; overflow:hidden; }
+  input,select,textarea,button { font-family:inherit; }
+
+  /* One stable application window: 76px utility rail + remaining workspace. */
+  .shell {
+    display:flex;
+    width:calc(100vw - 48px);
+    max-width:1484px;
+    height:calc(100dvh - 48px);
+    min-height:660px;
+    margin:24px auto;
+    padding:0;
+    gap:0;
+    overflow:hidden;
+    background:var(--card);
+    border:1px solid #dedee3;
+    border-radius:22px;
+    box-shadow:0 18px 50px rgba(17,17,19,.08);
+  }
+  .shell>.rail-gutter {
+    position:relative;
+    z-index:30;
+    flex:0 0 76px;
+    width:76px;
+    min-width:76px;
+    height:100%;
+    overflow:visible;
+    background:#f7f7f8;
+    border-right:1px solid var(--line);
+    transition:none;
+  }
+  .shell>.rail-gutter:hover { flex-basis:76px; width:76px; min-width:76px; }
+  .shell>.rail-gutter>.sidebar,
+  .shell>.rail-gutter>.sidebar:hover {
+    position:relative;
+    inset:auto;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    width:76px;
+    min-width:76px;
+    height:100%;
+    padding:16px 10px;
+    overflow:visible;
+    background:#f7f7f8;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    transition:none;
+  }
+
+  /* Dutch Pay-style icon rail. Labels appear as non-layout tooltips. */
+  .shell .rail-logo,
+  .shell .rail-nav .nav-item,
+  .shell .rail-foot .rail-act,
+  .shell .rail-foot .sync-state {
+    position:relative;
+    display:grid;
+    place-items:center;
+    grid-template-columns:none;
+    flex:0 0 44px;
+    width:44px;
+    min-width:44px;
+    height:44px;
+    min-height:44px;
+    margin:0 auto;
+    padding:0;
+    gap:0;
+    border-radius:12px;
+  }
+  .shell .rail-logo { flex-basis:48px; height:48px; margin-bottom:8px; }
+  .shell .rail-mark {
+    display:grid;
+    place-items:center;
+    width:40px;
+    height:40px;
+    border-radius:12px;
+  }
+  .shell .rail-nav {
+    display:flex;
+    flex:1;
+    flex-direction:column;
+    gap:5px;
+    min-height:0;
+    padding:0;
+    overflow-y:auto;
+    overflow-x:visible;
+  }
+  .shell .rail-nav .nav-sec { display:none; }
+  .shell .rail-nav .nav-item { color:#8e8e93; }
+  .shell .rail-nav .nav-item:hover,
+  .shell .rail-foot .rail-act:hover { background:#ececf0; color:#111113; }
+  .shell .rail-nav .nav-item.on { background:var(--primary-soft); color:var(--primary); }
+  .shell .rail-nav .nav-item svg,
+  .shell .rail-foot .rail-act svg { width:20px; height:20px; justify-self:center; }
+
+  .shell .rail-brand,
+  .shell .rail-foot .tb-user { display:none; }
+  .shell .rail-nav .nav-item>span,
+  .shell .rail-foot .rail-act>span,
+  .shell .rail-foot .sync-state>.sync-text {
+    position:absolute;
+    left:52px;
+    top:50%;
+    z-index:80;
+    display:block;
+    width:max-content;
+    max-width:190px;
+    margin:0;
+    padding:6px 9px;
+    overflow:visible;
+    opacity:0;
+    transform:translateY(-50%) translateX(-3px);
+    pointer-events:none;
+    color:#fff;
+    background:#2c2c2e;
+    border:1px solid #3a3a3c;
+    border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.20);
+    font-size:12px;
+    font-weight:500;
+    line-height:1.3;
+    white-space:nowrap;
+    transition:opacity .12s ease,transform .12s ease;
+  }
+  .shell .rail-nav .nav-item:hover>span,
+  .shell .rail-nav .nav-item:focus-visible>span,
+  .shell .rail-foot .rail-act:hover>span,
+  .shell .rail-foot .rail-act:focus-visible>span,
+  .shell .rail-foot .sync-state:hover>.sync-text {
+    width:max-content;
+    padding:6px 9px;
+    opacity:1;
+    transform:translateY(-50%) translateX(0);
+  }
+  .shell .rail-foot {
+    display:flex;
+    flex:0 0 auto;
+    flex-direction:column;
+    gap:5px;
+    padding:10px 0 0;
+    border-top:1px solid var(--line);
+  }
+  .shell .rail-foot .sync-state { height:32px; min-height:32px; flex-basis:32px; }
+  .shell .rail-foot .sync-dot { width:8px; height:8px; justify-self:center; }
+
+  /* Workspace and page hierarchy. */
+  .shell>.main {
+    position:relative;
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    height:100%;
+    min-height:0;
+    padding:0;
+    overflow:hidden;
+    background:#fff;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .shell .main>.view { width:100%; max-width:none; }
+  .shell .main>.view>.page-head { margin-bottom:20px; }
+  .shell .main>.view>.page-head h2 {
+    color:#111113;
+    font-size:24px;
+    font-weight:700;
+    line-height:1.25;
+    letter-spacing:-.035em;
+  }
+  .shell .main>.view>.page-head .count {
+    color:#8e8e93;
+    background:#f7f7f8;
+    border:0;
+    font-size:12px;
+    font-weight:500;
+  }
+
+  /* Master/detail screens keep the proven 360px work list from the mock-up. */
+  .shell #view-companies .cols,
+  .shell #view-items .cols,
+  .shell #view-quotes .quote-cols { border-top:1px solid var(--line); }
+  .shell #view-companies .cols>.card:first-child,
+  .shell #view-items .cols>.card:first-child,
+  .shell #view-quotes .quote-cols>.card:first-child {
+    flex:0 0 360px;
+    width:360px;
+    max-width:360px;
+    background:#fafafa;
+    border-right:1px solid var(--line);
+  }
+  .shell #view-companies .cols>.card+.card,
+  .shell #view-items .cols>.card+.card,
+  .shell #view-quotes .quote-cols>.card+.card {
+    background:#fff;
+    border-left:0;
+  }
+  .shell #view-companies .list-head,
+  .shell #view-items .list-head,
+  .shell #view-quotes .list-head { padding:18px 22px; background:#fafafa; }
+  .shell #view-companies .list-item,
+  .shell #view-items .list-item,
+  .shell #view-quotes .list-item { padding:15px 28px; }
+
+  /* Common surfaces, fields and rows follow the same quiet Dutch Pay rhythm. */
+  .shell .card {
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:none;
+  }
+  .shell .search,
+  .shell input,
+  .shell select,
+  .shell textarea {
+    color:#111113;
+    background:#f7f7f8;
+    border-color:#dedee3;
+    border-radius:9px;
+    font-size:14px;
+  }
+  .shell .search:focus-within,
+  .shell input:focus,
+  .shell select:focus,
+  .shell textarea:focus { border-color:#aab4ff; box-shadow:0 0 0 3px rgba(67,85,232,.10); }
+  .shell .btn,
+  .shell .btn-sm,
+  .shell .btn-add { border-radius:9px; }
+  .shell .tbl th {
+    color:#8e8e93;
+    background:#fafafa;
+    font-size:11.5px;
+    font-weight:600;
+  }
+  .shell .tbl th,
+  .shell .tbl td { border-bottom-color:var(--line-2); }
+  .shell .stat { border-color:var(--line); border-radius:12px; box-shadow:none; }
+  .shell .stat .k,
+  .shell .hint,
+  .shell .sub { color:#8e8e93; }
+}
