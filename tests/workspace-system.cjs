@@ -9,7 +9,7 @@ try {
  const dir=path.join(__dirname,'..');
  await page.route('**/*',route=>{
    const name=path.basename(new URL(route.request().url()).pathname)||'index.html';
-   if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js'].includes(name))return route.fulfill({status:204,body:''});
+   if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css'].includes(name))return route.fulfill({status:204,body:''});
    let body=fs.readFileSync(path.join(dir,name),'utf8');
    if(name==='index.html')body=body.replace(/init\(\);\s*<\/script>/,'</script>');
    return route.fulfill({contentType:name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html',body});

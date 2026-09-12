@@ -17,7 +17,7 @@ for (const view of expectedOrder) {
 }
 
 const mobile = html.match(/<nav class="bottom-nav"[\s\S]*?<\/nav>/)?.[0] || "";
-for (const view of ["dash", "quotes", "payments", "stock"]) {
+for (const view of ["dash", "quotes", "payments", "materials"]) {
   assert(mobile.includes(`data-view="${view}"`), `mobile quick navigation is missing ${view}`);
 }
 
@@ -51,17 +51,15 @@ const desktopShell = fs.readFileSync(path.join(__dirname, "..", "v142-dutch-pay.
   "min-height:64px",
   "font-size:13.5px",
 ].forEach(token=>assert(desktopShell.includes(token), `measured Dutch Pay token missing: ${token}`));
-assert(
-  /flex:0 0 76px;[\s\S]*width:76px;[\s\S]*min-width:76px/.test(desktopShell),
-  "desktop rail is not fixed at 76px",
-);
+const navigationCss=fs.readFileSync(path.join(__dirname,'..','navigation-layout.css'),'utf8');
+assert(navigationCss.includes('width:208px;min-width:208px;flex:0 0 208px'),'fixed 208px rail missing');
 assert(
   /\.shell>\.main\s*\{[\s\S]*flex:1 1 auto;[\s\S]*min-width:0/.test(desktopShell),
   "desktop main does not consume the remaining flex space",
 );
 assert(
-  /\.shell>\.rail-gutter:hover\s*\{\s*flex-basis:76px;\s*width:76px;\s*min-width:76px;\s*\}/.test(desktopShell),
-  "desktop rail hover does not preserve its 76px geometry",
+  navigationCss.includes('.shell>.rail-gutter,.shell>.rail-gutter:hover'),
+  "desktop rail hover must share fixed geometry",
 );
 assert(
   /@media\(min-width:821px\) and \(max-width:1023px\)/.test(html),

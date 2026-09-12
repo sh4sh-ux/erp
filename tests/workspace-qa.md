@@ -1,5 +1,12 @@
 # v1.151 desktop workspace verification
 
+## Navigation revision
+
+- Desktop fixed 208px rail, permanently visible labels, shared resting/hover geometry; app maximum expanded from 1484px to 1616px.
+- Actual main widths: 1280 viewport → 1046px; 1440 → 1206px; 1920 → 1406px. No document horizontal overflow. At wide viewport the previous 1406px main maximum is preserved; at narrower viewports physical space limits preservation (100px less than previous main at 1280/1440 despite reduced outer margins).
+- Mobile 390×844: bottom menu opens the existing navigation as a bottom sheet. Selecting stock closes it and navigates. Escape closes and restores focus to moreNavBtn. Opening focuses closeNavBtn. Background/main is inert while open.
+- Navigation, materials, quote-workflow tests passed after navigation changes. No deployment.
+
 - Scope: all ten rail views, desktop >=1024px. Shared typography, 32px single-line controls/actions, split panels and table separators. Textarea/list/rail sizes remain role-specific.
 - Existing business calculations, persistence and authentication code unchanged.
 - Chrome UI fixture at 1280x900, actual index/CSS/JS with sample in-memory records and no wrapper/iframe: 103 visible controls across all ten views measured at 32px; document horizontal overflow 0 for every view.
