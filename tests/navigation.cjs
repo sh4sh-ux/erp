@@ -25,12 +25,14 @@ assert(html.includes('let currentView="dash";'), "dashboard is not the default v
 assert(html.includes('switchView("dash");'), "initial login does not open the dashboard");
 assert(html.includes('querySelectorAll(".nav-item,.mobile-nav-item")'), "desktop and mobile navigation are not bound together");
 assert(html.includes('id="dashNewQuote"') && html.includes('id="dashNewPayment"'), "dashboard quick actions are missing");
-assert(html.includes('const APP_VERSION = "v1.142";'), "app version was not updated");
-assert(html.includes('href="./v142-dutch-pay.css?v=1421"'), "Dutch Pay desktop stylesheet is not linked directly");
+assert(html.includes('const APP_VERSION = "v1.143";'), "app version was not updated");
+assert(html.includes('href="./v142-dutch-pay.css?v=1431"'), "Dutch Pay desktop stylesheet is not linked directly");
 assert(
-  html.indexOf('href="./v142-dutch-pay.css?v=1421"') > html.lastIndexOf("</style>"),
+  html.indexOf('href="./v142-dutch-pay.css?v=1431"') > html.lastIndexOf("</style>"),
   "Dutch Pay stylesheet must load after the legacy inline stylesheet",
 );
+assert(html.includes('meta.className="app-view-meta"'), "desktop view version meta is missing");
+assert(html.includes('head.prepend(meta)'), "desktop view version meta is not mounted in page headers");
 const staticMarkup=html.slice(0,html.indexOf("<script>"));
 const ids=[...staticMarkup.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
 const duplicateIds=ids.filter((id,index)=>ids.indexOf(id)!==index);

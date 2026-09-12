@@ -1,5 +1,7 @@
-/* v1.142 — Dutch Pay desktop visual system.
+/* v1.143 — Dutch Pay desktop visual system.
    Desktop presentation only: application logic and tablet/mobile layout are untouched. */
+.app-view-meta { display:none; }
+
 @media (min-width:1024px) {
   :root {
     --ink:#111113;
@@ -266,4 +268,128 @@
   .shell .stat .k,
   .shell .hint,
   .shell .sub { color:#8e8e93; }
+
+  /* v1.143 — Dutch Pay typography contract for the workspace panels.
+     The master and detail panes now share one role-based type scale instead
+     of inheriting view-specific weights and grey values from older releases. */
+  .shell {
+    --panel-text:#171717;
+    --panel-secondary:#66666b;
+    --panel-muted:#9a9aa1;
+    --panel-title-size:28px;
+    --panel-heading-size:18px;
+    --panel-body-size:14px;
+    --panel-caption-size:12px;
+  }
+
+  .shell .main>.view>.page-head {
+    align-content:flex-start;
+    row-gap:4px;
+  }
+  .shell .main>.view>.page-head .app-view-meta {
+    display:flex;
+    flex:0 0 100%;
+    align-items:center;
+    gap:9px;
+    color:var(--panel-muted);
+    font-size:11px;
+    font-weight:600;
+    line-height:1.25;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .shell .main>.view>.page-head .app-view-meta .version {
+    color:#b0b0b6;
+    font-weight:600;
+    letter-spacing:0;
+    text-transform:none;
+  }
+  .shell .main>.view>.page-head h2 {
+    color:var(--panel-text);
+    font-size:var(--panel-title-size);
+    font-weight:700;
+    line-height:1.22;
+    letter-spacing:-.035em;
+  }
+
+  /* Master/detail surfaces: identical typography for identical information roles. */
+  .shell #view-companies .cols,
+  .shell #view-items .cols,
+  .shell #view-quotes .quote-cols {
+    color:var(--panel-text);
+    font-size:var(--panel-body-size);
+    font-weight:400;
+  }
+  .shell #view-companies .list-item .li-name,
+  .shell #view-items .list-item .li-name,
+  .shell #view-quotes .list-item .li-nm,
+  .shell #view-companies .co-title-name,
+  .shell #view-items .detail h3,
+  .shell #view-quotes .quote-flow-title,
+  .shell #view-quotes .qt-sec-t {
+    color:var(--panel-text);
+    font-size:15px;
+    font-weight:600;
+    line-height:1.4;
+    letter-spacing:-.015em;
+  }
+  .shell #view-companies .co-title-name {
+    font-size:var(--panel-heading-size);
+    font-weight:700;
+  }
+  .shell #view-companies .li-sub,
+  .shell #view-companies .li-date,
+  .shell #view-companies .li-no,
+  .shell #view-items .li-sub,
+  .shell #view-items .li-date,
+  .shell #view-items .li-no,
+  .shell #view-quotes .li-sub,
+  .shell #view-quotes .li-date,
+  .shell #view-quotes .li-no,
+  .shell #view-companies .hint,
+  .shell #view-items .hint,
+  .shell #view-quotes .hint,
+  .shell #view-quotes .quote-flow-sub {
+    color:var(--panel-muted);
+    font-size:var(--panel-caption-size);
+    font-weight:400;
+    line-height:1.5;
+  }
+  .shell #view-companies .li-amt,
+  .shell #view-items .li-amt,
+  .shell #view-quotes .li-amt,
+  .shell #view-quotes .quote-flow-value,
+  .shell #view-quotes .qtotals .v {
+    color:var(--panel-text);
+    font-size:14px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .shell #view-companies .field>label,
+  .shell #view-items .field>label,
+  .shell #view-quotes .field>label,
+  .shell #view-companies .tbl th,
+  .shell #view-items .tbl th,
+  .shell #view-quotes .tbl th {
+    color:var(--panel-secondary);
+    font-size:12px;
+    font-weight:600;
+    line-height:1.35;
+  }
+  .shell #view-companies input,
+  .shell #view-companies select,
+  .shell #view-companies textarea,
+  .shell #view-items input,
+  .shell #view-items select,
+  .shell #view-items textarea,
+  .shell #view-quotes input,
+  .shell #view-quotes select,
+  .shell #view-quotes textarea,
+  .shell #view-companies .tbl td,
+  .shell #view-items .tbl td,
+  .shell #view-quotes .tbl td {
+    color:var(--panel-text);
+    font-size:var(--panel-body-size);
+    font-weight:400;
+  }
 }
