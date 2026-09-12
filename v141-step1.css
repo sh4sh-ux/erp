@@ -1,0 +1,22 @@
+/* v1.141 Step 1 — Desktop App Frame live preview. Business logic/view/mobile untouched. */
+@media(min-width:1024px){
+  html,body{min-height:100%;background:var(--bg-page,#F7F7F8)}
+  .shell{
+    width:calc(100% - 64px);
+    max-width:1520px;
+    height:calc(100dvh - 80px);
+    min-height:660px;
+    margin:40px auto;
+    padding:0;
+    gap:0;
+    overflow:hidden;
+    background:var(--bg-card,#fff);
+    border:1px solid var(--border-default,#E2E2E2);
+    border-radius:18px;
+    box-shadow:none;
+  }
+  .shell>.main{height:100%;min-height:0;border:0;border-radius:0;box-shadow:none}
+  .shell>.rail-gutter{height:100%;min-height:0;background:var(--bg-card,#fff);border-right:1px solid var(--border-light,#ECECEC)}
+  #tbVer{font-size:0}
+  #tbVer::after{content:"v1.141 · STEP 1";font-size:11px}
+}
