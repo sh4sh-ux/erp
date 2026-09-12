@@ -2110,6 +2110,72 @@
     /* Main 자체 카드 외곽 제거 — 외곽 radius/border는 프레임이 담당 */
     .shell>.main{border:0;border-radius:0;box-shadow:none}
   }
+
+  /* ==========================================================================
+     v1.138 — Desktop App Shell 마무리 (≥1024px만) — Dutch Pay / Receipt DB 제품군 통일
+       ① Shell 상단 Brand Header 1개(APP META + VERSION) → 각 View 제목 위 2단 위계.
+          View page-head/h2/renderer/markup 무변경(Shell 레벨 형제 요소 1개 추가).
+          버전은 APP_VERSION 재사용(#brandbarVer, init에서 주입) — 하드코딩 없음.
+       ② Rail 아이콘 정확 중앙정렬 — collapsed에서 flex gap이 빈 라벨 공간을 예약해
+          아이콘이 rail center(63) 대비 6px 왼쪽(57)이던 것을, 고정 76px 아이콘 컬럼(grid)
+          으로 교체해 collapsed·expanded 모두 center=63(±1px)·전환 중 아이콘 이동 0.
+       ③ expand/collapse 애니메이션 동기화 — width에 걸린 0.28s 지연을 제거해
+          rail 폭과 label opacity가 같은 창에서 함께 움직이도록(하나가 접히듯).
+       ⚠️ 전부 ≥1024 스코프. Rail 기능/순서/selected/switchView·Main 내부 UI·계산·저장·
+          모바일(≤820)·태블릿(821~1023) 무변경. 공통 .card/.btn/.field/.tbl 미변경.
+     ========================================================================== */
+  .app-brandbar{display:none}   /* 기본 숨김: 모바일·태블릿 (Brand Header는 데스크탑 전용) */
+  @media(min-width:1024px){
+    /* ---- ① Brand Header ---- */
+    .shell>.main>.app-brandbar{display:flex;align-items:baseline;gap:8px;flex:0 0 auto;
+      height:46px;padding:0 24px;box-sizing:border-box;background:var(--card);
+      border-bottom:1px solid var(--border-light)}
+    .app-brandbar .abb-name{font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--text-secondary)}
+    .app-brandbar .abb-ver{font-size:12px;font-weight:500;color:var(--text-muted)}
+    /* Brand Header가 생긴 만큼 View 상단 여백을 줄여 content start가 과하게 내려가지 않게(Shell에서 해결) */
+    .shell .main>#view-dash:not(.hidden),
+    .shell .main>#view-payments:not(.hidden),
+    .shell .main>#view-stock:not(.hidden),
+    .shell .main>#view-sales:not(.hidden),
+    .shell .main>#view-ar:not(.hidden),
+    .shell .main>#view-settings:not(.hidden){padding-top:18px}
+    .shell .main>#view-materials:not(.hidden){padding-top:18px}
+    .shell .main>#view-companies>.page-head,
+    .shell .main>#view-items>.page-head,
+    .shell .main>#view-quotes>.page-head{padding-top:18px}
+
+    /* ---- ② Rail 아이콘 고정 76px 컬럼(grid) → 정중앙 + 전환 중 이동 0 ---- */
+    .shell .rail-nav{padding-left:0;padding-right:0}
+    .shell .rail-foot{padding-left:0;padding-right:0}
+    .shell .rail-logo,
+    .shell .rail-nav .nav-item,
+    .shell .rail-foot .rail-act,
+    .shell .rail-foot .sync-state{
+      display:grid;grid-template-columns:76px 1fr;align-items:center;gap:0;
+      padding-left:0;padding-right:0}
+    .shell .rail-logo>.rail-mark,
+    .shell .rail-nav .nav-item>svg,
+    .shell .rail-foot .rail-act>svg,
+    .shell .rail-foot .sync-state>.sync-dot{justify-self:center}
+    .shell .rail-logo>.rail-brand,
+    .shell .rail-nav .nav-item>span,
+    .shell .rail-foot .rail-act>span,
+    .shell .rail-foot .sync-state>.sync-text{justify-self:start;padding-right:14px}
+    /* collapsed 옛 규칙(justify-content:center;padding:0)이 grid center를 흔들지 않게 같은 특이도로 정리 */
+    .shell .sidebar:not(:hover) .rail-logo,
+    .shell .sidebar:not(:hover) .nav-item,
+    .shell .sidebar:not(:hover) .rail-act,
+    .shell .sidebar:not(:hover) .sync-state{justify-content:normal;padding-left:0;padding-right:0}
+
+    /* ---- ③ expand/collapse 동기화 (width 0.28s 지연 제거 → label과 함께 접힘/펼침) ---- */
+    .shell .sidebar{transition:width .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease}
+    .shell .sidebar:hover{transition:width .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease}
+    .shell .sidebar .rail-brand,
+    .shell .sidebar .nav-item>span,
+    .shell .sidebar .rail-act>span,
+    .shell .sidebar .sync-text,
+    .shell .sidebar .tb-user{transition:opacity .16s ease}
+  }
 </style>
 </head>
 <body>
@@ -2232,6 +2298,11 @@
     <div class="nav-backdrop" id="navBackdrop"></div>
 
     <main class="main">
+      <!-- Shell 상단 Brand Header (데스크탑 ≥1024 전용, v1.138) — 각 View page-head/제목 위 2단 위계 -->
+      <div class="app-brandbar" aria-hidden="true">
+        <span class="abb-name">THE EDIT ERP</span>
+        <span class="abb-ver" id="brandbarVer"></span>
+      </div>
 
       <!-- ========== 거래처 ========== -->
       <section class="view" id="view-companies">
@@ -2650,7 +2721,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.137";
+const APP_VERSION = "v1.138";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6483,6 +6554,7 @@ async function init(){
 
   // 이벤트 연결
   document.getElementById("tbVer").textContent=APP_VERSION;
+  { const _bbv=document.getElementById("brandbarVer"); if(_bbv) _bbv.textContent=APP_VERSION; }  // v1.138 Brand Header 버전(동일 소스 재사용)
   document.getElementById("brandBtn").onclick=()=>{ if(guardQtLeave()) location.reload(); };
   document.getElementById("bizCardBtn").onclick=shareBusinessCard;
   document.getElementById("bizCertBtn").onclick=shareBizCert;
