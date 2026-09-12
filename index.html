@@ -2124,27 +2124,9 @@
        ⚠️ 전부 ≥1024 스코프. Rail 기능/순서/selected/switchView·Main 내부 UI·계산·저장·
           모바일(≤820)·태블릿(821~1023) 무변경. 공통 .card/.btn/.field/.tbl 미변경.
      ========================================================================== */
-  .app-brandbar{display:none}   /* 기본 숨김: 모바일·태블릿 (Brand Header는 데스크탑 전용) */
   @media(min-width:1024px){
-    /* ---- ① Brand Meta line — 별도 band 아님. Page Title 바로 위 작은 meta 한 줄(v1.138b) ---- */
-    .shell>.main>.app-brandbar{display:flex;align-items:baseline;gap:5px;flex:0 0 auto;
-      padding:12px 24px 0;background:var(--card);line-height:1.2}
-    .app-brandbar .abb-name{font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--text-muted)}
-    .app-brandbar .abb-ver{font-size:11.5px;font-weight:600;color:var(--text-muted)}
-    .app-brandbar .abb-ver::before{content:"· "}
-    /* Rail 버전(ERP v1.138)과 중복 제거 — 데스크탑에서 Rail은 identity(ERP)만, 버전은 Main meta에서만 */
+    /* Desktop identity는 Rail이 담당한다. 모바일 Drawer의 ERP+버전 표시는 그대로 유지한다. */
     .shell .rail-brand .tb-ver{display:none}
-    /* meta line은 낮으므로 View 상단 여백만 소폭 줄여 Title이 meta 바로 아래 붙게(content start 최소 상승) */
-    .shell .main>#view-dash:not(.hidden),
-    .shell .main>#view-payments:not(.hidden),
-    .shell .main>#view-stock:not(.hidden),
-    .shell .main>#view-sales:not(.hidden),
-    .shell .main>#view-ar:not(.hidden),
-    .shell .main>#view-settings:not(.hidden){padding-top:6px}
-    .shell .main>#view-materials:not(.hidden){padding-top:6px}
-    .shell .main>#view-companies>.page-head,
-    .shell .main>#view-items>.page-head,
-    .shell .main>#view-quotes>.page-head{padding-top:6px}
 
     /* ---- ② Rail 아이콘 고정 76px 컬럼(grid) → 정중앙 + 전환 중 이동 0 ---- */
     .shell .rail-nav{padding-left:0;padding-right:0}
@@ -2180,7 +2162,7 @@
   }
 
   /* ==========================================================================
-     v1.139 — Rail overlay → in-flow layout 전환 (≥821px 공통, 모바일 ≤820 유지)
+     v1.139 — Rail overlay → in-flow layout 전환 (Tablet 821~1023px 유지)
        문제(v1.138 실측): Rail(.sidebar)이 position:absolute·z-index:60로 76→216px 확장되며
              .main(왼쪽 x=101 고정) 위를 140px 덮어 Page Title/KPI/Form 좌측이 가려짐.
        수정: Rail을 flex 흐름에 편입 — .rail-gutter가 폭(flex-basis)을 담당(76→216, hover),
@@ -2192,7 +2174,7 @@
        ⚠️ ≥821 스코프. 모바일(≤820 드로어)·아이콘 grid 중앙정렬(≥1024)·label transition·
           selected/hover·메뉴 순서·switchView·View markup·renderer·계산/저장·Dropbox/Firebase 무변경.
      ========================================================================== */
-  @media(min-width:821px){
+  @media(min-width:821px) and (max-width:1023px){
     /* gutter가 폭을 담당: collapsed 76 / hover expanded 216, flex-basis transition */
     .shell .rail-gutter{flex:0 0 76px;min-width:0;overflow:hidden;position:relative;transition:flex-basis .2s ease}
     .shell .rail-gutter:hover{flex-basis:216px}
@@ -2207,6 +2189,37 @@
     .shell .sidebar .rail-act>span,
     .shell .sidebar .sync-text,
     .shell .sidebar .tb-user{transition:opacity .18s ease}
+  }
+
+  /* ==========================================================================
+     v1.140 — Desktop Stable App Shell (≥1024px)
+       Rail은 208px 고정 expanded navigation이며 Main과 같은 flex flow에 놓인다.
+       hover는 메뉴 색상/배경에만 사용하고 Rail/Main geometry는 바꾸지 않는다.
+       Tablet(821~1023)·Mobile(≤820)·View 내부 UI/logic은 변경하지 않는다.
+     ========================================================================== */
+  @media(min-width:1024px){
+    .shell .rail-gutter{flex:0 0 208px;width:208px;min-width:208px;overflow:hidden;
+      position:relative;transition:none}
+    .shell .rail-gutter>.sidebar{position:relative;top:auto;left:auto;bottom:auto;z-index:auto;
+      width:100%;height:100%;border:0;border-radius:0;box-shadow:none;background:transparent;
+      transition:none}
+
+    /* Desktop Rail은 항상 expanded: legacy :not(:hover) 접힘 규칙을 geometry 변화 없이 해제한다. */
+    .shell .rail-gutter>.sidebar .rail-brand,
+    .shell .rail-gutter>.sidebar .nav-item>span,
+    .shell .rail-gutter>.sidebar .rail-act>span,
+    .shell .rail-gutter>.sidebar .sync-text,
+    .shell .rail-gutter>.sidebar .tb-user{opacity:1;width:auto;margin:0;overflow:visible;
+      pointer-events:auto;transition:none}
+    .shell .rail-gutter>.sidebar .nav-sec{display:block}
+    .shell .rail-gutter>.sidebar .rail-logo,
+    .shell .rail-gutter>.sidebar .nav-item,
+    .shell .rail-gutter>.sidebar .rail-act,
+    .shell .rail-gutter>.sidebar .sync-state{justify-content:normal;padding-left:0;padding-right:0}
+    .shell .rail-gutter>.sidebar .tb-user{padding:2px 12px 6px}
+    .shell .rail-brand::before{content:"THE EDIT ";font-weight:600}
+
+    .shell>.main{flex:1 1 auto;min-width:0}
   }
 </style>
 </head>
@@ -2330,12 +2343,6 @@
     <div class="nav-backdrop" id="navBackdrop"></div>
 
     <main class="main">
-      <!-- Shell 상단 Brand Header (데스크탑 ≥1024 전용, v1.138) — 각 View page-head/제목 위 2단 위계 -->
-      <div class="app-brandbar" aria-hidden="true">
-        <span class="abb-name">THE EDIT ERP</span>
-        <span class="abb-ver" id="brandbarVer"></span>
-      </div>
-
       <!-- ========== 거래처 ========== -->
       <section class="view" id="view-companies">
         <div class="page-head">
@@ -2753,7 +2760,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.139";
+const APP_VERSION = "v1.140";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6586,7 +6593,6 @@ async function init(){
 
   // 이벤트 연결
   document.getElementById("tbVer").textContent=APP_VERSION;
-  { const _bbv=document.getElementById("brandbarVer"); if(_bbv) _bbv.textContent=APP_VERSION; }  // v1.138 Brand Header 버전(동일 소스 재사용)
   document.getElementById("brandBtn").onclick=()=>{ if(guardQtLeave()) location.reload(); };
   document.getElementById("bizCardBtn").onclick=shareBusinessCard;
   document.getElementById("bizCertBtn").onclick=shareBizCert;
