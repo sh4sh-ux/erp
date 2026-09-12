@@ -2070,6 +2070,23 @@
   @media(max-width:820px){
     #view-sales .sl-metric .mk .mk-sub{font-size:11px;font-weight:500;color:var(--text-muted);white-space:nowrap}
   }
+
+  /* ==========================================================================
+     v1.136 — 수금/지급 모바일 sticky 헤더 겹침 수정 (#view-payments, ≤820px만)
+       증상(iOS): ① 거래 등록 '추가'(파란 버튼) 텍스트가 상단 헤더에 가려 잘림,
+                  ② 스크롤 시 첫 리스트 항목이 상단 헤더/월 선택(필터) 영역에 가려짐.
+       원인: v1.112의 대시보드와 동일 — iOS Safari가 overflow:auto 스크롤 컨테이너 안의
+             position:sticky 헤더를 흐름에서 빼내 바로 아래로 스크롤되는 내용 위에 겹쳐 그림
+             (헤드리스 Chromium에선 정상이라 안 잡힘). #view-payments도 display:block;overflow:auto
+             내용형 화면이라 같은 잠재 이슈였음(v1.112 changelog에서 예고).
+       수정: 대시보드와 동일하게 payments 제목줄만 position:static으로 고정 해제 → 겹침 제거.
+             제목·월 선택은 정상 흐름의 최상단에 남고 스크롤 시 함께 올라감(월 선택 정상 동작).
+       ⚠️ #view-payments 모바일 page-head의 position/offset만 변경. 리스트 구조·데이터·
+          수금/지급 계산·Bottom Nav·데스크탑·다른 화면 전부 무변경.
+     ========================================================================== */
+  @media(max-width:820px){
+    .shell .main>#view-payments>.page-head{position:static;top:auto;z-index:auto}
+  }
 </style>
 </head>
 <body>
@@ -2610,7 +2627,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.134";
+const APP_VERSION = "v1.136";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
