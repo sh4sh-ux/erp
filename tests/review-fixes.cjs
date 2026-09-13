@@ -6,7 +6,7 @@ vm.runInContext(fs.readFileSync(path.join(root,'stock-entry.js'),'utf8'),ctx);vm
 const run=s=>vm.runInContext(s,ctx);
 assert.equal(run(`stockFingerprint([{id:'old',memo:'견적 Q-1 출고'}])`),run(`stockFingerprint([{id:'old',memo:'견적 Q-1 출고',quote_id:'q'}])`),'legacy quote migration must not create a false conflict');
 assert(!html.includes('(p.date||"").slice(5)'), 'payment year missing');
-assert(html.includes('back.moves.length && !await syncStockForQuote'),'delete must stop on failed stock restoration');
+assert(html.includes('if(back.moves.length){toast('),'delete must require independently saved stock restoration');
 assert(html.includes('variant-field variant-buy')&&html.includes('variant-field variant-sell'));
 (async()=>{
  let calls=0;ctx.saveStockChecked=async(expected,next)=>{calls++;assert.equal(expected,JSON.stringify([{id:'original'}]));assert.equal(next.length,2);throw Error('conflict');};

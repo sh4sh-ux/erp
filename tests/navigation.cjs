@@ -25,7 +25,8 @@ assert(html.includes('let currentView="dash";'), "dashboard is not the default v
 assert(html.includes('switchView("dash");'), "initial login does not open the dashboard");
 assert(html.includes('querySelectorAll(".nav-item,.mobile-nav-item")'), "desktop and mobile navigation are not bound together");
 assert(html.includes('id="dashNewQuote"') && html.includes('id="dashNewPayment"'), "dashboard quick actions are missing");
-assert(html.includes('const APP_VERSION = "v1.161";'), "app version was not updated");
+assert(html.includes('const APP_VERSION = "v1.162";'), "app version was not updated");
+assert(html.includes('JSON.stringify(target)===JSON.stringify(readAppStep())'), 'drawer-only back must preserve edited forms');
 assert(html.includes('href="./v142-dutch-pay.css?v=1501"'), "Dutch Pay desktop stylesheet is not linked directly");
 assert(
   html.indexOf('href="./v142-dutch-pay.css?v=1501"') > html.lastIndexOf("</style>"),

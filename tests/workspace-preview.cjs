@@ -26,7 +26,6 @@ for(let n=1;n<=36;n++){
 }
 db.items.slice(0,3).forEach((item,i)=>{item.name='셰프복';item.code='JK_TEST_'+(i+1);item.variants=[{spec:'S'},{spec:'L'},{spec:'3XL'}];});
 const longQuote=db.quotes[0];longQuote.lines=Array.from({length:6},(_,i)=>({...longQuote.lines[0],id:'long-line-'+i,name:'셰프복 [JK_TEST_1]',color:'WH',spec:'3XL',qty:i+1}));longQuote.deliveries=[];
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel=null;renderQtList();renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoList();renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItList();renderItDetail();}});
 switchView('dash');
 document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};
 ['qtStatus','qtFrom','qtTo'].forEach(id=>document.getElementById(id).onchange=renderQtList);
@@ -41,10 +40,9 @@ http.createServer((req,res)=>{
  if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css','mobile-workspace.css','stock-entry.js','stock-entry.css'].includes(name)){res.writeHead(404);return res.end();}
  let content=fs.readFileSync(path.join(root,name),'utf8');
  if(name==='index.html'){
-   // Reuse production identity setup while omitting authentication in this fixture.
-   const identity=content.slice(content.indexOf('  /* Desktop workspace identity'),content.indexOf('  // OAuth 콜백 처리'));
-   if(!identity.includes('app-view-meta'))throw new Error('Production identity setup not found');
-   content=content.replace(/init\(\);\s*<\/script>/,identity+'\n'+fixture+'</script>');
+   // Run production init and event wiring, but never authenticate or access business files.
+   const isolate=`ensureToken=async()=>null;window.fetch=async()=>{throw Error('Isolated preview: network disabled')};Table.save=async()=>{};saveStockChecked=async()=>{};init();`;
+   content=content.replace(/init\(\);\s*<\/script>/,isolate+'\n'+fixture+'</script>');
  }
  res.setHeader('Content-Type',name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html');res.end(content);
-}).listen(4178,'127.0.0.1',()=>console.log('Isolated workspace fixture: http://127.0.0.1:4178'));
+}).listen(Number(process.env.ERP_PREVIEW_PORT||4178),'127.0.0.1',()=>console.log('Isolated workspace fixture ready'));

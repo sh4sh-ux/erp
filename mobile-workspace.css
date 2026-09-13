@@ -102,7 +102,8 @@
   #appView .shell .main :is(#view-sales,#view-ar) .filter-bar :is(.month-input,.date-control,select,.btn-sm) {width:100%;max-width:none;min-width:0;margin:0;}
   #appView .shell .main #view-sales .filter-bar>span {display:none;}
   #appView .shell .main :is(#view-sales,#view-ar) .filter-bar>.btn-sm {grid-column:1/-1;}
-  #appView .shell .main #view-stock .stock-tools {padding:12px 0;position:static;}
+  #appView .shell .main #view-stock .stock-tools {padding:12px;position:static;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;background:transparent;}
+  #appView .shell .main #view-stock .stock-tools button {grid-column:1/-1;}
   #appView .shell .main #view-stock .stock-tools :is(input,select) {border:1px solid #d4d4d8;background:#fff;padding:10px 12px;}
   #appView .shell .main #view-stock .stock-item {padding:14px 12px;}
   #appView .shell .main #view-stock .stock-add {margin:16px 0;}
@@ -139,11 +140,36 @@
   #appView .shell .main #salesInsight {padding:16px;border:0;box-sizing:border-box;overflow:hidden;}
   #appView .shell .main #salesInsight .insight-controls {grid-template-columns:minmax(0,1fr);}
   #appView .shell .main #salesInsight .insight-controls :is(select,input) {padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;}
-  #appView .shell .main .stock-option-scroll {max-width:100%;overflow-x:auto;}
+  #appView .shell .main #view-stock :is(.cols,.cols>.card,#stockOverview) {min-width:0;max-width:100%;}
+  #appView .shell .main #view-stock .stock-option-scroll {display:block;width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}
+  #appView .shell .main #view-stock .stock-option-scroll::before {content:'좌우로 밀어 수량과 최소 기준을 확인하세요';display:block;font-size:12px;color:var(--ink-2);padding:0 0 12px;}
+  #appView .shell .main #view-companies .mobile-company-back {display:none;}
+  #appView .shell .main #materialContent .material-master {margin:16px 0 0;width:100%;min-width:0;box-sizing:border-box;}
+  #appView .shell .main #materialContent .material-owners {padding:16px;background:transparent;}
+  #appView .shell .main #materialContent .material-owners-head {padding:0 0 12px;}
+  #appView .shell .main #materialContent .material-owner-list {display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding:0;overscroll-behavior:contain;}
+  #appView .shell .main #materialContent :is(.material-owner,.material-new-owner) {flex:none;width:100%;min-width:0;box-sizing:border-box;margin:0;}
+  #appView .shell .main #materialContent .material-owner {padding:12px;}
+  #appView .shell .main #materialContent .material-new-owner {min-height:44px;order:-1;position:sticky;top:0;z-index:1;background:#fff;}
+  #appView .shell .main #view-payments .card:has(#payByCo) {padding:0;}
+  #appView .shell .main #view-payments .card:has(#payByCo)>.card-head {padding:16px;gap:8px;flex-wrap:wrap;}
+  #appView .shell .main #view-payments .card:has(#payByCo)>.tbl-wrap {padding:0 16px;}
+  #appView .shell .main #view-payments #payByCo tr {padding:14px 0;}
+  #appView .shell .main :is(#payByCo,#arTbl) tr[style*="var(--paper)"] {background:transparent!important;border-radius:0;margin:0;padding:16px 0;border-top:2px solid var(--line);}
+  #appView .shell .main #view-ar #arTbl:has(thead th:nth-child(8)) tr {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;}
+  #appView .shell .main #view-ar #arTbl:has(thead th:nth-child(8)) td {min-width:0;white-space:normal;overflow-wrap:anywhere;justify-content:space-between;margin:0;}
+  #appView .shell .main #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(1) {grid-column:1/-1;}
+  #appView .shell .main #view-ar #arTbl:has(thead th:nth-child(8)) td:nth-child(5) {grid-column:1/-1;}
+  #appView .shell .main #view-ar #arTbl tr[style*="var(--paper)"] td::before {display:inline;}
   #appView .shell .main #view-ar .card:has(#arTbl) {padding:0;}
   #appView .shell .main #view-ar .card:has(#arTbl)>.card-head {padding:16px;flex-wrap:wrap;gap:8px;}
   #appView .shell .main #view-ar .card:has(#arTbl)>.tbl-wrap {padding:0 16px;}
   #appView .shell .main #view-ar #arTbl tr {padding-left:0;padding-right:0;}
+  /* Shared touch target, including small secondary and icon-only actions. */
+  #appView .shell .main :is(.btn,.btn-sm,.rm,.quote-filter-reset,#qtAllDates,.material-type-tab,#fi_addVar,.add-line,.quote-flow-add,#qtClearFilters) {min-height:44px;}
+  #appView .shell .main .rm {min-width:44px;width:44px;height:44px;flex-shrink:0;}
+  #appView .shell .main .material-type-tabs button {min-height:44px;}
+  #appView .shell .main #qtForm button {min-height:44px;}
   /* Same chevron and inset as desktop, after mobile background/padding resets. */
   #appView .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) select:not([multiple]):not([size]) {
     appearance:none;-webkit-appearance:none;padding-right:32px;
