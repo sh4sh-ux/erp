@@ -96,13 +96,21 @@
   .shell #view-materials>.copy-note {margin:0;padding:8px 28px;font-size:11px;flex:none;}
   .shell #materialContent {flex:1;min-height:0;overflow:hidden;}
   .shell #materialContent .material-master {display:grid;grid-template-columns:360px minmax(0,1fr);height:100%;border:0;overflow:hidden;}
-  .shell #materialContent .material-owners {min-width:0;overflow:auto;background:#fafafa;border-right:1px solid #ebebed;}
-  .shell #materialContent .material-owner-list {display:flex;flex-direction:column;}
-  .shell #materialContent .material-owner {width:100%;max-width:none;text-align:left;flex:0 0 auto;height:64px;}
+  .shell #materialContent .material-owners {min-width:0;overflow:auto;background:#fafafa;border-right:1px solid #ebebed;padding:0;}
+  .shell #materialContent .material-owners-head {padding:18px 28px 14px;}
+  .shell #materialContent .material-owner-list {display:flex;flex-direction:column;gap:0;padding:0;}
+  .shell .main #view-materials #materialContent .material-owner {width:100%;max-width:none;text-align:left;flex:0 0 auto;height:64px;border:0;border-left:3px solid transparent;border-radius:0;box-shadow:none;padding:12px 28px 12px 25px;}
+  .shell .main #view-materials #materialContent .material-owner.active {border-left-color:#4355e8;background:#eeeffe;}
+  .shell .main #view-materials #materialContent .material-owner::before {display:none;}
+  .shell #materialContent .material-new-owner {width:calc(100% - 56px);margin:14px 28px;}
   .shell .main #view-materials :is(.material-stepper button,.material-type-tab) {box-sizing:border-box;height:32px;min-height:32px;font:400 13px/normal var(--sans);}
-  .shell #materialContent .material-detail {padding:26px 34px;overflow:auto;min-width:0;}
+  .shell #materialContent .material-detail {padding:26px 34px;overflow:auto;min-width:0;width:100%;max-width:none;margin:0;justify-self:stretch;}
   .shell #materialContent .material-detail-head {position:sticky;top:-26px;z-index:3;background:#fff;padding:16px 0;flex-wrap:wrap;}
   .shell #materialContent .material-quick {display:flex;flex-wrap:wrap;gap:10px;}
+  .shell .main #view-materials #mm_quick_save {flex:0 0 auto;width:auto;min-width:140px;}
+  .shell #materialContent .material-stepper {height:32px;border:0;grid-template-columns:32px 64px 32px;flex:0 0 128px;}
+  .shell .main #view-materials #materialContent .material-history {padding:0 12px;border-top:0;}
+  .shell .main #view-materials #materialContent .material-history-wrap {margin-top:24px;}
   .shell .main :is(#qtSearch,#coSearch,#itSearch) {border:0;height:auto;min-height:0;padding:0;background:transparent;box-shadow:none;}
   .shell .main #view-quotes .qlines {padding:0 16px;border:0;}
   .shell .main #view-quotes .qline.head>:is(:nth-child(3),:nth-child(4),:nth-child(5)) {text-align:right;}
