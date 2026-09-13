@@ -121,4 +121,14 @@
   #appView .shell .main #salesInsight .insight-controls {grid-template-columns:minmax(0,1fr);}
   #appView .shell .main #salesInsight .insight-controls :is(select,input) {padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;}
   #appView .shell .main .stock-option-scroll {max-width:100%;overflow-x:auto;}
+  #appView .shell .main #view-ar .card:has(#arTbl) {padding:0;}
+  #appView .shell .main #view-ar .card:has(#arTbl)>.card-head {padding:16px;flex-wrap:wrap;gap:8px;}
+  #appView .shell .main #view-ar .card:has(#arTbl)>.tbl-wrap {padding:0 16px;}
+  #appView .shell .main #view-ar #arTbl tr {padding-left:0;padding-right:0;}
+  /* Same chevron and inset as desktop, after mobile background/padding resets. */
+  #appView .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) select:not([multiple]):not([size]) {
+    appearance:none;-webkit-appearance:none;padding-right:32px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23666' stroke-width='1.4'/%3E%3C/svg%3E");
+    background-position:right 12px center;background-repeat:no-repeat;background-size:12px;
+  }
 }
