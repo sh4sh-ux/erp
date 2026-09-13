@@ -1,4 +1,12 @@
 #stockQuickEntry {grid-column:1/-1!important;min-width:0}
+#appView .shell .main #view-stock .workspace-right .stock-add,
+#appView .shell .main #view-stock .stock-add {padding:24px!important;box-sizing:border-box;width:100%;max-width:760px;align-self:flex-start;}
+#view-stock .stock-add.stock-entry-empty > :not(.stock-entry-heading):not(.stock-entry-item):not(#ivCancelBtn) {display:none!important}
+#view-stock .stock-add.stock-entry-empty #ivCancelBtn {grid-column:1/-1;justify-self:end;width:auto;min-width:100px}
+@media(min-width:821px){
+  #appView .shell .main #view-stock .stock-add .stock-entry-wide:not(:has(#ivMemo)) {grid-column:auto!important}
+  #appView .shell .main #view-stock .stock-add.stock-entry-empty .stock-entry-item {grid-column:1/-1!important}
+}
 #appView .shell .main #view-stock .stock-add {padding:20px;margin:0 0 24px;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--line);border-radius:16px;background:white;scroll-margin-top:100px}
 #appView .shell .main #view-stock .stock-add :is(.stock-entry-heading,.stock-entry-wide) {grid-column:1/-1!important}
 .stock-entry-heading h3 {margin:0 0 8px}
