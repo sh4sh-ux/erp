@@ -10,6 +10,9 @@ db.material_moves=[{id:'m1',company_id:'c1',material:'패치',kind:'받음',qty:
 const sample=blankQuote();sample.id='q1';sample.company_id='c1';sample.no='SAMPLE';sample.lines=[{...blankLine(),item_id:'i1',name:'셰프복',qty:8,price:23000}];db.quotes=[sample];
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel='q1';renderQtList();renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoList();renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItList();renderItDetail();}});
 switchView('dash');
+document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};
+['qtStatus','qtFrom','qtTo'].forEach(id=>document.getElementById(id).onchange=renderQtList);
+document.getElementById('qtAllDates').onclick=clearQtDateFilters;
 document.getElementById('moreNavBtn').onclick=()=>toggleNav(true);
 document.getElementById('menuBtn').onclick=()=>toggleNav(true);
 document.getElementById('closeNavBtn').onclick=()=>toggleNav(false);

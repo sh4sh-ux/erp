@@ -133,6 +133,13 @@
   .shell .main #view-materials .material-owners {grid-column:1;grid-row:2;min-height:0;}
   .shell .main #view-materials .material-detail {grid-column:2;grid-row:1/4;min-height:0;padding-top:0;}
   .shell .main #view-materials .material-detail-head {top:0;min-height:144px;margin:0 -34px 24px;padding:24px 34px;border-bottom:1px solid #ebebed;}
+  .shell .main #view-materials .material-detail-head {height:144px;box-sizing:border-box;padding:30px 34px 20px;align-items:flex-start;flex-wrap:nowrap;}
+  .shell .main #view-materials .material-detail-head h3 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;margin:6px 0 0;color:#111;}
+  .shell .main #view-materials .material-eyebrow {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main #view-materials .material-detail-head .material-balance-hero {margin:0;display:flex;flex-direction:column-reverse;align-items:flex-end;gap:6px;}
+  .shell .main #view-materials .material-detail-head .material-balance-hero strong {font:700 28px/1.15 var(--sans);color:#111;}
+  .shell .main #view-materials .material-detail-head .material-balance-hero span {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main #view-materials .material-detail>.material-statement-controls {justify-content:flex-end;margin:0 0 20px;}
   /* Shared field text inset and panel-contained scrolling, not viewport fixes. */
   .shell .main .view :is(.field>label,.pf>label,.filter-label) {padding-left:13px;}
   .shell .main :is(#qtForm,#coForm,#itForm).workspace-form {display:grid;grid-template-rows:144px minmax(0,1fr) auto;height:100%;min-height:0;padding:0;overflow:hidden;}
@@ -158,6 +165,17 @@
   .shell .main #view-ar .workspace-left .filter-bar {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:10px;align-items:center;}
   #appView .shell .main #view-ar .filter-bar :is(#arView,#arFilter) {width:100%;min-width:0;max-width:100%;}
   .shell .main #view-ar .filter-bar #arCsvBtn {grid-column:1/-1;justify-self:end;margin:0;}
+  .shell .main .workspace-heading {box-sizing:border-box;height:144px;padding:30px 34px 20px;}
+  .shell .main .workspace-heading h3 {margin:6px 0 0;}
+  .shell .main .workspace-heading .workspace-caption {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main :is(#coForm,#itForm):has(>.workspace-record-heading)::before {display:none;}
+  .shell .main .workspace-record-heading {height:144px;box-sizing:border-box;display:flex;justify-content:space-between;gap:24px;padding:30px 34px 20px;border-bottom:1px solid #ebebed;background:#fff;}
+  .shell .main .workspace-record-heading .workspace-caption {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main .workspace-record-heading .co-title {margin:6px 0 0;}
+  .shell .main .workspace-record-heading .co-title-name {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;}
+  .shell .main .workspace-record-heading .workspace-caption+.co-title-name {margin-top:6px;}
+  .shell .main .workspace-record-heading .scr-hero {margin:0;padding:0;border:0;text-align:right;}
+  .shell .main .workspace-record-heading .scr-hero .big {font:700 28px/1.15 var(--sans);margin-top:6px;}
   /* Keep the inset rule even for the last/only record. */
   .shell .main :is(#qtList,#coList,#itList) .list-item {
     border-bottom:1px solid #ebebed;

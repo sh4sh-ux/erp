@@ -6,12 +6,31 @@
   // Dynamic forms are re-rendered by the app. Keep their action bar outside
   // the scrolling body without replacing controls or their event listeners.
   const formRoots = ['qtForm','coForm','itForm'];
+  const headerRestores = new WeakMap();
+  let materialHeaderRestore = null;
+  function arrangeMaterialHeader() {
+    if (!desktop.matches) { materialHeaderRestore?.(); materialHeaderRestore=null; return; }
+    const detail=document.querySelector('#materialContent .material-detail');
+    const head=detail?.querySelector('.material-detail-head');
+    const balance=detail?.querySelector(':scope > .material-balance-hero');
+    const controls=head?.querySelector('.material-statement-controls');
+    if (!head || !balance || !controls) return;
+    const balanceMarker=document.createComment('balance-position');
+    const controlsMarker=document.createComment('controls-position');
+    balance.before(balanceMarker); controls.before(controlsMarker);
+    head.append(balance); head.after(controls);
+    materialHeaderRestore=()=>{if(balanceMarker.isConnected){balanceMarker.replaceWith(balance);controlsMarker.replaceWith(controls);}};
+  }
+  const materialObserver=new MutationObserver(arrangeMaterialHeader);
+  const materialRoot=document.getElementById('materialContent');
+  if(materialRoot) materialObserver.observe(materialRoot,{childList:true,subtree:true});
   function arrangeForms() {
     formRoots.forEach(id => {
       const form = document.getElementById(id);
       if (!form) return;
       const body = form.querySelector(':scope > .workspace-form-body');
       if (!desktop.matches) {
+        headerRestores.get(form)?.(); headerRestores.delete(form);
         if (body) body.replaceWith(...body.childNodes);
         form.classList.remove('workspace-form');
         return;
@@ -25,6 +44,28 @@
       });
       const actions = form.querySelector(':scope > .form-actions');
       actions.before(scroll);
+      if (id === 'coForm') {
+        const title=scroll.querySelector('.co-title'), amount=scroll.querySelector('.scr-hero');
+        if(title && amount) {
+          const header=document.createElement('div'); header.className='workspace-record-heading';
+          const label=document.createElement('div'); label.className='workspace-caption';label.textContent='거래처';
+          const info=document.createElement('div');info.append(label);
+          const markers=[title,amount].map(node=>{const marker=document.createComment('header-origin');node.before(marker);return marker;});
+          info.append(title);header.append(info,amount);form.prepend(header);
+          headerRestores.set(form,()=>{markers[0].replaceWith(title);markers[1].replaceWith(amount);header.remove();});
+        }
+      }
+      if(id === 'itForm') {
+        const input=scroll.querySelector('#fi_name');
+        if(input) {
+          const header=document.createElement('div');header.className='workspace-record-heading';
+          const info=document.createElement('div'),label=document.createElement('div'),title=document.createElement('div');
+          label.className='workspace-caption';label.textContent='품목';title.className='co-title-name';
+          const sync=()=>{title.textContent=input.value||'새 품목';};sync();input.addEventListener('input',sync);
+          info.append(label,title);header.append(info);form.prepend(header);
+          headerRestores.set(form,()=>{input.removeEventListener('input',sync);header.remove();});
+        }
+      }
       form.classList.add('workspace-form');
     });
   }
@@ -90,6 +131,7 @@
     if (desktop.matches) mount();
     else { const actions = restore; restore = []; actions.forEach(fn => fn()); }
     arrangeForms();
+    arrangeMaterialHeader();
   }
   desktop.addEventListener('change', update); update();
 })();
