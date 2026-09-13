@@ -14,16 +14,17 @@
 .stock-entry-field {display:grid;gap:8px;min-width:0;font-size:13px;color:var(--muted)}
 #appView .shell .main #view-stock .stock-entry-field :is(input,select,.date-control) {width:100%;min-width:0;box-sizing:border-box;min-height:44px;color:var(--ink)}
 #appView .shell .main #view-stock .stock-add button {min-height:44px}
-.stock-size-grid label {padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fafafa)}
 .stock-size-grid input {width:100%;min-width:0;box-sizing:border-box;min-height:44px;text-align:right}
 #stockQuickEntry:empty {display:none}
 #view-stock .stock-add [hidden] {display:none!important}
-.stock-size-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px;margin-top:12px}
-.stock-size-grid label {grid-template-columns:40px minmax(0,1fr);align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent}
+#stockQuickEntry {container-type:inline-size;container-name:stock-quantities}
+.stock-size-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));max-width:544px;gap:8px 16px;margin-top:12px}
+.stock-size-grid label {min-width:0;grid-template-columns:minmax(24px,36px) minmax(0,80px);align-items:center;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;overflow-wrap:anywhere}
 .stock-size-grid small {grid-column:2;text-align:right}
 #stockQuickToggle {border:1px solid var(--line);border-radius:10px;padding:8px 12px}
-#appView .shell .main #view-stock .stock-size-grid input {min-height:44px;height:44px}
-@media(max-width:600px){.stock-size-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}.stock-size-grid label {grid-template-columns:30px minmax(0,1fr)}}
+#appView .shell .main #view-stock .stock-size-grid input {min-height:44px;height:44px;max-width:80px;padding:0 8px;font-size:16px;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield}
+.stock-size-grid input::-webkit-inner-spin-button,.stock-size-grid input::-webkit-outer-spin-button {-webkit-appearance:none;margin:0}
+@container stock-quantities (max-width:543px){.stock-size-grid {grid-template-columns:repeat(2,minmax(0,1fr));max-width:260px;gap:8px 12px}}
 .stock-size-grid label {display:grid;gap:8px}
 .stock-size-grid small {color:var(--muted)}
 #stockReviewDialog {box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 48px);margin:auto;padding:24px;border:1px solid var(--line);border-radius:16px;color:var(--ink);background:white;overflow:auto}
