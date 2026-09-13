@@ -203,10 +203,10 @@
   .material-record-main{min-width:0}
   .material-record-line{display:flex;align-items:center;gap:8px;min-width:0}
   .material-record-kind{flex:0 0 auto;padding:2px 7px;border-radius:6px;background:var(--paper);color:var(--ink-2);font-size:11.5px;font-weight:700}
-  .material-record-kind.in{background:var(--ok-soft);color:#13823D}
+  .material-record-kind.in{background:var(--ok-soft);color:var(--ok)}
   .material-record-kind.out{background:var(--warn-soft);color:#B45F00}
   .material-record-qty{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
-  .material-record-qty.in{color:#13823D}.material-record-qty.out{color:#B45F00}
+  .material-record-qty.in{color:var(--ok)}.material-record-qty.out{color:#B45F00}
   .material-record-name{margin-top:3px;font-size:13px;font-weight:650}
   .material-record-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;white-space:nowrap}
   .material-record-actions .btn{padding:7px 10px;font-size:12px}
@@ -418,7 +418,7 @@
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-sm)}
   .stat .k{font-size:12px;color:var(--ink-3);font-weight:600}
   .stat .v{font-size:21px;font-weight:720;letter-spacing:0;margin-top:4px;font-variant-numeric:tabular-nums}
-  .stat .v.pos{color:#13823D}
+  .stat .v.pos{color:var(--ok)}
   .stat .v.neg{color:var(--danger)}
   .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
   @media(max-width:980px){.dash-grid{grid-template-columns:1fr}}
@@ -685,7 +685,7 @@
     --danger-soft:#FFF0F0;  /* --red-bg */
     --ok:#1DAD53;           /* --green */
     --ok-soft:#EDFAF3;      /* --green-bg */
-    --ok-ink:#13823D;       /* --green-txt */
+    --ok-ink:var(--ok);       /* --green-txt */
     --warn-c:#FF9500;       /* --txn-amber */
     --warn-soft:#FFF3E3;    /* amber 배경(파생) */
     --warn-ink:#B45F00;     /* amber 글자(가독성 확보) */
@@ -845,7 +845,7 @@
   .material-record-line{gap:7px}
   .material-record-name{margin:0;font-size:14px;font-weight:720}
   .material-record-kind{padding:3px 7px;border-radius:6px;font-size:11px;line-height:1.35}
-  .material-record-kind.work{background:var(--ok-soft);color:#13823D}
+  .material-record-kind.work{background:var(--ok-soft);color:var(--ok)}
   .material-record-meta{margin-top:5px;color:var(--ink-2);font-size:12.5px;line-height:1.5}
   .material-record-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:24px}
   .material-record-actions{flex-wrap:wrap}
@@ -1069,7 +1069,7 @@
   .scr-hero{margin:2px 0 2px}
   .scr-hero .lbl{font-size:12.5px;color:var(--ink-3);font-weight:600;margin-bottom:7px}
   .scr-hero .big{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums;display:inline-block}
-  .scr-hero .big.pos{color:var(--ok-ink,#13823D)} .scr-hero .big.neg{color:var(--danger)}
+  .scr-hero .big.pos{color:var(--ok)} .scr-hero .big.neg{color:var(--danger)}
   .scr-hero .big small{font-size:17px;font-weight:650;color:var(--ink-2);margin-left:2px}
   .scr-hero .sub{margin-top:10px;font-size:12.5px;color:var(--ink-2);font-weight:500}
   .scr-hero .sub b{color:var(--ink);font-weight:650}
@@ -1717,7 +1717,7 @@
   #view-stock .stk-st{text-align:center}
   #view-stock .stk-badge{display:inline-block;font-size:11.5px;font-weight:600;line-height:1.5;
     padding:2px 9px;border-radius:999px;white-space:nowrap}
-  #view-stock .stk-badge.ok{background:#EDFAF3;color:#13823D}
+  #view-stock .stk-badge.ok{background:#EDFAF3;color:var(--ok)}
   #view-stock .stk-badge.out{background:#FFF0F0;color:var(--danger)}
   /* §8 재고 수량 tabular-nums(정렬 안정) */
   #view-stock .tbl td.num{font-variant-numeric:tabular-nums}
@@ -1850,7 +1850,7 @@
   #view-sales .sl-metric{min-width:0}
   #view-sales .sl-metric .mk{font-size:12.5px;font-weight:600;color:var(--text-muted)}
   #view-sales .sl-metric .mv,#view-sales #slMargin{font-size:17px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;margin-top:3px}
-  #view-sales #slMargin.pos{color:#13823D}
+  #view-sales #slMargin.pos{color:var(--ok)}
   #view-sales #slMargin.neg{color:var(--danger)}
   #view-sales .sl-metric .mn{font-size:11.5px;color:var(--text-muted);margin-top:2px}
   /* §11·§12 거래처별 집계 카드 헤더 + 상세표 밀도 (셀 세로선 금지·헤더 13/600·본문 14/500) */
@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1570">
+<link rel="stylesheet" href="./workspace-system.css?v=1580">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1570">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1580">
 </head>
 <body>
 
@@ -2746,7 +2746,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.157";
+const APP_VERSION = "v1.158";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6248,7 +6248,7 @@ function renderPayByCo(rows){
         <td class="num">${fmt(r.n)}건</td>
         <td class="num">${r.inSum?fmt(r.inSum):'<span class="sub">—</span>'}</td>
         <td class="num">${r.outSum?fmt(r.outSum):'<span class="sub">—</span>'}</td>
-        <td class="num" style="color:${r.net>0?"#13823D":r.net<0?"var(--danger)":"var(--ink-3)"}">${fmt(r.net)}</td>
+        <td class="num" style="color:${r.net>0?"var(--ok)":r.net<0?"var(--danger)":"var(--ink-3)"}">${fmt(r.net)}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
         <td style="font-weight:700">합계</td><td></td>
