@@ -2196,7 +2196,7 @@
 <link rel="stylesheet" href="./workspace-system.css?v=1610">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
 <link rel="stylesheet" href="./mobile-workspace.css?v=1620">
-<link rel="stylesheet" href="./stock-entry.css?v=1600">
+<link rel="stylesheet" href="./stock-entry.css?v=1630">
 </head>
 <body>
 
@@ -2406,19 +2406,20 @@
             <div class="tbl-wrap"><table class="tbl item-data-table" id="ivTbl"></table></div>
           </div>
           <div class="card">
-            <div id="stockOverview"></div>
             <div class="stock-add" hidden>
-              <input type="date" id="ivDate" aria-label="입출고 일자">
-              <select id="ivItem" aria-label="입출고 품목"></select>
-              <select id="ivColor"></select>
-              <select id="ivSpec"></select>
-              <select id="ivKind"><option>입고</option><option>출고</option></select>
-              <input type="text" inputmode="numeric" class="num" id="ivQty" placeholder="수량">
-              <input id="ivMemo" class="span2" placeholder="메모 (선택)">
+              <div class="stock-entry-heading"><h3>재고 입력</h3><p>① 품목·색상 선택 → ② 수량 입력 → ③ 변경 내용 확인</p></div>
+              <label class="stock-entry-field">일자<input type="date" id="ivDate" aria-label="입출고 일자"></label>
+              <label class="stock-entry-field">구분<select id="ivKind"><option>입고</option><option>출고</option></select></label>
+              <label class="stock-entry-field stock-entry-wide">품목 · 품목코드<select id="ivItem" aria-label="입출고 품목"></select></label>
+              <label class="stock-entry-field stock-entry-wide">색상<select id="ivColor"></select></label>
+              <label class="stock-entry-field">규격/옵션<select id="ivSpec"></select></label>
+              <label class="stock-entry-field">수량<input type="text" inputmode="numeric" class="num" id="ivQty" placeholder="수량"></label>
               <div id="stockQuickEntry"></div>
-              <button type="button" class="btn ghost" id="ivCancelBtn">취소</button>
-              <button type="button" class="btn-sm" id="ivAddBtn">입출고 내용 확인</button>
+              <label class="stock-entry-field stock-entry-wide">메모 (선택)<input id="ivMemo" placeholder="입고처 또는 변경 참고 내용"></label>
+              <button type="button" class="btn ghost" id="ivCancelBtn">입력 닫기</button>
+              <button type="button" class="btn primary" id="ivAddBtn">변경 내용 확인</button>
             </div>
+            <div id="stockOverview"></div>
             <h3 class="stock-history-title">최근 입출고 내역</h3>
             <div class="tbl-wrap"><table class="tbl item-data-table" id="ivHist"></table></div>
           </div>
@@ -2748,7 +2749,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.162";
+const APP_VERSION = "v1.163";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6169,12 +6170,12 @@ function renderStock(){
   const minimumSave=document.getElementById('stockMinimumSave');if(minimumSave)minimumSave.onclick=saveStockMinimums;
   search.oninput=()=>{stockSelectedItem='';renderStock();};filter.onchange=()=>{stockSelectedItem='';renderStock();};
   document.querySelectorAll('[data-stock-filter]').forEach(b=>b.onclick=()=>{stockSelectedItem='';filter.value=b.dataset.stockFilter;renderStock();});
-  document.querySelectorAll('[data-stock-id]').forEach(b=>b.onclick=()=>{stockSelectedItem=b.dataset.stockId;itemEl.value=stockSelectedItem;updateIvCombo();renderStock();});
-  itemEl.onchange=()=>{stockSelectedItem=itemEl.value;updateIvCombo();renderStock();};
+  document.querySelectorAll('[data-stock-id]').forEach(b=>b.onclick=()=>{if(!guardStockEntryChange())return;stockSelectedItem=b.dataset.stockId;itemEl.value=stockSelectedItem;updateIvCombo();document.querySelector('#view-stock .stock-add').hidden=!stockSelectedItem;renderStock();if(stockSelectedItem)document.querySelector('#view-stock .stock-add').scrollIntoView({block:'start',behavior:'smooth'});});
+  itemEl.onchange=()=>{if(!guardStockEntryChange()){itemEl.value=stockSelectedItem;return;}stockSelectedItem=itemEl.value;updateIvCombo();renderStock();};
   const entry=document.querySelector('#view-stock .stock-add'),register=document.getElementById('stockRegister');
   register.textContent=entry.hidden?'+ 입출고 등록':'등록 닫기';
-  register.onclick=()=>{entry.hidden=!entry.hidden;register.textContent=entry.hidden?'+ 입출고 등록':'등록 닫기';if(!entry.hidden){if(stockSelectedItem&&itemEl.value!==stockSelectedItem){itemEl.value=stockSelectedItem;updateIvCombo();}entry.scrollIntoView({block:'nearest'});document.getElementById('ivDate').focus();}};
-  document.getElementById('ivCancelBtn').onclick=()=>{entry.hidden=true;register.textContent='+ 입출고 등록';};
+  register.onclick=()=>{if(!entry.hidden&&!guardStockEntryChange())return;entry.hidden=!entry.hidden;register.textContent=entry.hidden?'+ 입출고 등록':'등록 닫기';if(!entry.hidden){if(stockSelectedItem&&itemEl.value!==stockSelectedItem){itemEl.value=stockSelectedItem;updateIvCombo();}entry.scrollIntoView({block:'start'});document.getElementById('ivDate').focus();}};
+  document.getElementById('ivCancelBtn').onclick=()=>{if(!guardStockEntryChange())return;entry.hidden=true;register.textContent='+ 입출고 등록';};
   document.getElementById('ivAddBtn').onclick=addStockMove;
 
   const tbl=document.getElementById("ivTbl");
@@ -7004,7 +7005,7 @@ async function init(){
 }
 init();
 </script>
-<script src="./stock-entry.js?v=1610"></script>
+<script src="./stock-entry.js?v=1630"></script>
 <script src="./workspace-layout.js?v=1530"></script>
 </body>
 </html>
