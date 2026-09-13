@@ -44,7 +44,7 @@
   #appView .shell .main .scr-hero .big {display:block;width:100%;font-size:28px;text-align:right;}
   #appView .shell .main .scr-hero .lbl {text-align:right;}
   #appView .shell .main .scr-hero .sub {margin-top:12px;line-height:1.8;word-break:keep-all;}
-  #appView .shell .main #view-dash>.page-head {flex-wrap:wrap;}
+  #appView .shell .main #view-dash>.page-head {flex-wrap:wrap;position:relative;}
   #appView .shell .main #view-dash .head-actions {display:grid;grid-template-columns:1fr 1fr;flex:0 0 100%;width:100%;gap:8px;margin-top:8px;}
   #appView .shell .main #view-dash .head-actions button {width:100%;min-height:44px;}
   #appView .shell .main #dashHero .dash-heading-caption {font-size:12px;color:var(--ink-2);}
@@ -53,8 +53,9 @@
   #appView .shell .main #dashStats .stat {display:grid;grid-template-columns:minmax(0,1fr) auto;grid-column:auto;width:100%;padding:16px 0;border-bottom:1px solid var(--line);border-radius:0;}
   #appView .shell .main #dashStats .stat:last-child {border-bottom:0;}
   #appView .shell .main #dashStats .stat .v {font-size:20px;}
+  #appView .shell .main #view-dash .dash-grid {gap:24px;}
   #appView .shell .main #view-dash .dash-grid>.card {padding:0;}
-  #appView .shell .main #view-dash .dash-grid>.card>.card-head {padding:16px;flex-wrap:wrap;}
+  #appView .shell .main #view-dash .dash-grid>.card>.card-head {padding:16px;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line);}
   #appView .shell .main #view-dash #dashChart {padding:16px;box-sizing:border-box;}
   #appView .shell .main #dashRecent {max-height:50dvh;overflow:auto;padding:0 16px;box-sizing:border-box;}
   #appView .shell .main #dashRecent .recent-item {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;width:100%;padding:14px 0;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;text-align:left;font:400 14px/1.4 var(--sans);}

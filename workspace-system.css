@@ -36,7 +36,7 @@
 #appView .shortbox .row,#appView .shortbox .ft {color:var(--ink);}
 #appView .shell .main #salesInsight {margin-top:24px;padding:0 0 24px;min-width:0;}
 #appView .shell .main #salesInsight>.card-head {padding:20px 0;margin-bottom:20px;border-bottom:1px solid var(--line);}
-#appView .shell .main #salesInsight>h4 {margin:28px 0 16px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.5;}
+#appView .shell .main #salesInsight>h4 {margin:24px 0 16px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.5;}
 #appView .shell .main #salesInsight>p {margin:12px 0 20px;line-height:1.7;}
 #appView .shell .main #salesInsight .insight-method {margin:0 0 20px;color:var(--ink-2);font-size:12px;line-height:1.7;}
 #salesInsight .insight-method summary {cursor:pointer;padding:8px 0;}
@@ -443,6 +443,25 @@
 }
 
 /* Dashboard summaries: shared label-left / value-right rows. */
+#appView .shell .main #view-dash :is(.card-head h3,#salesInsight>h4) {font-size:14px;font-weight:600;line-height:1.5;letter-spacing:normal;}
+#appView .shell .main #view-dash :is(.legend,.clabel,#dashRecent .d,.page-title p) {color:var(--ink-2);font-size:12px;line-height:1.5;}
+#appView .shell .main #view-dash :is(.legend span,.recent-item .ra) {white-space:nowrap;}
+#appView .shell .main #view-dash .legend {flex-wrap:wrap;gap:8px 12px;}
+#appView .shell .main #view-dash :is(.stat-link,.recent-item):focus-visible {outline:2px solid var(--primary);outline-offset:-2px;}
+#appView .shell .main #view-dash .recent-item+.recent-item {border-top:0;}
+@media screen and (min-width:821px) and (max-width:1023px) {
+  #appView .shell .main #view-dash>.page-head h2 {font-size:24px;line-height:1.2;font-weight:700;}
+}
+/* A receivable balance alone is not an overdue/error status. Keep margin losses red. */
+#appView .shell .main #dashStats [data-view-target="ar"] .v.neg {color:var(--ink);}
+@media screen and (min-width:1024px) {
+  #appView .shell .main #view-dash>.page-head h2 {font-size:24px;line-height:1.2;font-weight:700;}
+  #appView .shell .main #view-dash .workspace-right {padding:24px 32px;}
+  #appView .shell .main #view-dash .workspace-heading {padding-left:32px;padding-right:32px;}
+  #appView .shell .main #view-dash .workspace-right>.card:has(#dashChart) {margin-top:24px;}
+  #appView .shell .main #view-dash .workspace-right>.card:has(#dashChart)>.card-head {padding:16px 0;gap:8px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  #appView .shell .main #view-dash .workspace-right>.card:has(#dashChart)>.card-head h3 {font-size:14px;font-weight:600;line-height:1.5;}
+}
 #appView .shell .main #view-dash .workspace-right #dashStats {
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;
   padding:0 20px;background:#f7f7f9;border-radius:10px;
@@ -450,12 +469,12 @@
 }
 #appView .shell .main #dashStats .stat {
   display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
-  gap:4px 16px;padding:18px 0;margin:0;text-align:left;border:0;
+  gap:4px 16px;padding:16px 0;margin:0;text-align:left;border:0;
   border-bottom:1px solid #ebebed;border-radius:0;background:transparent;
 }
 #appView .shell .main #dashStats .stat:nth-last-child(-n+2) {border-bottom:0;}
 #appView .shell .main #dashStats .stat .k {grid-column:1;grid-row:1;margin:0;text-align:left;}
-#appView .shell .main #dashStats .stat .hint {grid-column:1;grid-row:2;margin:0;text-align:left;}
+#appView .shell .main #dashStats .stat .hint {grid-column:1;grid-row:2;margin:0;text-align:left;color:var(--ink-2);font-size:12px;line-height:1.5;}
 #appView .shell .main #dashStats .stat .v {grid-column:2;grid-row:1/3;align-self:center;margin:0;text-align:right;white-space:nowrap;}
 #appView .shell .main #dashStats .stat:focus-visible {outline:2px solid var(--accent,#484cf5);outline-offset:2px;}
 @container dashboard-summary (max-width:640px) {
