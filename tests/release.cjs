@@ -10,11 +10,14 @@ for(const [,file,query=''] of assets){
   if(file.endsWith('.css')||file.endsWith('.js'))assert(sw.includes('./'+file+query),`Cache asset mismatch: ${file}`);
 }
 assert(!html.includes('Synthetic volume only')&&!html.includes("id:'c1',name:'샘플 거래처'"),'Fixture leaked into production');
-assert(html.includes('v1.168')&&sw.includes('erp-shell-v78-v168'),'Release version mismatch');
+assert(html.includes('v1.169')&&sw.includes('erp-shell-v79-v169'),'Release version mismatch');
 new vm.Script(fs.readFileSync(path.join(root,'stock-entry.js'),'utf8'));
 const css=fs.readFileSync(path.join(root,'workspace-system.css'),'utf8');
 assert(html.includes('--ok:#1DAD53')&&html.includes('--ok-ink:var(--ok)'), 'Shared green token mismatch');
 assert(!/#13823d/i.test(html), 'Legacy dark green remains');
+const mobile=fs.readFileSync(path.join(root,'mobile-workspace.css'),'utf8');
+assert(mobile.includes('.cline:not(.head) {min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))'), 'Mobile components must fit the viewport');
+assert(html.includes('escapeHtml(itemLabel(o.name,o.code))')&&html.includes('aria-label="구성품 삭제"'), 'Components need item codes and an accessible delete label');
 assert(css.includes('meter::-webkit-meter-optimum-value {background:var(--ok)')&&css.includes('meter::-moz-meter-bar {background:var(--ok)'), 'Meter must use shared green');
 assert(css.includes('.tax-unissued,.attention,.out,.buy,.work'), 'Amber badges must share their style');
 assert(/#view-stock \.stock-item b \{[^}]*text-align:right;justify-self:end/.test(css), 'Stock quantities must align right');

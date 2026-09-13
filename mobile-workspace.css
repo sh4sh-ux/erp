@@ -1,7 +1,18 @@
 /* Mobile presentation: preserve desktop, print and records. */
 .variant-field {min-width:0;margin:0;}
 .variant-field>span {display:none;}
+.component-field {min-width:0;margin:0;}
+.component-field>span:first-child {display:none;}
 @media screen and (max-width:820px) {
+  #appView .shell .main #view-items .cline.head {display:none;}
+  #appView .shell .main #view-items .cline:not(.head) {min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;}
+  #view-items .cline .component-field {display:grid;gap:8px;}
+  #view-items .cline .component-field>span:first-child {display:block;font-size:13px;color:var(--ink-3);}
+  #view-items .cline .component-item {grid-column:1/-1;grid-row:1;margin-right:56px;}
+  #view-items .cline .component-color {grid-column:1;grid-row:2;}
+  #view-items .cline .component-spec {grid-column:2;grid-row:2;}
+  #view-items .cline .component-qty {grid-column:2;grid-row:3;}
+  #appView .shell .main #view-items .cline .rm {grid-column:2;grid-row:1;align-self:end;justify-self:end;width:44px;height:44px;}
   #appView .shell .main #view-items .vlines {overflow:visible;}
   #appView .shell .main #view-items .vline.head {display:none;}
   #appView .shell .main #view-items .vline:not(.head) {min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;}

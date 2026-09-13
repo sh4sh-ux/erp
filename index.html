@@ -2195,7 +2195,7 @@
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
 <link rel="stylesheet" href="./workspace-system.css?v=1680">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1680">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1690">
 <link rel="stylesheet" href="./stock-entry.css?v=1650">
 </head>
 <body>
@@ -2749,7 +2749,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.168";
+const APP_VERSION = "v1.169";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3949,14 +3949,14 @@ function renderItDetail(){
             ? `<select data-cf="spec" data-idx="${idx}">${it.variants.map(v=>`<option ${v.spec===c.spec?"selected":""}>${escapeHtml(v.spec)}</option>`).join("")}</select>`
             : `<span class="hint" style="margin:0">${escapeHtml(it?.spec||"—")}</span>`;
           return `<div class="cline">
-            <select data-cf="item" data-idx="${idx}">
+            <label class="component-field component-item"><span>품목</span><select data-cf="item" data-idx="${idx}">
               <option value="">— 품목 선택 —</option>
-              ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${isWork(o)?"[작업] ":""}${escapeHtml(o.name)}</option>`).join("")}
-            </select>
-            ${colorCell}
-            ${specCell}
-            <input type="number" inputmode="numeric" class="num" data-cf="qty" data-idx="${idx}" value="${c.qty??1}" min="0">
-            <button class="rm" data-crm="${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+              ${opts.map(o=>`<option value="${o.id}" ${o.id===c.item_id?"selected":""}>${isWork(o)?"[작업] ":""}${escapeHtml(itemLabel(o.name,o.code))}</option>`).join("")}
+            </select></label>
+            <label class="component-field component-color"><span>색상</span>${colorCell}</label>
+            <label class="component-field component-spec"><span>규격/옵션</span>${specCell}</label>
+            <label class="component-field component-qty"><span>수량</span><input type="number" inputmode="numeric" class="num" data-cf="qty" data-idx="${idx}" value="${c.qty??1}" min="0"></label>
+            <button class="rm" data-crm="${idx}" aria-label="구성품 삭제"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>`;}).join("")}
       </div>
       <button class="btn-line-add" id="fi_addComp">＋ 구성품 추가</button>
