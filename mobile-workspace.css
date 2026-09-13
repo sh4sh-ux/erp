@@ -103,7 +103,7 @@
   #appView .shell .main :is(#view-sales,#view-ar) .filter-bar :is(.month-input,.date-control,select,.btn-sm) {width:100%;max-width:none;min-width:0;margin:0;}
   #appView .shell .main #view-sales .filter-bar>span {display:none;}
   #appView .shell .main :is(#view-sales,#view-ar) .filter-bar>.btn-sm {grid-column:1/-1;}
-  #appView .shell .main #view-stock .stock-tools {padding:12px;position:static;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;background:transparent;}
+  #appView .shell .main #view-stock .stock-tools {padding:12px 0;position:static;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;background:transparent;}
   #appView .shell .main #view-stock .stock-tools button {grid-column:1/-1;}
   #appView .shell .main #view-stock .stock-tools :is(input,select) {border:1px solid #d4d4d8;background:#fff;padding:10px 12px;}
   #appView .shell .main #view-stock .stock-item {padding:14px 12px;}

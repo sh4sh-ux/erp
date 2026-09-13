@@ -2,6 +2,25 @@
    Table separators 1.5/1/2 are the user's explicit ERP rule.
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
 .company-address-controls {display:flex;gap:8px;align-items:stretch;}
+/* Shared editable-row treatment; preserve focus/error indicators and print styles. */
+@media screen {
+  #appView .shell .main .view :is(.qline,.vline,.cline,.tbl,.stock-size-grid) :is(input:not([type=checkbox]):not([type=radio]),select,.ip-btn):not(:focus):not([aria-invalid="true"]) {
+    border-width:.75px;border-color:var(--border-default);box-shadow:none;
+  }
+  #appView .shell .main #view-quotes .qtotals {background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none;}
+}
+/* Item identity: helper shares the input row, not the label row. */
+@media screen and (min-width:1024px) {
+  #appView .shell .main #itForm .grid2:has(>#fi_codeHint) {grid-template-columns:minmax(120px,.65fr) minmax(160px,1fr) minmax(160px,1.2fr);grid-template-rows:auto auto auto;align-items:start;}
+  #appView .shell .main #itForm .grid2:has(>#fi_codeHint)>.grid2 {display:contents;}
+  #appView .shell .main #itForm .field:has(>#fi_code),
+  #appView .shell .main #itForm .field:has(>#fi_name) {display:grid;grid-template-rows:subgrid;grid-row:1/3;margin:0;}
+  #appView .shell .main #itForm .field:has(>#fi_code) {grid-column:1;}
+  #appView .shell .main #itForm .field:has(>#fi_name) {grid-column:2;}
+  #appView .shell .main #itForm :is(#fi_code,#fi_name) {align-self:center;}
+  #appView .shell .main #itForm #fi_codeHint {grid-column:3;grid-row:2;align-self:center;margin:0;color:var(--ink-2);line-height:1.5;}
+  #appView .shell .main #itForm .grid2:has(>#fi_codeHint)>.field {grid-column:1/3;grid-row:3;}
+}
 @media(min-width:601px){
   #appView #view-sales .item-data-table {min-width:0;width:100%;}
   #appView #view-sales .item-data-table .item-code {white-space:normal;overflow-wrap:anywhere;}
@@ -516,7 +535,7 @@
 #appView .shell .main #view-stock .stock-add #ivItem {grid-column:auto;}
 #appView .shell .main #view-stock .stock-add #ivMemo {grid-column:1/-1;}
 #appView .shell .main #view-stock .stock-kpi {border:0;background:transparent;cursor:pointer;text-align:right;}
-#appView .shell .main #view-stock .stock-kpi:last-child .v {color:var(--danger);}
+#appView .shell .main #view-stock .stock-kpi:last-child .v {color:var(--tax-unissued-color);}
 #appView .shell .main #view-stock .workspace-heading .stats {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
 #appView .shell .main #view-stock .stock-option-scroll {overflow-x:auto;}
 #appView .shell .main #view-stock .stock-option-table {table-layout:auto;min-width:640px;width:100%;}
