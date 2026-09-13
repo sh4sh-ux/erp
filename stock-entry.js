@@ -20,7 +20,7 @@ function setupStockQuickEntry(){
   document.getElementById('ivColor').onchange=setupStockQuickEntry;
   ['ivColor','ivSpec','ivKind','ivQty','ivMemo'].forEach((id,i)=>document.getElementById(id).setAttribute('aria-label',['색상','규격/옵션','입출고 구분','수량','메모'][i]));
 }
-function stockFingerprint(rows){return JSON.stringify(rows.map(m=>{const n={...m};if(n.quote_id==null)delete n.quote_id;return n;}));}
+function stockFingerprint(rows){return JSON.stringify(rows.map(m=>{const n={...m};if(n.quote_id===undefined){const hit=/^견적 (.+?) (?:수주|출고)/.exec(n.memo||'');const q=hit&&typeof db!=='undefined'&&db.quotes?.find(q=>q.no===hit[1]);if(q)n.quote_id=q.id;}if(n.quote_id==null)delete n.quote_id;return n;}));}
 function stockPlan(moves,change,items){
   const {kind,entries,id,reason}=change,original=id?moves.find(m=>m.id===id):null;
   if(!['add','edit','void'].includes(kind))throw Error('잘못된 변경 요청입니다.');

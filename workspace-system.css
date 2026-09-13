@@ -3,8 +3,9 @@
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
 .company-address-controls {display:flex;gap:8px;align-items:stretch;}
 @media(min-width:601px){
-  #appView #view-sales .item-data-table {min-width:1050px;}
-  #appView #view-sales .item-data-table .item-code {white-space:nowrap;}
+  #appView #view-sales .item-data-table {min-width:0;width:100%;}
+  #appView #view-sales .item-data-table .item-code {white-space:normal;overflow-wrap:anywhere;}
+  #appView #view-sales .item-data-table :is(th,td) {padding-left:8px;padding-right:8px;overflow-wrap:anywhere;}
 }
 @media(max-width:600px){
   #appView .shell .main #view-sales .item-data-table td:nth-child(2) {grid-column:1/-1;}
