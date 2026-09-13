@@ -1,7 +1,7 @@
-/* ERP service worker — v1.160 inventory entry release */
-const CACHE = "erp-shell-v70-v160";
-const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1590","./workspace-layout.js?v=1530","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1580","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
-SHELL.push('./stock-entry.js?v=1600','./stock-entry.css?v=1600');
+/* ERP service worker — v1.161 review fixes */
+const CACHE = "erp-shell-v71-v161";
+const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1610","./workspace-layout.js?v=1530","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1610","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
+SHELL.push('./stock-entry.js?v=1610','./stock-entry.css?v=1600');
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e => {

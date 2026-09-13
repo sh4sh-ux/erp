@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1590">
+<link rel="stylesheet" href="./workspace-system.css?v=1610">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1580">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1610">
 <link rel="stylesheet" href="./stock-entry.css?v=1600">
 </head>
 <body>
@@ -2748,7 +2748,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.160";
+const APP_VERSION = "v1.161";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3973,10 +3973,10 @@ function renderItDetail(){
         ${e.variants.map((v,idx)=>`
           <div class="vline">
             <span class="vhandle" data-vh="${idx}" title="드래그해서 순서 변경">⠿</span>
-            <input data-vf="spec" data-idx="${idx}" value="${escapeAttr(v.spec)}" placeholder="예: 30inch">
-            <input type="number" inputmode="numeric" class="num" data-vf="buy_price" data-idx="${idx}" value="${v.buy_price||""}" placeholder="기본값">
-            <input type="number" inputmode="numeric" class="num" data-vf="sell_price" data-idx="${idx}" value="${v.sell_price||""}" placeholder="기본값">
-            <button class="rm" data-vrm="${idx}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            <label class="variant-field variant-spec"><span>옵션명</span><input data-vf="spec" data-idx="${idx}" value="${escapeAttr(v.spec)}" placeholder="예: 30inch"></label>
+            <label class="variant-field variant-buy"><span>매입단가</span><input type="number" inputmode="numeric" class="num" data-vf="buy_price" data-idx="${idx}" value="${v.buy_price||""}" placeholder="기본값"></label>
+            <label class="variant-field variant-sell"><span>매출단가</span><input type="number" inputmode="numeric" class="num" data-vf="sell_price" data-idx="${idx}" value="${v.sell_price||""}" placeholder="기본값"></label>
+            <button class="rm" data-vrm="${idx}" aria-label="옵션 삭제"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
           </div>`).join("")}
       </div>`:""}
       <button class="btn-line-add" id="fi_addVar">＋ 옵션 추가</button>
@@ -5299,7 +5299,8 @@ async function syncStockForQuote(q,{ask=true}={}){
   if(!moves.length) return false;
   if(ask && !confirm(`재고를 다음과 같이 반영할까요?\n\n${desc.join("\n")}`)) return false;
   const next=[...db.stock_moves,...moves];
-  if(!await saveTable("stock_moves",next))return false;
+  try{await saveStockChecked(stockFingerprint(db.stock_moves),next);}
+  catch(err){toast('재고 반영 실패: '+err.message+' 동기화 후 견적을 다시 저장하세요.');return false;}
   db.stock_moves=next;
   toast(`재고 ${moves.length}건 반영했습니다`);
   return true;
@@ -5347,7 +5348,7 @@ async function deleteQuote(id){
   const msg="이 견적서를 삭제할까요? 되돌릴 수 없습니다."
     + (back.moves.length ? `\n\n이 견적으로 나간 재고는 함께 복구됩니다:\n${back.desc.join("\n")}` : "");
   if(!confirm(msg)) return;
-  if(q) await syncStockForQuote({...q,status:"취소"},{ask:false});
+  if(q && back.moves.length && !await syncStockForQuote({...q,status:"취소"},{ask:false}))return;
   db.quotes=db.quotes.filter(x=>x.id!==id);
   qtSel=null; qtEditing=null; qtBaseline="";
   renderQtList(); renderQtDetail();
@@ -6290,7 +6291,7 @@ function renderPay(){
     <thead><tr><th>날짜</th><th>거래처</th><th>메모</th><th>연결 견적</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th></th></tr></thead>
     <tbody>${rows.map(p=>`
       <tr>
-        <td style="white-space:nowrap">${escapeHtml((p.date||"").slice(5))}</td>
+        <td style="white-space:nowrap">${escapeHtml(p.date||"")}</td>
         <td>${escapeHtml(coName(p.company_id))}</td>
         <td class="sub ledger-memo">${escapeHtml(p.memo||"—")}</td>
         <td class="sub">${p.quote_id ? escapeHtml((db.quotes.find(q=>q.id===p.quote_id)||{}).no||"(삭제된 견적)") : "—"}</td>
@@ -6537,7 +6538,7 @@ function renderSales(){
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
         <div class="tbl-wrap"><table class="tbl item-data-table" style="table-layout:fixed">
-          <colgroup><col style="width:160px"><col style="width:190px"><col style="width:80px"><col style="width:100px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:100px"><col style="width:120px"></colgroup>
+          <colgroup><col style="width:15%"><col style="width:17%"><col style="width:6%"><col style="width:8%"><col style="width:7%"><col style="width:11%"><col style="width:13%"><col style="width:11%"><col style="width:12%"></colgroup>
           <thead><tr><th>품명</th><th>품목코드</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th><th style="text-align:right">마진</th></tr></thead>
           <tbody>${trs}
             <tr class="subtotal" style="background:var(--paper)">
@@ -6951,7 +6952,7 @@ async function init(){
 }
 init();
 </script>
-<script src="./stock-entry.js?v=1600"></script>
+<script src="./stock-entry.js?v=1610"></script>
 <script src="./workspace-layout.js?v=1530"></script>
 </body>
 </html>
