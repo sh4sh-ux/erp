@@ -1179,8 +1179,6 @@
     display:flex;flex-direction:column;background:transparent;border:0;border-radius:18px;
     padding:0;margin:0;overflow:hidden;z-index:60;box-shadow:none;
     transition:width .2s ease .28s, box-shadow .2s ease .28s, background .2s ease .28s, border-color .2s ease}
-  .shell .sidebar:hover{width:216px;background:var(--card);border:1px solid var(--line);
-    box-shadow:0 16px 46px rgba(16,24,40,.17);transition-delay:0s}
   .rail-logo{display:flex;align-items:center;gap:11px;height:56px;flex:0 0 auto;
     padding:0 12px;box-sizing:border-box;cursor:pointer}
   .rail-mark{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--primary);
@@ -1209,17 +1207,7 @@
   .rail-act svg{width:20px;height:20px;flex:0 0 20px}
   .rail-act span{transition:opacity .12s}
 
-  /* 접힘: 라벨/부가텍스트 숨김, 아이콘 가운데 */
-  .shell .sidebar:not(:hover) .rail-brand,
-  .shell .sidebar:not(:hover) .nav-item span,
-  .shell .sidebar:not(:hover) .rail-act span,
-  .shell .sidebar:not(:hover) .sync-text,
-  .shell .sidebar:not(:hover) .tb-user{opacity:0;width:0;margin:0;padding:0;overflow:hidden;pointer-events:none}
-  .shell .sidebar:not(:hover) .nav-sec{display:none}
-  .shell .sidebar:not(:hover) .rail-logo,
-  .shell .sidebar:not(:hover) .nav-item,
-  .shell .sidebar:not(:hover) .rail-act,
-  .shell .sidebar:not(:hover) .sync-state{justify-content:center;padding-left:0;padding-right:0}
+  /* Navigation alignment is invariant; navigation-layout.css owns its geometry. */
 
   /* ---- 큰 카드 (본문 프레임) ---- */
   .shell>.main{flex:1;min-width:0;height:auto;max-width:none;margin:0;position:relative;
@@ -1285,14 +1273,6 @@
       transform:translateX(-105%);box-shadow:0 12px 40px rgba(11,18,32,.18);z-index:200;
       transition:transform .24s cubic-bezier(.22,.7,.3,1)}
     .shell .sidebar.open{transform:translateX(0)}
-    /* 드로어는 항상 라벨 보임 (접힘 규칙 :not(:hover)와 같은 특이도로 뒤에서 덮는다) */
-    .shell .sidebar:not(:hover) .rail-brand,.shell .sidebar:not(:hover) .nav-item span,
-    .shell .sidebar:not(:hover) .rail-act span,.shell .sidebar:not(:hover) .sync-text,
-    .shell .sidebar:not(:hover) .tb-user{opacity:1;width:auto;margin:revert;padding:revert;pointer-events:auto}
-    .shell .sidebar:not(:hover) .nav-sec{display:block;height:auto;padding:12px 12px 5px;opacity:1}
-    .shell .sidebar:not(:hover) .rail-logo,.shell .sidebar:not(:hover) .nav-item,
-    .shell .sidebar:not(:hover) .rail-act,.shell .sidebar:not(:hover) .sync-state{justify-content:flex-start;padding-left:12px;padding-right:12px}
-    .shell .sidebar:not(:hover) .tb-user{padding:2px 12px 6px}
     .nav-backdrop{position:fixed;inset:0;top:0;z-index:150;background:rgba(11,18,32,.34)}
     .nav-backdrop.show{opacity:1;pointer-events:auto}
     .shell>.main{border-radius:16px}
@@ -2141,11 +2121,6 @@
     .shell .rail-nav .nav-item>span,
     .shell .rail-foot .rail-act>span,
     .shell .rail-foot .sync-state>.sync-text{justify-self:start;padding-right:14px}
-    /* collapsed 옛 규칙(justify-content:center;padding:0)이 grid center를 흔들지 않게 같은 특이도로 정리 */
-    .shell .sidebar:not(:hover) .rail-logo,
-    .shell .sidebar:not(:hover) .nav-item,
-    .shell .sidebar:not(:hover) .rail-act,
-    .shell .sidebar:not(:hover) .sync-state{justify-content:normal;padding-left:0;padding-right:0}
 
     /* ---- ③ expand/collapse 동기화 (width 0.28s 지연 제거 → label과 함께 접힘/펼침) ---- */
     .shell .sidebar{transition:width .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease}
@@ -2171,20 +2146,19 @@
           selected/hover·메뉴 순서·switchView·View markup·renderer·계산/저장·Dropbox/Firebase 무변경.
      ========================================================================== */
   @media(min-width:821px) and (max-width:1023px){
-    /* gutter가 폭을 담당: collapsed 76 / hover expanded 216, flex-basis transition */
-    .shell .rail-gutter{flex:0 0 76px;min-width:0;overflow:hidden;position:relative;transition:flex-basis .2s ease}
-    .shell .rail-gutter:hover{flex-basis:216px}
+    /* Narrow desktop uses the same fixed navigation as larger windows. */
+    .shell .rail-gutter{flex:0 0 208px;min-width:208px;overflow:hidden;position:relative;transition:none}
     /* sidebar 오버레이 폐기 → gutter를 채우는 in-flow 요소(자리 차지, Main 위로 안 뜸) */
     .shell .sidebar{position:relative;top:auto;left:auto;bottom:auto;z-index:auto;
       width:100%;height:100%;border:0;border-radius:0;box-shadow:none;background:transparent;
       transition:none}
     .shell .sidebar:hover{width:100%;border:0;border-radius:0;box-shadow:none;background:transparent}
-    /* label은 폭 변화와 동기 fade(같은 창) */
+    /* No hover expansion or label fade. */
     .shell .sidebar .rail-brand,
     .shell .sidebar .nav-item>span,
     .shell .sidebar .rail-act>span,
     .shell .sidebar .sync-text,
-    .shell .sidebar .tb-user{transition:opacity .18s ease}
+    .shell .sidebar .tb-user{transition:none}
   }
 
   /* ==========================================================================

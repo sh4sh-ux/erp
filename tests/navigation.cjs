@@ -52,6 +52,8 @@ const desktopShell = fs.readFileSync(path.join(__dirname, "..", "v142-dutch-pay.
   "font-size:13.5px",
 ].forEach(token=>assert(desktopShell.includes(token), `measured Dutch Pay token missing: ${token}`));
 const navigationCss=fs.readFileSync(path.join(__dirname,'..','navigation-layout.css'),'utf8');
+assert(!html.includes('.sidebar:not(:hover)'), 'legacy hover-dependent alignment must not return');
+assert(navigationCss.includes('@media screen and (min-width:821px)'), 'fixed navigation must include narrow desktop');
 assert(navigationCss.includes('width:208px;min-width:208px;flex:0 0 208px'),'fixed 208px rail missing');
 assert(
   /\.shell>\.main\s*\{[\s\S]*flex:1 1 auto;[\s\S]*min-width:0/.test(desktopShell),

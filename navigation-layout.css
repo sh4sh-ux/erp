@@ -2,15 +2,15 @@
 .nav-close{display:none}
 .rail-tools summary{cursor:pointer;padding:10px 12px;font:inherit;color:inherit}
 .rail-tools .rail-act{width:100%}
-@media screen and (min-width:1024px){
+@media screen and (min-width:821px){
   .shell{width:calc(100vw - 24px);max-width:1616px}
-  .shell>.rail-gutter,.shell>.rail-gutter:hover{width:208px;min-width:208px;flex:0 0 208px}
-  .shell>.rail-gutter>.sidebar,.shell>.rail-gutter>.sidebar:hover{width:208px;min-width:208px;padding:22px 12px;overflow:hidden}
+  .shell>.rail-gutter,.shell>.rail-gutter:hover{width:208px;min-width:208px;flex:0 0 208px;transition:none}
+  .shell>.rail-gutter>.sidebar,.shell>.rail-gutter>.sidebar:hover{position:relative;inset:auto;width:208px;min-width:208px;padding:22px 12px;overflow:hidden;transition:none}
   .shell .rail-nav{gap:4px;overflow:auto}
-  .shell .rail-nav .nav-item,.shell .rail-foot .rail-act,.shell .rail-foot .sync-state,.shell .rail-logo{display:flex;justify-content:flex-start;align-items:center;width:100%;min-width:0;height:40px;min-height:40px;flex:0 0 40px;padding:0 12px;gap:12px;margin:0;border-radius:8px;color:var(--ink-2)}
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item,.shell>.rail-gutter>.sidebar .rail-foot .rail-act,.shell>.rail-gutter>.sidebar .rail-foot .sync-state,.shell>.rail-gutter>.sidebar .rail-logo{display:flex;justify-content:flex-start;align-items:center;width:100%;min-width:0;height:40px;min-height:40px;flex:0 0 40px;padding:0 12px;gap:12px;margin:0;border-radius:8px;color:var(--ink-2)}
   .shell .rail-logo{height:48px;flex-basis:48px;margin-bottom:16px;padding:0 8px}
   .shell .rail-mark{width:38px;height:38px;flex:none;border-radius:12px}
-  .shell .rail-brand{display:block;opacity:1;width:auto;font-size:13px;white-space:nowrap}
+  .shell>.rail-gutter>.sidebar .rail-brand{display:block;opacity:1;width:auto;font-size:13px;white-space:nowrap}
   .shell>.rail-gutter>.sidebar .rail-nav .nav-sec{display:block;height:auto;opacity:1;padding:12px 12px 4px;font-size:11px}
   .shell>.rail-gutter>.sidebar .rail-nav .nav-item>span,
   .shell>.rail-gutter>.sidebar .rail-nav .nav-item:hover>span,
@@ -21,7 +21,7 @@
   .shell>.rail-gutter>.sidebar .rail-foot .sync-state>.sync-text,
   .shell>.rail-gutter>.sidebar .rail-foot .sync-state:hover>.sync-text{position:static;inset:auto;transform:none;opacity:1;width:auto;max-width:none;padding:0;margin:0;background:none;color:inherit;border:0;box-shadow:none;font:400 13px/normal var(--sans);pointer-events:auto;transition:none}
   .shell .rail-nav .nav-item svg,.shell .rail-foot .rail-act svg{width:18px;height:18px;flex:none}
-  .shell .rail-nav .nav-item.on{color:var(--primary-text);background:var(--primary-soft)}
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item.on{color:#2636b8;background:#eeeffe}
   .shell .rail-nav .nav-item.on>span{font-weight:600}
   .shell .rail-foot{gap:4px;max-height:42%;overflow:auto}
   .shell .rail-foot .sync-state{height:28px;min-height:28px;flex-basis:28px}
