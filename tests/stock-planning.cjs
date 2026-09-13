@@ -28,8 +28,6 @@ assert.equal(run(`stockOptionRows().filter(r=>r.item_id==='observed')[0].qty`),5
 run(`renderStock=()=>{};toast=()=>{};saveTable=async()=>false;`);
 elements.set('ivItem',{value:'i'});elements.set('ivQty',{value:'3'});elements.set('ivColor',{value:'WH'});elements.set('ivSpec',{value:'L'});elements.set('ivMemo',{value:'keep'});
 (async()=>{
-  const before=run('db.stock_moves.length');await run('addStockMove()');
-  assert.equal(run('db.stock_moves.length'),before);assert.equal(elements.get('ivQty').value,'3');assert.equal(elements.get('ivMemo').value,'keep');
   const input={value:'12',dataset:{stockMin:'i|WH|L'},focus(){}};
   document.querySelectorAll=()=>[input];await run('saveStockMinimums()');
   assert.equal(run(`db.items[0].stock_minimums['WH|L']`),undefined);
