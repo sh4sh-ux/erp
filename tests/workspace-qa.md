@@ -1,5 +1,13 @@
 # v1.151 desktop workspace verification
 
+## Form scrolling and shared alignment
+
+- Shared desktop field labels use the input text inset (13px); generic right bodies now start with the same 18px top padding as left bodies.
+- Quote header prioritizes company (23px bold) and amount (28px bold); number/date are secondary. Quote table/totals outer edges align with the form fields.
+- Quote/company/item forms retain their controls and listeners, moving only body nodes into an internal scroller. The presentation observer handles form rerenders and restores original children below desktop breakpoint. Supplier save actions are also outside the scroller.
+- Actual in-app preview, 1565px: quote body scrollTop 721 and 0 both produced footer y=839, bottom=904. Company/item/supplier footers also y=839/bottom=904. All ten rail views opened with horizontal overflow 0; console error log empty.
+- Existing navigation/materials/quote-workflow tests passed. No backend edits or deployment.
+
 ## Company/item control and header correction
 
 - Corrected selector specificity so shared select arrow padding (32px right, arrow inset 12px) and borderless search inner inputs win over the generic control rule.

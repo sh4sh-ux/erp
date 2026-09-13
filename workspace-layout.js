@@ -3,6 +3,33 @@
 (() => {
   const desktop = matchMedia('(min-width:1024px)');
   let restore = [];
+  // Dynamic forms are re-rendered by the app. Keep their action bar outside
+  // the scrolling body without replacing controls or their event listeners.
+  const formRoots = ['qtForm','coForm','itForm'];
+  function arrangeForms() {
+    formRoots.forEach(id => {
+      const form = document.getElementById(id);
+      if (!form) return;
+      const body = form.querySelector(':scope > .workspace-form-body');
+      if (!desktop.matches) {
+        if (body) body.replaceWith(...body.childNodes);
+        form.classList.remove('workspace-form');
+        return;
+      }
+      if (body || !form.querySelector(':scope > .form-actions')) return;
+      const scroll = document.createElement('div');
+      scroll.className = 'workspace-form-body';
+      [...form.childNodes].forEach(node => {
+        if (node.nodeType === 1 && node.matches('.quote-summary,.form-actions')) return;
+        scroll.append(node);
+      });
+      const actions = form.querySelector(':scope > .form-actions');
+      actions.before(scroll);
+      form.classList.add('workspace-form');
+    });
+  }
+  const formObserver = new MutationObserver(arrangeForms);
+  formRoots.forEach(id => { const form=document.getElementById(id); if(form) formObserver.observe(form,{childList:true}); });
   function mount() {
     if (!desktop.matches || restore.length) return;
     function panel(id, title, leftSelectors, rightSelectors) {
@@ -48,6 +75,8 @@
     panel('sales', '매출 상세', ['.filter-bar', '.sl-summary'], ['#slBody']);
     panel('ar', '미수금 상세', ['.filter-bar', '.scr-hero', '.stats'], ['.card:has(#arTbl)']);
     panel('settings', '공급자 정보', ['.settings-utils'], [':scope > .card']);
+    const settingsRight = document.querySelector('#view-settings .workspace-right');
+    relocate(document.getElementById('stSaveBtn')?.closest('.form-actions'), settingsRight);
     const csv = document.getElementById('qtCsvBtn');
     const listHead = document.querySelector('#view-quotes .list-head');
     if (csv && listHead) {
@@ -60,6 +89,7 @@
   function update() {
     if (desktop.matches) mount();
     else { const actions = restore; restore = []; actions.forEach(fn => fn()); }
+    arrangeForms();
   }
   desktop.addEventListener('change', update); update();
 })();

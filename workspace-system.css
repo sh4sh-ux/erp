@@ -57,7 +57,7 @@
   .shell .workspace-heading {grid-column:2;grid-row:1;padding:28px 34px 21px;border-bottom:1px solid #ebebed;background:#fff;}
   .shell .workspace-heading h3 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;margin:8px 0;}
   .shell .workspace-left {grid-column:1;grid-row:2;background:#fafafa;border-right:1px solid #ebebed;overflow:auto;min-height:0;padding:18px 28px;}
-  .shell .workspace-right {grid-column:2;grid-row:2;background:#fff;overflow:auto;min-width:0;min-height:0;padding:26px 34px;}
+  .shell .workspace-right {grid-column:2;grid-row:2;background:#fff;overflow:auto;min-width:0;min-height:0;padding:18px 34px;}
   .shell .workspace-split>.cols,.shell .workspace-split>.dash-grid {display:none;}
   .shell .workspace-left :is(.stats,.filter-bar,.sl-summary,.sl-metrics) {display:flex;flex-direction:column;align-items:stretch;gap:14px;}
   .shell .workspace-left .stat {width:100%;padding:12px 0;}
@@ -115,7 +115,7 @@
   .shell .main #view-materials #materialContent .material-history {padding:0 12px;border-top:0;}
   .shell .main #view-materials #materialContent .material-history-wrap {margin-top:24px;}
   .shell .main :is(#qtSearch,#coSearch,#itSearch) {border:0;height:auto;min-height:0;padding:0;background:transparent;box-shadow:none;}
-  .shell .main #view-quotes .qlines {padding:0 16px;border:0;}
+  .shell .main #view-quotes .qlines {padding:0;border:0;}
   .shell .main #view-quotes .qline.head>:is(:nth-child(3),:nth-child(4),:nth-child(5)) {text-align:right;}
   .shell .main #view-payments .workspace-right .pay-add {grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;padding:0 0 24px;}
   .shell .main #view-payments .workspace-right .pay-add .pf {grid-area:auto;grid-column:auto;}
@@ -128,4 +128,21 @@
   .shell .main #view-materials .material-owners {grid-column:1;grid-row:2;min-height:0;}
   .shell .main #view-materials .material-detail {grid-column:2;grid-row:1/4;min-height:0;padding-top:0;}
   .shell .main #view-materials .material-detail-head {top:0;min-height:144px;margin:0 -34px 24px;padding:24px 34px;border-bottom:1px solid #ebebed;}
+  /* Shared field text inset and panel-contained scrolling, not viewport fixes. */
+  .shell .main .view :is(.field>label,.pf>label,.filter-label) {padding-left:13px;}
+  .shell .main :is(#qtForm,#coForm,#itForm).workspace-form {display:grid;grid-template-rows:144px minmax(0,1fr) auto;height:100%;min-height:0;padding:0;overflow:hidden;}
+  .shell .main :is(#view-quotes,#view-companies,#view-items)>.cols>.card:last-child {height:100%;overflow:hidden;align-self:stretch;position:static;}
+  .shell .main .workspace-form>.workspace-form-body {overflow:auto;min-height:0;padding:18px 34px 26px;overscroll-behavior:contain;}
+  .shell .main :is(#coForm,#itForm).workspace-form::before {position:static;margin:0;height:144px;}
+  .shell .main #qtForm.workspace-form>.quote-summary {position:static;box-sizing:border-box;height:144px;min-height:0;margin:0;padding:30px 34px 20px;align-items:flex-start;}
+  .shell .main :is(#qtForm,#coForm,#itForm).workspace-form>.form-actions {position:static;margin:0;padding:16px 34px;background:#fff;border-top:1px solid #ebebed;min-width:0;flex-wrap:wrap;}
+  .shell .main #qtForm .qs-info {grid-template-columns:auto auto;gap:10px 18px;}
+  .shell .main #qtForm .qs-row:has(.co) {grid-column:1/-1;grid-row:1;}
+  .shell .main #qtForm .qs-val.co {font:700 23px/1.15 var(--sans);color:#111;letter-spacing:-.55px;}
+  .shell .main #qtForm .qs-amt-v {font:700 28px/1.15 var(--sans);color:#111;}
+  .shell .main #qtForm :is(.qs-no,.qs-row:not(:has(.co)) .qs-val) {font:400 12px/1.35 var(--sans);color:#666;}
+  .shell .main #view-quotes .qtotals {margin-left:0;margin-right:0;}
+  .shell .main #view-settings .workspace-right {display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;}
+  .shell .main #view-settings .workspace-right>.card {min-height:0;overflow:auto;padding:18px 34px 26px;}
+  .shell .main #view-settings .workspace-right>.form-actions {margin:0;padding:16px 34px;border-top:1px solid #ebebed;background:#fff;}
 }
