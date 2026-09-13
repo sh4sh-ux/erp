@@ -2195,7 +2195,7 @@
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
 <link rel="stylesheet" href="./workspace-system.css?v=1610">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1610">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1620">
 <link rel="stylesheet" href="./stock-entry.css?v=1600">
 </head>
 <body>
@@ -2748,7 +2748,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.161";
+const APP_VERSION = "v1.162";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3308,8 +3308,27 @@ const renderers={
   ar(){ renderAr(); },
   settings(){ renderSettings(); }
 };
+let coFormBaseline='',itFormBaseline='';
+function companyFormSnapshot(){
+  const form=document.getElementById('coForm');
+  return JSON.stringify(Array.from(form?.querySelectorAll?.('input,select,textarea')||[],el=>[el.id,el.value,el.checked]));
+}
+function masterHasUnsavedChanges(view=currentView){
+  if(view==='companies')return !!coFormBaseline&&companyFormSnapshot()!==coFormBaseline;
+  if(view==='items')return !!itEditing&&!!itFormBaseline&&JSON.stringify(itEditing)!==itFormBaseline;
+  return false;
+}
+function guardMasterLeave(view=currentView){
+  if(pendingMasterWrites.size){toast('저장 중입니다. 완료 후 이동해 주세요');return false;}
+  if(!masterHasUnsavedChanges(view))return true;
+  if(!confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동할까요?'))return false;
+  if(view==='companies')coFormBaseline='';
+  if(view==='items'){itEditing=null;itFormBaseline='';}
+  return true;
+}
 function switchView(v){
   if(!renderers[v]) return;
+  if(!restoringAppStep&&!guardMasterLeave())return false;
   if(!restoringAppStep && currentView==="quotes" && v!=="quotes" && !guardQtLeave()) return;
   const fromDrawer=_navBackArmed;
   if(fromDrawer) _inNavPop=true;
@@ -3393,6 +3412,15 @@ window.addEventListener("popstate", function(event){
   }
   const target=event.state?.erpStep;
   if(!target||!renderers[target.view])return;
+  // Drawer-only history changes must not rebuild an edited form.
+  if(JSON.stringify(target)===JSON.stringify(readAppStep())){
+    appStepIndex=event.state.erpStepIndex;
+    if(event.state.erpDrawer){_inNavPop=true;toggleNav(true);_inNavPop=false;}
+    return;
+  }
+  if(!guardMasterLeave()){
+    recoveringAppStep=true;history.go(appStepIndex-event.state.erpStepIndex);return;
+  }
   if(currentView==='quotes'&&(target.view!=='quotes'||target.qt!==qtSel)&&!guardQtLeave()){
     recoveringAppStep=true;
     history.go(appStepIndex-event.state.erpStepIndex);
@@ -3463,7 +3491,7 @@ function renderCoList(){
     </div>`).join("");
   list.scrollTop=previousScroll;
   list.querySelectorAll(".list-item").forEach(el=>{
-    el.onclick=()=>{ coSel=el.dataset.id; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
+    el.onclick=()=>{ if(!guardMasterLeave('companies'))return;coSel=el.dataset.id; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
   });
 }
 
@@ -3530,7 +3558,7 @@ function coLedgerHtml(c){
   const kindPill=k=>k==="납품"?'<span class="pill st-done">납품</span>':k==="수금"?'<span class="pill in">수금</span>':'<span class="pill out">지급</span>';
   const body=ev.length?ev.map(e=>`
       <tr>
-        <td style="white-space:nowrap">${escapeHtml((e.date||"").slice(2))}</td>
+        <td style="white-space:nowrap">${escapeHtml(e.date||"")}</td>
         <td>${kindPill(e.kind)}</td>
         <td class="sub">${escapeHtml(e.desc||"")}${e.no?` · <span class="mono" style="color:var(--ink-3)">${escapeHtml(e.no)}</span>`:""}</td>
         <td class="num"${e.cls?` style="color:var(--${e.cls==="pos"?"ok":"danger"})"`:""}>${e.sign||""}${fmt(e.amt)}</td>
@@ -3607,7 +3635,7 @@ function renderCoDetail(){
   const empty=document.getElementById("coEmpty");
   const form=document.getElementById("coForm");
   const c = coSel==="__new__" ? blankCompany() : db.companies.find(x=>x.id===coSel);
-  if(!c){ empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
+  if(!c){ coFormBaseline='';empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
   empty.classList.add("hidden"); form.classList.remove("hidden");
   const isNew = coSel==="__new__";
   form.innerHTML=`
@@ -3646,6 +3674,7 @@ function renderCoDetail(){
       <button class="btn save" id="coSaveBtn">${isNew?"등록":"저장"}</button>
       ${isNew?'<button class="btn ghost" id="coCancelBtn">취소</button>':'<button class="btn del" id="coDelBtn">삭제</button>'}
     </div>`;
+  coFormBaseline=companyFormSnapshot();
   document.getElementById("coSaveBtn").onclick=()=>submitCompany(c,isNew);
   document.getElementById('coBackToList').onclick=event=>{
     event.stopPropagation();
@@ -3656,18 +3685,18 @@ function renderCoDetail(){
   document.getElementById("coAddressSearch").onclick=openCompanyAddressSearch;
   document.getElementById("coPriceAdd").onclick=()=>document.getElementById("coPriceRules").insertAdjacentHTML("beforeend",companyPriceRow());
   document.getElementById("coPriceRules").onclick=ev=>{if(ev.target.closest("[data-rule-remove]"))ev.target.closest("[data-price-rule]").remove();};
-  if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ coSel=null; renderCoList(); renderCoDetail(); };
+  if(isNew) document.getElementById("coCancelBtn").onclick=()=>{ if(!guardMasterLeave('companies'))return;coSel=null; renderCoList(); renderCoDetail(); };
   else {
     document.getElementById("coDelBtn").onclick=()=>deleteCompany(c.id);
     // 원장 액션 줄 — 실제 동작 연결
     document.getElementById("coActPay").onclick=()=>{
-      switchView("payments");
+      if(switchView("payments")===false)return;
       const el=document.getElementById("payCo");
       if(el){ el.value=c.id; updatePayQuotes(); }
       setTimeout(()=>document.getElementById("payAmt")?.focus(),40);
     };
     document.getElementById("coActQuote").onclick=()=>{
-      switchView("quotes");
+      if(switchView("quotes")===false)return;
       document.getElementById("qtNewBtn").click();
       if(qtEditing){ qtEditing.company_id=c.id; applyCoQuoteMemo(qtEditing,""); renderQtDetail(); scrollToDetail("qtForm"); }
     };
@@ -3723,9 +3752,10 @@ async function deleteCompany(id){
       + `미수금·매출 집계에도 그대로 잡힙니다.\n\n그래도 삭제할까요?`
     : "이 거래처를 삭제할까요? 되돌릴 수 없습니다.";
   if(!confirm(msg)) return;
-  db.companies=db.companies.filter(c=>c.id!==id);
+  const next=db.companies.filter(c=>c.id!==id);
+  if(!await saveTable("companies",next))return;
+  db.companies=next;
   coSel=null; renderCoList(); renderCoDetail();
-  await saveTable("companies",db.companies);
 }
 
 /* =====================================================================
@@ -3876,7 +3906,7 @@ function renderItList(){
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
-    el.onclick=()=>{ itSel=el.dataset.id; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
+    el.onclick=()=>{ if(!guardMasterLeave('items'))return;itSel=el.dataset.id; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
   });
 }
 
@@ -3889,11 +3919,11 @@ function renderItDetail(){
   const empty=document.getElementById("itEmpty");
   const form=document.getElementById("itForm");
   if(itSel==="__new__"){
-    if(!itEditing) itEditing=blankItem();
+    if(!itEditing){itEditing=blankItem();itFormBaseline=JSON.stringify(itEditing);}
   }else if(itSel){
     const src=db.items.find(x=>x.id===itSel);
     if(!src){ itSel=null; }
-    else if(!itEditing || itEditing.id!==itSel) itEditing=normalizeItem(JSON.parse(JSON.stringify(src)));
+    else if(!itEditing || itEditing.id!==itSel){itEditing=normalizeItem(JSON.parse(JSON.stringify(src)));itFormBaseline=JSON.stringify(itEditing);}
   }
   if(!itSel){ itEditing=null; empty.classList.remove("hidden"); form.classList.add("hidden"); return; }
   empty.classList.add("hidden"); form.classList.remove("hidden");
@@ -4071,7 +4101,7 @@ function renderItDetail(){
   }
 
   document.getElementById("itSaveBtn").onclick=()=>submitItem(isNew);
-  if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ itSel=null; itEditing=null; renderItList(); renderItDetail(); };
+  if(isNew) document.getElementById("itCancelBtn").onclick=()=>{ if(!guardMasterLeave('items'))return;itSel=null; itEditing=null; renderItList(); renderItDetail(); };
   else document.getElementById("itDelBtn").onclick=()=>deleteItem(e.id);
 }
 
@@ -4172,7 +4202,7 @@ function updateItSums(e){
 }
 
 async function submitItem(isNew){
-  const e=itEditing;
+  const e=JSON.parse(JSON.stringify(itEditing));
   if(!(e.name||"").trim()){ toast("품명을 입력하세요"); return; }
   e.name=e.name.trim();
   e.code=(e.code||"").trim();
@@ -4192,23 +4222,21 @@ async function submitItem(isNew){
   if(isNew){
     e.id=crypto.randomUUID();
     e.created_at=new Date().toISOString();
-    db.items.push(e);
-    itSel=e.id;
-  }else{
-    const idx=db.items.findIndex(x=>x.id===e.id);
-    if(idx>=0) db.items[idx]=e;
   }
+  const next=isNew?[...db.items,e]:db.items.map(x=>x.id===e.id?e:x);
+  if(!await saveTable("items",next))return;
+  db.items=next;itSel=e.id;
   itEditing=null;
   renderItList(); renderItDetail();
-  await saveTable("items",db.items);
 }
 
 async function deleteItem(id){
   if(!confirm("이 품목을 삭제할까요? 되돌릴 수 없습니다.")) return;
-  db.items=db.items.filter(i=>i.id!==id);
+  const next=db.items.filter(i=>i.id!==id);
+  if(!await saveTable("items",next))return;
+  db.items=next;
   itSel=null; itEditing=null;
   renderItList(); renderItDetail();
-  await saveTable("items",db.items);
 }
 
 /* =====================================================================
@@ -5267,7 +5295,7 @@ function quoteShortage(q){
     if(n>avail){
       const [item_id,color,spec]=k.split("|");
       const it=db.items.find(x=>x.id===item_id);
-      rows.push({ label:[(it?it.name:"(삭제된 품목)"),color,spec].filter(Boolean).join(" · "),
+      rows.push({ label:[(it?itemLabel(it.name,it.code):"(삭제된 품목)"),color,spec].filter(Boolean).join(" · "),
                   need:n, avail, lack:n-avail });
     }
   });
@@ -5345,14 +5373,14 @@ async function deleteQuote(id){
   const q=db.quotes.find(x=>x.id===id);
   if(db.payments.some(p=>p.quote_id===id)||quoteDeliveredQty(q||{})>0){toast("납품·입금 기록이 연결된 견적은 삭제할 수 없습니다. 연결된 기록을 먼저 확인하세요");return;}
   const back=q ? stockDeltaForQuote({...q,status:"취소"}) : {moves:[],desc:[]};
-  const msg="이 견적서를 삭제할까요? 되돌릴 수 없습니다."
-    + (back.moves.length ? `\n\n이 견적으로 나간 재고는 함께 복구됩니다:\n${back.desc.join("\n")}` : "");
-  if(!confirm(msg)) return;
-  if(q && back.moves.length && !await syncStockForQuote({...q,status:"취소"},{ask:false}))return;
-  db.quotes=db.quotes.filter(x=>x.id!==id);
+  // Separate stock restoration from destructive deletion: these files are not atomic.
+  if(back.moves.length){toast("재고 출고 이력이 있습니다. 견적 상태를 취소로 저장하여 재고 복구를 확인한 뒤 삭제하세요");return;}
+  if(!confirm("이 견적서를 삭제할까요? 되돌릴 수 없습니다."))return;
+  const next=db.quotes.filter(x=>x.id!==id);
+  if(!await saveTable("quotes",next))return;
+  db.quotes=next;
   qtSel=null; qtEditing=null; qtBaseline="";
   renderQtList(); renderQtDetail();
-  await saveTable("quotes",db.quotes);
 }
 
 function koreanDate(iso){
@@ -6318,20 +6346,22 @@ async function addPayment(){
   if(!date){ toast("날짜를 선택하세요"); return; }
   if(!company_id){ toast("거래처를 선택하세요"); return; }
   if(amount<=0){ toast("금액을 입력하세요"); return; }
-  db.payments.push({ id:crypto.randomUUID(), date, company_id, quote_id, kind, method, amount, memo, created_at:new Date().toISOString() });
+  const next=[...db.payments,{ id:crypto.randomUUID(), date, company_id, quote_id, kind, method, amount, memo, created_at:new Date().toISOString() }];
+  if(!await saveTable("payments",next))return;
+  db.payments=next;
   document.getElementById("payAmt").value="";
   document.getElementById("payMemo").value="";
   document.getElementById("payQuote").value="";
   document.getElementById("payMonth").value=date.slice(0,7);
   renderPay();
-  await saveTable("payments",db.payments);
 }
 
 async function deletePayment(id){
   if(!confirm("이 내역을 삭제할까요?")) return;
-  db.payments=db.payments.filter(p=>p.id!==id);
+  const next=db.payments.filter(p=>p.id!==id);
+  if(!await saveTable("payments",next))return;
+  db.payments=next;
   renderPay();
-  await saveTable("payments",db.payments);
 }
 
 /* =====================================================================
@@ -6641,7 +6671,7 @@ function arData(){
 
 function arRows(){
   const all=arData();
-  return document.getElementById("arFilter").value==="all" ? all : all.filter(r=>r.open!==0);
+  return document.getElementById("arFilter").value==="all" ? all : all.filter(r=>r.open>0);
 }
 
 function renderAr(){
@@ -6823,6 +6853,28 @@ async function importBackup(file){
   }catch(e){ toast("Dropbox 저장 실패: "+e.message); }
 }
 
+const pendingMasterWrites=new Set();
+function singleTableWrite(table,action){
+  return async function(...args){
+    if(pendingMasterWrites.has(table)){toast('저장 중입니다. 잠시 기다려 주세요');return;}
+    pendingMasterWrites.add(table);
+    const selectors={companies:'#coForm',items:'#itForm',payments:'#view-payments',quotes:'#qtForm'};
+    const controls=Array.from(document.querySelectorAll?.(`${selectors[table]} input,${selectors[table]} select,${selectors[table]} textarea,${selectors[table]} button`)||[]).map(el=>[el,el.disabled]);
+    controls.forEach(([el])=>el.disabled=true);
+    try{return await action(...args);}finally{
+      pendingMasterWrites.delete(table);
+      controls.forEach(([el,disabled])=>{if(el.isConnected)el.disabled=disabled;});
+    }
+  };
+}
+submitCompany=singleTableWrite('companies',submitCompany);
+deleteCompany=singleTableWrite('companies',deleteCompany);
+submitItem=singleTableWrite('items',submitItem);
+deleteItem=singleTableWrite('items',deleteItem);
+addPayment=singleTableWrite('payments',addPayment);
+deletePayment=singleTableWrite('payments',deletePayment);
+deleteQuote=singleTableWrite('quotes',deleteQuote);
+
 /* =====================================================================
    초기화
    ===================================================================== */
@@ -6851,13 +6903,13 @@ async function init(){
 
   // 이벤트 연결
   document.getElementById("tbVer").textContent=APP_VERSION;
-  document.getElementById("brandBtn").onclick=()=>{ if(guardQtLeave()) location.reload(); };
+  document.getElementById("brandBtn").onclick=()=>{ if(guardMasterLeave()&&guardQtLeave()) location.reload(); };
   document.getElementById("bizCardBtn").onclick=shareBusinessCard;
   document.getElementById("bizCertBtn").onclick=shareBizCert;
   document.getElementById("connectBtn").onclick=startLogin;
-  document.getElementById("logoutBtn").onclick=()=>{ if(guardQtLeave()) logout(); };
+  document.getElementById("logoutBtn").onclick=()=>{ if(guardMasterLeave()&&guardQtLeave()) logout(); };
   document.getElementById("importOldBtn").onclick=importFromAppFolder;
-  document.getElementById("refreshBtn").onclick=()=>{ if(guardQtLeave()) loadAll(); };
+  document.getElementById("refreshBtn").onclick=()=>{ if(guardMasterLeave()&&guardQtLeave()){itEditing=null;loadAll();} };
   document.querySelectorAll(".nav-item,.mobile-nav-item").forEach(el=>{
     el.onclick=()=>switchView(el.dataset.view);
   });
@@ -6865,10 +6917,10 @@ async function init(){
   document.getElementById("closeNavBtn").onclick=()=>toggleNav(false);
   document.getElementById("navBackdrop").onclick=()=>toggleNav(false);
   { const _mb=document.getElementById("moreNavBtn"); if(_mb) _mb.onclick=()=>toggleNav(true); }
-  document.getElementById("coNewBtn").onclick=()=>{ coSel="__new__"; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
+  document.getElementById("coNewBtn").onclick=()=>{ if(!guardMasterLeave('companies'))return;coSel="__new__"; renderCoList(); renderCoDetail(); scrollToDetail("coForm"); };
   document.getElementById("coSearch").oninput=e=>{ coFilter=e.target.value; renderCoList(); };
   document.getElementById("coType").onchange=renderCoList;
-  document.getElementById("itNewBtn").onclick=()=>{ itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
+  document.getElementById("itNewBtn").onclick=()=>{ if(!guardMasterLeave('items'))return;itSel="__new__"; itEditing=null; renderItList(); renderItDetail(); scrollToDetail("itForm"); };
   document.getElementById("itSearch").oninput=e=>{ itFilter=e.target.value; renderItList(); };
   document.getElementById("qtNewBtn").onclick=()=>{
     if(!guardQtLeave()) return;
@@ -6919,7 +6971,7 @@ async function init(){
     if(f) await importBackup(f);
   };
   window.addEventListener("beforeunload",e=>{
-    if(!qtHasUnsavedChanges()) return;
+    if(!pendingMasterWrites.size&&!qtHasUnsavedChanges()&&!masterHasUnsavedChanges()) return;
     e.preventDefault();
     e.returnValue="";
   });
