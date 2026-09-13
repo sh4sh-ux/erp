@@ -2193,7 +2193,7 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1512">
+<link rel="stylesheet" href="./workspace-system.css?v=1520">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
 </head>
 <body>
@@ -2388,27 +2388,35 @@
       <section class="view hidden" id="view-stock">
         <div class="page-head"><h2>재고</h2><div class="sp"></div></div>
         <div class="stats">
-          <div class="stat"><div class="k">재고 보유</div><div class="v" id="ivCount">0종</div></div>
-          <div class="stat"><div class="k">총 재고 수량</div><div class="v" id="ivTotal">0개</div></div>
-          <div class="stat"><div class="k">재고 소진 (0 이하)</div><div class="v" id="ivEmpty">0종</div></div>
+          <button type="button" class="stat stock-kpi" data-stock-filter="missing"><div class="k">기준 미설정</div><div class="v" id="ivUnset">0종</div></button>
+          <button type="button" class="stat stock-kpi" data-stock-filter="zero"><div class="k">품절 옵션</div><div class="v" id="ivTotal">0종</div></button>
+          <button type="button" class="stat stock-kpi" data-stock-filter="low"><div class="k">최소 기준 미달</div><div class="v" id="ivEmpty">0종</div></button>
+          <button type="button" class="stat stock-kpi" data-stock-filter="short"><div class="k">주문 대비 부족</div><div class="v" id="ivCount">0종</div></button>
         </div>
         <div class="cols" style="grid-template-columns:1fr 1.15fr">
           <div class="card">
-            <div class="card-head"><h3>현재고</h3></div>
+            <div class="stock-tools">
+              <input type="search" id="stockSearch" placeholder="품목 검색" aria-label="재고 품목 검색">
+              <select id="stockFilter" aria-label="재고 상태"><option value="all">전체 품목</option><option value="short">주문 대비 부족</option><option value="low">최소 기준 미달</option><option value="zero">품절 옵션</option><option value="negative">음수 재고</option><option value="missing">기준 미설정</option></select>
+              <button type="button" class="btn primary" id="stockRegister">+ 입출고 등록</button>
+            </div>
+            <div id="stockItems"></div>
             <div class="tbl-wrap"><table class="tbl item-data-table" id="ivTbl"></table></div>
           </div>
           <div class="card">
-            <div class="card-head"><h3>입출고 기록</h3></div>
-            <div class="stock-add">
-              <input type="date" id="ivDate">
-              <select id="ivItem" class="span2"></select>
+            <div id="stockOverview"></div>
+            <div class="stock-add" hidden>
+              <input type="date" id="ivDate" aria-label="입출고 일자">
+              <select id="ivItem" aria-label="입출고 품목"></select>
               <select id="ivColor"></select>
               <select id="ivSpec"></select>
               <select id="ivKind"><option>입고</option><option>출고</option></select>
               <input type="text" inputmode="numeric" class="num" id="ivQty" placeholder="수량">
-              <input id="ivMemo" placeholder="메모 (선택)">
-              <button class="btn-sm" id="ivAddBtn">추가</button>
+              <input id="ivMemo" class="span2" placeholder="메모 (선택)">
+              <button type="button" class="btn ghost" id="ivCancelBtn">취소</button>
+              <button type="button" class="btn-sm" id="ivAddBtn">입출고 등록</button>
             </div>
+            <h3 class="stock-history-title">최근 입출고 내역</h3>
             <div class="tbl-wrap"><table class="tbl item-data-table" id="ivHist"></table></div>
           </div>
         </div>
@@ -2736,7 +2744,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.151";
+const APP_VERSION = "v1.152";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3293,7 +3301,10 @@ const renderers={
   settings(){ renderSettings(); }
 };
 function switchView(v){
-  if(currentView==="quotes" && v!=="quotes" && !guardQtLeave()) return;
+  if(!renderers[v]) return;
+  if(!restoringAppStep && currentView==="quotes" && v!=="quotes" && !guardQtLeave()) return;
+  const fromDrawer=_navBackArmed;
+  if(fromDrawer) _inNavPop=true;
   currentView=v;
   document.querySelectorAll(".view").forEach(el=>el.classList.add("hidden"));
   document.getElementById("view-"+v).classList.remove("hidden");
@@ -3302,10 +3313,31 @@ function switchView(v){
   const _mnav=document.getElementById("moreNavBtn");
   if(_mnav) _mnav.classList.toggle("on",["companies","items","stock","sales","ar","settings"].indexOf(v)>=0);
   toggleNav(false);
+  if(fromDrawer){_inNavPop=false;_navBackArmed=false;}
   window.scrollTo(0,0);
   renderCurrentView();
+  rememberAppStep(fromDrawer);
 }
 function renderCurrentView(){ renderers[currentView](); }
+
+/* History stores navigation only, never business data or form contents. */
+let appStep=null, appStepIndex=0, restoringAppStep=false, recoveringAppStep=false;
+function readAppStep(){
+  return {view:currentView,co:coSel,it:itSel,qt:qtSel,owner:materialSelectedCompanyId,material:materialSelectedName};
+}
+function rememberAppStep(replace=false){
+  if(restoringAppStep) return;
+  const next=readAppStep();
+  if(appStep&&JSON.stringify(next)===JSON.stringify(appStep)&&!replace) return;
+  const first=!appStep;
+  if(!first&&!replace) appStepIndex++;
+  appStep=next;
+  try{history[first||replace?'replaceState':'pushState']({erpStep:next,erpStepIndex:appStepIndex},'');}catch(e){}
+}
+document.addEventListener('click',()=>{
+  if(!appStep) rememberAppStep();
+},true);
+document.addEventListener('click',()=>{if(!_navBackArmed)rememberAppStep();});
 
 /* ---------- 모바일 내비게이션 드로어 ---------- */
 function toggleNav(open){
@@ -3324,7 +3356,7 @@ function toggleNav(open){
   // 앱 내 뒤로가기: 드로어가 열리면 history 항목 1개를 쌓고,
   // 하드웨어/브라우저 back으로 닫히게 한다. (popstate 안에서는 pushState 안 함)
   if(willOpen && !wasOpen){
-    if(!_navBackArmed){ _navBackArmed=true; try{history.pushState({erpDrawer:1},"");}catch(e){} }
+    if(!_navBackArmed){ rememberAppStep(); _navBackArmed=true; if(!_inNavPop)try{history.pushState({erpDrawer:1,erpStep:appStep,erpStepIndex:appStepIndex},"");}catch(e){} }
   } else if(!willOpen && wasOpen){
     if(_navBackArmed && !_inNavPop){ _navBackArmed=false; try{history.back();}catch(e){} }
   }
@@ -3342,13 +3374,31 @@ document.addEventListener?.('keydown',e=>{
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
   }
 });
-window.addEventListener("popstate", function(){
+window.addEventListener("popstate", function(event){
+  if(recoveringAppStep){recoveringAppStep=false;return;}
   const sb=document.querySelector(".sidebar");
   if(sb && sb.classList.contains("open")){
     _inNavPop=true; _navBackArmed=false;
     toggleNav(false);           // 드로어만 닫고 나감 (여기서 history.back 재호출 방지)
     _inNavPop=false;
   }
+  const target=event.state?.erpStep;
+  if(!target||!renderers[target.view])return;
+  if(currentView==='quotes'&&(target.view!=='quotes'||target.qt!==qtSel)&&!guardQtLeave()){
+    recoveringAppStep=true;
+    history.go(appStepIndex-event.state.erpStepIndex);
+    return;
+  }
+  restoringAppStep=true;
+  try{
+    const quoteChanged=target.qt!==qtSel;
+    coSel=target.co;itSel=target.it;qtSel=target.qt;
+    materialSelectedCompanyId=target.owner;materialSelectedName=target.material;
+    if(quoteChanged){qtEditing=null;qtBaseline='';}
+    switchView(target.view);
+    appStep=readAppStep();appStepIndex=event.state.erpStepIndex;
+    if(event.state.erpDrawer){_inNavPop=true;toggleNav(true);_inNavPop=false;}
+  }finally{restoringAppStep=false;}
 });
 
 /* 모바일(단일 열)에서 목록 항목 선택 시 상세 폼으로 스크롤 */
@@ -3469,10 +3519,10 @@ function coLedgerHtml(c){
       <div class="sub">${c.type==="매입"?"매입 거래처":`미납품 <b>${won(r.pending)}</b>${r.untaxedCount?`<span class="sep">·</span>계산서 미발행 <b class="neg">${r.untaxedCount}건</b>`:""}`}</div>
     </div>
     <div class="stats">
+      <div class="stat"><div class="k">최근 거래</div><div class="v">${recent?escapeHtml(recent):"—"}</div></div>
+      <div class="stat"><div class="k">거래 횟수</div><div class="v">${fmt(r.orders)}건</div></div>
       <div class="stat"><div class="k">납품 누계</div><div class="v">${won(r.delivered)}</div></div>
       <div class="stat"><div class="k">수금 누계</div><div class="v pos">${won(r.paid)}</div></div>
-      <div class="stat"><div class="k">거래 횟수</div><div class="v">${fmt(r.orders)}건</div></div>
-      <div class="stat"><div class="k">최근 거래</div><div class="v">${recent?escapeHtml(recent):"—"}</div></div>
     </div>
     <div class="co-acts">
       <button type="button" class="btn primary" id="coActPay"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>수금 등록</button>
@@ -3884,8 +3934,14 @@ function renderItDetail(){
   bindCodeSplit(e);
   document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
   document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
-  document.getElementById("fi_buy").oninput=ev=>{ e.buy_price=Number(ev.target.value)||0; updateItSums(e); };
-  document.getElementById("fi_sell").oninput=ev=>{ e.sell_price=Number(ev.target.value)||0; updateItSums(e); };
+  // Price fields use the existing comma-input convention; stored prices stay numeric.
+  const bindItemPrice=(el,onChange)=>{
+    el.type='text';el.inputMode='decimal';el.classList.add('num');
+    if(el.value!=='')el.value=fmt(parseNum(el.value));
+    bindNumInput(el,onChange);
+  };
+  bindItemPrice(document.getElementById("fi_buy"),n=>{ e.buy_price=n; updateItSums(e); });
+  bindItemPrice(document.getElementById("fi_sell"),n=>{ e.sell_price=n; updateItSums(e); });
 
   if(isSet(e)){
     document.getElementById("fi_addComp").onclick=()=>{ e.components.push({item_id:"",spec:"",qty:1}); renderItDetail(); };
@@ -3926,10 +3982,9 @@ function renderItDetail(){
     };
     document.getElementById("fi_addVar").onclick=()=>{ e.variants.push({spec:"",buy_price:"",sell_price:""}); renderItDetail(); };
     form.querySelectorAll("[data-vf]").forEach(el=>{
-      el.oninput=()=>{
-        const v=e.variants[Number(el.dataset.idx)];
-        v[el.dataset.vf]= el.dataset.vf==="spec" ? el.value : (Number(el.value)||"");
-      };
+      const v=e.variants[Number(el.dataset.idx)];
+      if(el.dataset.vf==='spec')el.oninput=()=>{v.spec=el.value;};
+      else bindItemPrice(el,n=>{v[el.dataset.vf]=n||'';});
     });
     form.querySelectorAll("[data-vrm]").forEach(el=>{
       el.onclick=()=>{ e.variants.splice(Number(el.dataset.vrm),1); renderItDetail(); };
@@ -5908,6 +5963,68 @@ function updateIvCombo(){
   specEl.innerHTML = hasV ? it.variants.map(v=>`<option>${escapeHtml(v.spec)}</option>`).join("") : `<option value="">규격/옵션 —</option>`;
   specEl.disabled=!hasV;
 }
+let stockSelectedItem='',stockMinimumSaving=false,stockEntrySaving=false;
+const stockMinimumDraft={};
+function stockOptionRows(){
+  const map=currentStocks(),pending={};
+  (db.quotes||[]).filter(q=>QT_COMMITTED.includes(q.status)).forEach(q=>{
+    const total=quoteStockNeeds({...q,legacy_stock:true});
+    const delivered=quoteStockNeeds({...q,legacy_stock:false}),done=quoteStockDone(q.id);
+    Object.entries(total).forEach(([k,n])=>{
+      const remaining=Math.max(0,n-Math.max(delivered[k]||0,done[k]||0));
+      if(remaining>0)pending[k]=(pending[k]||0)+remaining;
+    });
+  });
+  const keys=new Set([...Object.keys(map),...Object.keys(pending)]);
+  db.items.filter(tracksStock).forEach(i=>{
+    const colors=i.colors?.length?i.colors:[''];
+    Object.keys(i.stock_minimums||{}).forEach(k=>keys.add(i.id+'|'+k));
+    const specs=i.variants?.length?i.variants.map(v=>v.spec):i.spec?[i.spec]:[];
+    // Undefined master options must not create phantom sold-out combinations.
+    // Keep observed movement/order options; create a fallback only for new items.
+    if(specs.length)colors.forEach(c=>specs.forEach(s=>keys.add([i.id,c,s].join('|'))));
+    else if(![...keys].some(k=>k.split('|')[0]===i.id))colors.forEach(c=>keys.add([i.id,c,''].join('|')));
+  });
+  return [...keys].map(key=>{
+    const [item_id,color,spec]=key.split('|'),item=db.items.find(i=>i.id===item_id);
+    if(!tracksStock(item))return null;
+    const raw=item.stock_minimums?.[[color,spec].join('|')];
+    const minimum=typeof raw==='number'&&Number.isFinite(raw)&&raw>=0?raw:null;
+    const qty=map[key]||0,reserved=pending[key]||0,available=qty-reserved;
+    return {key,item_id,name:item.name,color,spec,qty,reserved,available,minimum,
+      shortage:reserved>0?Math.max(0,-available):0,low:minimum!==null&&minimum>0&&available<minimum};
+  }).filter(Boolean);
+}
+function matchesStockFilter(c,filter){
+  return filter==='all'||(filter==='short'&&c.shortage>0)||(filter==='low'&&c.low)||
+    (filter==='zero'&&c.qty===0)||(filter==='negative'&&c.qty<0)||(filter==='missing'&&c.minimum===null);
+}
+function stockRowStatus(c){return c.qty<0?'재고 확인 필요':c.shortage>0?'주문 대비 부족':c.qty===0?'품절':c.low?'최소 기준 미달':c.minimum===null?'기준 미설정':'보유';}
+async function saveStockMinimums(){
+  if(stockMinimumSaving)return;
+  const inputs=[...document.querySelectorAll('#stockOverview [data-stock-min]')];
+  const changes=[];
+  for(const input of inputs){
+    const raw=input.value.trim(),value=raw===''?null:Number(raw);
+    if(value!==null&&(!Number.isFinite(value)||value<0||!/^(?:\d+)(?:\.\d+)?$/.test(raw))){toast('최소 기준은 0 이상의 숫자로 입력하세요');input.focus();return;}
+    changes.push({key:input.dataset.stockMin,value});
+  }
+  const next=db.items.map(item=>{
+    const own=changes.filter(c=>c.key.split('|')[0]===item.id);
+    if(!own.length)return item;
+    const minimums={...(item.stock_minimums||{})};
+    own.forEach(c=>{const key=c.key.split('|').slice(1).join('|');if(c.value===null)delete minimums[key];else minimums[key]=c.value;});
+    return {...item,stock_minimums:minimums};
+  });
+  stockMinimumSaving=true;
+  const button=document.getElementById('stockMinimumSave');if(button)button.disabled=true;
+  try{if(await saveTable('items',next)){
+    db.items=next;
+    changes.forEach(c=>delete stockMinimumDraft[c.key]);
+    if(itEditing&&next.some(i=>i.id===itEditing.id))itEditing.stock_minimums={...next.find(i=>i.id===itEditing.id).stock_minimums};
+    renderStock();
+  }}finally{stockMinimumSaving=false;const b=document.getElementById('stockMinimumSave');if(b)b.disabled=false;}
+}
 function renderStock(){
   const dateEl=document.getElementById("ivDate");
   if(!dateEl.value) dateEl.value=localDate();
@@ -5916,20 +6033,42 @@ function renderStock(){
   itemEl.innerHTML=`<option value="">— 품목 —</option>`+db.items.filter(tracksStock)
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(i=>`<option value="${i.id}" ${i.id===cur?"selected":""}>${escapeHtml(i.name)}</option>`).join("");
+  const oldColor=document.getElementById('ivColor').value,oldSpec=document.getElementById('ivSpec').value;
   updateIvCombo();
+  if([...document.getElementById('ivColor').options].some(o=>o.value===oldColor))document.getElementById('ivColor').value=oldColor;
+  if([...document.getElementById('ivSpec').options].some(o=>o.value===oldSpec))document.getElementById('ivSpec').value=oldSpec;
 
-  const map=currentStocks();
-  const combos=Object.entries(map).map(([k,qty])=>{
-    const [item_id,color,spec]=k.split("|");
-    const it=db.items.find(x=>x.id===item_id);
-    return { name: it?it.name:"(삭제된 품목)", color, spec, qty };
-  }).sort((a,b)=>a.name.localeCompare(b.name,"ko")||a.color.localeCompare(b.color)||a.spec.localeCompare(b.spec,"ko"));
-  document.getElementById("ivCount").textContent=combos.filter(c=>c.qty>0).length+"종";
-  document.getElementById("ivTotal").textContent=fmt(combos.reduce((s,c)=>s+Math.max(0,c.qty),0))+"개";
-  const emptyN=combos.filter(c=>c.qty<=0).length;
+  const combos=stockOptionRows();
+  document.getElementById("ivCount").textContent=combos.filter(c=>c.shortage>0).length+"종";
+  document.getElementById("ivUnset").textContent=combos.filter(c=>c.minimum===null).length+"종";
+  document.getElementById("ivTotal").textContent=combos.filter(c=>c.qty===0).length+"종";
+  const emptyN=combos.filter(c=>c.low).length;
   const emptyEl=document.getElementById("ivEmpty");
   emptyEl.textContent=emptyN+"종";
   emptyEl.className="v "+(emptyN?"neg":"");
+  const search=document.getElementById('stockSearch'),filter=document.getElementById('stockFilter');
+  const groups=[...new Set(combos.map(c=>c.item_id))].map(id=>{
+    const rows=combos.filter(c=>c.item_id===id);
+    return {id,name:rows[0].name,rows,attention:rows.filter(c=>c.qty<=0||c.low||c.shortage>0).length};
+  }).sort((a,b)=>b.attention-a.attention||a.name.localeCompare(b.name,'ko',{numeric:true}));
+  const visible=groups.filter(g=>g.name.toLowerCase().includes(search.value.trim().toLowerCase())&&g.rows.some(c=>matchesStockFilter(c,filter.value)));
+  document.getElementById('stockItems').innerHTML=`<button class="stock-item ${!stockSelectedItem?'selected':''}" data-stock-id=""><span>전체 현황</span><b>${groups.length}품목</b></button>`+visible.map(g=>`<button class="stock-item ${stockSelectedItem===g.id?'selected':''}" data-stock-id="${escapeHtml(g.id)}"><span>${escapeHtml(g.name)}</span><b>${fmt(g.rows.reduce((s,c)=>s+Math.max(0,c.qty),0))}개</b><small>${g.rows.length}개 옵션</small><small class="${g.attention?'neg':''}">${g.attention?`확인 필요 ${g.attention}옵션`:g.rows.some(c=>c.minimum===null)?'최소 보유 기준 미설정':'보유'}</small></button>`).join('');
+  const selected=groups.find(g=>g.id===stockSelectedItem);
+  const shown=(selected?selected.rows:visible.flatMap(g=>g.rows).filter(c=>matchesStockFilter(c,filter.value)))
+    .slice().sort((a,b)=>b.shortage-a.shortage||Number(b.low)-Number(a.low)||a.available-b.available||a.name.localeCompare(b.name,'ko',{numeric:true}));
+  document.getElementById('stockOverview').innerHTML=`<div class="stock-overview-heading"><h3>${selected?escapeHtml(selected.name):'품목별 재고 확인'}</h3><p>가용 수량 = 현재 수량 − 확정 주문의 미출고 수량<br>최소 기준: 빈칸은 미설정, 0은 최소 보유 없음. 변경 후 저장해 주세요.</p></div>`+
+    (shown.length?`<div class="stock-option-scroll"><table class="tbl stock-option-table"><thead><tr>${selected?'':'<th>품목</th>'}<th>색상</th><th>규격/옵션</th><th>상태</th><th class="num">현재</th><th class="num">출고 예정</th><th class="num">가용</th><th class="num">최소 기준</th></tr></thead><tbody>${shown.map(c=>`<tr>${selected?'':`<td>${escapeHtml(c.name)}</td>`}<td>${escapeHtml(c.color||'—')}</td><td>${escapeHtml(c.spec||'—')}</td><td><span class="pill ${c.qty<=0||c.shortage||c.low?'out':''}">${stockRowStatus(c)}</span></td><td class="num">${fmt(c.qty)}</td><td class="num">${fmt(c.reserved)}</td><td class="num ${c.available<0?'neg':''}">${fmt(c.available)}</td><td><input type="text" inputmode="decimal" data-stock-min="${escapeAttr(c.key)}" aria-label="${escapeAttr([c.name,c.color,c.spec,'최소 기준'].filter(Boolean).join(' '))}" value="${escapeAttr(stockMinimumDraft[c.key]??(c.minimum===null?'':String(c.minimum)))}" placeholder="미설정"></td></tr>`).join('')}</tbody></table></div><div class="stock-min-actions"><button type="button" class="btn" id="stockMinimumSave" ${stockMinimumSaving?'disabled':''}>표시된 최소 기준 저장</button></div>`:'<p class="empty">조건에 맞는 품목이 없습니다.</p>');
+  document.querySelectorAll('[data-stock-min]').forEach(input=>input.oninput=()=>{stockMinimumDraft[input.dataset.stockMin]=input.value;});
+  const minimumSave=document.getElementById('stockMinimumSave');if(minimumSave)minimumSave.onclick=saveStockMinimums;
+  search.oninput=()=>{stockSelectedItem='';renderStock();};filter.onchange=()=>{stockSelectedItem='';renderStock();};
+  document.querySelectorAll('[data-stock-filter]').forEach(b=>b.onclick=()=>{stockSelectedItem='';filter.value=b.dataset.stockFilter;renderStock();});
+  document.querySelectorAll('[data-stock-id]').forEach(b=>b.onclick=()=>{stockSelectedItem=b.dataset.stockId;itemEl.value=stockSelectedItem;updateIvCombo();renderStock();});
+  itemEl.onchange=()=>{stockSelectedItem=itemEl.value;updateIvCombo();renderStock();};
+  const entry=document.querySelector('#view-stock .stock-add'),register=document.getElementById('stockRegister');
+  register.textContent=entry.hidden?'+ 입출고 등록':'등록 닫기';
+  register.onclick=()=>{entry.hidden=!entry.hidden;register.textContent=entry.hidden?'+ 입출고 등록':'등록 닫기';if(!entry.hidden){if(stockSelectedItem&&itemEl.value!==stockSelectedItem){itemEl.value=stockSelectedItem;updateIvCombo();}entry.scrollIntoView({block:'nearest'});document.getElementById('ivDate').focus();}};
+  document.getElementById('ivCancelBtn').onclick=()=>{entry.hidden=true;register.textContent='+ 입출고 등록';};
+  document.getElementById('ivAddBtn').onclick=addStockMove;
 
   const tbl=document.getElementById("ivTbl");
   tbl.innerHTML = combos.length ? `
@@ -5947,34 +6086,35 @@ function renderStock(){
 
   const hist=(db.stock_moves||[]).filter(m=>{
       const it=db.items.find(x=>x.id===m.item_id);
-      return !it || tracksStock(it);
+      return (!it || tracksStock(it))&&(!stockSelectedItem||m.item_id===stockSelectedItem);
     }).slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.created_at||"").localeCompare(a.created_at||""))
     .slice(0,30);
   const histTbl=document.getElementById("ivHist");
   histTbl.innerHTML = hist.length ? `
-    <thead><tr><th>날짜</th><th>품목</th><th>색상</th><th>규격/옵션</th><th>구분</th><th style="text-align:right">수량</th><th>메모</th><th></th></tr></thead>
+    <thead><tr><th>날짜</th><th>품목</th><th>메모</th><th>색상</th><th>규격/옵션</th><th>구분</th><th style="text-align:right">수량</th><th></th></tr></thead>
     <tbody>${hist.map(m=>{
       const it=db.items.find(x=>x.id===m.item_id);
       return `<tr>
         <td style="white-space:nowrap">${escapeHtml((m.date||"").slice(5))}</td>
         <td>${escapeHtml(it?it.name:"(삭제된 품목)")}</td>
+        <td class="sub ledger-memo">${escapeHtml(m.memo||"—")}</td>
         <td class="item-option">${escapeHtml(m.color||"—")}</td>
         <td class="item-option">${escapeHtml(m.spec||"—")}</td>
         <td><span class="pill ${m.kind==="입고"?"in":"out"}">${escapeHtml(m.kind)}</span></td>
         <td class="num">${fmt(m.qty)}</td>
-        <td class="sub">${escapeHtml(m.memo||"")}</td>
         <td><button class="rm" data-id="${m.id}" title="삭제"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
       </tr>`;}).join("")}</tbody>`
     : `<tr><td><div class="empty">입출고 이력이 없습니다.</div></td></tr>`;
   histTbl.querySelectorAll(".rm").forEach(el=>{ el.onclick=()=>deleteStockMove(el.dataset.id); });
 }
 async function addStockMove(){
+  if(stockEntrySaving)return;
   const item_id=document.getElementById("ivItem").value;
   const qty=parseNum(document.getElementById("ivQty").value);
-  if(!item_id){ toast("품목을 선택하세요"); return; }
-  if(qty<=0){ toast("수량을 입력하세요"); return; }
-  db.stock_moves.push({
+  if(!tracksStock(db.items.find(i=>i.id===item_id))){ toast("품목을 선택하세요"); return; }
+  if(!Number.isFinite(qty)||qty<=0){ toast("수량을 입력하세요"); return; }
+  const move={
     id:crypto.randomUUID(),
     date:document.getElementById("ivDate").value||localDate(),
     item_id,
@@ -5984,11 +6124,16 @@ async function addStockMove(){
     qty,
     memo:document.getElementById("ivMemo").value.trim(),
     created_at:new Date().toISOString()
-  });
-  document.getElementById("ivQty").value="";
-  document.getElementById("ivMemo").value="";
-  renderStock();
-  await saveTable("stock_moves",db.stock_moves);
+  };
+  const next=[...db.stock_moves,move];
+  stockEntrySaving=true;document.getElementById('ivAddBtn').disabled=true;
+  try{if(await saveTable('stock_moves',next)){
+    db.stock_moves=next;stockSelectedItem=item_id;
+    document.getElementById("ivQty").value="";
+    document.getElementById("ivMemo").value="";
+    document.querySelector('#view-stock .stock-add').hidden=true;
+    renderStock();
+  }}finally{stockEntrySaving=false;document.getElementById('ivAddBtn').disabled=false;}
 }
 async function deleteStockMove(id){
   if(!confirm("이 입출고 기록을 삭제할까요?")) return;
@@ -6089,16 +6234,16 @@ function renderPay(){
     return;
   }
   tbl.innerHTML=`
-    <thead><tr><th>날짜</th><th>거래처</th><th>연결 견적</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th>메모</th><th></th></tr></thead>
+    <thead><tr><th>날짜</th><th>거래처</th><th>메모</th><th>연결 견적</th><th>구분</th><th>방법</th><th style="text-align:right">금액</th><th></th></tr></thead>
     <tbody>${rows.map(p=>`
       <tr>
         <td style="white-space:nowrap">${escapeHtml((p.date||"").slice(5))}</td>
         <td>${escapeHtml(coName(p.company_id))}</td>
+        <td class="sub ledger-memo">${escapeHtml(p.memo||"—")}</td>
         <td class="sub">${p.quote_id ? escapeHtml((db.quotes.find(q=>q.id===p.quote_id)||{}).no||"(삭제된 견적)") : "—"}</td>
         <td><span class="pill ${p.kind==="수금"?"in":"out"}">${escapeHtml(p.kind)}</span></td>
         <td class="sub">${escapeHtml(p.method||"")}</td>
         <td class="num">${won(p.amount)}</td>
-        <td class="sub">${escapeHtml(p.memo||"")}</td>
         <td><button class="rm" data-id="${p.id}" title="삭제">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button></td>
@@ -6164,14 +6309,16 @@ function renderDash(){
     n:a.n+1, amt:a.amt+quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total }),{n:0,amt:0});
 
   document.getElementById("dashHero").innerHTML=`
+    <div class="dash-heading-caption">이번 달 실적 · 납품 기준</div>
+    <div class="dash-heading-title">매출 현황</div>
     <div class="lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
     <div class="big">${won(sales.total)}</div>
     <div class="sub">납품 <b>${sales.count}건</b><span class="sep">·</span>미수금 <b>${won(openAr)}</b>${untaxed.n?`<span class="sep">·</span>계산서 미발행 <b class="amb" style="color:var(--warn-ink)">${untaxed.n}건</b>`:""}</div>`;
   document.getElementById("dashStats").innerHTML=`
-    <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
-      <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:"매입단가 확인"}</div></button>
     <button type="button" class="stat stat-link stat-key" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div><div class="hint" style="margin-top:2px">지급 내역 보기</div></button>
+    <button type="button" class="stat stat-link" data-view-target="sales"><div class="k">이달 마진</div><div class="v ${sales.margin>0?"pos":sales.margin<0?"neg":""}">${won(sales.margin)}</div>
+      <div class="hint" style="margin-top:2px">${sales.supply?`공급가액 대비 ${(sales.margin/sales.supply*100).toFixed(1)}%`:"매입단가 확인"}</div></button>
     <button type="button" class="stat stat-link stat-key" data-view-target="ar"><div class="k">미수금 합계</div><div class="v ${openAr>0?"neg":""}">${won(openAr)}</div><div class="hint" style="margin-top:2px">미수금 확인</div></button>
     <button type="button" class="stat stat-link stat-soft" data-view-target="quotes"><div class="k">회신 대기</div><div class="v">${sent.length}건</div>
       <div class="hint" style="margin-top:2px">${sentOld?`7일 이상 ${sentOld}건`:"발송 후 대기 중"}</div></button>
@@ -6206,12 +6353,13 @@ function renderDash(){
 
   // 최근 활동
   const acts=[
-    ...db.quotes.map(q=>({ date:q.date, ts:q.created_at||"", cls:QT_STATUS_CLASS[q.status]||'st-draft', badge:q.status, name:coName(q.company_id), amt:quoteTotals(q).total })),
-    ...db.payments.map(p=>({ date:p.date, ts:p.created_at||"", cls:p.kind==="수금"?"in":"out", badge:p.kind, name:coName(p.company_id), amt:Number(p.amount)||0 }))
-  ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||"")).slice(0,8);
+    ...db.quotes.map(q=>({ target:'quotes',id:q.id,date:q.date, ts:q.created_at||"", cls:QT_STATUS_CLASS[q.status]||'st-draft', badge:q.status, name:coName(q.company_id), amt:quoteTotals(q).total })),
+    ...db.payments.map(p=>({ target:'payments',id:p.id,date:p.date, ts:p.created_at||"", cls:p.kind==="수금"?"in":"out", badge:p.kind, name:coName(p.company_id), amt:Number(p.amount)||0 }))
+  ].sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.ts||"").localeCompare(a.ts||""));
   document.getElementById("dashRecent").innerHTML = acts.length
-    ? acts.map(a=>`<div class="recent-item"><span class="t">${escapeHtml(a.name)}</span><span class="ra">${won(a.amt)}</span><span class="pill ${a.cls}">${escapeHtml(a.badge)}</span><span class="d">${escapeHtml((a.date||"").slice(5))}</span></div>`).join("")
+    ? acts.map((a,i)=>`<button type="button" class="recent-item" data-activity="${i}"><span class="t">${escapeHtml(a.name)}</span><span class="ra">${won(a.amt)}</span><span class="pill ${a.cls}">${escapeHtml(a.badge)}</span><span class="d">${escapeHtml((a.date||"").slice(5))}</span></button>`).join("")
     : `<div class="empty">아직 활동 내역이 없습니다.</div>`;
+  document.querySelectorAll('#dashRecent [data-activity]').forEach(button=>{button.onclick=()=>{const a=acts[Number(button.dataset.activity)];if(a.target==='quotes'){qtSel=a.id;switchView('quotes');renderQtList();renderQtDetail();}else{document.getElementById('payMonth').value=(a.date||'').slice(0,7);switchView('payments');}};});
 }
 
 /* =====================================================================
@@ -6696,6 +6844,6 @@ async function init(){
 }
 init();
 </script>
-<script src="./workspace-layout.js?v=1512"></script>
+<script src="./workspace-layout.js?v=1520"></script>
 </body>
 </html>

@@ -19,7 +19,10 @@
     const controlsMarker=document.createComment('controls-position');
     balance.before(balanceMarker); controls.before(controlsMarker);
     head.append(balance); head.after(controls);
-    materialHeaderRestore=()=>{if(balanceMarker.isConnected){balanceMarker.replaceWith(balance);controlsMarker.replaceWith(controls);}};
+    const note=document.createElement('p');note.className='material-header-note';
+    note.textContent=document.querySelector('#view-materials>.copy-note')?.textContent||'';
+    head.append(note);
+    materialHeaderRestore=()=>{note.remove();if(balanceMarker.isConnected){balanceMarker.replaceWith(balance);controlsMarker.replaceWith(controls);}};
   }
   const materialObserver=new MutationObserver(arrangeMaterialHeader);
   const materialRoot=document.getElementById('materialContent');
@@ -109,12 +112,56 @@
     }
     relocate(recent, dash?.querySelector('.workspace-left'));
     relocate(dash?.querySelector('.head-actions'), dash?.querySelector('.workspace-left'));
-    ['#dashHero','#dashStats'].forEach(s => relocate(dash?.querySelector(s), dash?.querySelector('.workspace-right')));
+    dash?.querySelector('.workspace-left')?.prepend(dash.querySelector('.head-actions'));
+    relocate(dash?.querySelector('#dashHero'),dash?.querySelector('.workspace-heading'));
+    relocate(dash?.querySelector('#dashStats'),dash?.querySelector('.workspace-right'));
     relocate(chart, dash?.querySelector('.workspace-right'));
-    panel('payments', '거래 기록', ['#payMonth', '.scr-hero', '.stats', '.card:has(#payByCo)'], ['.card:has(#payTbl)']);
-    panel('stock', '입출고 기록', ['.stats', '.card:has(#ivTbl)'], ['.card:has(#ivHist)']);
-    panel('sales', '매출 상세', ['.filter-bar', '.sl-summary'], ['#slBody']);
-    panel('ar', '미수금 상세', ['.filter-bar', '.scr-hero', '.stats'], ['.card:has(#arTbl)']);
+    panel('payments', '수금/지급 현황', ['#payMonth', '.card:has(#payByCo)'], ['.stats', '.card:has(#payTbl)']);
+    const payLeft=document.querySelector('#view-payments .workspace-left');
+    const payTools=document.createElement('div');payTools.className='workspace-list-tools';
+    const payMonth=document.getElementById('payMonth');
+    payLeft.prepend(payTools);payTools.append(payMonth);
+    const paySearch=document.createElement('input');paySearch.type='search';paySearch.placeholder='거래처 검색';paySearch.setAttribute('aria-label','입출금 집계 거래처 검색');payTools.append(paySearch);
+    const filterPayList=()=>{document.querySelectorAll('#payByCo tbody tr').forEach(row=>{row.hidden=!row.querySelector('.empty')&&row.cells[0]?.textContent.trim()!=='합계'&&!row.cells[0]?.textContent.includes(paySearch.value.trim());});};
+    paySearch.oninput=filterPayList;
+    const payObserver=new MutationObserver(filterPayList);payObserver.observe(document.getElementById('payByCo'),{childList:true,subtree:true});
+    restore.push(()=>{payObserver.disconnect();document.querySelectorAll('#payByCo tr').forEach(row=>row.hidden=false);});
+    panel('stock', '재고 현황', ['.card:has(#ivTbl)'], ['.card:has(#ivHist)']);
+    relocate(document.querySelector('#view-stock > .stats'),document.querySelector('#view-stock .workspace-heading'));
+    panel('sales', '매출 현황', ['.filter-bar'], ['#slBody']);
+    relocate(document.querySelector('#view-sales .sl-hero'),document.querySelector('#view-sales .workspace-heading'));
+    relocate(document.querySelector('#view-sales .sl-metrics'),document.querySelector('#view-sales .workspace-right'));
+    const salesMetrics=document.querySelector('#view-sales .workspace-right .sl-metrics');salesMetrics.parentElement.prepend(salesMetrics);
+    panel('ar', '미수금 현황', ['.filter-bar'], ['.stats', '.card:has(#arTbl)']);
+    ['payments','ar'].forEach(id=>{
+      const view=document.getElementById('view-'+id);
+      relocate(view.querySelector(':scope > .scr-hero'),view.querySelector('.workspace-heading'));
+    });
+    // A narrow navigation index; financial columns remain in the right pane.
+    const arTable=document.getElementById('arTbl');
+    const arIndex=document.createElement('div');arIndex.className='workspace-record-index';
+    document.querySelector('#view-ar .workspace-left').append(arIndex);
+    let arQuery='';
+    const refreshIndex=()=>{
+      arIndex.replaceChildren();
+      const all=document.createElement('button');all.type='button';all.textContent='전체 내역';all.dataset.all='true';all.className='on';
+      all.onclick=()=>{arTable.querySelectorAll('tbody tr').forEach(r=>r.hidden=false);arIndex.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===all));};
+      arIndex.append(all);
+      arTable.querySelectorAll('tbody tr').forEach(row=>{
+        if(row.querySelector('.empty') || row.style.background) return;
+        const cells=row.querySelectorAll('td');if(!cells.length)return;
+        const button=document.createElement('button');button.type='button';button.textContent=cells[0].textContent;
+        button.hidden=!button.textContent.includes(arQuery);
+        button.onclick=()=>{arTable.querySelectorAll('tbody tr').forEach(r=>r.hidden=r!==row);arIndex.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===button));};
+        arIndex.append(button);
+      });
+    };
+    const arIndexObserver=new MutationObserver(refreshIndex);arIndexObserver.observe(arTable,{childList:true,subtree:true});refreshIndex();
+    restore.push(()=>arIndexObserver.disconnect());
+    const arSearch=document.createElement('input');arSearch.type='search';arSearch.placeholder='거래처 검색';arSearch.setAttribute('aria-label','받을 금액 거래처 검색');
+    document.querySelector('#view-ar .filter-bar').prepend(arSearch);
+    arSearch.oninput=()=>{arQuery=arSearch.value.trim();arIndex.querySelectorAll('button').forEach(b=>b.hidden=!b.dataset.all&&!b.textContent.includes(arQuery));};
+    restore.push(()=>{arSearch.remove();arTable.querySelectorAll('tr').forEach(r=>r.hidden=false);});
     panel('settings', '공급자 정보', ['.settings-utils'], [':scope > .card']);
     const settingsRight = document.querySelector('#view-settings .workspace-right');
     relocate(document.getElementById('stSaveBtn')?.closest('.form-actions'), settingsRight);
@@ -134,4 +181,26 @@
     arrangeMaterialHeader();
   }
   desktop.addEventListener('change', update); update();
+  // Display vocabulary only. Persisted payment kinds remain 수금/지급.
+  const displayRoot=document.getElementById('appView');
+  const friendlyText=text=>text.replace(/순현금/g,'입출금 차액').replace(/수금\/지급/g,'입금·출금').replace(/미수금/g,'받을 금액').replace(/수금/g,'입금').replace(/지급/g,'출금').replace(/이달 입금/g,'이번 달 입금').replace(/이달 출금/g,'이번 달 출금');
+  function updateVocabulary(){
+    // Options without a value attribute derive their value from visible text.
+    displayRoot.querySelectorAll('option:not([value])').forEach(option=>option.setAttribute('value',option.value));
+    const walker=document.createTreeWalker(displayRoot,NodeFilter.SHOW_TEXT);
+    const changes=[];let node;
+    while((node=walker.nextNode())){
+      if(node.parentElement?.closest('script,style,textarea,[contenteditable]'))continue;
+      const next=friendlyText(node.nodeValue);if(next!==node.nodeValue)changes.push([node,next]);
+    }
+    changes.forEach(([node,next])=>{node.nodeValue=next;});
+    displayRoot.querySelectorAll('[aria-label],[title]').forEach(el=>['aria-label','title'].forEach(attr=>{const text=el.getAttribute(attr);if(text&&friendlyText(text)!==text)el.setAttribute(attr,friendlyText(text));}));
+  }
+  if(displayRoot){
+    const paymentSummary=document.getElementById('paySumNet')?.parentElement;
+    if(paymentSummary){const note=document.createElement('div');note.className='hint';note.textContent='직접 기록한 내역 기준';paymentSummary.append(note);}
+    const vocabularyObserver=new MutationObserver(updateVocabulary);
+    vocabularyObserver.observe(displayRoot,{childList:true,subtree:true,characterData:true});
+    updateVocabulary();
+  }
 })();
