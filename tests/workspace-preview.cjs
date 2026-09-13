@@ -8,7 +8,7 @@ db.companies=[{id:'c1',name:'샘플 거래처',type:'매출'}];
 db.items=[{id:'i1',name:'셰프복',type:'단품',colors:['WH'],variants:[],sell_price:23000}];
 db.material_moves=[{id:'m1',company_id:'c1',material:'패치',kind:'받음',qty:100,date:'2026-09-01',source:'직접 주문',created_at:'2026-09-01'}];
 const sample=blankQuote();sample.id='q1';sample.company_id='c1';sample.no='SAMPLE';sample.lines=[{...blankLine(),item_id:'i1',name:'셰프복',qty:8,price:23000}];db.quotes=[sample];
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel='q1';renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItDetail();}});
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel='q1';renderQtList();renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoList();renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItList();renderItDetail();}});
 switchView('dash');
 document.getElementById('moreNavBtn').onclick=()=>toggleNav(true);
 document.getElementById('menuBtn').onclick=()=>toggleNav(true);
