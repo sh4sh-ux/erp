@@ -15,6 +15,7 @@ function guardStockEntryChange(){
 function setupStockQuickEntry(){
   const area=document.getElementById('stockQuickEntry');if(!area)return;
   const item=db.items.find(i=>i.id===document.getElementById('ivItem').value),color=document.getElementById('ivColor').value;
+  document.querySelector('#view-stock .stock-add')?.classList.toggle('stock-entry-empty',!item);
   const specs=[...new Set((item?.variants||[]).map(v=>v.spec).filter(Boolean))];
   const key=[item?.id,color].join('|');if(key!==stockQuickKey){stockQuickValues={};stockQuickKey=key;stockQuickMode=specs.length>0;}
   if(!specs.length)stockQuickMode=false;
