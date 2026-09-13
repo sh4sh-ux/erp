@@ -30,6 +30,9 @@
 #appView .tax-unissued {color:var(--tax-unissued-color);}
 #appView .pill:is(.tax-unissued,.attention,.out,.buy,.work),
 #appView .material-record-kind.out {color:var(--tax-unissued-color);background:#FFF8EE;}
+#appView .shortbox {border-color:var(--tax-unissued-color);background:#FFF8EE;}
+#appView .shortbox .hd,#appView .shortbox .v b {color:var(--tax-unissued-color);}
+#appView .shortbox .row,#appView .shortbox .ft {color:var(--ink);}
 #appView .shell .main #salesInsight {margin-top:24px;padding:0 0 24px;min-width:0;}
 #appView .shell .main #salesInsight>.card-head {padding:20px 0;margin-bottom:20px;border-bottom:1px solid var(--line);}
 #appView .shell .main #salesInsight>h4 {margin:28px 0 16px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.5;}
