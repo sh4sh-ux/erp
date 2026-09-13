@@ -7,17 +7,23 @@ function stockRecordActions(m){
   return `<div class="stock-record-actions">${stockManual(m)?`<button type="button" class="btn" data-stock-edit="${escapeAttr(m.id)}">수정</button><button type="button" class="btn" data-stock-void="${escapeAttr(m.id)}">취소</button>`:escapeHtml(status||'연결 기록')}${audit?`<details><summary>이력</summary><p>${escapeHtml(audit)}</p></details>`:''}</div>`;
 }
 function stockStrictQty(value,zero=false){const s=String(value).trim();if(!/^\d+(\.\d+)?$/.test(s))throw Error('수량은 0 이상의 숫자로 입력하세요.');const n=Number(s);if(!Number.isFinite(n)||n>1e12||(!zero&&n<=0))throw Error('유효한 수량을 입력하세요.');return n;}
+function guardStockEntryChange(){
+  const qty=document.getElementById('ivQty'),memo=document.getElementById('ivMemo');
+  if((qty.value.trim()||memo.value.trim()||Object.values(stockQuickValues).some(v=>String(v).trim()))&&!confirm('입력 중인 재고 수량을 지우고 이동할까요?'))return false;
+  qty.value='';memo.value='';stockQuickValues={};return true;
+}
 function setupStockQuickEntry(){
   const area=document.getElementById('stockQuickEntry');if(!area)return;
   const item=db.items.find(i=>i.id===document.getElementById('ivItem').value),color=document.getElementById('ivColor').value;
   const specs=[...new Set((item?.variants||[]).map(v=>v.spec).filter(Boolean))];
-  const key=[item?.id,color].join('|');if(key!==stockQuickKey){stockQuickValues={};stockQuickKey=key;}
+  const key=[item?.id,color].join('|');if(key!==stockQuickKey){stockQuickValues={};stockQuickKey=key;stockQuickMode=specs.length>0;}
   if(!specs.length)stockQuickMode=false;
   document.getElementById('ivQty').hidden=stockQuickMode;document.getElementById('ivSpec').hidden=stockQuickMode;
+  ['ivQty','ivSpec'].forEach(id=>{const label=document.getElementById(id).closest?.('.stock-entry-field');if(label)label.hidden=stockQuickMode;});
   area.innerHTML=specs.length?`<button type="button" class="btn" id="stockQuickToggle">${stockQuickMode?'한 옵션씩 입력':'사이즈별 한 번에 입력'}</button>${stockQuickMode?`<div class="stock-size-grid">${specs.map((s,i)=>`<label>${escapeHtml(s)}<input data-stock-size="${i}" aria-label="${escapeAttr(s)} 수량" inputmode="decimal" value="${escapeAttr(stockQuickValues[s]??'')}" placeholder="0"><small>현재 ${fmt(currentStocks()[stockKeyOf({item_id:item.id,color,spec:s})]||0)}</small></label>`).join('')}</div>`:''}`:'';
   const toggle=document.getElementById('stockQuickToggle');if(toggle)toggle.onclick=()=>{stockQuickMode=!stockQuickMode;setupStockQuickEntry();};
   area.querySelectorAll('[data-stock-size]').forEach(input=>input.oninput=()=>stockQuickValues[specs[+input.dataset.stockSize]]=input.value);
-  document.getElementById('ivColor').onchange=setupStockQuickEntry;
+  document.getElementById('ivColor').onchange=()=>{if(!guardStockEntryChange()){document.getElementById('ivColor').value=color;return;}setupStockQuickEntry();};
   ['ivColor','ivSpec','ivKind','ivQty','ivMemo'].forEach((id,i)=>document.getElementById(id).setAttribute('aria-label',['색상','규격/옵션','입출고 구분','수량','메모'][i]));
 }
 function stockFingerprint(rows){return JSON.stringify(rows.map(m=>{const n={...m};if(n.quote_id===undefined){const hit=/^견적 (.+?) (?:수주|출고)/.exec(n.memo||'');const q=hit&&typeof db!=='undefined'&&db.quotes?.find(q=>q.no===hit[1]);if(q)n.quote_id=q.id;}if(n.quote_id==null)delete n.quote_id;return n;}));}
