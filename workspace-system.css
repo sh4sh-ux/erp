@@ -16,14 +16,14 @@
     background-color:#fff; color:#111; border:1px solid #d4d4d8; padding:6px 12px;
   }
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .ip-btn { padding-right:28px; }
-  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) select {
+  #appView .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) select {
     appearance:none; padding-right:32px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23666' stroke-width='1.4'/%3E%3C/svg%3E");
     background-position:right 12px center;background-repeat:no-repeat;background-size:12px;
   }
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) textarea {font:400 13px/1.4 var(--sans);color:#111;background:#fff;border:1px solid #d4d4d8;border-radius:9px;padding:9px 12px;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .search {height:32px;min-height:32px;background:#fff;border:1px solid #d4d4d8;border-radius:9px;}
-  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .search input {height:auto;min-height:0;padding:0;border:0;background:transparent;}
+  #appView .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .search input {height:auto;min-height:0;padding:0;border:0;background:transparent;box-shadow:none;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) #qtAllDates {height:32px;min-height:32px;font-size:12px;padding:0 12px;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.field>label,.pf>label,.filter-label,.quote-period-label,.qt-sec-t,.qs-k,.qs-amt-k,.k,.lbl,.mk,.sup-sec-t) {font:400 12px/1.35 var(--sans);color:#666;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.hint,.sub,.li-sub,.li-date,.material-owner-meta,.material-record-meta,.workspace-caption) {font:400 11px/1.35 var(--sans);color:#b0b0b8;}
@@ -78,7 +78,10 @@
   .shell :is(#view-quotes,#view-companies,#view-items)>.cols>.card:last-child {grid-column:2;grid-row:1/3;overflow:auto;min-height:0;}
   .shell :is(#coList,#itList,#qtList) {flex:1;min-height:0;overflow:auto;}
   .shell .main :is(#coForm,#itForm,#qtForm) {padding:0 34px 26px;}
-  .shell .main :is(#coForm,#itForm)::before {display:block;position:sticky;top:0;z-index:5;height:144px;margin:0 -34px 26px;padding:46px 34px 20px;background:#fff;border-bottom:1px solid #ebebed;font:700 24px/1.2 var(--sans);}
+  .shell .main :is(#coForm,#itForm)::before {box-sizing:border-box;display:block;position:sticky;top:0;z-index:5;height:144px;margin:0 -34px 26px;padding:46px 34px 20px;background:#fff;border-bottom:1px solid #ebebed;font:700 23px/1.15 var(--sans);}
+  .shell .main :is(#view-companies,#view-items)>.cols>.card {height:100%;align-self:stretch;position:static;}
+  .shell .main :is(#view-companies,#view-items)>.page-head {border-bottom:1px solid #ebebed;}
+  .shell .main :is(#coList,#itList) {flex:1;min-height:0;overflow:auto;}
   .shell #coForm::before {content:'거래처 정보';}
   .shell #itForm::before {content:'품목 정보';}
   .shell #qtForm>.quote-summary {position:sticky;top:0;z-index:5;height:144px;min-height:144px;margin:0 -34px 26px;padding:20px 34px;background:#fff;border-bottom:1px solid #ebebed;}
