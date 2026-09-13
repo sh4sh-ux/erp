@@ -1,0 +1,17 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const source=html.slice(html.indexOf('function salesQuantityAnalysis('),html.indexOf('function renderSalesInsight('));
+const q={lines:[{id:'l',item_id:'i',name:'바지',color:'BK',spec:'L'}],deliveries:[]};
+const ctx=vm.createContext({db:{quotes:[q]},localMonth:d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,deliveryRecordLines:(q,d)=>d.lines,stockOptionRows:()=>[{item_id:'i',color:'BK',spec:'L',available:5}]});
+vm.runInContext(source,ctx);
+const add=(date,qty)=>q.deliveries.push({date,lines:[{line_id:'l',qty}]});
+const run=()=>vm.runInContext("salesQuantityAnalysis('2026-08','','2026-09-13')",ctx);
+add('2026-06-01',6);add('2026-07-01',12);add('2026-08-01',9);add('2026-08-02',3);
+let r=run().rows[0];assert.equal(r.current,12);assert.equal(r.forecast,10);assert.equal(r.replenish,5);
+add('2026-10-01',1000);assert.equal(run().rows[0].forecast,10,'future delivery excluded');
+assert.equal(vm.runInContext("salesQuantityAnalysis('2026-06','','2026-09-13').rows[0].forecast",ctx),null);
+assert.equal(vm.runInContext("salesQuantityAnalysis('2026-09','','2026-09-13').rows[0].forecast",ctx),null,'incomplete month');
+add('2024-09-01',20);add('2025-09-01',40);add('2025-08-01',7);
+r=run().rows[0];assert.equal(r.forecast,30);assert.equal(r.prior,7);assert.equal(r.method,'과거 2년 동월 평균');
+assert.equal(vm.runInContext("salesQuantityAnalysis('2026-08','other','2026-09-13').rows.length",ctx),0);
+console.log('PASS: partial deliveries, completed months, sparse history, future exclusion, seasonal mean, prior year and item filter');

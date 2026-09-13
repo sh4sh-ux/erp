@@ -36,7 +36,7 @@ document.getElementById('navBackdrop').onclick=()=>toggleNav(false);
 `;
 http.createServer((req,res)=>{
  const name=path.basename(new URL(req.url,'http://localhost').pathname)||'index.html';
- if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css'].includes(name)){res.writeHead(404);return res.end();}
+ if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css','mobile-workspace.css'].includes(name)){res.writeHead(404);return res.end();}
  let content=fs.readFileSync(path.join(root,name),'utf8');
  if(name==='index.html'){
    // Reuse production identity setup while omitting authentication in this fixture.

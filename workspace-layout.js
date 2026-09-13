@@ -116,6 +116,7 @@
     relocate(dash?.querySelector('#dashHero'),dash?.querySelector('.workspace-heading'));
     relocate(dash?.querySelector('#dashStats'),dash?.querySelector('.workspace-right'));
     relocate(chart, dash?.querySelector('.workspace-right'));
+    relocate(dash?.querySelector('#salesInsight'),dash?.querySelector('.workspace-right'));
     panel('payments', '수금/지급 현황', ['#payMonth', '.card:has(#payByCo)'], ['.stats', '.card:has(#payTbl)']);
     const payLeft=document.querySelector('#view-payments .workspace-left');
     const payTools=document.createElement('div');payTools.className='workspace-list-tools';

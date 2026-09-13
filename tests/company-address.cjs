@@ -1,0 +1,24 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const source=html.slice(html.indexOf('async function submitCompany('),html.indexOf('async function deleteCompany('));
+const fields={f_name:'테스트',f_type:'매출',f_biz:'',f_contact:'',f_phone:'',f_email:'',f_address:'서울 기존주소',f_address_detail:'',f_memo:'메모',f_qmemo:''};
+const elements=Object.fromEntries(Object.entries(fields).map(([k,value])=>[k,{value}]));elements.coSaveBtn={disabled:false};
+const company={id:'c1',address:'서울 기존주소',custom:'preserved'};
+const ctx=vm.createContext({document:{getElementById:id=>elements[id]},db:{companies:[company]},coSel:'c1',readCompanyPrices:()=>[],toast(){},saveTable:async()=>true,renderCoList(){},renderCoDetail(){},company});
+vm.runInContext(source,ctx);
+(async()=>{
+  await vm.runInContext('submitCompany(company,false)',ctx);
+  assert.equal(ctx.db.companies[0].address,'서울 기존주소');
+  assert.equal(ctx.db.companies[0].custom,'preserved');
+  elements.f_address_detail.value=' 3층 301호 ';
+  await vm.runInContext('submitCompany(db.companies[0],false)',ctx);
+  assert.equal(ctx.db.companies[0].address,'서울 기존주소 3층 301호');
+  assert.equal(ctx.db.companies[0].address_detail,'3층 301호');
+  await vm.runInContext('submitCompany(db.companies[0],false)',ctx);
+  assert.equal(ctx.db.companies[0].address,'서울 기존주소 3층 301호','detail must not duplicate');
+  ctx.saveTable=async()=>false;elements.f_address.value='실패한 변경';
+  await vm.runInContext('submitCompany(db.companies[0],false)',ctx);
+  assert.equal(ctx.db.companies[0].address,'서울 기존주소 3층 301호');
+  assert.equal(elements.coSaveBtn.disabled,false);
+  console.log('PASS: legacy address, separate detail, repeated save, unrelated fields, failed save preservation');
+})().catch(e=>{console.error(e);process.exitCode=1;});

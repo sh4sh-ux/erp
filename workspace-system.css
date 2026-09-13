@@ -1,6 +1,31 @@
 /* v1.151: ERP-wide Dutch Pay typography and control contract.
    Table separators 1.5/1/2 are the user's explicit ERP rule.
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
+.company-address-controls {display:flex;gap:8px;align-items:stretch;}
+#appView .tax-unissued {color:var(--warn-ink,#B45F00);}
+#appView .shell .main #salesInsight {margin-top:24px;padding:0 0 24px;min-width:0;}
+#appView .shell .main #salesInsight>.card-head {padding:20px 0;margin-bottom:20px;border-bottom:1px solid var(--line);}
+#appView .shell .main #salesInsight>h4 {margin:28px 0 16px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.5;}
+#appView .shell .main #salesInsight>p {margin:12px 0 20px;line-height:1.7;}
+#appView .shell .main #salesInsight .insight-method {margin:0 0 20px;color:var(--ink-2);font-size:12px;line-height:1.7;}
+#salesInsight .insight-method summary {cursor:pointer;padding:8px 0;}
+#salesInsight .insight-method p {margin:8px 0 12px;max-width:80ch;}
+.insight-controls {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.insight-controls label {display:grid;gap:6px;min-width:0;}
+.insight-controls :is(input,select) {width:100%;min-width:0;}
+.insight-months {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 32px;padding:4px 0;}
+.insight-months>div {display:grid;grid-template-columns:auto minmax(30px,1fr) auto;gap:8px;align-items:center;font-size:13px;}
+.insight-months meter {width:100%;}
+.insight-table-scroll {overflow-x:auto;max-width:100%;}
+.insight-table-scroll table {min-width:900px;}
+.insight-table-scroll :is(th,td):nth-child(2),.insight-table-scroll :is(th,td):nth-child(3) {text-align:center;}
+@media(max-width:820px){.insight-months {grid-template-columns:1fr;}.insight-table-scroll table {display:table!important;}.insight-table-scroll thead {display:table-header-group!important;}.insight-table-scroll tr {display:table-row!important;}.insight-table-scroll :is(th,td) {display:table-cell!important;}.insight-table-scroll td::before {display:none!important;}}
+.company-address-controls input {flex:1;min-width:0;}
+.company-address-controls button {flex:none;white-space:nowrap;}
+.company-address-dialog {position:fixed;inset:0;margin:auto;width:min(500px,calc(100vw - 32px));max-width:100%;max-height:calc(100dvh - 32px);padding:0;border:1px solid #e5e5e9;border-radius:12px;background:#fff;color:#111;font-family:var(--sans);}
+.company-address-dialog::backdrop {background:rgba(0,0,0,.35);}
+.company-address-heading {display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #ebebed;}
+.company-address-embed {height:min(520px,65dvh);min-height:240px;}
 @media screen and (min-width:1024px) {
   .shell .main {
     -webkit-font-smoothing:antialiased;
@@ -266,8 +291,9 @@
   #appView .shell .main #view-stock .workspace-left .tbl-wrap,#appView .shell .main #dashRecent {overflow:auto;min-height:0;padding:0;}
   #appView .shell .main #view-dash .workspace-left>.head-actions {flex:none;padding:14px 28px;margin:0;}
   #appView .shell .main #dashRecent .recent-item {display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:14px 28px;text-align:left;border:0;border-bottom:1px solid #ebebed;border-radius:0;background:transparent;cursor:pointer;font:400 13px/1.4 var(--sans);}
-  #appView .shell .main #dashRecent .recent-item .ra,#appView .shell .main #dashRecent .recent-item .d {text-align:right;}
-  #appView .shell .main #dashRecent .recent-item .pill {justify-self:start;}
+  #appView .shell .main #dashRecent .recent-item .ra {text-align:right;}
+  #appView .shell .main #dashRecent .recent-item .d {text-align:left;margin-left:0;justify-self:start;}
+  #appView .shell .main #dashRecent .recent-item .pill {justify-self:end;}
   #appView .shell .main #view-ar .filter-bar {flex:none;margin:0;padding:18px 28px;border-bottom:1px solid #ebebed;}
   #appView .shell .main #view-ar .filter-bar input {grid-column:1/-1;width:100%;}
   #appView .shell .main #view-ar .workspace-record-index {flex:1;min-height:0;overflow:auto;margin:0;}
