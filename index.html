@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1530">
+<link rel="stylesheet" href="./workspace-system.css?v=1540">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1530">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1540">
 </head>
 <body>
 
@@ -2746,7 +2746,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.153";
+const APP_VERSION = "v1.154";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3412,6 +3412,12 @@ window.addEventListener("popstate", function(event){
 
 /* 모바일(단일 열)에서 목록 항목 선택 시 상세 폼으로 스크롤 */
 function scrollToDetail(formId){
+  if(formId==='qtForm'&&window.matchMedia('(max-width:820px)').matches){
+    document.getElementById('view-quotes').scrollTop=0;
+    document.querySelector('.main').scrollTop=0;
+    window.scrollTo(0,0);
+    return;
+  }
   if(formId==='coForm'&&window.matchMedia('(max-width:820px)').matches){
     mobileCompanyScroll=document.getElementById('coList').scrollTop;
     mobileCompanyDetail=true;syncMobileCompanyPanel();rememberAppStep();
@@ -6061,7 +6067,7 @@ function stockOptionRows(){
     const raw=item.stock_minimums?.[[color,spec].join('|')];
     const minimum=typeof raw==='number'&&Number.isFinite(raw)&&raw>=0?raw:null;
     const qty=map[key]||0,reserved=pending[key]||0,available=qty-reserved;
-    return {key,item_id,name:item.name,color,spec,qty,reserved,available,minimum,
+    return {key,item_id,name:itemLabel(item.name,item.code),color,spec,qty,reserved,available,minimum,
       shortage:reserved>0?Math.max(0,-available):0,low:minimum!==null&&minimum>0&&available<minimum};
   }).filter(Boolean);
 }

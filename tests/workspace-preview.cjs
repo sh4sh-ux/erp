@@ -24,7 +24,9 @@ for(let n=1;n<=36;n++){
  db.stock_moves.push({id:'s'+n,item_id:iid,kind:'입고',qty:12+n,color:'WH',spec:'L',date});
  db.material_moves.push({id:'m'+n,company_id:cid,material:'패치',kind:'받음',qty:100+n,date,source:'샘플',created_at:date});
 }
-document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel='q1';renderQtList();renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoList();renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItList();renderItDetail();}});
+db.items.slice(0,3).forEach((item,i)=>{item.name='셰프복';item.code='JK_TEST_'+(i+1);});
+const longQuote=db.quotes[0];longQuote.lines=Array.from({length:6},(_,i)=>({...longQuote.lines[0],id:'long-line-'+i,name:'셰프복 [JK_TEST_1]',color:'WH',spec:'3XL',qty:i+1}));longQuote.deliveries=[];
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{switchView(b.dataset.view);if(b.dataset.view==='quotes'){qtSel=null;renderQtList();renderQtDetail();}if(b.dataset.view==='companies'){coSel='c1';renderCoList();renderCoDetail();}if(b.dataset.view==='items'){itSel='i1';renderItList();renderItDetail();}});
 switchView('dash');
 document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};
 ['qtStatus','qtFrom','qtTo'].forEach(id=>document.getElementById(id).onchange=renderQtList);

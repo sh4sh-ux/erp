@@ -10,5 +10,5 @@ for(const [,file,query=''] of assets){
   if(file.endsWith('.css')||file.endsWith('.js'))assert(sw.includes('./'+file+query),`Cache asset mismatch: ${file}`);
 }
 assert(!html.includes('Synthetic volume only')&&!html.includes("id:'c1',name:'샘플 거래처'"),'Fixture leaked into production');
-assert(html.includes('v1.153')&&sw.includes('erp-shell-v63-v153'),'Release version mismatch');
+assert(html.includes('v1.154')&&sw.includes('erp-shell-v64-v154'),'Release version mismatch');
 console.log('PASS: script syntax, linked assets, cache versions, no production fixture injection');

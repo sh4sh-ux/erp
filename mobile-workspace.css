@@ -91,4 +91,26 @@
   #appView .shell .main #view-stock .stock-add> :is(.date-control,#ivItem,#ivColor,#ivSpec,#ivQty,#ivKind) {width:100%;min-width:0;}
   #appView .shell .main #view-stock .stock-add> :is(.date-control,#ivItem) {grid-column:1/-1;}
   #appView .shell .main #view-stock .stock-add :is(input,select) {border:1px solid #d4d4d8;background:#fff;padding:10px 12px;}
+  /* Keep every scroll endpoint above the bottom navigation, including Safari's safe area. */
+  #bottomNav {padding:4px 4px env(safe-area-inset-bottom,0);box-sizing:border-box;}
+  #bottomNav>button {height:64px;min-height:64px;}
+  #appView .shell .main>.view:not(.hidden) {padding-bottom:calc(96px + env(safe-area-inset-bottom,0));}
+  #appView .shell .main #view-quotes .quote-detail-card {padding-bottom:calc(96px + env(safe-area-inset-bottom,0));overflow:visible;}
+  #appView .shell .main #view-quotes .quote-cols {display:block;overflow:visible;}
+  #appView .shell .main #view-quotes .quote-cols.detail-open .quote-list-card {display:none;}
+  #appView .shell .main #view-quotes .quote-cols:not(.detail-open) .quote-detail-card {display:none;}
+  #appView .shell .main #view-quotes .quote-back {display:none;}
+  #appView .shell .main #view-quotes #qtForm {padding:16px 0 24px;}
+  #appView .shell .main #view-quotes .form-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;position:static;padding:16px 0;}
+  #appView .shell .main #view-quotes .form-actions>* {width:100%;min-width:0;margin:0;min-height:44px;}
+  #appView .shell .main #view-quotes .form-actions :is(.save,select,.del) {grid-column:1/-1;}
+  #appView .shell .main #view-quotes .qline:not(.head) {grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;grid-template-areas:"name name rm" "spec spec spec" "qty price price" "amt amt amt";gap:10px;padding:12px;min-width:0;}
+  #appView .shell .main #view-quotes .qline>.ip-btn {width:100%;white-space:normal;overflow-wrap:anywhere;min-height:44px;padding:10px 28px 10px 12px;}
+  #appView .shell .main #view-quotes .qline>.rm {width:44px;height:44px;}
+  #appView .shell .main #view-quotes .qline>.amt {width:100%;padding:4px 0;overflow-wrap:anywhere;}
+  #appView .shell .main #view-quotes .qline>.amt::before {content:'금액';float:left;font-size:12px;color:var(--ink-2);font-weight:400;}
+  #appView .shell .main #salesInsight {padding:16px;border:0;box-sizing:border-box;overflow:hidden;}
+  #appView .shell .main #salesInsight .insight-controls {grid-template-columns:minmax(0,1fr);}
+  #appView .shell .main #salesInsight .insight-controls :is(select,input) {padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;}
+  #appView .shell .main .stock-option-scroll {max-width:100%;overflow-x:auto;}
 }

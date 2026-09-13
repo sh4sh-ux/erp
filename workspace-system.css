@@ -470,7 +470,11 @@
 #appView .shell .main #view-stock .stock-option-table :is(th,td) {text-align:center;}
 #appView .shell .main #view-stock .stock-option-table :is(th,td).num {text-align:right;white-space:nowrap;}
 #appView .shell .main #view-stock .stock-option-table :is(th,td):first-child {text-align:left;}
-#appView .shell .main #view-stock .stock-option-table [data-stock-min] {width:80px;min-width:0;text-align:right;box-sizing:border-box;}
+#appView .shell .main #view-stock .stock-option-table [data-stock-min] {width:80px;min-width:0;text-align:right;box-sizing:border-box;display:block;margin-left:auto;}
+#appView .shell .main #view-stock .stock-option-table :is(th,td):last-child {text-align:right;padding-right:12px;}
+@media screen and (min-width:1024px){
+  #appView .shell .main :is(#dashRecent .recent-item,#stockItems .stock-item,#coList .list-item,#itList .list-item,#qtList .list-item) {min-height:80px;padding:16px 28px;box-sizing:border-box;}
+}
 #appView .shell .main #view-stock .stock-min-actions {display:flex;justify-content:flex-end;padding:12px 0 24px;}
 @media(max-width:600px){
   #appView .shell .main #view-stock .stock-add {grid-template-columns:minmax(0,1fr);}
