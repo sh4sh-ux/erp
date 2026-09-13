@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1560">
+<link rel="stylesheet" href="./workspace-system.css?v=1570">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1560">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1570">
 </head>
 <body>
 
@@ -2746,7 +2746,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.156";
+const APP_VERSION = "v1.157";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -4517,7 +4517,7 @@ function renderQtList(){
         <div class="li-amt">${won(t.total)}</div>
         <span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>
         ${quoteSentBadge(x)}
-        ${needsTax(x)?'<span class="pill out">계산서 미발행</span>':""}
+        ${needsTax(x)?'<span class="pill tax-unissued">계산서 미발행</span>':""}
       </div>
     </div>`;}).join("");
   list.querySelectorAll(".list-item").forEach(el=>{
@@ -6133,7 +6133,7 @@ function renderStock(){
   const shown=(selected?selected.rows:visible.flatMap(g=>g.rows).filter(c=>matchesStockFilter(c,filter.value)))
     .slice().sort((a,b)=>b.shortage-a.shortage||Number(b.low)-Number(a.low)||a.available-b.available||a.name.localeCompare(b.name,'ko',{numeric:true}));
   document.getElementById('stockOverview').innerHTML=`<div class="stock-overview-heading"><h3>${selected?escapeHtml(selected.name):'품목별 재고 확인'}</h3><p>가용 수량 = 현재 수량 − 확정 주문의 미출고 수량<br>최소 기준: 빈칸은 미설정, 0은 최소 보유 없음. 변경 후 저장해 주세요.</p></div>`+
-    (shown.length?`<div class="stock-option-scroll"><table class="tbl stock-option-table"><thead><tr>${selected?'':'<th>품목</th>'}<th>색상</th><th>규격/옵션</th><th>상태</th><th class="num">현재</th><th class="num">출고 예정</th><th class="num">가용</th><th class="num">최소 기준</th></tr></thead><tbody>${shown.map(c=>`<tr>${selected?'':`<td>${escapeHtml(c.name)}</td>`}<td>${escapeHtml(c.color||'—')}</td><td>${escapeHtml(c.spec||'—')}</td><td><span class="pill ${c.qty<=0||c.shortage||c.low?'out':''}">${stockRowStatus(c)}</span></td><td class="num">${fmt(c.qty)}</td><td class="num">${fmt(c.reserved)}</td><td class="num ${c.available<0?'neg':''}">${fmt(c.available)}</td><td><input type="text" inputmode="decimal" data-stock-min="${escapeAttr(c.key)}" aria-label="${escapeAttr([c.name,c.color,c.spec,'최소 기준'].filter(Boolean).join(' '))}" value="${escapeAttr(stockMinimumDraft[c.key]??(c.minimum===null?'':String(c.minimum)))}" placeholder="미설정"></td></tr>`).join('')}</tbody></table></div><div class="stock-min-actions"><button type="button" class="btn" id="stockMinimumSave" ${stockMinimumSaving?'disabled':''}>표시된 최소 기준 저장</button></div>`:'<p class="empty">조건에 맞는 품목이 없습니다.</p>');
+    (shown.length?`<div class="stock-option-scroll"><table class="tbl stock-option-table"><thead><tr>${selected?'':'<th>품목</th>'}<th>색상</th><th>규격/옵션</th><th>상태</th><th class="num">현재</th><th class="num">출고 예정</th><th class="num">가용</th><th class="num">최소 기준</th></tr></thead><tbody>${shown.map(c=>`<tr>${selected?'':`<td>${escapeHtml(c.name)}</td>`}<td>${escapeHtml(c.color||'—')}</td><td>${escapeHtml(c.spec||'—')}</td><td><span class="pill ${stockRowStatus(c)==='주문 대비 부족'?'attention':c.qty<=0||c.shortage||c.low?'out':''}">${stockRowStatus(c)}</span></td><td class="num">${fmt(c.qty)}</td><td class="num">${fmt(c.reserved)}</td><td class="num ${c.available<0?'neg':''}">${fmt(c.available)}</td><td><input type="text" inputmode="decimal" data-stock-min="${escapeAttr(c.key)}" aria-label="${escapeAttr([c.name,c.color,c.spec,'최소 기준'].filter(Boolean).join(' '))}" value="${escapeAttr(stockMinimumDraft[c.key]??(c.minimum===null?'':String(c.minimum)))}" placeholder="미설정"></td></tr>`).join('')}</tbody></table></div><div class="stock-min-actions"><button type="button" class="btn" id="stockMinimumSave" ${stockMinimumSaving?'disabled':''}>표시된 최소 기준 저장</button></div>`:'<p class="empty">조건에 맞는 품목이 없습니다.</p>');
   document.querySelectorAll('[data-stock-min]').forEach(input=>input.oninput=()=>{stockMinimumDraft[input.dataset.stockMin]=input.value;});
   const minimumSave=document.getElementById('stockMinimumSave');if(minimumSave)minimumSave.onclick=saveStockMinimums;
   search.oninput=()=>{stockSelectedItem='';renderStock();};filter.onchange=()=>{stockSelectedItem='';renderStock();};
@@ -6748,7 +6748,7 @@ function renderArByQuote(tbl){
         <td class="num">${fmt(r.amt)}</td>
         <td class="num">${r.paid?fmt(r.paid):'<span class="sub">—</span>'}</td>
         <td class="num" style="color:${r.bal>0?"var(--danger)":r.bal<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.bal)}</td>
-        <td>${isTaxed(r.q)?`<span class="sub">${escapeHtml(r.q.tax_at)}</span>`:'<span class="pill out">미발행</span>'}</td>
+        <td>${isTaxed(r.q)?`<span class="sub">${escapeHtml(r.q.tax_at)}</span>`:'<span class="pill tax-unissued">미발행</span>'}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
         <td style="font-weight:700">합계</td><td></td><td></td>
