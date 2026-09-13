@@ -1,6 +1,6 @@
-/* ERP service worker — v1.155 inventory and workspace release */
-const CACHE = "erp-shell-v65-v155";
-const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1550","./workspace-layout.js?v=1530","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1550","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
+/* ERP service worker — v1.156 inventory and workspace release */
+const CACHE = "erp-shell-v66-v156";
+const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1560","./workspace-layout.js?v=1530","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1560","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e => {

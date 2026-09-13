@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1550">
+<link rel="stylesheet" href="./workspace-system.css?v=1560">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1550">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1560">
 </head>
 <body>
 
@@ -2746,7 +2746,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.155";
+const APP_VERSION = "v1.156";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6441,7 +6441,7 @@ function renderDash(){
     <div class="dash-heading-title">매출 현황</div>
     <div class="lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
     <div class="big">${won(sales.total)}</div>
-    <div class="sub">납품 <b>${sales.count}건</b><span class="sep">·</span>미수금 <b>${won(openAr)}</b>${untaxed.n?`<span class="sep">·</span>계산서 미발행 <b class="amb" style="color:var(--warn-ink)">${untaxed.n}건</b>`:""}</div>`;
+    <div class="sub">납품 <b>${sales.count}건</b><span class="sep">·</span>미수금 <b>${won(openAr)}</b>${untaxed.n?`<span class="sep">·</span>계산서 미발행 <b class="amb" style="color:var(--tax-unissued-color)">${untaxed.n}건</b>`:""}</div>`;
   document.getElementById("dashStats").innerHTML=`
     <button type="button" class="stat stat-link stat-key" data-view-target="payments"><div class="k">이달 수금</div><div class="v pos">${won(sumIn)}</div><div class="hint" style="margin-top:2px">수금 내역 보기</div></button>
     <button type="button" class="stat stat-link" data-view-target="payments"><div class="k">이달 지급</div><div class="v">${won(sumOut)}</div><div class="hint" style="margin-top:2px">지급 내역 보기</div></button>
@@ -6539,8 +6539,10 @@ function renderSales(){
         const it=r.item_id && r.item_id!=="__free__" ? db.items.find(x=>x.id===r.item_id) : null;
         const buy=it ? itemBuy(it,r.spec) : 0;
         if(buy) sMargin += supply - buy*r.qty; else sMarginUnknown++;
+        const identity=String(r.name||'').match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
         return `<tr>
-          <td>${escapeHtml(r.name)}</td>
+          <td>${escapeHtml(identity?identity[1]:r.name)}</td>
+          <td class="item-code">${escapeHtml(identity?identity[2]:(it?.code||'—'))}</td>
           <td class="item-option">${escapeHtml(r.color||"—")}</td>
           <td class="item-option">${escapeHtml(r.spec||"—")}</td>
           <td class="num">${fmt(r.qty)}</td>
@@ -6553,16 +6555,16 @@ function renderSales(){
       totQty+=sQty; totSupply+=sSupply; totVat+=sVat;
       return `
       <div class="card" style="margin-bottom:16px">
-        <div class="card-head" style="padding-bottom:4px">
+        <div class="card-head">
           <h3>${escapeHtml(coName(cid))}</h3>
           <span class="legend">공급가액 <b style="color:var(--ink)">${won(sSupply)}</b> · 세액 <b style="color:var(--ink)">${won(sVat)}</b> · 합계 <b style="color:var(--ink)">${won(sSupply+sVat)}</b>${sMarginUnknown===rows.length?"":` · 마진 <b style="color:var(--ink)">${won(sMargin)}</b>`}</span>
         </div>
         <div class="tbl-wrap"><table class="tbl item-data-table" style="table-layout:fixed">
-          <colgroup><col><col style="width:110px"><col style="width:150px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:100px"><col style="width:120px"></colgroup>
-          <thead><tr><th>품명</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th><th style="text-align:right">마진</th></tr></thead>
+          <colgroup><col style="width:160px"><col style="width:190px"><col style="width:80px"><col style="width:100px"><col style="width:80px"><col style="width:100px"><col style="width:120px"><col style="width:100px"><col style="width:120px"></colgroup>
+          <thead><tr><th>품명</th><th>품목코드</th><th>색상</th><th>규격/옵션</th><th style="text-align:right">수량</th><th style="text-align:right">단가</th><th style="text-align:right">공급가액</th><th style="text-align:right">세액</th><th style="text-align:right">마진</th></tr></thead>
           <tbody>${trs}
             <tr class="subtotal" style="background:var(--paper)">
-              <td style="font-weight:700">소계</td><td></td><td></td>
+              <td style="font-weight:700">소계</td><td></td><td></td><td></td>
               <td class="num" style="font-weight:700">${fmt(sQty)}</td><td></td>
               <td class="num" style="font-weight:700">${fmt(sSupply)}</td>
               <td class="num" style="font-weight:700">${fmt(sVat)}</td>
@@ -6700,7 +6702,7 @@ function renderAr(){
         <td class="num">${fmt(r.paid)}</td>
         <td class="num" style="color:${r.open>0?"var(--danger)":r.open<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.open)}</td>
         <td class="num">${r.pending?fmt(r.pending):'<span class="sub">—</span>'}</td>
-        <td class="num" style="color:${r.untaxed?"var(--warn-ink)":"inherit"}">${r.untaxed?`${fmt(r.untaxed)} <span class="sub">(${r.untaxedCount}건)</span>`:'<span class="sub">—</span>'}</td>
+        <td class="num" style="color:${r.untaxed?"var(--tax-unissued-color)":"inherit"}">${r.untaxed?`${fmt(r.untaxed)} <span class="sub">(${r.untaxedCount}건)</span>`:'<span class="sub">—</span>'}</td>
         <td class="sub">${escapeHtml(r.lastPay||"—")}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
