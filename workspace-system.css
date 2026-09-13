@@ -2,6 +2,14 @@
    Table separators 1.5/1/2 are the user's explicit ERP rule.
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
 .company-address-controls {display:flex;gap:8px;align-items:stretch;}
+/* Card padding is the single inset; do not inset record separators a second time. */
+#appView .shell .main #view-quotes .quote-flow-head {padding:16px;}
+/* Preserve the existing 16px totals-card gap on desktop as well as mobile. */
+#appView .shell .main #view-quotes #fq_short+.qtotals {margin-top:16px;}
+#appView .shell .main #view-quotes .quote-flow-body {padding:16px;}
+#appView .shell .main #view-quotes .quote-record {margin:0;padding:16px 0;border-image:none;border-bottom:0;border-top:1px solid var(--line);}
+#appView .shell .main #view-quotes .quote-flow-body>.quote-flow-sub {margin-bottom:12px;}
+#appView .shell .main #view-quotes .quote-record+.quote-flow-add {margin-top:8px;}
 #appView .tax-unissued {color:var(--warn-ink,#B45F00);}
 #appView .shell .main #salesInsight {margin-top:24px;padding:0 0 24px;min-width:0;}
 #appView .shell .main #salesInsight>.card-head {padding:20px 0;margin-bottom:20px;border-bottom:1px solid var(--line);}
@@ -473,7 +481,8 @@
 #appView .shell .main #view-stock .stock-option-table [data-stock-min] {width:80px;min-width:0;text-align:right;box-sizing:border-box;display:block;margin-left:auto;}
 #appView .shell .main #view-stock .stock-option-table :is(th,td):last-child {text-align:right;padding-right:12px;}
 @media screen and (min-width:1024px){
-  #appView .shell .main :is(#dashRecent .recent-item,#stockItems .stock-item,#coList .list-item,#itList .list-item,#qtList .list-item) {min-height:80px;padding:16px 28px;box-sizing:border-box;}
+  /* Shared minimum, not a fixed row height: additional content grows naturally. */
+  #appView .shell .main :is(#dashRecent .recent-item,#stockItems .stock-item,#coList .list-item,#itList .list-item,#qtList .list-item) {min-height:64px;padding:16px 28px;box-sizing:border-box;}
 }
 #appView .shell .main #view-stock .stock-min-actions {display:flex;justify-content:flex-end;padding:12px 0 24px;}
 @media(max-width:600px){

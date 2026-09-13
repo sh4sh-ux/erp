@@ -34,7 +34,10 @@
   #appView .shell .main #dashStats .stat {display:grid;grid-template-columns:minmax(0,1fr) auto;grid-column:auto;width:100%;padding:16px 0;border-bottom:1px solid var(--line);border-radius:0;}
   #appView .shell .main #dashStats .stat:last-child {border-bottom:0;}
   #appView .shell .main #dashStats .stat .v {font-size:20px;}
-  #appView .shell .main #dashRecent {max-height:50dvh;overflow:auto;}
+  #appView .shell .main #view-dash .dash-grid>.card {padding:0;}
+  #appView .shell .main #view-dash .dash-grid>.card>.card-head {padding:16px;flex-wrap:wrap;}
+  #appView .shell .main #view-dash #dashChart {padding:16px;box-sizing:border-box;}
+  #appView .shell .main #dashRecent {max-height:50dvh;overflow:auto;padding:0 16px;box-sizing:border-box;}
   #appView .shell .main #dashRecent .recent-item {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;width:100%;padding:14px 0;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;text-align:left;font:400 14px/1.4 var(--sans);}
   #appView .shell .main #dashRecent .recent-item .ra {text-align:right;}
   #appView .shell .main #dashRecent .recent-item .d {text-align:left;margin-left:0;justify-self:start;}

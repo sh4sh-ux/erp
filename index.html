@@ -2193,9 +2193,9 @@
   }
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
-<link rel="stylesheet" href="./workspace-system.css?v=1540">
+<link rel="stylesheet" href="./workspace-system.css?v=1550">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
-<link rel="stylesheet" href="./mobile-workspace.css?v=1540">
+<link rel="stylesheet" href="./mobile-workspace.css?v=1550">
 </head>
 <body>
 
@@ -2746,7 +2746,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.154";
+const APP_VERSION = "v1.155";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -5903,7 +5903,7 @@ function renderMaterialsLegacy(){
       <div class="hint">‘받음’은 모든 업체에서 선택할 수 있고, 사용·반환·불량은 잔량이 있는 업체만 표시합니다.</div>
       <div class="field"><label for="mm_material">자재 종류 *</label>${d.kind==="받음"?`<input id="mm_material" data-mm="material" list="mm_names" value="${escapeAttr(d.material)}" placeholder="예: 로고 패치 (흰색)"><datalist id="mm_names">${materialChoices(d.company_id,allTotals).map(x=>option(x.name,x.name,"")).join("")}</datalist>`:`<select id="mm_material" data-mm="material">${option("",choices.length?"자재 선택":"남은 자재가 없습니다",d.material)}${materialOptions}</select>`}</div>
       ${d.company_id&&d.material?`<div class="material-balance-box" id="mm_balance">현재 남은 수량 ${fmt(balance)}개</div>`:""}
-      <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,i.name,d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}</div>
+      <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,itemLabel(i.name,i.code),d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}</div>
       ${d.kind==="작업 완료"?`<div class="grid2">${input("work_qty","완료한 작업 수량 *")}${input("per_unit","작업 1개당 자재 사용량 *")}</div><div class="hint" id="mm_preview"></div>`:""}
       <div class="grid2"><div class="field"><label for="mm_source">주문 경로</label><select id="mm_source" data-mm="source">${["직접 주문","스마트스토어","기타"].map(k=>option(k,k,d.source)).join("")}</select></div>${input("order_no","주문번호 / 회차 (선택)")}</div>
       <div class="grid2"><div class="field"><label for="mm_quote">견적서 연결 (선택)</label><select id="mm_quote" data-mm="quote_id">${option("","견적서 없이 기록",d.quote_id)}${db.quotes.filter(q=>q.company_id===d.company_id).map(q=>option(q.id,q.no,d.quote_id)).join("")}</select></div>${input("memo","메모 (예: 1차 작업, 불량 사유)")}</div>
@@ -5992,7 +5992,7 @@ function renderMaterials(){
     <div class="grid2"><div class="field"><label for="mm_kind">기록 구분</label><select id="mm_kind" data-mm="kind">${["받음","작업 완료","반환","불량/분실"].map(k=>option(k,k,d.kind)).join("")}</select></div><div class="field"><label for="mm_company">자재 소유 업체 *</label><select id="mm_company" data-mm="company_id">${option("","업체 선택",d.company_id)}${allCompanies.map(c=>option(c.id,c.name,d.company_id)).join("")}</select></div></div>
     <div class="field"><label for="mm_material">자재 종류 *</label>${d.kind==="받음"?`<input id="mm_material" data-mm="material" list="mm_names" value="${escapeAttr(d.material)}" placeholder="예: 로고 패치 (흰색)"><datalist id="mm_names">${materialChoices(d.company_id,totals).map(x=>option(x.name,x.name,"")).join("")}</datalist>`:`<select id="mm_material" data-mm="material">${option("","자재 선택",d.material)}${formChoices.map(x=>option(x.name,`${x.name} — ${fmt(x.balance)}개 남음`,d.material)).join("")}</select>`}</div>
     ${d.company_id&&d.material?`<div class="material-balance-box" id="mm_balance">현재 남은 수량 ${fmt(formBalance)}개</div>`:""}
-    <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,i.name,d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}</div>
+    <div class="grid2">${input("date","기록일자 (실제로 받거나 사용한 날) *","date")}${d.kind==="작업 완료"?`<div class="field"><label for="mm_work">작업 품목 (선택)</label><select id="mm_work" data-mm="work_item_id">${option("","지정 안 함",d.work_item_id)}${db.items.filter(isWork).map(i=>option(i.id,itemLabel(i.name,i.code),d.work_item_id)).join("")}</select></div>`:input("qty","자재 수량 (개) *")}</div>
     ${d.kind==="작업 완료"?`<div class="grid2">${input("work_qty","완료한 작업 수량 *")}${input("per_unit","작업 1개당 자재 사용량 *")}</div><div class="hint" id="mm_preview"></div>`:""}
     <div class="grid2"><div class="field"><label for="mm_source">주문 경로</label><select id="mm_source" data-mm="source">${["직접 주문","스마트스토어","기타"].map(k=>option(k,k,d.source)).join("")}</select></div>${input("order_no","주문번호 / 회차 (선택)")}</div>
     <div class="grid2"><div class="field"><label for="mm_quote">견적서 연결 (선택)</label><select id="mm_quote" data-mm="quote_id">${option("","견적서 없이 기록",d.quote_id)}${db.quotes.filter(q=>q.company_id===d.company_id).map(q=>option(q.id,q.no,d.quote_id)).join("")}</select></div>${input("memo","메모 (예: 1차 작업, 불량 사유)")}</div>
@@ -6108,7 +6108,7 @@ function renderStock(){
   const cur=itemEl.value;
   itemEl.innerHTML=`<option value="">— 품목 —</option>`+db.items.filter(tracksStock)
     .sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
-    .map(i=>`<option value="${i.id}" ${i.id===cur?"selected":""}>${escapeHtml(i.name)}</option>`).join("");
+    .map(i=>`<option value="${i.id}" ${i.id===cur?"selected":""}>${escapeHtml(itemLabel(i.name,i.code))}</option>`).join("");
   const oldColor=document.getElementById('ivColor').value,oldSpec=document.getElementById('ivSpec').value;
   updateIvCombo();
   if([...document.getElementById('ivColor').options].some(o=>o.value===oldColor))document.getElementById('ivColor').value=oldColor;
@@ -6414,7 +6414,7 @@ function renderSalesInsight(){
   const totals=new Map();data.rows.forEach(r=>totals.set(r.id,{name:r.name,qty:(totals.get(r.id)?.qty||0)+r.current}));
   const leaders=[...totals.values()].sort((a,b)=>b.qty-a.qty).slice(0,5);
   root.innerHTML=`<div class="card-head"><h3>품목 판매 분석 · 납품 수량 기준</h3></div>
-    <div class="insight-controls"><label>기준 월<input id="insightMonth" type="month" max="${localMonth()}" value="${escapeAttr(selected)}"></label><label>품목<select id="insightItem"><option value="">전체 품목</option>${db.items.map(i=>`<option value="${escapeAttr(i.id)}" ${item===i.id?'selected':''}>${escapeHtml(i.name)}</option>`).join('')}</select></label></div>
+    <div class="insight-controls"><label>기준 월<input id="insightMonth" type="month" max="${localMonth()}" value="${escapeAttr(selected)}"></label><label>품목<select id="insightItem"><option value="">전체 품목</option>${db.items.map(i=>`<option value="${escapeAttr(i.id)}" ${item===i.id?'selected':''}>${escapeHtml(itemLabel(i.name,i.code))}</option>`).join('')}</select></label></div>
     <p class="hint">확정 납품 기록만 집계합니다. 부분납품은 실제 수량·납품일로 반영하며, 기록이 없는 달은 0으로 표시합니다. 반품·기록 누락은 별도 확인이 필요합니다.</p>
     <h4>월별 판매 수량 · 최근 12개월</h4><div class="insight-months">${data.months.map(m=>`<div><span>${m.month}</span><meter min="0" max="${max}" value="${m.qty}"></meter><b>${fmt(m.qty)}</b></div>`).join('')}</div>
     <h4>품목 판매 순위 · ${escapeHtml(selected)}</h4><p>${leaders.length?leaders.map((r,i)=>`${i+1}. ${escapeHtml(r.name)} <b>${fmt(r.qty)}</b>`).join('　 /　 '):'납품 기록이 없습니다.'}</p>
