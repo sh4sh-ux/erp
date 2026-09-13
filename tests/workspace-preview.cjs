@@ -24,7 +24,8 @@ for(let n=1;n<=36;n++){
  db.stock_moves.push({id:'s'+n,item_id:iid,kind:'입고',qty:12+n,color:'WH',spec:'L',date});
  db.material_moves.push({id:'m'+n,company_id:cid,material:'패치',kind:'받음',qty:100+n,date,source:'샘플',created_at:date});
 }
-db.items.slice(0,3).forEach((item,i)=>{item.name='셰프복';item.code='JK_TEST_'+(i+1);item.variants=[{spec:'S'},{spec:'L'},{spec:'3XL'}];});
+db.items.slice(0,3).forEach((item,i)=>{item.name='셰프복';item.code='JK_TEST_'+(i+1);item.variants=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(spec=>({spec}));});
+db.stock_moves.push({id:'negative-fixture',item_id:'i1',kind:'출고',qty:15,color:'WH',spec:'L',date:'2026-09-13'});
 const longQuote=db.quotes[0];longQuote.lines=Array.from({length:6},(_,i)=>({...longQuote.lines[0],id:'long-line-'+i,name:'셰프복 [JK_TEST_1]',color:'WH',spec:'3XL',qty:i+1}));longQuote.deliveries=[];
 switchView('dash');
 document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};

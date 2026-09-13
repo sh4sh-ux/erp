@@ -2196,7 +2196,7 @@
 <link rel="stylesheet" href="./workspace-system.css?v=1610">
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
 <link rel="stylesheet" href="./mobile-workspace.css?v=1620">
-<link rel="stylesheet" href="./stock-entry.css?v=1640">
+<link rel="stylesheet" href="./stock-entry.css?v=1650">
 </head>
 <body>
 
@@ -2749,7 +2749,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.164";
+const APP_VERSION = "v1.165";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6160,7 +6160,7 @@ function renderStock(){
     return {id,name:rows[0].name,rows,attention:rows.filter(c=>c.qty<=0||c.low||c.shortage>0).length};
   }).sort((a,b)=>b.attention-a.attention||a.name.localeCompare(b.name,'ko',{numeric:true}));
   const visible=groups.filter(g=>g.name.toLowerCase().includes(search.value.trim().toLowerCase())&&g.rows.some(c=>matchesStockFilter(c,filter.value)));
-  document.getElementById('stockItems').innerHTML=`<button class="stock-item ${!stockSelectedItem?'selected':''}" data-stock-id=""><span>전체 현황</span><b>${groups.length}품목</b></button>`+visible.map(g=>`<button class="stock-item ${stockSelectedItem===g.id?'selected':''}" data-stock-id="${escapeHtml(g.id)}"><span>${escapeHtml(g.name)}</span><b>${fmt(g.rows.reduce((s,c)=>s+Math.max(0,c.qty),0))}개</b><small>${g.rows.length}개 옵션</small><small class="${g.attention?'neg':''}">${g.attention?`확인 필요 ${g.attention}옵션`:g.rows.some(c=>c.minimum===null)?'최소 보유 기준 미설정':'보유'}</small></button>`).join('');
+  document.getElementById('stockItems').innerHTML=`<button class="stock-item ${!stockSelectedItem?'selected':''}" data-stock-id=""><span>전체 현황</span><b>${groups.length}품목</b></button>`+visible.map(g=>`<button class="stock-item ${stockSelectedItem===g.id?'selected':''}" data-stock-id="${escapeHtml(g.id)}"><span>${escapeHtml(g.name)}</span><b>${fmt(g.rows.reduce((s,c)=>s+c.qty,0))}개</b><small>${g.rows.length}개 옵션</small><small class="${g.attention?'neg':''}">${g.attention?`확인 필요 ${g.attention}옵션`:g.rows.some(c=>c.minimum===null)?'최소 보유 기준 미설정':'보유'}</small></button>`).join('');
   const selected=groups.find(g=>g.id===stockSelectedItem);
   const shown=(selected?selected.rows:visible.flatMap(g=>g.rows).filter(c=>matchesStockFilter(c,filter.value)))
     .slice().sort((a,b)=>b.shortage-a.shortage||Number(b.low)-Number(a.low)||a.available-b.available||a.name.localeCompare(b.name,'ko',{numeric:true}));
@@ -7005,7 +7005,7 @@ async function init(){
 }
 init();
 </script>
-<script src="./stock-entry.js?v=1640"></script>
+<script src="./stock-entry.js?v=1650"></script>
 <script src="./workspace-layout.js?v=1530"></script>
 </body>
 </html>
