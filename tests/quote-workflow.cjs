@@ -115,6 +115,13 @@ assert.ok(salesTable.includes('class="item-option">WH</td>'));
 assert.ok(salesTable.includes('class="item-option">2XL</td>'));
 assert.ok(!salesTable.includes('색상·규격/옵션'));
 console.log('PASS: sales item table separates color and specification columns');
+run(`db.items[0].code='CURRENT';db.quotes[0].lines[0].name='셰프복 [JK_HSB_AM-SS]';renderSales();`);
+assert.ok(elements.get('slBody').innerHTML.includes('<th>품명</th><th>품목코드</th>'));
+assert.ok(elements.get('slBody').innerHTML.includes('<td>셰프복</td>'));
+assert.ok(elements.get('slBody').innerHTML.includes('class="item-code">JK_HSB_AM-SS</td>'),'Preserve historical code rather than current master code');
+run(`db.quotes[0].lines[0].name='자수 [Embroidery Cost]';renderSales();`);
+assert.ok(elements.get('slBody').innerHTML.includes('class="item-code">Embroidery Cost</td>'));
+console.log('PASS: separate item/code columns preserve historical codes including spaces and hyphens');
 (async()=>{
   run('toast=()=>{};saveTable=async()=>false;qtEditing=JSON.parse(JSON.stringify(testQuote));qtEditing.memo="unsaved";');
   await run('submitQuote(false)');

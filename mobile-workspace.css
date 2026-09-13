@@ -71,7 +71,12 @@
   #appView .shell .main #view-sales .sl-metric {display:grid;grid-template-columns:1fr auto;gap:6px 12px;}
   #appView .shell .main #view-sales .sl-metric .mv {text-align:right;font-size:16px;}
   #appView .shell .main #view-sales .sl-metric .mn {grid-column:1/-1;text-align:right;}
-  #appView .shell .main #view-sales .item-data-table tr {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;padding:14px 12px;}
+  #appView .shell .main #view-sales #slBody>.card {padding:0;}
+  #appView .shell .main #view-sales #slBody .tbl-wrap {padding:0;}
+  #appView .shell .main #view-sales #slBody .item-data-table {border-spacing:0;}
+  #appView .shell .main #view-sales #slBody>.card>.card-head {padding:16px;flex-direction:column;align-items:flex-start;gap:8px;}
+  #appView .shell .main #view-sales #slBody .card-head .legend {min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.6;}
+  #appView .shell .main #view-sales .item-data-table tr {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;padding:14px 16px;}
   #appView .shell .main #view-sales .item-data-table td:first-child {grid-column:1/-1;padding-bottom:4px;}
   #appView .shell .main #view-sales .item-data-table td {display:flex;justify-content:space-between;min-width:0;gap:6px;white-space:normal;overflow-wrap:anywhere;}
   #appView .shell .main :is(#view-sales,#view-ar) .filter-bar {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;margin:0 0 16px;}
