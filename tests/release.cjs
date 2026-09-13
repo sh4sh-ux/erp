@@ -10,7 +10,7 @@ for(const [,file,query=''] of assets){
   if(file.endsWith('.css')||file.endsWith('.js'))assert(sw.includes('./'+file+query),`Cache asset mismatch: ${file}`);
 }
 assert(!html.includes('Synthetic volume only')&&!html.includes("id:'c1',name:'샘플 거래처'"),'Fixture leaked into production');
-assert(html.includes('v1.169')&&sw.includes('erp-shell-v79-v169'),'Release version mismatch');
+assert(html.includes('v1.170')&&sw.includes('erp-shell-v80-v170'),'Release version mismatch');
 new vm.Script(fs.readFileSync(path.join(root,'stock-entry.js'),'utf8'));
 const css=fs.readFileSync(path.join(root,'workspace-system.css'),'utf8');
 assert(html.includes('--ok:#1DAD53')&&html.includes('--ok-ink:var(--ok)'), 'Shared green token mismatch');
