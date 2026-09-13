@@ -10,7 +10,10 @@ for(const [,file,query=''] of assets){
   if(file.endsWith('.css')||file.endsWith('.js'))assert(sw.includes('./'+file+query),`Cache asset mismatch: ${file}`);
 }
 assert(!html.includes('Synthetic volume only')&&!html.includes("id:'c1',name:'샘플 거래처'"),'Fixture leaked into production');
-assert(html.includes('v1.170')&&sw.includes('erp-shell-v80-v170'),'Release version mismatch');
+assert(html.includes('v1.171')&&sw.includes('erp-shell-v81-v171'),'Release version mismatch');
+const stockCss=fs.readFileSync(path.join(root,'stock-entry.css'),'utf8');
+assert(!stockCss.includes('max-width:544px')&&!stockCss.includes('max-width:260px'),'Stock grid must not leave a fixed-width empty area');
+assert(stockCss.includes('display:grid;width:100%;grid-template-columns:repeat(4,minmax(0,1fr))'),'Stock grid must fill its form');
 new vm.Script(fs.readFileSync(path.join(root,'stock-entry.js'),'utf8'));
 const css=fs.readFileSync(path.join(root,'workspace-system.css'),'utf8');
 assert(html.includes('--ok:#1DAD53')&&html.includes('--ok-ink:var(--ok)'), 'Shared green token mismatch');
