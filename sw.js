@@ -1,5 +1,5 @@
 /* ERP service worker — v1.162 verified UI and persistence fixes */
-const CACHE = "erp-shell-v89-v180";
+const CACHE = "erp-shell-v90-v181";
 const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1680","./workspace-layout.js?v=1730","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1690","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
 SHELL.push('./stock-entry.js?v=1650','./stock-entry.css?v=1710');
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting())); });
