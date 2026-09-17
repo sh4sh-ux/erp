@@ -2190,22 +2190,6 @@
     .shell .rail-brand::before{content:"";font-weight:600}
     .shell>.main{flex:1 1 auto;min-width:0}
   }
-  /* v1.172 대시보드 '오늘 할 일' 액션 인박스 (데이터 기반) */
-  #view-dash .dash-todo{margin-bottom:16px}
-  #view-dash .dash-todo-h{font-size:13px;font-weight:700;color:var(--ink-2);letter-spacing:.02em;margin:0 0 10px}
-  #view-dash .todo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  @media(max-width:980px){#view-dash .todo-grid{grid-template-columns:repeat(2,1fr)}}
-  #view-dash .todo-tile{display:flex;align-items:center;gap:11px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm,10px);padding:12px 13px;cursor:pointer;transition:border-color .15s,box-shadow .15s;font:inherit;color:inherit}
-  #view-dash .todo-tile:hover{border-color:var(--primary);box-shadow:0 6px 16px -10px rgba(20,30,80,.3)}
-  #view-dash .todo-tile .td-ic{width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--c,var(--primary)) 13%,var(--card));color:var(--c,var(--primary))}
-  #view-dash .todo-tile .td-ic svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
-  #view-dash .todo-tile .td-body{min-width:0;flex:1}
-  #view-dash .todo-tile .td-lbl{font-size:12.5px;font-weight:600;color:var(--ink)}
-  #view-dash .todo-tile .td-hint{font-size:11px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #view-dash .todo-tile .td-cnt{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--c,var(--primary));flex:0 0 auto}
-  #view-dash .todo-tile.zero{opacity:.5}
-  #view-dash .todo-tile.zero .td-cnt{color:var(--ink-3)}
-  #view-dash .todo-tile.zero .td-ic{background:var(--paper);color:var(--ink-3)}
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
 <link rel="stylesheet" href="./workspace-system.css?v=1680">
@@ -2541,7 +2525,6 @@
             <button class="btn-sm" id="dashNewQuote" type="button">+ 새 견적</button>
           </div>
         </div>
-        <div class="dash-todo" id="dashTodo"></div>
         <div class="scr-hero" id="dashHero"></div>
         <div class="stats" id="dashStats"></div>
         <section class="card sales-insight" id="salesInsight" aria-label="품목 판매 분석"></section>
@@ -2765,7 +2748,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.172";
+const APP_VERSION = "v1.171";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6460,27 +6443,6 @@ function renderDash(){
   const sentOld=sent.filter(q=>(daysSince(q.sent_at)||0)>=7).length;
   const untaxed=db.quotes.filter(needsTax).reduce((a,q)=>({
     n:a.n+1, amt:a.amt+quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total }),{n:0,amt:0});
-
-  // ── 오늘 할 일 (액션 인박스) — 모두 실제 데이터 기반 ──
-  const agedAr=arData().filter(r=>r.open>0 && (daysSince(r.lastDeliver)||0)>=30).length;
-  const stockShort=Object.values(currentStocks()).filter(v=>v<=0).length;
-  const todoItems=[
-    {n:agedAr, c:"var(--danger)", view:"ar", lbl:"미수금 30일 경과", hint:agedAr?"장기 미수 거래처":"경과 건 없음",
-     svg:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'},
-    {n:stockShort, c:"var(--warn-c)", view:"stock", lbl:"재고 부족", hint:stockShort?"발주 검토 필요":"부족 품목 없음",
-     svg:'<path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/>'},
-    {n:sent.length, c:"var(--primary)", view:"quotes", lbl:"회신 대기 견적", hint:sentOld?`발송 7일 이상 ${sentOld}건`:(sent.length?"발송 후 대기 중":"대기 없음"),
-     svg:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>'},
-    {n:untaxed.n, c:"var(--tax-unissued-color)", view:"ar", lbl:"계산서 미발행", hint:untaxed.n?won(untaxed.amt):"모두 발행 완료",
-     svg:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'}
-  ];
-  document.getElementById("dashTodo").innerHTML=
-    `<div class="dash-todo-h">오늘 할 일</div><div class="todo-grid">`+
-    todoItems.map((t,i)=>`<button type="button" class="todo-tile${t.n?"":" zero"}" data-todo="${i}" style="--c:${t.c}">
-      <span class="td-ic"><svg viewBox="0 0 24 24">${t.svg}</svg></span>
-      <span class="td-body"><span class="td-lbl">${escapeHtml(t.lbl)}</span><span class="td-hint">${escapeHtml(t.hint)}</span></span>
-      <span class="td-cnt">${t.n}</span></button>`).join("")+`</div>`;
-  document.querySelectorAll('#dashTodo [data-todo]').forEach(b=>{ b.onclick=()=>switchView(todoItems[+b.dataset.todo].view); });
 
   document.getElementById("dashHero").innerHTML=`
     <div class="dash-heading-caption">이번 달 실적 · 납품 기준</div>
