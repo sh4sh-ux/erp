@@ -99,7 +99,7 @@
       view.append(left, header, right); view.classList.add('workspace-split');
       restore.push(() => { left.remove(); header.remove(); right.remove(); view.classList.remove('workspace-split'); });
     }
-    panel('dash', '업무 현황', [], []);
+    /* dash: 시안형 단일 컬럼 브리핑 유지 — 2단 재조립 안 함 (v1.173) */
     // Explicit existing containers, rather than renderer or state changes.
     const dash = document.getElementById('view-dash');
     const recent = dash?.querySelector('#dashRecent')?.closest('.card');
