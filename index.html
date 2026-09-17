@@ -2225,8 +2225,26 @@
   @media(max-width:640px){#view-dash .mo-spark{width:100%}}
   #view-dash .mo-sub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
   #view-dash .mo-sub .k{font-size:11px;color:var(--ink-3);font-weight:600}
-  #view-dash .mo-sub .v{font-size:15px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+  #view-dash .mo-sub .v{font-size:15px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+  @media(max-width:560px){#view-dash .mo-sub{gap:7px}#view-dash .mo-sub .v{font-size:14px;letter-spacing:-.2px}}
   #view-dash .mo-sub .neg .v{color:var(--danger)}
+  #view-dash .mo-sub .cost-warn{font-size:11px}
+  #view-dash .mo-sub .v-note{font-size:10.5px;font-weight:600;color:var(--warn-c);margin-top:3px;line-height:1.35}
+  /* NARO NOW 정상(0건) 영역 */
+  #view-dash .todo-zero{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  #view-dash .todo-zero .zc{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ok)}
+  #view-dash .todo-zero .zc svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  #view-dash .todo-zero .zchip{font:inherit;font-size:12px;color:var(--ink-3);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer}
+  #view-dash .todo-zero .zchip:hover{color:var(--ink-2);border-color:var(--ink-3)}
+  #view-dash .todo-allclear{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-size:13px;color:var(--ink-2)}
+  #view-dash .todo-allclear .ok-ic{width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok)}
+  #view-dash .todo-allclear .ok-ic svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  /* active 카드 수에 맞춰 데스크톱 열 폭 대응(모바일 규칙 불간섭) */
+  @media(min-width:981px){
+    #view-dash .todo-grid[data-n="1"]{grid-template-columns:minmax(0,420px)}
+    #view-dash .todo-grid[data-n="2"]{grid-template-columns:repeat(2,minmax(0,340px))}
+    #view-dash .todo-grid[data-n="3"]{grid-template-columns:repeat(3,minmax(0,300px))}
+  }
   /* NARO의 제안 */
   #view-dash .sug-stack{display:flex;flex-direction:column;gap:11px}
   #view-dash .sug{display:flex;gap:12px;border-radius:14px;padding:14px;border:1px solid color-mix(in srgb,var(--c) 28%,transparent);background:color-mix(in srgb,var(--c) 8%,var(--card))}
@@ -2825,7 +2843,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.175";
+const APP_VERSION = "v1.176";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6447,14 +6465,14 @@ async function deletePayment(id){
 /* 월별 매출 — 수주 견적 기준 (미수금·매출 집계와 같은 기준) */
 /* 월 매출 = 그 달에 '납품'된 금액 (수주만 한 건은 아직 매출이 아니다) */
 function monthSales(ym){
-  let supply=0, total=0, margin=0, count=0;
+  let supply=0, total=0, margin=0, count=0, unknown=0;
   db.quotes.forEach(q=>{
     (q.deliveries||[]).filter(d=>(d.date||"").startsWith(ym)).forEach(d=>{
-      const lines=deliveredLines(q,d), t=quoteTotals({lines});
-      supply+=t.supply;total+=t.total;margin+=quoteMargin({lines}).margin;count++;
+      const lines=deliveredLines(q,d), t=quoteTotals({lines}), m=quoteMargin({lines});
+      supply+=t.supply;total+=t.total;margin+=m.margin;unknown+=m.unknown;count++;
     });
   });
-  return { supply, total, margin, count };
+  return { supply, total, margin, count, unknown };
 }
 
 function salesQuantityAnalysis(endMonth,itemFilter='',today=localDate()){
@@ -6543,19 +6561,29 @@ function renderDash(){
     {n:sent.length,c:"var(--primary)",view:"quotes",lbl:"회신 대기 견적",hint:sentOld?`발송 7일 이상 ${sentOld}건`:(sent.length?"발송 후 대기 중":"대기 없음"),svg:_IC.send},
     {n:untaxed.n,c:"var(--tax-unissued-color)",view:"ar",lbl:"계산서 미발행",hint:untaxed.n?won(untaxed.amt):"모두 발행 완료",svg:_IC.file}
   ];
-  document.getElementById("dashTodo").innerHTML=`<div class="brief-h">오늘 할 일</div><div class="todo-grid">`+
-    todoItems.map((t,i)=>`<button type="button" class="todo-tile${t.n?"":" zero"}" data-todo="${i}" style="--c:${t.c}"><span class="ic"><svg viewBox="0 0 24 24">${t.svg}</svg></span><span class="bd"><span class="tl">${escapeHtml(t.lbl)}</span><span class="hn">${escapeHtml(t.hint)}</span></span><span class="cn">${t.n}</span></button>`).join("")+`</div>`;
+  const activeItems=todoItems.filter(t=>t.n>0), zeroItems=todoItems.filter(t=>!t.n);
+  const _tile=t=>`<button type="button" class="todo-tile" data-todo="${todoItems.indexOf(t)}" style="--c:${t.c}"><span class="ic"><svg viewBox="0 0 24 24">${t.svg}</svg></span><span class="bd"><span class="tl">${escapeHtml(t.lbl)}</span><span class="hn">${escapeHtml(t.hint)}</span></span><span class="cn">${t.n}</span></button>`;
+  const _ok='<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
+  let _todoHtml=`<div class="brief-h">NARO NOW</div>`;
+  _todoHtml+= activeItems.length
+    ? `<div class="todo-grid" data-n="${activeItems.length}">`+activeItems.map(_tile).join("")+`</div>`
+    : `<div class="todo-allclear"><span class="ok-ic">${_ok}</span>지금 급히 챙길 일은 없어요 👍</div>`;
+  if(zeroItems.length){
+    _todoHtml+=`<div class="todo-zero"><span class="zc">${_ok}정상 ${zeroItems.length}개</span>`
+      +zeroItems.map(t=>`<button type="button" class="zchip" data-todo="${todoItems.indexOf(t)}">${escapeHtml(t.lbl)}</button>`).join("")+`</div>`;
+  }
+  document.getElementById("dashTodo").innerHTML=_todoHtml;
   document.querySelectorAll('#dashTodo [data-todo]').forEach(b=>{b.onclick=()=>switchView(todoItems[+b.dataset.todo].view);});
   // 이번 달 (매출 카드)
   document.getElementById("dashHero").innerHTML=`
     <div class="mo-top">
       <div class="mo-head">
         <div class="mo-lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
-        <div class="mo-hero">${won(sales.total)}${_delta!==null?`<span class="mo-delta ${_delta<0?"dn":""}">${_delta<0?"▼":"▲"} ${Math.abs(_delta)}%</span>`:""}</div>
+        <div class="mo-hero">${won(sales.total)}${_delta!==null?`<span class="mo-delta ${_delta<0?"dn":""}">${_delta<0?"▼":"▲"} 전월 대비 ${Math.abs(_delta)}%</span>`:""}</div>
       </div>
       <svg class="mo-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline points="${_pts}" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <div class="mo-sub"><div><div class="k">예상 이익</div><div class="v">${won(sales.margin)}</div></div><div><div class="k">이달 수금</div><div class="v">${won(sumIn)}</div></div><div class="neg"><div class="k">미수금</div><div class="v">${won(openAr)}</div></div></div>`;
+    <div class="mo-sub"><div><div class="k">예상 이익${sales.unknown>0?' <span class="cost-warn" title="원가 미등록 항목 제외">⚠️</span>':''}</div><div class="v">${won(sales.margin)}</div>${sales.unknown>0?`<div class="v-note">원가 미등록 항목 ${sales.unknown}건 포함</div>`:''}</div><div><div class="k">이달 수금</div><div class="v">${won(sumIn)}</div></div><div class="neg"><div class="k">미수금</div><div class="v">${won(openAr)}</div></div></div>`;
   // NARO의 제안
   const suggests=[];
   if(agedList.length){const t=agedList[0];suggests.push({c:"var(--danger)",cat:"미수금 경과",msg:`<b>${escapeHtml(coName(t.cid))}</b> 미수금 <b>${won(t.open)}</b> · ${daysSince(t.lastDeliver)}일째예요.`,btn:"미수금 보기",view:"ar",svg:_IC.won});}
