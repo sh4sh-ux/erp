@@ -2192,9 +2192,13 @@
   }
   /* ===== v1.173 시안형 브리핑 대시보드 ===== */
   .shell .main>#view-dash:not(.hidden){overflow:auto}
-  #view-dash .dash-brief{max-width:1180px;padding:22px 28px 44px;display:flex;flex-direction:column;gap:22px}
-  @media(min-width:981px){#view-dash .page-head{max-width:1180px}}
+  #view-dash .dash-brief{padding:22px 28px 44px;display:flex;flex-direction:column;gap:22px}
   @media(max-width:820px){#view-dash .dash-brief{padding:14px 0 96px}}
+  /* 대시보드 카드 공통 규칙 — 3개 큰 카드(매출·월별차트·품목분석) 통일 */
+  #appView .shell .main #view-dash .dash-grid>.card,
+  #appView .shell .main #view-dash #salesInsight{border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 26px -18px rgba(28,32,64,.3);overflow:hidden}
+  #appView .shell .main #view-dash #salesInsight{margin-top:0;padding:2px 22px 24px}
+  @media(max-width:820px){#appView .shell .main #view-dash #salesInsight{padding:2px 16px 20px}}
   #view-dash #dashStats{display:none!important}
   #view-dash .brief-h{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--ink-2);margin:0 0 10px;letter-spacing:.02em}
   #view-dash .brief-ok{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--ok)}
@@ -2234,7 +2238,7 @@
   #view-dash .mo-sub .v-note{font-size:10.5px;font-weight:600;color:var(--warn-c);margin-top:3px;line-height:1.3}
   /* 데스크톱: 왼쪽 숫자 / 오른쪽 추이 한 카드 */
   @media(min-width:981px){
-    #appView .shell .main #dashHero.dash-month{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,280px);grid-template-areas:"head spark" "sub spark";column-gap:26px;row-gap:8px;align-items:center}
+    #appView .shell .main #dashHero.dash-month{display:grid;grid-template-columns:minmax(0,640px) minmax(300px,1fr);grid-template-areas:"head spark" "sub spark";column-gap:32px;row-gap:8px;align-items:center}
     #view-dash .mo-head{grid-area:head}
     #view-dash .mo-spark{grid-area:spark;align-self:center;margin-top:0;height:64px}
     #view-dash .mo-sub{grid-area:sub}
@@ -2880,7 +2884,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.178";
+const APP_VERSION = "v1.179";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
