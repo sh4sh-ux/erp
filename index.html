@@ -2199,6 +2199,9 @@
   /* 오늘 할 일 */
   #view-dash .todo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
   @media(max-width:980px){#view-dash .todo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:560px){#view-dash .todo-grid{grid-template-columns:1fr;gap:9px}
+    #view-dash .todo-tile .tl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #view-dash .todo-tile .hn{font-size:11.5px}}
   #view-dash .todo-tile{display:flex;align-items:center;gap:11px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(20,22,45,.04);transition:border-color .15s,box-shadow .15s}
   #view-dash .todo-tile:hover{border-color:var(--c);box-shadow:0 8px 20px -12px rgba(20,30,80,.3)}
   #view-dash .todo-tile .ic{width:36px;height:36px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,var(--card));color:var(--c)}
@@ -2799,7 +2802,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.173";
+const APP_VERSION = "v1.174";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
