@@ -2192,59 +2192,78 @@
   }
   /* ===== v1.173 시안형 브리핑 대시보드 ===== */
   .shell .main>#view-dash:not(.hidden){overflow:auto}
-  #view-dash .dash-brief{max-width:1120px;padding:22px 28px 44px;display:flex;flex-direction:column;gap:22px}
+  #view-dash .dash-brief{padding:22px 28px 44px;display:flex;flex-direction:column;gap:22px}
   @media(max-width:820px){#view-dash .dash-brief{padding:14px 14px 96px}}
   #view-dash #dashStats{display:none!important}
-  #view-dash .brief-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:0 0 10px;letter-spacing:.02em}
-  /* 오늘 할 일 */
+  #view-dash .brief-h{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--ink-2);margin:0 0 10px;letter-spacing:.02em}
+  #view-dash .brief-ok{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--ok)}
+  #view-dash .brief-ok svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  /* NARO NOW 카드 */
   #view-dash .todo-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
   @media(max-width:980px){#view-dash .todo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:560px){#view-dash .todo-grid{grid-template-columns:1fr;gap:9px}
-    #view-dash .todo-tile .tl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    #view-dash .todo-tile .hn{font-size:11.5px}}
-  #view-dash .todo-tile{display:flex;align-items:center;gap:11px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(20,22,45,.04);transition:border-color .15s,box-shadow .15s}
+    #view-dash .todo-tile .tl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+  #view-dash .todo-tile{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:11px;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(20,22,45,.04);transition:border-color .15s,box-shadow .15s}
   #view-dash .todo-tile:hover{border-color:var(--c);box-shadow:0 8px 20px -12px rgba(20,30,80,.3)}
   #view-dash .todo-tile .ic{width:36px;height:36px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,var(--card));color:var(--c)}
   #view-dash .todo-tile .ic svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
-  #view-dash .todo-tile .bd{min-width:0;flex:1}
-  #view-dash .todo-tile .tl{display:block;font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;word-break:keep-all}
-  #view-dash .todo-tile .hn{display:block;font-size:11px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #view-dash .todo-tile .cn{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--c)}
-  #view-dash .todo-tile.zero{opacity:.5}
-  #view-dash .todo-tile.zero .cn{color:var(--ink-3)}
-  #view-dash .todo-tile.zero .ic{background:var(--paper);color:var(--ink-3)}
-  /* 이번 달 매출 카드 */
-  #appView .shell .main #dashHero.dash-month{display:block;width:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 26px -18px rgba(28,32,64,.3)}
-  #view-dash .mo-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  #view-dash .todo-tile .bd{min-width:0}
+  #view-dash .todo-tile .tl{display:block;font-size:14px;font-weight:600;color:var(--ink);line-height:1.25;word-break:keep-all}
+  #view-dash .todo-tile .hn{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.35;word-break:keep-all}
+  #view-dash .todo-tile .fig{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--c);white-space:nowrap;text-align:right}
+  #view-dash .todo-tile .chev{display:inline-flex;color:var(--ink-3)}
+  #view-dash .todo-tile .chev svg{width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  @media(max-width:560px){#view-dash .todo-tile .fig{font-size:12.5px}}
+  /* 이달 사업 현황(매출) 카드 */
+  #appView .shell .main #dashHero.dash-month{display:block;width:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 10px 26px -18px rgba(28,32,64,.3)}
   #view-dash .mo-head{min-width:0}
   #view-dash .mo-lbl{font-size:12px;color:var(--ink-3);font-weight:600}
-  #view-dash .mo-hero{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:26px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;margin-top:4px;color:var(--ink)}
+  #view-dash .mo-hero{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:26px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums;margin-top:3px;color:var(--ink)}
   #view-dash .mo-delta{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--ok);background:color-mix(in srgb,var(--ok) 13%,var(--card));padding:4px 9px;border-radius:999px;white-space:nowrap;align-self:center}
   #view-dash .mo-delta.dn{color:var(--danger);background:color-mix(in srgb,var(--danger) 13%,var(--card))}
-  #view-dash .mo-spark{width:240px;max-width:100%;height:48px;display:block;flex:0 0 auto;opacity:.9}
-  @media(max-width:640px){#view-dash .mo-spark{width:100%}}
-  #view-dash .mo-sub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  #view-dash .mo-spark{width:100%;max-width:100%;height:42px;display:block;opacity:.9;margin-top:8px}
+  @media(max-width:640px){#view-dash .mo-spark{height:38px;margin-top:6px}}
+  #view-dash .mo-sub{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  #view-dash .mo-sub>div{min-width:0}
   #view-dash .mo-sub .k{font-size:11px;color:var(--ink-3);font-weight:600}
   #view-dash .mo-sub .v{font-size:15px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
-  @media(max-width:560px){#view-dash .mo-sub{gap:7px}#view-dash .mo-sub .v{font-size:14px;letter-spacing:-.2px}}
+  @media(max-width:560px){#view-dash .mo-sub{gap:8px;margin-top:10px;padding-top:10px}#view-dash .mo-sub .v{font-size:14px;letter-spacing:-.2px}}
   #view-dash .mo-sub .neg .v{color:var(--danger)}
   #view-dash .mo-sub .cost-warn{font-size:11px}
-  #view-dash .mo-sub .v-note{font-size:10.5px;font-weight:600;color:var(--warn-c);margin-top:3px;line-height:1.35}
-  /* NARO NOW 정상(0건) 영역 */
-  #view-dash .todo-zero{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-  #view-dash .todo-zero .zc{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ok)}
-  #view-dash .todo-zero .zc svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
-  #view-dash .todo-zero .zchip{font:inherit;font-size:12px;color:var(--ink-3);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer}
-  #view-dash .todo-zero .zchip:hover{color:var(--ink-2);border-color:var(--ink-3)}
-  #view-dash .todo-allclear{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-size:13px;color:var(--ink-2)}
+  #view-dash .mo-sub .v-note{font-size:10.5px;font-weight:600;color:var(--warn-c);margin-top:3px;line-height:1.3}
+  /* 데스크톱: 왼쪽 숫자 / 오른쪽 추이 한 카드 */
+  @media(min-width:981px){
+    #appView .shell .main #dashHero.dash-month{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,280px);grid-template-areas:"head spark" "sub spark";column-gap:26px;row-gap:8px;align-items:center}
+    #view-dash .mo-head{grid-area:head}
+    #view-dash .mo-spark{grid-area:spark;align-self:center;margin-top:0;height:64px}
+    #view-dash .mo-sub{grid-area:sub}
+  }
+  /* NARO NOW 정상(0건) — 접이식 한 줄 */
+  #view-dash .todo-zero{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  #view-dash .tz-toggle{display:flex;align-items:center;gap:7px;width:100%;background:none;border:0;padding:2px 0;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;text-align:left}
+  #view-dash .tz-toggle .tzc{display:inline-flex;color:var(--ok)}
+  #view-dash .tz-toggle .tzc svg,#view-dash .tz-item svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  #view-dash .tz-toggle .tzchev{margin-left:auto;color:var(--ink-3);display:inline-flex;transition:transform .18s}
+  #view-dash .tz-toggle .tzchev svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  #view-dash .todo-zero.open .tz-toggle .tzchev{transform:rotate(180deg)}
+  #view-dash .tz-list{display:none;flex-direction:column;gap:1px;margin-top:8px}
+  #view-dash .todo-zero.open .tz-list{display:flex}
+  #view-dash .tz-item{display:flex;align-items:center;gap:7px;background:none;border:0;padding:5px 2px;font:inherit;font-size:12.5px;color:var(--ink-2);cursor:pointer;text-align:left}
+  #view-dash .tz-item svg{color:var(--ok)}
+  #view-dash .tz-item:hover{color:var(--ink)}
+  #view-dash .todo-allclear{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--ink-2)}
   #view-dash .todo-allclear .ok-ic{width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--ok) 14%,var(--card));color:var(--ok)}
   #view-dash .todo-allclear .ok-ic svg{width:15px;height:15px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
-  /* active 카드 수에 맞춰 데스크톱 열 폭 대응(모바일 규칙 불간섭) */
+  /* active 카드 수만큼 데스크톱 전체폭 균등배분(모바일 규칙 불간섭) */
   @media(min-width:981px){
-    #view-dash .todo-grid[data-n="1"]{grid-template-columns:minmax(0,420px)}
-    #view-dash .todo-grid[data-n="2"]{grid-template-columns:repeat(2,minmax(0,340px))}
-    #view-dash .todo-grid[data-n="3"]{grid-template-columns:repeat(3,minmax(0,300px))}
+    #view-dash .todo-grid[data-n="1"]{grid-template-columns:1fr}
+    #view-dash .todo-grid[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+    #view-dash .todo-grid[data-n="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+    #view-dash .todo-grid[data-n="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
   }
+  /* 대시보드에서 제안·최근활동 숨김(로직 보존), 월별 차트 전체폭 */
+  #view-dash #dashSuggest{display:none}
+  #view-dash .dash-grid>.card:has(#dashRecent){display:none}
   /* NARO의 제안 */
   #view-dash .sug-stack{display:flex;flex-direction:column;gap:11px}
   #view-dash .sug{display:flex;gap:12px;border-radius:14px;padding:14px;border:1px solid color-mix(in srgb,var(--c) 28%,transparent);background:color-mix(in srgb,var(--c) 8%,var(--card))}
@@ -2256,8 +2275,7 @@
   #view-dash .sug .sbtn{margin-top:11px;display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:9px;font-size:12.5px;font-weight:700;border:1px solid color-mix(in srgb,var(--c) 28%,transparent);color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card));cursor:pointer}
   #view-dash .sug-none{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--ink-3);font-size:13px}
   /* 하단 차트/최근활동 2열 */
-  #view-dash .dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
-  @media(max-width:820px){#view-dash .dash-grid{grid-template-columns:1fr}}
+  #view-dash .dash-grid{display:grid;grid-template-columns:1fr;gap:16px}
 
   /* ===== v1.175 견적서 모바일 검색/필터 (시안 A: 필터 바텀시트) ===== */
   #view-quotes .qfilter-btn{display:none}
@@ -2843,7 +2861,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.176";
+const APP_VERSION = "v1.177";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -6554,35 +6572,47 @@ function renderDash(){
   const _ar=arData();
   const agedList=_ar.filter(r=>r.open>0 && (daysSince(r.lastDeliver)||0)>=30).sort((a,b)=>b.open-a.open);
   const stockShort=Object.values(currentStocks()).filter(v=>v<=0).length;
-  // 오늘 할 일
+  // NARO NOW — 지금 확인·처리할 일 (계산은 위에서 이미 산출된 값만 사용)
+  const agedOpen=agedList.reduce((s,r)=>s+r.open,0);
   const todoItems=[
-    {n:agedList.length,c:"var(--danger)",view:"ar",lbl:"미수금 30일 경과",hint:agedList.length?"장기 미수 거래처":"경과 건 없음",svg:_IC.won},
-    {n:stockShort,c:"var(--warn-c)",view:"stock",lbl:"재고 부족",hint:stockShort?"발주 검토 필요":"부족 품목 없음",svg:_IC.box},
-    {n:sent.length,c:"var(--primary)",view:"quotes",lbl:"회신 대기 견적",hint:sentOld?`발송 7일 이상 ${sentOld}건`:(sent.length?"발송 후 대기 중":"대기 없음"),svg:_IC.send},
-    {n:untaxed.n,c:"var(--tax-unissued-color)",view:"ar",lbl:"계산서 미발행",hint:untaxed.n?won(untaxed.amt):"모두 발행 완료",svg:_IC.file}
+    {n:agedList.length,c:"var(--danger)",view:"ar",lbl:"장기 미수",svg:_IC.won,
+     fig:agedList.length?`${agedList.length}곳 · ${won(agedOpen)}`:"",
+     desc:agedList.length?"30일 넘은 미수가 있어요. 확인하세요.":"30일 넘은 미수는 없어요."},
+    {n:stockShort,c:"var(--warn-c)",view:"stock",lbl:"재고 부족",svg:_IC.box,
+     fig:stockShort?`${stockShort}품목`:"",
+     desc:stockShort?"발주를 검토하세요.":"부족한 품목이 없어요."},
+    {n:sent.length,c:"var(--primary)",view:"quotes",lbl:"회신 대기 견적",svg:_IC.send,
+     fig:sent.length?`${sent.length}건`:"",
+     desc:sentOld?`발송 7일 이상 ${sentOld}건이에요.`:(sent.length?"고객 회신을 기다리고 있어요.":"대기 중인 견적이 없어요.")},
+    {n:untaxed.n,c:"var(--tax-unissued-color)",view:"ar",lbl:"계산서 미발행",svg:_IC.file,
+     fig:untaxed.n?`${untaxed.n}건 · ${won(untaxed.amt)}`:"",
+     desc:untaxed.n?"납품 후 계산서 발행이 필요해요.":"모두 발행했어요."}
   ];
   const activeItems=todoItems.filter(t=>t.n>0), zeroItems=todoItems.filter(t=>!t.n);
-  const _tile=t=>`<button type="button" class="todo-tile" data-todo="${todoItems.indexOf(t)}" style="--c:${t.c}"><span class="ic"><svg viewBox="0 0 24 24">${t.svg}</svg></span><span class="bd"><span class="tl">${escapeHtml(t.lbl)}</span><span class="hn">${escapeHtml(t.hint)}</span></span><span class="cn">${t.n}</span></button>`;
   const _ok='<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>';
-  let _todoHtml=`<div class="brief-h">NARO NOW</div>`;
-  _todoHtml+= activeItems.length
-    ? `<div class="todo-grid" data-n="${activeItems.length}">`+activeItems.map(_tile).join("")+`</div>`
-    : `<div class="todo-allclear"><span class="ok-ic">${_ok}</span>지금 급히 챙길 일은 없어요 👍</div>`;
-  if(zeroItems.length){
-    _todoHtml+=`<div class="todo-zero"><span class="zc">${_ok}정상 ${zeroItems.length}개</span>`
-      +zeroItems.map(t=>`<button type="button" class="zchip" data-todo="${todoItems.indexOf(t)}">${escapeHtml(t.lbl)}</button>`).join("")+`</div>`;
+  const _chev='<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
+  const _tile=t=>`<button type="button" class="todo-tile" data-todo="${todoItems.indexOf(t)}" style="--c:${t.c}"><span class="ic"><svg viewBox="0 0 24 24">${t.svg}</svg></span><span class="bd"><span class="tl">${escapeHtml(t.lbl)}</span><span class="hn">${escapeHtml(t.desc)}</span></span><span class="fig">${escapeHtml(t.fig)}</span><span class="chev">${_chev}</span></button>`;
+  let _todoHtml=`<div class="brief-h"><span>NARO NOW</span>${activeItems.length?"":`<span class="brief-ok">${_ok} 정상</span>`}</div>`;
+  if(activeItems.length){
+    _todoHtml+=`<div class="todo-grid" data-n="${activeItems.length}">`+activeItems.map(_tile).join("")+`</div>`;
+    if(zeroItems.length){
+      _todoHtml+=`<div class="todo-zero"><button type="button" class="tz-toggle"><span class="tzc">${_ok}</span>나머지 ${zeroItems.length}개 항목은 정상입니다.<span class="tzchev"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span></button><div class="tz-list">`
+        +zeroItems.map(t=>`<button type="button" class="tz-item" data-todo="${todoItems.indexOf(t)}">${_ok}<span>${escapeHtml(t.lbl)}</span></button>`).join("")+`</div></div>`;
+    }
+  } else {
+    _todoHtml+=`<div class="todo-allclear"><span class="ok-ic">${_ok}</span>지금 급히 챙길 일은 없어요.</div>`;
   }
   document.getElementById("dashTodo").innerHTML=_todoHtml;
   document.querySelectorAll('#dashTodo [data-todo]').forEach(b=>{b.onclick=()=>switchView(todoItems[+b.dataset.todo].view);});
-  // 이번 달 (매출 카드)
+  const _tz=document.querySelector('#dashTodo .tz-toggle');
+  if(_tz) _tz.onclick=()=>_tz.closest('.todo-zero').classList.toggle('open');
+  // 이달 사업 현황 (매출 카드) — 데스크톱 좌:숫자 / 우:추이
   document.getElementById("dashHero").innerHTML=`
-    <div class="mo-top">
-      <div class="mo-head">
-        <div class="mo-lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
-        <div class="mo-hero">${won(sales.total)}${_delta!==null?`<span class="mo-delta ${_delta<0?"dn":""}">${_delta<0?"▼":"▲"} 전월 대비 ${Math.abs(_delta)}%</span>`:""}</div>
-      </div>
-      <svg class="mo-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline points="${_pts}" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="mo-head">
+      <div class="mo-lbl">이달 매출 · 납품 기준 (${month.slice(5)}월)</div>
+      <div class="mo-hero">${won(sales.total)}${_delta!==null?`<span class="mo-delta ${_delta<0?"dn":""}">${_delta<0?"▼":"▲"} 전월 대비 ${Math.abs(_delta)}%</span>`:""}</div>
     </div>
+    <svg class="mo-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline points="${_pts}" fill="none" stroke="var(--primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <div class="mo-sub"><div><div class="k">예상 이익${sales.unknown>0?' <span class="cost-warn" title="원가 미등록 항목 제외">⚠️</span>':''}</div><div class="v">${won(sales.margin)}</div>${sales.unknown>0?`<div class="v-note">원가 미등록 항목 ${sales.unknown}건 포함</div>`:''}</div><div><div class="k">이달 수금</div><div class="v">${won(sumIn)}</div></div><div class="neg"><div class="k">미수금</div><div class="v">${won(openAr)}</div></div></div>`;
   // NARO의 제안
   const suggests=[];
