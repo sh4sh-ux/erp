@@ -10,7 +10,9 @@ for(const [,file,query=''] of assets){
   if(file.endsWith('.css')||file.endsWith('.js'))assert(sw.includes('./'+file+query),`Cache asset mismatch: ${file}`);
 }
 assert(!html.includes('Synthetic volume only')&&!html.includes("id:'c1',name:'샘플 거래처'"),'Fixture leaked into production');
-assert(html.includes('v1.171')&&sw.includes('erp-shell-v81-v171'),'Release version mismatch');
+const appVersion=html.match(/const APP_VERSION\s*=\s*"v(\d+)\.(\d+)"\s*;/);
+const cacheVersion=sw.match(/const CACHE\s*=\s*"erp-shell-v\d+-v(\d+)"\s*;/);
+assert(appVersion&&cacheVersion&&cacheVersion[1]===appVersion[2],'Release version mismatch');
 const stockCss=fs.readFileSync(path.join(root,'stock-entry.css'),'utf8');
 assert(!stockCss.includes('max-width:544px')&&!stockCss.includes('max-width:260px'),'Stock grid must not leave a fixed-width empty area');
 assert(stockCss.includes('display:grid;width:100%;grid-template-columns:repeat(4,minmax(0,1fr))'),'Stock grid must fill its form');

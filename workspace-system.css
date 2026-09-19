@@ -2,6 +2,10 @@
    Table separators 1.5/1/2 are the user's explicit ERP rule.
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
 .company-address-controls {display:flex;gap:8px;align-items:stretch;}
+/* Opt-in option grid: available width controls columns, never option values/counts. */
+.option-chip-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,max(3.5rem,var(--option-chip-min,0px))),1fr));grid-auto-rows:1fr;gap:8px;padding:0;min-width:0;}
+.option-chip-grid>button {box-sizing:border-box;width:100%;min-width:0;min-height:44px;height:100%;padding:8px;border:1px solid var(--line);border-radius:9px;white-space:normal;overflow-wrap:anywhere;text-align:center;}
+.option-chip-grid>button[aria-pressed=true] {color:var(--primary);border-color:var(--primary);background:var(--primary-soft);}
 /* Shared editable-row treatment; preserve focus/error indicators and print styles. */
 @media screen {
   #appView .shell .main .view :is(.qline,.vline,.cline,.tbl,.stock-size-grid) :is(input:not([type=checkbox]):not([type=radio]),select,.ip-btn):not(:focus):not([aria-invalid="true"]) {

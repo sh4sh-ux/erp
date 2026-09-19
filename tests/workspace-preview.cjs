@@ -27,6 +27,17 @@ for(let n=1;n<=36;n++){
 db.items.slice(0,3).forEach((item,i)=>{item.name='셰프복';item.code='JK_TEST_'+(i+1);item.variants=['S','M','L','XL','2XL','3XL','4XL','5XL','6XL'].map(spec=>({spec}));});
 db.stock_moves.push({id:'negative-fixture',item_id:'i1',kind:'출고',qty:15,color:'WH',spec:'L',date:'2026-09-13'});
 const longQuote=db.quotes[0];longQuote.lines=Array.from({length:6},(_,i)=>({...longQuote.lines[0],id:'long-line-'+i,name:'셰프복 [JK_TEST_1]',color:'WH',spec:'3XL',qty:i+1}));longQuote.deliveries=[];
+db.companies[0].name='(주)풍풍플라워에이전시 덕진센터 아주 긴 거래처명 검증';
+db.items[0].colors=['WH','BK'];db.items[0].buy_price=10000;
+db.items[1].colors=['WH','BK','NV'];db.items[1].variants=['28inch','30inch','32inch','34inch','36inch','38inch'].map(spec=>({spec,sell_price:23000}));
+db.items[2].variants=['S','M','L','XL','2XL','3XL'].map(spec=>({spec,sell_price:23000}));
+db.items[3].code='GRID_FREE';db.items[3].variants=[{spec:'FREE',sell_price:23000}];
+db.items[4].code='GRID_LONG';db.items[4].variants=['80X40cm','26X26cm','앞면 자수'].map(spec=>({spec,sell_price:23000}));
+db.items[0].variants.forEach((v,i)=>{v.sell_price=23000+i*1000;});
+db.items.push({id:'work-auto',name:'자수',code:'Embroidery',type:'작업',spec:'로고',sell_price:3000}, {id:'work-manual',name:'패치 부착',code:'Patch Attachment',type:'작업',sell_price:2000});
+longQuote.status='작성중';longQuote.delivered_at='';longQuote.memo='검증용 메모';
+longQuote.lines.push({...blankLine(),id:'work-line-auto',item_id:'work-auto',name:'자수',spec:'로고',qty:21,price:3000,auto_qty:true}, {...blankLine(),id:'work-line-manual',item_id:'work-manual',name:'패치 부착',qty:3,price:2000,auto_qty:false}, {...blankLine(),id:'discount-line',item_id:'__free__',name:'할인',qty:1,price:-10000});
+const savedQuotes=sessionStorage.getItem('isolated-quote-fixture');if(savedQuotes)db.quotes=JSON.parse(savedQuotes);
 switchView('dash');
 document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};
 ['qtStatus','qtFrom','qtTo'].forEach(id=>document.getElementById(id).onchange=renderQtList);
@@ -38,11 +49,11 @@ document.getElementById('navBackdrop').onclick=()=>toggleNav(false);
 `;
 http.createServer((req,res)=>{
  const name=path.basename(new URL(req.url,'http://localhost').pathname)||'index.html';
- if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css','mobile-workspace.css','stock-entry.js','stock-entry.css'].includes(name)){res.writeHead(404);return res.end();}
+ if(!['index.html','v142-dutch-pay.css','workspace-system.css','workspace-layout.js','navigation-layout.css','mobile-workspace.css','stock-entry.js','stock-entry.css','quote-presentation.css','quote-presentation.js'].includes(name)){res.writeHead(404);return res.end();}
  let content=fs.readFileSync(path.join(root,name),'utf8');
  if(name==='index.html'){
    // Run production init and event wiring, but never authenticate or access business files.
-   const isolate=`ensureToken=async()=>null;window.fetch=async()=>{throw Error('Isolated preview: network disabled')};Table.save=async()=>{};saveStockChecked=async()=>{};init();`;
+   const isolate=`ensureToken=async()=>null;window.fetch=async()=>{throw Error('Isolated preview: network disabled')};Table.save=async(name,data)=>{if(name==='quotes')sessionStorage.setItem('isolated-quote-fixture',JSON.stringify(data));};saveStockChecked=async()=>{};init();`;
    content=content.replace(/init\(\);\s*<\/script>/,isolate+'\n'+fixture+'</script>');
  }
  res.setHeader('Content-Type',name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html');res.end(content);

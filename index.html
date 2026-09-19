@@ -2324,6 +2324,7 @@
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
 <link rel="stylesheet" href="./mobile-workspace.css?v=1690">
 <link rel="stylesheet" href="./stock-entry.css?v=1710">
+<link rel="stylesheet" href="./quote-presentation.css">
 </head>
 <body>
 
@@ -4658,6 +4659,7 @@ function closeQuoteDetail(){
   qtSel=null; qtEditing=null; qtBaseline=""; qtCopySourceNo=""; szOpen=false;
   renderQtList(); renderQtDetail();
   window.scrollTo({top:0,behavior:"smooth"});
+  window.QuotePresentation?.restoreList();
 }
 
 function renderQtList(){
@@ -4690,6 +4692,7 @@ function renderQtList(){
     el.onclick=()=>{
       if(el.dataset.id===qtSel){ scrollToDetail("qtForm"); return; }
       if(!guardQtLeave()) return;
+      window.QuotePresentation?.rememberList();
       qtSel=el.dataset.id; qtEditing=null; qtBaseline=""; szOpen=false; qtDeliveryOpen=false; qtPaymentOpen=false;
       renderQtList(); renderQtDetail(); scrollToDetail("qtForm");
     };
@@ -4851,6 +4854,7 @@ function bindPaymentPanel(q,isNew){
 }
 
 function renderQtDetail(){
+  window.QuotePresentation?.beforeRender();
   const empty=document.getElementById("qtEmpty");
   const form=document.getElementById("qtForm");
   if(qtSel==="__new__"){
@@ -5012,6 +5016,7 @@ function renderQtDetail(){
     document.getElementById("qtShareBtn").onclick=()=>shareQuote(qtEditing,qtDocType);
     document.getElementById("qtMailBtn").onclick=()=>emailQuote(qtEditing,qtDocType);
   }
+  window.QuotePresentation?.mount(e);
 }
 
 /* 옵션별 한번에 입력 — 같은 품목의 여러 옵션을 행 추가 없이 수량만 채워 넣는다 */
@@ -5223,8 +5228,10 @@ function openItemPicker(btn,onPick){
   pop.style.width=w+"px";
   pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-8))+"px";
   const below=window.innerHeight-r.bottom;
-  if(below<240 && r.top>below){ pop.style.bottom=(window.innerHeight-r.top+6)+"px"; }
+  const above=below<240 && r.top>below;
+  if(above){ pop.style.bottom=(window.innerHeight-r.top+6)+"px"; }
   else { pop.style.top=(r.bottom+6)+"px"; }
+  pop.style.maxHeight=Math.max(0,(above?r.top:below)-14)+"px";
 
   const input=pop.querySelector("input");
   const list=pop.querySelector(".ip-list");
@@ -5280,7 +5287,9 @@ document.addEventListener("click",ev=>{
 });
 window.addEventListener("resize",closeItemPicker);
 /* 스크롤하면 고정(position:fixed) 팝오버가 버튼과 분리돼 떠 보이므로 닫는다 (capture로 .main 등 내부 스크롤러도 포착) */
-window.addEventListener("scroll",()=>{ if(ipPop) closeItemPicker(); },true);
+window.addEventListener("scroll",event=>{
+  if(ipPop && !event.composedPath().includes(ipPop)) closeItemPicker();
+},true);
 
 function bindQtLines(e){
   const form=document.getElementById("qtForm");
@@ -7211,5 +7220,6 @@ init();
 })();
 </script>
 <script src="./workspace-layout.js?v=1730"></script>
+<script src="./quote-presentation.js"></script>
 </body>
 </html>
