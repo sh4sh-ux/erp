@@ -4748,6 +4748,17 @@ function deliveryRecordLabel(q,d){
   return names.length>1 ? `${names[0]} 외 ${names.length-1}건` : (names[0]||"납품");
 }
 function deliveryRecordQty(q,d){ return deliveryRecordLines(q,d).reduce((s,l)=>s+(Number(l.qty)||0),0); }
+function deliveryRecordBodyHtml(q,d){
+  const groups=new Map();
+  (d.lines||[]).forEach(dl=>{
+    const line=(q.lines||[]).find(l=>l.id===dl.line_id)||{};
+    const key=JSON.stringify([line.item_id||"",line.name||"품목"]);
+    if(!groups.has(key)) groups.set(key,{name:line.name||"품목",rows:[]});
+    groups.get(key).rows.push(`<div class="delivery-option"><span>${escapeHtml([line.color,line.spec].filter(Boolean).join(" · ")||"기본 옵션")}</span><span>${fmt(dl.qty)}개</span></div>`);
+  });
+  return [...groups.values()].map(group=>`<div class="delivery-product"><strong>${escapeHtml(group.name)}</strong>${group.rows.join("")}</div>`).join("")+
+    (d.memo?`<div class="delivery-memo"><strong>메모</strong><div>${escapeHtml(d.memo)}</div></div>`:"");
+}
 function fillRemainingDeliveryInputs(inputs=document.querySelectorAll("[data-delivery-line]")){
   let total=0;
   inputs.forEach(input=>{const max=Number(input.dataset.max)||0;if(max>0&&!input.disabled){input.value=String(max);total+=max;}});
@@ -4761,22 +4772,22 @@ function deliveryPanelHtml(q,isNew){
   const excluded=(q.lines||[]).filter(l=>(l.name||"").trim()&&!isDeliveryLine(l));
   const records=(q.deliveries||[]).map(d=>({...d,lines:deliveryRecordLines(q,d)})).filter(d=>d.lines.length)
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  return `<section class="quote-flow" aria-labelledby="fq_delivery_title">
+  return `<section class="quote-flow delivery-panel" aria-labelledby="fq_delivery_title">
     <div class="quote-flow-head">
       <div><div class="quote-flow-title" id="fq_delivery_title">납품 기록</div><div class="quote-flow-sub">납품 대상 ${fmt(ordered)}개 중 ${fmt(delivered)}개 납품${excluded.length?` · 작업/할인 ${fmt(excluded.length)}개 항목 제외`:""}</div></div>
       <div class="quote-flow-value">${fmt(delivered)} / ${fmt(ordered)}개<small>${remaining?`${fmt(remaining)}개 남음`:delivered?"납품 완료":"미납품"}</small></div>
     </div>
     <div class="quote-flow-body">
       <div class="quote-flow-sub">납품 기록 변경 후 아래 견적서 저장을 눌러 확정하세요.${q.legacy_stock?" 기존 견적은 이전 재고 처리 방식을 유지합니다.":" 새 견적의 출고는 납품 수량 기준입니다."}</div>
-      ${records.map(d=>`<div class="quote-record">
-        <span class="date">${escapeHtml(shortDate(d.date))}</span>
-        <details><summary>${escapeHtml(deliveryRecordLabel(q,d))}</summary>${(d.lines||[]).map(dl=>{const l=q.lines.find(x=>x.id===dl.line_id)||{};return `<div>${escapeHtml([l.name,l.color,l.spec].filter(Boolean).join(" · "))} × ${fmt(dl.qty)}</div>`}).join("")}${d.memo?`<div>${escapeHtml(d.memo)}</div>`:""}</details>
-        <span class="amount">${fmt(deliveryRecordQty(q,d))}개</span>
+      ${records.map(d=>`<div class="delivery-record">
+        <details><summary><span class="date">${escapeHtml(shortDate(d.date))}</span><span class="delivery-record-name">${escapeHtml(deliveryRecordLabel(q,d))}</span><span class="amount">${fmt(deliveryRecordQty(q,d))}개</span><span class="delivery-chevron" aria-hidden="true">›</span></summary><div class="delivery-record-body">${deliveryRecordBodyHtml(q,d)}</div></details>
         <button class="rm" type="button" data-delivery-remove="${d.id}" aria-label="${escapeAttr(shortDate(d.date))} 납품 기록 삭제">×</button>
       </div>`).join("")}
       ${!records.length?'<div class="quote-flow-sub" style="padding:4px 0 12px">아직 납품 기록이 없습니다.</div>':""}
       ${qtDeliveryOpen?`<div class="quote-flow-form" id="fq_delivery_form">
-        <div class="delivery-form-head"><div class="field"><label>납품일</label>${dateControlHtml("fd_date",localDate(),"납품일")}</div><button class="delivery-fill-all" type="button" id="fd_fill_all">남은 수량 전체 입력</button></div>
+        <div class="delivery-form-meta"><div class="field"><label for="fd_date">납품일</label><div class="delivery-form-head">${dateControlHtml("fd_date",localDate(),"납품일")}<button class="delivery-fill-all" type="button" id="fd_fill_all">남은 수량 전체 입력</button></div></div>
+        <div class="field"><label for="fd_memo">메모</label><input id="fd_memo" placeholder="예: 1차 납품, 택배"></div></div>
+        <details class="delivery-quantities" open><summary>납품 수량 및 내역</summary><div class="delivery-quantity-list">
         ${deliveryLines.map(l=>{
           const left=Math.max(0,(Number(l.qty)||0)-(done[l.id]||0));
           return `<label class="delivery-draft-line">
@@ -4784,7 +4795,7 @@ function deliveryPanelHtml(q,isNew){
             <input type="text" inputmode="numeric" data-delivery-line="${l.id}" data-max="${left}" placeholder="수량" ${left?"":"disabled"}>
           </label>`;
         }).join("")}
-        <div class="field"><label>메모</label><input id="fd_memo" placeholder="예: 1차 납품, 택배"></div>
+        </div></details>
         <div class="quote-flow-actions"><button class="btn ghost" type="button" id="fd_cancel">취소</button><button class="btn save" type="button" id="fd_save">납품 기록 추가</button></div>
       </div>`:`<button class="quote-flow-add" type="button" id="fd_open" ${isNew||!remaining?'disabled style="opacity:.5"':""}>＋ 납품 기록 추가</button>`}
     </div>

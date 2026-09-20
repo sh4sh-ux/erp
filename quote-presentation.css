@@ -116,3 +116,47 @@
   #view-quotes .qp-result strong,#view-quotes .qp-result small {display:block;overflow-wrap:anywhere}
   #view-quotes .qp-result small {color:var(--ink-2);margin-top:4px}
 }
+/* Delivery presentation only; saving and quantity validation remain unchanged. */
+#view-quotes .delivery-panel #fq_delivery_form {grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+#view-quotes .delivery-form-meta {display:grid;gap:16px;min-width:0}
+#view-quotes .delivery-panel .delivery-form-head {grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+#view-quotes .delivery-panel .delivery-fill-all {font-size:12px;padding:0 8px;min-height:36px;height:36px;background:var(--paper);border-color:var(--line);color:var(--ink-2)}
+#view-quotes .delivery-panel .date-control {min-width:0}
+#view-quotes .delivery-quantities {min-width:0}
+#view-quotes .delivery-quantities>summary {font-size:13px;line-height:20px;margin-bottom:8px;color:var(--ink-2);cursor:pointer;list-style:none}
+#view-quotes .delivery-panel summary::-webkit-details-marker {display:none}
+#view-quotes .delivery-quantity-list {display:grid;gap:12px}
+#view-quotes .delivery-panel .delivery-draft-line {grid-template-columns:minmax(0,1fr) 76px;margin:0;align-items:start}
+#view-quotes .delivery-panel .delivery-draft-line .name {overflow-wrap:anywhere;line-height:1.5;padding-top:6px}
+#view-quotes .delivery-panel .delivery-draft-line small {margin-top:3px}
+#view-quotes .delivery-panel .delivery-draft-line input {min-width:0;min-height:44px}
+#view-quotes .delivery-panel .quote-flow-actions {grid-column:1/-1}
+#view-quotes .delivery-panel .quote-flow-actions .btn {min-height:44px;display:flex;align-items:center;justify-content:center}
+#view-quotes .delivery-record {display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:4px;border-top:1px solid var(--line-2);padding:8px 0;font-size:13px;align-items:start}
+#view-quotes .delivery-record details {min-width:0}
+#view-quotes .delivery-record summary {display:grid;grid-template-columns:90px minmax(0,1fr) auto 24px;gap:10px;align-items:center;min-height:44px;cursor:pointer;list-style:none}
+#view-quotes .delivery-record .date {color:var(--ink-3)}
+#view-quotes .delivery-record-name {overflow-wrap:anywhere}
+#view-quotes .delivery-record .amount {font-weight:700;white-space:nowrap;text-align:right}
+#view-quotes .delivery-record .rm {height:44px;width:32px;color:var(--ink-3);border-radius:8px}
+#view-quotes .delivery-record .rm:hover {color:var(--danger);background:var(--danger-soft)}
+#view-quotes .delivery-chevron {text-align:center;font-size:22px}
+#view-quotes .delivery-record details[open] .delivery-chevron {transform:rotate(90deg)}
+#view-quotes .delivery-record-body {padding:8px 0 12px;display:grid;gap:14px}
+#view-quotes .delivery-product strong,#view-quotes .delivery-memo strong {display:block;margin-bottom:6px;overflow-wrap:anywhere}
+#view-quotes .delivery-option {display:flex;justify-content:space-between;gap:16px;padding:4px 0;color:var(--ink-2)}
+#view-quotes .delivery-option>span:first-child {overflow-wrap:anywhere;min-width:0}
+#view-quotes .delivery-option>span:last-child {white-space:nowrap}
+#view-quotes .delivery-memo {border-top:1px solid var(--line-2);padding-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:820px){
+  #view-quotes .delivery-panel #fq_delivery_form {grid-template-columns:minmax(0,1fr);gap:16px}
+  #view-quotes .delivery-panel .delivery-form-head {grid-template-columns:minmax(0,1fr)}
+  #view-quotes .delivery-panel .delivery-fill-all {width:100%;min-height:44px}
+  #view-quotes .delivery-quantities>summary {display:flex;align-items:center;justify-content:space-between;min-height:44px}
+  #view-quotes .delivery-quantities>summary::after {content:'›';font-size:20px}
+  #view-quotes .delivery-quantities[open]>summary::after {transform:rotate(90deg)}
+  #view-quotes .delivery-record summary {grid-template-columns:minmax(0,1fr) auto 24px;gap:4px 8px}
+  #view-quotes .delivery-record-name {grid-row:2;grid-column:1/-1;padding-bottom:4px}
+  #view-quotes .delivery-record .amount {grid-row:1;grid-column:2}
+  #view-quotes .delivery-record .delivery-chevron {grid-row:1;grid-column:3}
+}
