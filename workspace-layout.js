@@ -117,24 +117,13 @@
     relocate(dash?.querySelector('#dashStats'),dash?.querySelector('.workspace-right'));
     relocate(chart, dash?.querySelector('.workspace-right'));
     relocate(dash?.querySelector('#salesInsight'),dash?.querySelector('.workspace-right'));
-    panel('payments', '수금/지급 현황', ['#payMonth', '.card:has(#payByCo)'], ['.stats', '.card:has(#payTbl)']);
-    const payLeft=document.querySelector('#view-payments .workspace-left');
-    const payTools=document.createElement('div');payTools.className='workspace-list-tools';
-    const payMonth=document.getElementById('payMonth');
-    payLeft.prepend(payTools);payTools.append(payMonth);
-    const paySearch=document.createElement('input');paySearch.type='search';paySearch.placeholder='거래처 검색';paySearch.setAttribute('aria-label','입출금 집계 거래처 검색');payTools.append(paySearch);
-    const filterPayList=()=>{document.querySelectorAll('#payByCo tbody tr').forEach(row=>{row.hidden=!row.querySelector('.empty')&&row.cells[0]?.textContent.trim()!=='합계'&&!row.cells[0]?.textContent.includes(paySearch.value.trim());});};
-    paySearch.oninput=filterPayList;
-    const payObserver=new MutationObserver(filterPayList);payObserver.observe(document.getElementById('payByCo'),{childList:true,subtree:true});
-    restore.push(()=>{payObserver.disconnect();document.querySelectorAll('#payByCo tr').forEach(row=>row.hidden=false);});
-    panel('stock', '재고 현황', ['.card:has(#ivTbl)'], ['.card:has(#ivHist)']);
-    relocate(document.querySelector('#view-stock > .stats'),document.querySelector('#view-stock .workspace-heading'));
+    // Payments and stock keep summary → actions → filters → records on all widths.
     panel('sales', '매출 현황', ['.filter-bar'], ['#slBody']);
     relocate(document.querySelector('#view-sales .sl-hero'),document.querySelector('#view-sales .workspace-heading'));
     relocate(document.querySelector('#view-sales .sl-metrics'),document.querySelector('#view-sales .workspace-right'));
     const salesMetrics=document.querySelector('#view-sales .workspace-right .sl-metrics');salesMetrics.parentElement.prepend(salesMetrics);
     panel('ar', '미수금 현황', ['.filter-bar'], ['.stats', '.card:has(#arTbl)']);
-    ['payments','ar'].forEach(id=>{
+    ['ar'].forEach(id=>{
       const view=document.getElementById('view-'+id);
       relocate(view.querySelector(':scope > .scr-hero'),view.querySelector('.workspace-heading'));
     });

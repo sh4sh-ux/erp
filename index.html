@@ -2500,7 +2500,7 @@
       <!-- ========== 품목 ========== -->
       <section class="view hidden" id="view-items">
         <div class="page-head">
-          <h2>품목</h2>
+          <h2>품목 관리</h2>
           <span class="count" id="itCount">0개</span>
           <div class="sp"></div>
         </div>
@@ -2509,12 +2509,13 @@
             <div class="list-head">
               <div class="search">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input id="itSearch" placeholder="품명·규격/옵션 검색">
+                <input id="itSearch" placeholder="품목명·코드·규격 검색" aria-label="품목 검색">
               </div>
               <button class="btn-add" id="itNewBtn" title="새 품목">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
               </button>
             </div>
+            <label class="ops-category">카테고리<select id="itCategory" aria-label="품목 카테고리"></select></label>
             <div class="list" id="itList"></div>
           </div>
           <div class="card">
@@ -2539,9 +2540,10 @@
         <div class="cols" style="grid-template-columns:1fr 1.15fr">
           <div class="card">
             <div class="stock-tools">
-              <input type="search" id="stockSearch" placeholder="품목 검색" aria-label="재고 품목 검색">
-              <select id="stockFilter" aria-label="재고 상태"><option value="all">전체 품목</option><option value="short">주문 대비 부족</option><option value="low">최소 기준 미달</option><option value="zero">품절 옵션</option><option value="negative">음수 재고</option><option value="missing">기준 미설정</option></select>
-              <button type="button" class="btn primary" id="stockRegister">+ 입출고 등록</button>
+              <div class="ops-actions"><button type="button" class="btn ops-in" id="stockRegister">＋ 입고</button><button type="button" class="btn ops-out" id="stockOutbound">− 출고</button><button type="button" class="btn" id="stockAdjust">재고 조정</button></div>
+              <input type="search" id="stockSearch" placeholder="품목명·코드·색상·규격 검색" aria-label="재고 품목 검색">
+              <label class="ops-category">카테고리<select id="stockCategory" aria-label="재고 카테고리"></select></label>
+              <label class="ops-category">재고 상태<select id="stockFilter" aria-label="재고 상태"><option value="all">전체 상태</option><option value="short">주문 대비 부족</option><option value="low">최소 기준 미달</option><option value="zero">품절 옵션</option><option value="negative">음수 재고</option><option value="missing">기준 미설정</option></select></label>
             </div>
             <div id="stockItems"></div>
             <div class="tbl-wrap"><table class="tbl item-data-table" id="ivTbl"></table></div>
@@ -2635,24 +2637,33 @@
         <div class="page-head">
           <h2>수금/지급</h2>
           <div class="sp"></div>
-          <input type="month" class="month-input" id="payMonth">
         </div>
-        <div class="scr-hero"><div class="lbl">이달 순현금</div><div class="big" id="paySumNet">0원</div></div>
+        <div class="ops-summary"><div class="scr-hero"><div class="lbl">이달 순현금</div><div class="big" id="paySumNet">0원</div></div>
         <div class="stats">
           <div class="stat"><div class="k">이달 수금</div><div class="v pos" id="paySumIn">0원</div></div>
           <div class="stat"><div class="k">이달 지급</div><div class="v neg" id="paySumOut">0원</div></div>
+        </div></div>
+        <div class="ops-actions"><button type="button" class="btn ops-in" id="payInbound">＋ 입금 기록 추가</button><button type="button" class="btn ops-out" id="payOutbound">− 출금 기록 추가</button></div>
+        <div class="ops-filters" aria-label="입출금 검색 및 필터">
+          <label class="ops-search">검색<input type="search" id="paySearch" placeholder="거래처·메모·견적번호" aria-label="입출금 검색"></label>
+          <label>구분<select id="payFilter"><option value="">전체</option><option value="수금">입금</option><option value="지급">출금</option></select></label>
+          <label>기간<select id="payPeriod"><option value="month">월별</option><option value="all">전체 기간</option><option value="range">기간 지정</option></select></label>
+          <label id="payMonthLabel">조회 월<input type="month" class="month-input" id="payMonth"></label>
+          <label id="payFromLabel" hidden>시작일<input type="date" id="payFrom"></label><label id="payToLabel" hidden>종료일<input type="date" id="payTo"></label>
+          <button type="button" class="btn" id="payClear">초기화</button>
         </div>
         <div class="card">
-          <div class="pay-add">
-            <div class="pf pf-date"><label>거래일자</label><input type="date" id="payDate"></div>
-            <div class="pf pf-co"><label>거래처</label><select id="payCo"></select></div>
-            <div class="pf pf-kind"><label>거래 유형</label><select id="payKind"><option>수금</option><option>지급</option></select></div>
-            <div class="pf pf-method"><label>결제 방법</label><select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select></div>
-            <div class="pf pf-quote"><label>연결 항목</label><select id="payQuote"><option value="">건 지정 안 함</option></select></div>
-            <div class="pf pf-amt"><label>금액</label><input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="0"></div>
-            <div class="pf pf-memo"><label>메모</label><input id="payMemo" placeholder="선택 입력"></div>
-            <div class="pf pf-btn"><button class="btn-sm" id="payAddBtn">추가</button></div>
-          </div>
+          <details id="payEntry"><summary>입출금 기록 입력</summary><div class="pay-add">
+            <div class="pf pf-kind"><label for="payKind">거래 유형</label><select id="payKind"><option>수금</option><option>지급</option></select></div>
+            <div class="pf pf-co"><label for="payCo">거래처</label><select id="payCo"></select></div>
+            <div class="pf pf-quote"><label for="payQuote">연결 견적</label><select id="payQuote"><option value="">건 지정 안 함</option></select></div>
+            <div class="pf pf-amt"><label for="payAmt">금액</label><input type="text" inputmode="numeric" class="num" id="payAmt" placeholder="0"></div>
+            <div class="pf pf-date"><label for="payDate">거래일자</label><input type="date" id="payDate"></div>
+            <div class="pf pf-method"><label for="payMethod">결제 방법</label><select id="payMethod"><option>계좌이체</option><option>현금</option><option>카드</option><option>기타</option></select></div>
+            <div class="pf pf-memo"><label for="payMemo">메모</label><input id="payMemo" placeholder="선택 입력"></div>
+            <div class="pf pf-btn"><button type="button" class="btn" id="payClose">입력 닫기</button><button class="btn-sm" id="payAddBtn">기록 저장</button></div>
+          </div></details>
+          <p class="ops-results" id="payResults" aria-live="polite"></p>
           <div class="tbl-wrap"><table class="tbl" id="payTbl"></table></div>
         </div>
         <div class="card" style="margin-top:16px">
@@ -2898,7 +2909,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.180";
+const APP_VERSION = "v1.181";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -3870,6 +3881,7 @@ function renderCoDetail(){
       if(switchView("payments")===false)return;
       const el=document.getElementById("payCo");
       if(el){ el.value=c.id; updatePayQuotes(); }
+      document.getElementById('payEntry').open=true;
       setTimeout(()=>document.getElementById("payAmt")?.focus(),40);
     };
     document.getElementById("coActQuote").onclick=()=>{
@@ -4045,8 +4057,13 @@ function normalizeItem(i){
 }
 
 function renderItList(){
+  syncCategoryFilter('itCategory');
+  const category=document.getElementById('itCategory');
+  category.onchange=renderItList;
+  const newButton=document.getElementById('itNewBtn');newButton.textContent='＋ 새 품목 등록';
   const q=itFilter.trim().toLowerCase();
   const rows=db.items
+    .filter(i=>matchesItemCategory(i,category.value))
     .filter(i=>!q || (i.name||"").toLowerCase().includes(q) || (i.code||"").toLowerCase().includes(q)
              || (i.spec||"").toLowerCase().includes(q)
              || (i.variants||[]).some(v=>(v.spec||"").toLowerCase().includes(q)))
@@ -4075,6 +4092,7 @@ function renderItList(){
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
       <div class="li-body">
         <div class="li-name">${escapeHtml(i.name||"(이름 없음)")}${i.code?` <span class="li-code">${escapeHtml(i.code)}</span>`:""}</div>
+        <div class="li-sub ops-item-category">${escapeHtml(itemCategory(i)||'미분류')}</div>
         <div class="li-sub">${escapeHtml(sub)}</div>
       </div>
       <div class="li-right">
@@ -4090,6 +4108,16 @@ function renderItList(){
 function blankItem(){
   return { id:null, code:"", name:"", type:"단품", spec:"", unit:"EA", buy_price:0, sell_price:0,
            colors:[], variants:[], components:[], memo:"" };
+}
+
+// Optional presentation classification. Reading never fills or rewrites old records.
+function itemCategory(item){return typeof item?.category==='string'?item.category.trim():'';}
+function itemCategories(){return [...new Set(db.items.map(itemCategory).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));}
+function matchesItemCategory(item,value){return !value||(value==='uncategorized'?!itemCategory(item):itemCategory(item)===value.slice(4));}
+function syncCategoryFilter(id){
+  const el=document.getElementById(id),value=el.value;
+  el.innerHTML='<option value="">전체 카테고리</option><option value="uncategorized">미분류</option>'+itemCategories().map(c=>`<option value="${escapeAttr('cat:'+c)}">${escapeHtml(c)}</option>`).join('');
+  if([...el.options].some(o=>o.value===value))el.value=value;
 }
 
 function renderItDetail(){
@@ -4192,6 +4220,7 @@ function renderItDetail(){
   }
 
   form.innerHTML=`
+    <h3 class="ops-section-title">기본 정보</h3>
     <div class="grid2">
       <div class="grid2" style="grid-template-columns:180px 1fr">
         <div class="field"><label>품목코드</label><input id="fi_code" value="${escapeAttr(e.code||"")}" placeholder="예: CTS_3SB"></div>
@@ -4206,6 +4235,8 @@ function renderItDetail(){
         </select>
       </div>
     </div>
+    <div class="field"><label for="fi_category">카테고리 <span class="hint">(선택)</span></label><input id="fi_category" list="itemCategories" value="${escapeAttr(itemCategory(e))}" placeholder="기존 분류 선택 또는 새 카테고리 입력"><datalist id="itemCategories">${itemCategories().map(c=>`<option value="${escapeAttr(c)}"></option>`).join('')}</datalist><div class="hint">이 품목의 분류를 직접 입력·변경할 수 있습니다. 비우면 미분류로 표시됩니다.</div></div>
+    <h3 class="ops-section-title">옵션 및 가격</h3>
     ${body}
     <div class="field"><label>메모</label><textarea id="fi_memo" placeholder="특이사항 등">${escapeHtml(e.memo)}</textarea></div>
     <div class="form-actions">
@@ -4219,6 +4250,7 @@ function renderItDetail(){
   bindCodeSplit(e);
   document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
   document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
+  document.getElementById('fi_category').oninput=ev=>{e.category=ev.target.value.trim();};
   // Price fields use the existing comma-input convention; stored prices stay numeric.
   const bindItemPrice=(el,onChange)=>{
     el.type='text';el.inputMode='decimal';el.classList.add('num');
@@ -6330,6 +6362,9 @@ async function saveStockMinimums(){
   }}finally{stockMinimumSaving=false;const b=document.getElementById('stockMinimumSave');if(b)b.disabled=false;}
 }
 function renderStock(){
+  syncCategoryFilter('stockCategory');
+  const category=document.getElementById('stockCategory');
+  category.onchange=()=>{stockSelectedItem='';renderStock();};
   const dateEl=document.getElementById("ivDate");
   if(!dateEl.value) dateEl.value=localDate();
   const itemEl=document.getElementById("ivItem");
@@ -6355,13 +6390,16 @@ function renderStock(){
     const rows=combos.filter(c=>c.item_id===id);
     return {id,name:rows[0].name,rows,attention:rows.filter(c=>c.qty<=0||c.low||c.shortage>0).length};
   }).sort((a,b)=>b.attention-a.attention||a.name.localeCompare(b.name,'ko',{numeric:true}));
-  const visible=groups.filter(g=>g.name.toLowerCase().includes(search.value.trim().toLowerCase())&&g.rows.some(c=>matchesStockFilter(c,filter.value)));
+  const stockMatches=c=>matchesStockFilter(c,filter.value)&&[c.name,c.color,c.spec].join(' ').toLowerCase().includes(search.value.trim().toLowerCase());
+  const visible=groups.filter(g=>matchesItemCategory(db.items.find(i=>i.id===g.id),category.value)&&g.rows.some(stockMatches));
   document.getElementById('stockItems').innerHTML=`<button class="stock-item ${!stockSelectedItem?'selected':''}" data-stock-id=""><span>전체 현황</span><b>${groups.length}품목</b></button>`+visible.map(g=>`<button class="stock-item ${stockSelectedItem===g.id?'selected':''}" data-stock-id="${escapeHtml(g.id)}"><span>${escapeHtml(g.name)}</span><b>${fmt(g.rows.reduce((s,c)=>s+c.qty,0))}개</b><small>${g.rows.length}개 옵션</small><small class="${g.attention?'neg':''}">${g.attention?`확인 필요 ${g.attention}옵션`:g.rows.some(c=>c.minimum===null)?'최소 보유 기준 미설정':'보유'}</small></button>`).join('');
-  const selected=groups.find(g=>g.id===stockSelectedItem);
-  const shown=(selected?selected.rows:visible.flatMap(g=>g.rows).filter(c=>matchesStockFilter(c,filter.value)))
+  const selected=visible.find(g=>g.id===stockSelectedItem);
+  const shown=(selected?selected.rows:visible.flatMap(g=>g.rows)).filter(stockMatches)
     .slice().sort((a,b)=>b.shortage-a.shortage||Number(b.low)-Number(a.low)||a.available-b.available||a.name.localeCompare(b.name,'ko',{numeric:true}));
   document.getElementById('stockOverview').innerHTML=`<div class="stock-overview-heading"><h3>${selected?escapeHtml(selected.name):'품목별 재고 확인'}</h3><p>가용 수량 = 현재 수량 − 확정 주문의 미출고 수량<br>최소 기준: 빈칸은 미설정, 0은 최소 보유 없음. 변경 후 저장해 주세요.</p></div>`+
     (shown.length?`<div class="stock-option-scroll"><table class="tbl stock-option-table"><thead><tr>${selected?'':'<th>품목</th>'}<th>색상</th><th>규격/옵션</th><th>상태</th><th class="num">현재</th><th class="num">출고 예정</th><th class="num">가용</th><th class="num">최소 기준</th></tr></thead><tbody>${shown.map(c=>`<tr>${selected?'':`<td>${escapeHtml(c.name)}</td>`}<td>${escapeHtml(c.color||'—')}</td><td>${escapeHtml(c.spec||'—')}</td><td><span class="pill ${stockRowStatus(c)==='주문 대비 부족'?'attention':c.qty<=0||c.shortage||c.low?'out':''}">${stockRowStatus(c)}</span></td><td class="num">${fmt(c.qty)}</td><td class="num">${fmt(c.reserved)}</td><td class="num ${c.available<0?'neg':''}">${fmt(c.available)}</td><td><input type="text" inputmode="decimal" data-stock-min="${escapeAttr(c.key)}" aria-label="${escapeAttr([c.name,c.color,c.spec,'최소 기준'].filter(Boolean).join(' '))}" value="${escapeAttr(stockMinimumDraft[c.key]??(c.minimum===null?'':String(c.minimum)))}" placeholder="미설정"></td></tr>`).join('')}</tbody></table></div><div class="stock-min-actions"><button type="button" class="btn" id="stockMinimumSave" ${stockMinimumSaving?'disabled':''}>표시된 최소 기준 저장</button></div>`:'<p class="empty">조건에 맞는 품목이 없습니다.</p>');
+  const stockHeaders=[...document.querySelectorAll('#stockOverview th')].map(th=>th.textContent);
+  document.querySelectorAll('#stockOverview tbody tr').forEach(row=>[...row.cells].forEach((cell,i)=>cell.dataset.label=stockHeaders[i]));
   document.querySelectorAll('[data-stock-min]').forEach(input=>input.oninput=()=>{stockMinimumDraft[input.dataset.stockMin]=input.value;});
   const minimumSave=document.getElementById('stockMinimumSave');if(minimumSave)minimumSave.onclick=saveStockMinimums;
   search.oninput=()=>{stockSelectedItem='';renderStock();};filter.onchange=()=>{stockSelectedItem='';renderStock();};
@@ -6369,9 +6407,11 @@ function renderStock(){
   document.querySelectorAll('[data-stock-id]').forEach(b=>b.onclick=()=>{if(!guardStockEntryChange())return;stockSelectedItem=b.dataset.stockId;itemEl.value=stockSelectedItem;updateIvCombo();document.querySelector('#view-stock .stock-add').hidden=!stockSelectedItem;renderStock();if(stockSelectedItem)document.querySelector('#view-stock .stock-add').scrollIntoView({block:'start',behavior:'smooth'});});
   itemEl.onchange=()=>{if(!guardStockEntryChange()){itemEl.value=stockSelectedItem;return;}stockSelectedItem=itemEl.value;updateIvCombo();renderStock();};
   const entry=document.querySelector('#view-stock .stock-add'),register=document.getElementById('stockRegister');
-  register.textContent='+ 입출고 등록';
-  register.onclick=()=>{entry.hidden=false;if(stockSelectedItem&&itemEl.value!==stockSelectedItem){itemEl.value=stockSelectedItem;updateIvCombo();}setupStockQuickEntry();entry.scrollIntoView({block:'start'});document.getElementById(itemEl.value?'ivDate':'ivItem').focus();};
-  document.getElementById('ivCancelBtn').onclick=()=>{if(!guardStockEntryChange())return;entry.hidden=true;register.textContent='+ 입출고 등록';};
+  const openEntry=kind=>{if(document.getElementById('ivKind').value!==kind&&!guardStockEntryChange())return;document.getElementById('ivKind').value=kind;entry.hidden=false;if(stockSelectedItem&&itemEl.value!==stockSelectedItem){itemEl.value=stockSelectedItem;updateIvCombo();}setupStockQuickEntry();entry.scrollIntoView({block:'start'});document.getElementById(itemEl.value?'ivDate':'ivItem').focus();};
+  register.onclick=()=>openEntry('입고');
+  document.getElementById('stockOutbound').onclick=()=>openEntry('출고');
+  document.getElementById('stockAdjust').onclick=()=>{const history=document.querySelector('#view-stock .stock-history-title');history.tabIndex=-1;history.scrollIntoView({block:'start'});history.focus();};
+  document.getElementById('ivCancelBtn').onclick=()=>{if(!guardStockEntryChange())return;entry.hidden=true;};
   document.getElementById('ivAddBtn').onclick=addStockMove;
 
   const tbl=document.getElementById("ivTbl");
@@ -6468,6 +6508,8 @@ function updatePayQuotes(){
   if(!sel) return;
   const cid=document.getElementById("payCo").value;
   const isIn=document.getElementById("payKind").value==="수금";
+  sel.closest('.pf-quote').hidden=!isIn;
+  document.getElementById('payEntry').classList.toggle('ops-paying-out',!isIn);
   const prev=sel.value;
   const list=isIn && cid ? openQuotesOf(cid) : [];
   sel.innerHTML=`<option value="">건 지정 안 함</option>`+list.map(q=>
@@ -6479,6 +6521,20 @@ function updatePayQuotes(){
 function payCoOptions(){
   return db.companies.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ko"))
     .map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+}
+
+function openPaymentEntry(kind){
+  document.getElementById('payKind').value=kind;
+  updatePayQuotes();
+  const entry=document.getElementById('payEntry');entry.open=true;
+  entry.scrollIntoView({block:'nearest'});document.getElementById('payCo').focus();
+}
+function paymentMatches(p,{period,month,from,to,kind,query}){
+  if(period==='month'&&!(p.date||'').startsWith(month))return false;
+  if(period==='range'&&((from&&(p.date||'')<from)||(to&&(p.date||'')>to)))return false;
+  if(kind&&p.kind!==kind)return false;
+  const no=db.quotes.find(q=>q.id===p.quote_id)?.no||'';
+  return [coName(p.company_id),p.memo,no].join(' ').toLowerCase().includes(query.trim().toLowerCase());
 }
 
 function renderPay(){
@@ -6493,8 +6549,10 @@ function renderPay(){
   updatePayQuotes();
 
   const month=monthEl.value;
+  const criteria={period:document.getElementById('payPeriod').value,month,from:document.getElementById('payFrom').value,to:document.getElementById('payTo').value,kind:document.getElementById('payFilter').value,query:document.getElementById('paySearch').value};
+  const invalidRange=criteria.period==='range'&&criteria.from&&criteria.to&&criteria.from>criteria.to;
   const rows=db.payments
-    .filter(p=>(p.date||"").startsWith(month))
+    .filter(p=>!invalidRange&&paymentMatches(p,criteria))
     .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.created_at||"").localeCompare(a.created_at||""));
   const sumIn=rows.filter(p=>p.kind==="수금").reduce((s,p)=>s+(Number(p.amount)||0),0);
   const sumOut=rows.filter(p=>p.kind==="지급").reduce((s,p)=>s+(Number(p.amount)||0),0);
@@ -6506,10 +6564,33 @@ function renderPay(){
   netEl.className="big "+(net>0?"pos":net<0?"neg":"");
 
   renderPayByCo(rows);
+  document.getElementById('payInbound').onclick=()=>openPaymentEntry('수금');
+  document.getElementById('payOutbound').onclick=()=>openPaymentEntry('지급');
+  document.getElementById('payClose').onclick=()=>{document.getElementById('payEntry').open=false;document.getElementById('payInbound').focus();};
+  document.getElementById('payAddBtn').onclick=async()=>{
+    const count=db.payments.length;await addPayment();
+    if(db.payments.length>count){
+      ['paySearch','payFilter','payFrom','payTo'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('payPeriod').value='month';document.getElementById('payEntry').open=false;
+      renderPay();document.getElementById('payResults').textContent='저장했습니다 · '+document.getElementById('payResults').textContent;
+      document.getElementById('payInbound').focus();
+    }
+  };
+  ['payFilter','payPeriod','payFrom','payTo','payMonth'].forEach(id=>document.getElementById(id).onchange=renderPay);
+  document.getElementById('paySearch').oninput=renderPay;
+  document.getElementById('payClear').onclick=()=>{['paySearch','payFilter','payFrom','payTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('payPeriod').value='month';monthEl.value=localMonth();renderPay();};
+  document.getElementById('payMonthLabel').hidden=criteria.period!=='month';
+  document.getElementById('payFromLabel').hidden=document.getElementById('payToLabel').hidden=criteria.period!=='range';
+  const scope=criteria.period==='month'?`${month} `:criteria.period==='all'?'전체 기간 ':'선택 기간 ';
+  document.querySelector('#paySumIn').previousElementSibling.textContent=scope+'입금';
+  document.querySelector('#paySumOut').previousElementSibling.textContent=scope+'출금';
+  document.querySelector('#paySumNet').previousElementSibling.textContent='조회 내역 입출금 차액';
+  document.querySelector('#payByCo').closest('.card').querySelector('h3').textContent='조회 내역 거래처별 집계';
+  document.getElementById('payResults').textContent=invalidRange?'종료일은 시작일 이후로 선택하세요.':`조회 ${rows.length}건`;
 
   const tbl=document.getElementById("payTbl");
   if(rows.length===0){
-    tbl.innerHTML=`<tr><td><div class="empty">이 달의 내역이 없습니다.<br>위 입력줄에서 수금/지급 내역을 추가해 보세요.</div></td></tr>`;
+    tbl.innerHTML=`<tr><td><div class="empty">조건에 맞는 내역이 없습니다.</div></td></tr>`;
     return;
   }
   tbl.innerHTML=`
@@ -7185,6 +7266,7 @@ async function init(){
   };
   document.getElementById("dashNewPayment").onclick=()=>{
     switchView("payments");
+    openPaymentEntry('수금');
     setTimeout(()=>document.getElementById("payCo")?.focus(),40);
   };
   document.getElementById("payMonth").onchange=renderPay;
