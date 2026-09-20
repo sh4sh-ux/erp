@@ -15,7 +15,7 @@ for(const name of ['addPayment','deletePayment','submitItem','deleteItem']){
   assert.equal(declaration(html),declaration(baseline),name+' body changed');
 }
 for(const file of ['stock-entry.js','sw.js']){
-  const normalize=s=>file==='sw.js'?s.replace(/const CACHE = "[^"]+";/,'const CACHE = "VERSION";'):s;
+  const normalize=s=>file==='sw.js'?s.replace(/const CACHE = "[^"]+";/,'const CACHE = "VERSION";').replace(/(workspace-(?:system\.css|layout\.js)\?v=)\d+/g,'$1VERSION'):s;
   assert.equal(normalize(fs.readFileSync(path.join(root,file),'utf8')),normalize(execFileSync('git',['show','9ca0259:'+file],{cwd:root,encoding:'utf8'})));
 }
 run(`db.items=[{id:'a',name:'Legacy'},{id:'b',category:''},{id:'c',category:' 조리복 '},{id:'d',category:'사용자 분류'}];const originals=JSON.stringify(db.items);`);
