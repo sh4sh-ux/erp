@@ -1,8 +1,8 @@
 /* ERP service worker — v1.162 verified UI and persistence fixes */
-const CACHE = "erp-shell-v96-v183";
+const CACHE = "erp-shell-v97-v184";
 const SHELL = ["./","./index.html","./v142-dutch-pay.css?v=1501","./workspace-system.css?v=1810","./workspace-layout.js?v=1830","./navigation-layout.css?v=1512","./mobile-workspace.css?v=1690","./manifest.webmanifest","./favicon.png","./assets/business-card-gownii.png","./icons/icon-180.png","./icons/icon-192.png","./icons/icon-512.png"];
 SHELL.push('./stock-entry.js?v=1650','./stock-entry.css?v=1710');
-SHELL.push('./quote-presentation.css?v=1830','./quote-presentation.js?v=1830');
+SHELL.push('./quote-presentation.css?v=1840','./quote-presentation.js?v=1830');
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
 self.addEventListener("fetch", e => {

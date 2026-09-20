@@ -189,7 +189,12 @@
 @media(min-width:1024px) {
   #appView .shell .main #qtForm.workspace-form {grid-template-rows:minmax(0,1fr) auto}
   #appView .shell .main #qtForm .workspace-form-body {padding-top:0}
-  #appView .shell .main #qtForm .workspace-form-body>.quote-summary {padding-top:24px}
+  /* Match the existing 144px left page-heading row, without changing scrolling. */
+  #appView .shell .main #qtForm .workspace-form-body>.quote-summary {
+    box-sizing:border-box;height:144px;min-height:144px;
+    margin:0 -34px;padding:18px 34px;align-content:center;
+    border-bottom-color:#ebebed;
+  }
 }
 @media(max-width:820px) {
   #appView .shell .main #qtForm .quote-summary {grid-template-columns:minmax(0,1fr) minmax(110px,40%);gap:10px 16px;padding-top:12px}
