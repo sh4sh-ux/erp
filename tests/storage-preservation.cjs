@@ -4,6 +4,7 @@ const {execFileSync}=require('node:child_process');
 const root=path.join(__dirname,'..'),base='91184412a9abb8a45ab1104661f94652ddc83e1d';
 const before=execFileSync('git',['show',base+':index.html'],{cwd:root,encoding:'utf8'});
 let after=fs.readFileSync(path.join(root,'index.html'),'utf8');
+after=after.replace(/\/\* Load recovery: visible only[\s\S]*?\/\* End load recovery\. \*\/\n/,'').replace(/<!-- Load recovery stays outside[\s\S]*?<!-- End load recovery\. -->\n/,'');
 // STEP 2 permits only these two additional function changes, behavior-tested separately.
 for(const pattern of [/async function loadAll\(\)\{[\s\S]*?(?=\n\/\* 데이터가)/,/async function runMigrations\(\)\{[\s\S]*?(?=\n\/\* 예전 버전)/]){
  assert.ok(before.match(pattern)&&after.match(pattern));

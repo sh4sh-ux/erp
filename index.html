@@ -2318,6 +2318,12 @@
     /* 목록 높이 확대 */
     #appView .shell .main #view-quotes #qtList{max-height:calc(100dvh - 300px);min-height:44dvh}
   }
+/* Load recovery: visible only while the workspace is blocked after a failed load. */
+#loadRecovery:not([hidden]){position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:10000;width:min(560px,calc(100% - 32px));box-sizing:border-box;padding:20px;background:var(--bg,#fff);border:1px solid var(--line,#ddd);border-radius:12px;box-shadow:0 8px 28px #0002;color:var(--text,#222)}
+#loadRecovery p{margin:8px 0 16px;line-height:1.6}
+#loadRecovery button{min-height:44px}
+#appView.load-blocked :is(button,input,select,textarea){opacity:.45;cursor:not-allowed}
+/* End load recovery. */
 </style>
 <link rel="stylesheet" href="./v142-dutch-pay.css?v=1501">
 <link rel="stylesheet" href="./workspace-system.css?v=1680">
@@ -2360,6 +2366,13 @@
 </div>
 
 <!-- ==================== APP ==================== -->
+<!-- Load recovery stays outside the inert workspace. -->
+<div id="loadRecovery" role="alert" hidden>
+  <strong>데이터를 정상적으로 불러오지 못했습니다.</strong>
+  <p>데이터 보호를 위해 수정 기능을 일시 중단했습니다.<br>아래 버튼으로 브라우저를 새로고침한 후 다시 시도해 주세요.</p>
+  <button type="button" class="btn primary" id="loadRecoveryReload">새로고침</button>
+</div>
+<!-- End load recovery. -->
 <div id="appView" class="hidden">
   <button class="m-burger" id="menuBtn" title="메뉴" aria-label="메뉴">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -3168,6 +3181,11 @@ const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], mat
 async function loadAll(){
   const previous={...db};
   const app=document.getElementById("appView");
+  const recovery=document.getElementById("loadRecovery");
+  const reload=document.getElementById("loadRecoveryReload");
+  if(recovery) recovery.hidden=true;
+  if(reload) reload.onclick=()=>window.location.reload();
+  if(app) app.classList.remove("load-blocked");
   if(app) app.inert=true;
   setSyncState("syncing","불러오는 중");
   toast("불러오는 중…",true);
@@ -3194,6 +3212,9 @@ async function loadAll(){
     Object.assign(db,previous);
     // Keep the workspace inert until a successful reload; do not save stale drafts.
     if(app) app.inert=true;
+    if(app) app.classList.add("load-blocked");
+    if(recovery) recovery.hidden=false;
+    if(reload) reload.focus?.();
     setSyncState("error","불러오기 실패"); toast("불러오기 실패: "+e.message);
     return false;
   }
