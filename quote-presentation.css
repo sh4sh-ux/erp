@@ -160,3 +160,11 @@
   #view-quotes .delivery-record .amount {grid-row:1;grid-column:2}
   #view-quotes .delivery-record .delivery-chevron {grid-row:1;grid-column:3}
 }
+.quote-delete-dependencies {position:fixed;inset:0;margin:auto;width:min(460px,calc(100% - 32px));box-sizing:border-box;max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--card);color:var(--ink)}
+.quote-delete-dependencies::backdrop {background:rgba(15,20,35,.38)}
+.quote-delete-dependencies h3 {font-size:18px;line-height:1.5;margin:0 0 12px}
+.quote-delete-dependencies p {line-height:1.6;margin:10px 0;color:var(--muted)}
+.quote-delete-dependencies section {border-top:1px solid var(--line);padding:16px 0}
+.quote-delete-dependencies button {min-height:44px}
+.quote-delete-dependencies [data-dependency="close"] {width:100%;margin-top:8px}
+@media(max-width:820px){.quote-delete-dependencies{padding:20px;max-height:calc(100dvh - 48px)}}

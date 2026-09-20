@@ -2330,7 +2330,7 @@
 <link rel="stylesheet" href="./navigation-layout.css?v=1512">
 <link rel="stylesheet" href="./mobile-workspace.css?v=1690">
 <link rel="stylesheet" href="./stock-entry.css?v=1710">
-<link rel="stylesheet" href="./quote-presentation.css">
+<link rel="stylesheet" href="./quote-presentation.css?v=1820">
 </head>
 <body>
 
@@ -2909,7 +2909,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.181";
+const APP_VERSION = "v1.182";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -5600,7 +5600,7 @@ function migrateStockQuoteLinks(){
 
 async function deleteQuote(id){
   const q=db.quotes.find(x=>x.id===id);
-  if(db.payments.some(p=>p.quote_id===id)||quoteDeliveredQty(q||{})>0){toast("납품·입금 기록이 연결된 견적은 삭제할 수 없습니다. 연결된 기록을 먼저 확인하세요");return;}
+  if(db.payments.some(p=>p.quote_id===id)||quoteDeliveredQty(q||{})>0){showQuoteDeleteDependencies(id);return;}
   const back=q ? stockDeltaForQuote({...q,status:"취소"}) : {moves:[],desc:[]};
   // Separate stock restoration from destructive deletion: these files are not atomic.
   if(back.moves.length){toast("재고 출고 이력이 있습니다. 견적 상태를 취소로 저장하여 재고 복구를 확인한 뒤 삭제하세요");return;}
@@ -6523,6 +6523,38 @@ function payCoOptions(){
     .map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
 }
 
+let paymentDependencyQuoteId=null;
+function showQuoteDeleteDependencies(id){
+  const q=db.quotes.find(x=>x.id===id);
+  if(!q)return;
+  document.getElementById('quoteDeleteDependencies')?.remove();
+  const payments=db.payments.filter(p=>p.quote_id===id), delivered=quoteDeliveredQty(q);
+  const modal=document.createElement('dialog');modal.id='quoteDeleteDependencies';modal.className='quote-delete-dependencies';
+  modal.setAttribute('aria-labelledby','quoteDeleteTitle');
+  modal.innerHTML=`<h3 id="quoteDeleteTitle">이 견적서는 바로 삭제할 수 없습니다.</h3><p>연결된 기록을 먼저 정리해 주세요.</p>
+    ${delivered>0?`<section><strong>납품 기록</strong><p>${fmt(delivered)}개 납품</p><button type="button" class="btn" data-dependency="delivery">납품 기록으로 이동 →</button></section>`:''}
+    ${payments.length?`<section><strong>입금 기록</strong><p>${payments.length}건 · ${fmt(payments.reduce((s,p)=>s+(Number(p.amount)||0),0))}원 입금</p><button type="button" class="btn" data-dependency="payment">입금 기록으로 이동 →</button></section>`:''}
+    <p>연결된 기록을 모두 정리하면 견적서를 삭제할 수 있습니다.</p><button type="button" class="btn" data-dependency="close">닫기</button>`;
+  const close=()=>{modal.close();modal.remove();document.getElementById('qtDelBtn')?.focus();};
+  modal.addEventListener('cancel',e=>{e.preventDefault();close();});
+  modal.querySelector('[data-dependency="close"]').onclick=close;
+  const delivery=modal.querySelector('[data-dependency="delivery"]');
+  if(delivery)delivery.onclick=()=>{
+    close();document.getElementById('qp-tab-basic')?.click();
+    const panel=document.querySelector('#qtForm .delivery-panel');
+    panel?.querySelectorAll('.delivery-record details').forEach(d=>d.open=true);
+    if(panel){panel.tabIndex=-1;panel.scrollIntoView({block:'center'});panel.focus({preventScroll:true});}
+  };
+  const payment=modal.querySelector('[data-dependency="payment"]');
+  if(payment)payment.onclick=()=>{
+    close();if(switchView('payments')===false)return;
+    paymentDependencyQuoteId=id;
+    ['paySearch','payFilter','payFrom','payTo'].forEach(key=>document.getElementById(key).value='');
+    document.getElementById('payPeriod').value='all';renderPay();
+    document.getElementById('payResults').scrollIntoView({block:'center'});
+  };
+  document.body.append(modal);modal.showModal();
+}
 function openPaymentEntry(kind){
   document.getElementById('payKind').value=kind;
   updatePayQuotes();
@@ -6530,6 +6562,7 @@ function openPaymentEntry(kind){
   entry.scrollIntoView({block:'nearest'});document.getElementById('payCo').focus();
 }
 function paymentMatches(p,{period,month,from,to,kind,query}){
+  if(paymentDependencyQuoteId&&p.quote_id!==paymentDependencyQuoteId)return false;
   if(period==='month'&&!(p.date||'').startsWith(month))return false;
   if(period==='range'&&((from&&(p.date||'')<from)||(to&&(p.date||'')>to)))return false;
   if(kind&&p.kind!==kind)return false;
@@ -6578,7 +6611,7 @@ function renderPay(){
   };
   ['payFilter','payPeriod','payFrom','payTo','payMonth'].forEach(id=>document.getElementById(id).onchange=renderPay);
   document.getElementById('paySearch').oninput=renderPay;
-  document.getElementById('payClear').onclick=()=>{['paySearch','payFilter','payFrom','payTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('payPeriod').value='month';monthEl.value=localMonth();renderPay();};
+  document.getElementById('payClear').onclick=()=>{paymentDependencyQuoteId=null;['paySearch','payFilter','payFrom','payTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('payPeriod').value='month';monthEl.value=localMonth();renderPay();};
   document.getElementById('payMonthLabel').hidden=criteria.period!=='month';
   document.getElementById('payFromLabel').hidden=document.getElementById('payToLabel').hidden=criteria.period!=='range';
   const scope=criteria.period==='month'?`${month} `:criteria.period==='all'?'전체 기간 ':'선택 기간 ';
@@ -6587,6 +6620,12 @@ function renderPay(){
   document.querySelector('#paySumNet').previousElementSibling.textContent='조회 내역 입출금 차액';
   document.querySelector('#payByCo').closest('.card').querySelector('h3').textContent='조회 내역 거래처별 집계';
   document.getElementById('payResults').textContent=invalidRange?'종료일은 시작일 이후로 선택하세요.':`조회 ${rows.length}건`;
+  if(paymentDependencyQuoteId){
+    const id=paymentDependencyQuoteId,q=db.quotes.find(q=>q.id===id),result=document.getElementById('payResults');
+    result.append(document.createTextNode(' · 연결 견적 '+(q?.no||id)+' '));
+    const back=document.createElement('button');back.type='button';back.className='btn';back.textContent='견적으로 돌아가기';
+    back.onclick=()=>{if(switchView('quotes')===false)return;qtSel=id;renderQtList();renderQtDetail();};result.append(back);
+  }
 
   const tbl=document.getElementById("payTbl");
   if(rows.length===0){
