@@ -3166,6 +3166,9 @@ async function importFromAppFolder(){
 const db = { companies:[], items:[], quotes:[], payments:[], stock_moves:[], material_moves:[], settings:{} };
 
 async function loadAll(){
+  const previous={...db};
+  const app=document.getElementById("appView");
+  if(app) app.inert=true;
   setSyncState("syncing","불러오는 중");
   toast("불러오는 중…",true);
   try{
@@ -3177,6 +3180,7 @@ async function loadAll(){
     db.material_moves=mm;
     migrateStockQuoteLinks();
     await runMigrations();
+    if(app) app.inert=false;
     renderCurrentView();
     if(dataLooksEmpty() && usesDefaultAppFolderKey()){
       setSyncState("error","데이터 위치 확인 필요");
@@ -3186,7 +3190,13 @@ async function loadAll(){
       toast("불러왔습니다");
     }
     offerImportIfEmpty();          // 비어 있으면 옛 앱 폴더를 찾아 가져오기를 제안
-  }catch(e){ setSyncState("error","불러오기 실패"); toast("불러오기 실패: "+e.message); }
+  }catch(e){
+    Object.assign(db,previous);
+    // Keep the workspace inert until a successful reload; do not save stale drafts.
+    if(app) app.inert=true;
+    setSyncState("error","불러오기 실패"); toast("불러오기 실패: "+e.message);
+    return false;
+  }
 }
 
 /* 데이터가 하나도 없으면 옛 앱 폴더를 조용히 찾아보고, 있으면 가져올지 물어본다.
@@ -5495,21 +5505,22 @@ const SCHEMA=3;
 async function runMigrations(){
   const cur=Number((db.settings||{}).schema)||0;
   if(cur>=SCHEMA){db.quotes.forEach(ensureQuoteLineIds);return;}
+  const quotes=JSON.parse(JSON.stringify(db.quotes));
   // v3: 기존 '수주' 건은 이미 납품된 것으로 간주해 납품일을 채운다.
   //     (미수금 기준이 수주 → 납품으로 바뀌므로, 이게 없으면 기존 미수금이 갑자기 0이 된다)
   let n=0;
   if(cur<3){
-    db.quotes.forEach(q=>{
+    quotes.forEach(q=>{
       if(q.status==="수주" && !q.delivered_at){ q.delivered_at=q.date||localDate(); n++; }
     });
   }
-  db.quotes.forEach(ensureQuoteLineIds);
-  db.settings=db.settings||{};
-  db.settings.schema=SCHEMA;
-  try{
-    await Promise.all([Table.save("quotes",db.quotes), Table.save("settings",db.settings)]);
-    if(n) toast(`기존 수주 ${n}건을 납품 완료로 정리했습니다`);
-  }catch(err){ /* 실패하면 다음 실행 때 다시 시도 — 이미 채운 건은 건너뛴다 */ }
+  quotes.forEach(ensureQuoteLineIds);
+  const settings={...(db.settings||{}),schema:SCHEMA};
+  await Table.save("quotes",quotes);
+  db.quotes=quotes; // Retain persisted IDs if settings fails and the caller retries.
+  await Table.save("settings",settings);
+  db.settings=settings;
+  if(n) toast(`기존 수주 ${n}건을 납품 완료로 정리했습니다`);
 }
 
 /* 예전 버전이 만든 출고 기록에 quote_id를 채운다 (메모의 견적번호로 역추적).

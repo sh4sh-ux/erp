@@ -26,7 +26,8 @@ const fixtures={
  material_moves:[{id:'m',company_id:'c',material:'패치',kind:'받음',qty:0,work_qty:0,per_unit:1,quote_id:null,memo:'',void_at:null}],
  settings:{schema:3,name:'공급자',memo:'',bank:null,zero:0,negative:-1}
 };
-(async()=>{
+module.exports={harness,fixtures,source,plain};
+if(require.main===module)(async()=>{
  const baseline=execFileSync('git',['show','91184412a9abb8a45ab1104661f94652ddc83e1d:index.html'],{cwd:path.join(__dirname,'..'),encoding:'utf8'}).match(/<script>([\s\S]*?)<\/script>/)[1].replace(/init\(\);\s*$/, '');
  const bug=harness(baseline);bug.run('db.settings={schema:3};db.quotes=[{id:"q",status:"수주",date:"2026-09-20",lines:[],deliveries:[]}];');
  await bug.run('saveSettings()');assert.equal(JSON.parse(bug.files.get(bug.root+'/settings.json')).schema,undefined);
@@ -75,11 +76,11 @@ const fixtures={
  assert.equal(old.writes.length,0);assert.equal(old.files.get(old.root+'/quotes.json'),first);
  const fail=seeded(2);fail.ctx.failRead=fail.root+'/items.json';await fail.run('loadAll()');assert.equal(fail.writes.length,0);
  const partial=seeded(2);partial.ctx.failWrite=partial.root+'/quotes.json';await partial.run('loadAll()');
- assert.equal(JSON.parse(partial.files.get(partial.root+'/settings.json')).schema,3);
+ assert.equal(JSON.parse(partial.files.get(partial.root+'/settings.json')).schema,2);
  assert.equal(JSON.parse(partial.files.get(partial.root+'/quotes.json'))[0].delivered_at,null);
- partial.writes.length=0;await partial.run('loadAll()');assert.equal(partial.writes.length,0,'known partial migration risk: persisted schema suppresses retry');
+ partial.writes.length=0;partial.ctx.failWrite=null;await partial.run('loadAll()');assert.equal(partial.writes.length,2,'failed migration is retried');
  const reverse=seeded(2);reverse.ctx.failWrite=reverse.root+'/settings.json';await reverse.run('loadAll()');
  const migrated=reverse.files.get(reverse.root+'/quotes.json');reverse.ctx.failWrite=null;await reverse.run('loadAll()');
  assert.equal(reverse.files.get(reverse.root+'/quotes.json'),migrated,'retry preserves generated delivery IDs');
- console.log('PASS: latest/legacy/repeated load; read failure; both partial migration write directions characterized (not fixed)');
+ console.log('PASS: latest/legacy/repeated load; read failure; ordered migration writes and retry');
 })().catch(e=>{console.error(e);process.exitCode=1;});

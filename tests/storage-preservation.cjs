@@ -3,7 +3,12 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const {execFileSync}=require('node:child_process');
 const root=path.join(__dirname,'..'),base='91184412a9abb8a45ab1104661f94652ddc83e1d';
 const before=execFileSync('git',['show',base+':index.html'],{cwd:root,encoding:'utf8'});
-const after=fs.readFileSync(path.join(root,'index.html'),'utf8');
+let after=fs.readFileSync(path.join(root,'index.html'),'utf8');
+// STEP 2 permits only these two additional function changes, behavior-tested separately.
+for(const pattern of [/async function loadAll\(\)\{[\s\S]*?(?=\n\/\* 데이터가)/,/async function runMigrations\(\)\{[\s\S]*?(?=\n\/\* 예전 버전)/]){
+ assert.ok(before.match(pattern)&&after.match(pattern));
+ after=after.replace(pattern,()=>before.match(pattern)[0]);
+}
 const start=before.indexOf('const Table = {'),end=before.indexOf('\n/* ── 옛 앱 폴더',start);
 const newStart=after.indexOf('// Snapshot contract:'),newEnd=after.indexOf('\n/* ── 옛 앱 폴더',newStart);
 assert.ok(start>0&&end>start&&newStart>0&&newEnd>newStart);
@@ -13,4 +18,4 @@ assert.equal(after.slice(0,newStart)+before.slice(start,end)+after.slice(newEnd)
 for(const file of ['stock-entry.js','quote-presentation.js','quote-presentation.css','workspace-system.css','workspace-layout.js','mobile-workspace.css','navigation-layout.css','stock-entry.css','sw.js']){
  assert.equal(fs.readFileSync(path.join(root,file),'utf8'),execFileSync('git',['show',base+':'+file],{cwd:root,encoding:'utf8'}),file+' unchanged');
 }
-console.log('PASS: all baseline business functions/UI unchanged outside storage boundary and settings.schema fix');
+console.log('PASS: baseline UI/business functions unchanged outside adapter, schema fix, loadAll and runMigrations');
