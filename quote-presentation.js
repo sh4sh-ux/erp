@@ -53,7 +53,7 @@
   function showSheet(title) {
     dialog = el('dialog', 'qp-sheet'); dialog.setAttribute('aria-label', title);
     const head = el('div', 'qp-sheet-head');
-    const close = button('닫기', () => finish(true)); close.setAttribute('aria-label', '편집 취소하고 닫기');
+    const close = button('닫기', () => finish(true), 'naro-sheet-close'); close.setAttribute('aria-label', '편집 취소하고 닫기');
     head.append(el('h3', '', title), close);
     const body = el('div', 'qp-sheet-body');
     dialog.append(head, body); $('#qtForm').append(dialog);
@@ -201,7 +201,7 @@
     if (mobile.matches) {
       const hero = $('.quote-summary', form);
       const nav = el('div', 'qp-mobile-actions');
-      nav.append(button('‹ 견적서', closeQuoteDetail), button('저장', () => $('#qtSaveBtn').click(), 'qp-primary'));
+      nav.append(button('‹ 견적서', closeQuoteDetail), button('저장', () => $('#qtSaveBtn').click(), 'qp-primary naro-compact-action'));
       hero.before(nav);
       const info = $('.qs-info', hero); info.replaceChildren(el('strong', 'qp-company', coName(q.company_id) || '거래처 미선택'), el('span', 'qp-muted', `${q.date || ''} · ${q.status || ''}`), el('small', 'qp-muted', q.no || '새 견적'));
       $('.qs-amt-k', hero).textContent = '합계 (부가세 포함)';
@@ -224,6 +224,47 @@
       else if (sheet?.mode === 'search') searchSheet(q);
     }
   }
+  // Opt-in presentation patterns; original controls and handlers remain intact.
+  function listPolish() {
+    const view = $('#view-quotes'), csv = $('#qtCsvBtn'), filters = $('.quote-filters', view);
+    const csvHome = document.createComment('CSV header position'); $('.page-head', view).append(csvHome);
+    const more = el('details', 'naro-secondary-menu qp-list-more');
+    const summary = el('summary', '', '···'); summary.setAttribute('aria-label', '견적 목록 더보기');
+    more.append(summary); csvHome.parentNode.append(more);
+    csv.addEventListener('click', () => { more.open = false; });
+    $('.list-head', view).classList.add('naro-search-toolbar');
+    const all = $('#qtAllDates'), home = document.createComment('Period desktop position'); all.before(home);
+    const period = el('div', 'naro-period-selector'); period.setAttribute('role', 'group'); period.setAttribute('aria-label', '검색 기간');
+    const dates = [$('#qtFrom'), $('#qtTo')];
+    const range = button('기간 지정', () => sync(true));
+    period.append(range); home.parentNode.append(period);
+    const close = button('닫기', () => { $('#qtFilterBackdrop').click(); $('#qtFilterBtn').focus(); }, 'naro-sheet-close qp-filter-close');
+    close.setAttribute('aria-label', '필터 닫기'); filters.prepend(close);
+    function sync(expanded = dates.some(input => !!input.value)) {
+      all.setAttribute('aria-pressed', String(!expanded)); range.setAttribute('aria-pressed', String(expanded));
+      dates.forEach(input => input.closest('label').classList.toggle('qp-date-hidden', mobile.matches && !expanded));
+      // Reflect committed filter values, not the date editor's expanded state.
+      const count = Number(!!$('#qtStatus').value) + Number(dates.some(input => !!input.value));
+      const badge = $('#qtFilterBadge'); badge.textContent = count || ''; badge.hidden = !count;
+      $('#qtFilterBtn').classList.toggle('on', !!count);
+    }
+    all.addEventListener('click', () => sync(false));
+    $('#qtClearFilters').addEventListener('click', () => sync(false));
+    dates.forEach(input => input.addEventListener('change', () => sync()));
+    $('#qtStatus').addEventListener('change', () => sync());
+    $('#qtFilterBtn').addEventListener('click', () => sync());
+    function layout() {
+      if (mobile.matches) { more.append(csv); period.prepend(all); }
+      else {
+        const desktopMenu = $('.workspace-export', view);
+        if (desktopMenu) desktopMenu.append(csv); else csvHome.after(csv);
+        home.after(all); more.open = false; $('#qtFilterBackdrop').click();
+      }
+      sync();
+    }
+    mobile.addEventListener('change', layout); layout();
+  }
+  listPolish();
   mobile.addEventListener('change', () => { beforeRender(); sheet = null; if (qtEditing) redraw(); });
   function fitSheet() {
     if (!dialog) return;
