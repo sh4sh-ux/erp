@@ -198,16 +198,21 @@
       if (!step) return; event.preventDefault(); select(ids[(ids.indexOf(tab) + step + ids.length) % ids.length]); $('.qp-tabs [aria-selected="true"]').focus();
     };
     select(tab);
+    const hero = $('.quote-summary', form), info = $('.qs-info', hero);
+    const companyRow = $('.qs-row:has(.co)', info);
+    const metadata = el('div', 'qp-metadata');
+    const syncHeader = () => {
+      $('.co', companyRow).textContent = coName(q.company_id) || '거래처 미선택';
+      metadata.replaceChildren(el('span', '', q.no || '새 견적'),
+        el('span', '', (q.date || '').replaceAll('-', '.')),
+        el('span', 'pill ' + (QT_STATUS_CLASS[q.status] || 'st-draft'), q.status || ''));
+    };
+    info.replaceChildren(companyRow); hero.append(metadata); syncHeader();
+    form.onchange = syncHeader;
     if (mobile.matches) {
-      const hero = $('.quote-summary', form);
       const nav = el('div', 'qp-mobile-actions');
       nav.append(button('‹ 견적서', closeQuoteDetail), button('저장', () => $('#qtSaveBtn').click(), 'qp-primary naro-compact-action'));
       hero.before(nav);
-      const info = $('.qs-info', hero); info.replaceChildren(el('strong', 'qp-company', coName(q.company_id) || '거래처 미선택'), el('span', 'qp-muted', `${q.date || ''} · ${q.status || ''}`), el('small', 'qp-muted', q.no || '새 견적'));
-      $('.qs-amt-k', hero).textContent = '합계 (부가세 포함)';
-      // Keep the legacy supply-valued node intact for the desktop line handler.
-      $('.qs-amt-v', hero).hidden = true;
-      $('.qs-amount', hero).append(el('strong', 'qp-total', won(quoteTotals(q).total)));
       cards(q, panels[1]);
       const actions = $('.form-actions', form), more = el('details', 'qp-more'); more.append(el('summary', '', '··· 더보기'));
       ['fq_doc', 'qtCopyBtn', 'qtPrintBtn', 'qtImgBtn', 'qtShareBtn', 'qtMailBtn', 'qtDelBtn'].forEach(id => { const node = $('#'+id); if (node) more.append(node); });
@@ -216,10 +221,8 @@
         if (sheet?.mode === 'edit' && ['qty','spec'].includes(event.target.dataset.f)) {
           sheet.dirty ||= new Set(); sheet.dirty.add(event.target.dataset.f);
         }
-        $('.qp-total', form).textContent = won(quoteTotals(q).total);
       };
       // DOM is rebuilt by the legacy renderer; assigning avoids accumulated listeners.
-      form.onchange = () => { if ($('.qp-company', form)) { $('.qp-company', form).textContent = coName(q.company_id) || '거래처 미선택'; $('.qs-info .qp-muted', form).textContent = `${q.date || ''} · ${q.status || ''}`; } };
       if (sheet?.mode === 'edit') editSheet(q);
       else if (sheet?.mode === 'search') searchSheet(q);
     }

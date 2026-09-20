@@ -42,7 +42,7 @@
       const scroll = document.createElement('div');
       scroll.className = 'workspace-form-body';
       [...form.childNodes].forEach(node => {
-        if (node.nodeType === 1 && node.matches('.quote-summary,.form-actions')) return;
+        if (node.nodeType === 1 && (node.matches('.form-actions') || (id !== 'qtForm' && node.matches('.quote-summary')))) return;
         scroll.append(node);
       });
       const actions = form.querySelector(':scope > .form-actions');
