@@ -3065,18 +3065,27 @@ async function readTable(name){
   if(txt!==null) return txt;
   return await dbxDownload(`${DATA_DIR_LEGACY}/${name}.json`);
 }
-const Table = {
-  async load(name){
+// Snapshot contract: JSON values in/out; saves replace the entire named snapshot.
+// Revision-checked stock writes and binary files remain separate boundaries.
+const DropboxStorageAdapter = {
+  async loadCollection(name){
     const txt=await readTable(name);
     return txt ? JSON.parse(txt) : [];
   },
-  async loadObj(name){
+  async loadObject(name){
     const txt=await readTable(name);
     return txt ? JSON.parse(txt) : {};
   },
-  async save(name,data){
+  async saveSnapshot(name,data){
     await dbxUpload(`${DATA_DIR}/${name}.json`, JSON.stringify(data,null,2));
   }
+};
+// Existing callers retain Table and db shapes. No record-level merge is implied.
+const StorageRepository = DropboxStorageAdapter;
+const Table = {
+  load(name){ return StorageRepository.loadCollection(name); },
+  loadObj(name){ return StorageRepository.loadObject(name); },
+  save(name,data){ return StorageRepository.saveSnapshot(name,data); }
 };
 
 /* ── 옛 앱 폴더에서 가져오기 (v1.49) ──────────────────────────────────
@@ -6995,6 +7004,7 @@ async function saveSettings(){
   let businessCardUrl=document.getElementById("st_card_url").value.trim();
   if(businessCardUrl===LEGACY_BUSINESS_CARD_URL) businessCardUrl=DEFAULT_BUSINESS_CARD_URL;
   db.settings={
+    ...(Object.prototype.hasOwnProperty.call(db.settings||{},"schema") ? {schema:db.settings.schema} : {}),
     name:document.getElementById("st_name").value.trim(),
     ceo:document.getElementById("st_ceo").value.trim(),
     biz_no:document.getElementById("st_biz").value.trim(),
