@@ -1,0 +1,1 @@
+export const config=Object.freeze({"projectId":"naro-biz","apiKey":"AIzaSyC03PRvdI7F9PHON0OzHT77yKl59tR3HMY","authDomain":"naro-biz.firebaseapp.com","appId":"1:519731535486:web:a19cb48331c3b1f73a022f"});

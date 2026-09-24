@@ -1,0 +1,15 @@
+.firebase-login-ux{box-sizing:border-box;min-height:100dvh!important;padding:32px 24px!important;display:flex;align-items:center;justify-content:center;background:#f7f8fa}
+.firebase-login-ux.hidden{display:none!important}
+.firebase-login-ux #foundationLogin{box-sizing:border-box;width:100%;max-width:360px;display:flex;flex-direction:column;gap:20px;font-family:inherit;color:#20232b}
+.firebase-login-ux h2{font-size:28px;margin:0;font-weight:700;letter-spacing:-.6px}
+.firebase-login-ux p,.firebase-login-ux h3{margin:0;line-height:1.6;overflow-wrap:anywhere}
+.firebase-login-ux p{font-size:14px;color:#656b78}
+.firebase-login-ux label{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:600}
+.firebase-login-ux input{box-sizing:border-box;width:100%;min-width:0;height:48px;padding:0 14px;border:1px solid #dcdfe5;border-radius:10px;background:white;font-size:16px}
+.firebase-login-ux button{height:48px;border-radius:10px;border:0;background:#484df5;color:white;font:inherit;font-weight:600;cursor:pointer}
+.firebase-login-ux button:disabled{opacity:.6;cursor:wait}
+.firebase-login-ux input:focus-visible,.firebase-login-ux button:focus-visible{outline:2px solid #484df5;outline-offset:3px}
+.firebase-login-ux [hidden]{display:none!important}
+.firebase-login-ux small{font-size:12px;color:#858b98;text-align:center}
+.firebase-login-ux #foundationStatus:empty{display:none}
+#discoveryNextUser{position:fixed;right:16px;top:16px;z-index:99999;padding:10px 16px;background:white;color:#484df5;border:1px solid #dcdfe5;border-radius:10px;font:inherit;cursor:pointer}

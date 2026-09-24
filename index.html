@@ -2909,7 +2909,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.185";
+const APP_VERSION = "v1.186";
 const LEGACY_BUSINESS_CARD_URL = "https://www.dropbox.com/scl/fi/4umhu8sh4xqdux8wi355u/_GOWNII.png?rlkey=jca6qlud0b0vgt8257tovj7dn&dl=0";
 const DEFAULT_BUSINESS_CARD_URL = "./assets/business-card-gownii.png";
 const BUSINESS_CARD_FILENAME = "GOWNII-business-card.png";
@@ -7369,7 +7369,30 @@ async function init(){
     await loadAll();
   }
 }
-init();
+// Build-time literal; no URL, browser storage, or window-variable switch.
+{ const mode = 'OFF';
+ if(mode==='OFF') init();
+ else if(mode==='STAGED') document.addEventListener('DOMContentLoaded',()=>{
+   import('./firebase-login-shell/entry.mjs').then(m=>m.start({db,Table,StorageRepository,switchView,setSyncState,APP_VERSION,clearDrafts(){qtEditing=null;itEditing=null;materialDraft=null;stockReview=null;coSel=null;itSel=null;qtSel=null;},
+     bindReadUI(){
+       document.getElementById('tbVer').textContent=APP_VERSION;
+       document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(n=>n.onclick=()=>switchView(n.dataset.view));
+       for(const [id,fn] of Object.entries({menuBtn:()=>toggleNav(),closeNavBtn:()=>toggleNav(false),moreNavBtn:()=>toggleNav(true),navBackdrop:()=>toggleNav(false)}))document.getElementById(id).onclick=fn;
+       document.getElementById('coSearch').oninput=e=>{coFilter=e.target.value;renderCoList();};
+       document.getElementById('itSearch').oninput=e=>{itFilter=e.target.value;renderItList();};
+       document.getElementById('qtSearch').oninput=e=>{qtFilter=e.target.value;renderQtList();};
+       for(const [ids,fn] of [[['coType'],renderCoList],[['qtStatus','qtFrom','qtTo'],renderQtList],[['payMonth'],renderPay],[['slFrom','slTo','slCo','slStatus'],renderSales],[['arFilter','arView'],renderAr]])ids.forEach(id=>document.getElementById(id).onchange=fn);
+       document.getElementById('qtAllDates').onclick=clearQtDateFilters;document.getElementById('qtClearFilters').onclick=clearQtFilters;
+       document.getElementById('qtBackBtn').onclick=closeQuoteDetail;
+     }
+   },Object.freeze({mode}))).catch(()=>{
+     for(const n of ['companies','items','quotes','payments','stock_moves','material_moves'])db[n]=[];db.settings={};
+     const app=document.getElementById('appView');app.replaceChildren();app.classList.add('hidden');
+     const login=document.getElementById('loginView');login.classList.remove('hidden');login.textContent='로그인 모듈을 불러오지 못했습니다. 새로고침해 주세요. · READ ONLY';
+   });
+ },{once:true});
+ else {document.getElementById('appView').replaceChildren();document.getElementById('loginView').textContent='지원하지 않는 로그인 모드입니다.';}
+}
 </script>
 <script src="./stock-entry.js?v=1650"></script>
 <script>
