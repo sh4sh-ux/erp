@@ -214,8 +214,11 @@
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
   const b=document.createElement('button');b.type='button';b.className='nd-addr-btn';b.innerHTML=svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')+'<span>주소 검색</span>';wrap.append(b);
-  input.placeholder=input.placeholder||'주소 검색 후 상세 주소(동·호수)를 이어서 입력';
-  b.onclick=()=>addressWindow(b,v=>{input.value=v+' ';input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));});}
+  input.placeholder='[주소 검색]으로 찾거나 직접 입력';
+  // 상세 주소 gets its own box like 거래처; on save it joins the base address (the record keeps one address field).
+  const detail=document.createElement('input');detail.id='nd_address_detail';detail.type='text';detail.autocomplete='address-line2';detail.placeholder='상세 주소 (동·층·호수)';detail.setAttribute('aria-label','상세 주소');detail.className='nd-addr-detail';wrap.after(detail);
+  b.onclick=()=>addressWindow(b,v=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';detail.focus();});
+  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */

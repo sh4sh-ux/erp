@@ -7341,7 +7341,7 @@ body{color:var(--nd-ink)}
 
 /* ---------- 3. Desktop frame, wide rail, receipt-db panels ---------- */
 @media screen and (min-width:1024px){
- #appView[data-layout-system="b"]{--panel-rail:220px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
+ #appView[data-layout-system="b"]{--panel-rail:200px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
  #appView[data-layout-system="b"] .shell{max-width:1840px;border-radius:22px;background:var(--nd-frame);box-shadow:var(--nd-shadow);border:1px solid var(--nd-line);overflow:hidden}
 
  /* Rail: brand header on the shared 144px line, scrolling nav, fixed footer. */
@@ -7862,7 +7862,10 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
 @keyframes nd-flash{from{background-color:var(--nd-blue-soft)}to{background-color:transparent}}
 @media screen{
  /* Jumping to a section: a soft fading tint, not a blue box. */
- #appView .shell .main .panel-b-selected{outline:none!important;animation:nd-flash 1.4s ease-out}
+ #appView .shell .main .panel-b-selected{outline:none!important;animation:none!important}
+ /* The section you jumped to: its title takes the accent (calm, stays while selected); table rows get the list's selected tint. */
+ #appView .shell .main .panel-b-selected :is(.sup-sec-t,h3,h4){color:var(--nd-blue-ink)!important;transition:color .25s}
+ #appView .shell .main tr.panel-b-selected>td{background:var(--nd-blue-soft)}
  /* Empty states line up with list text. */
  #appView .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems)>:is(.hint,p),#appView .material-owner-list>.hint{display:block;margin:0!important;padding:20px var(--panel-inset,16px)!important;font:400 13px/20px var(--sans);color:var(--nd-ink-3);text-align:left}
 }
@@ -7870,6 +7873,10 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  #appView[data-layout-system="b"] .shell .main>.view:has(>.page-head.nd-own-tools) .workspace-left,#appView[data-layout-system="b"] .shell .main #view-materials .material-owners{padding-top:0!important;gap:0!important}
  #appView[data-layout-system="b"] .shell .main .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems),#appView[data-layout-system="b"] .shell .main .material-owner-list{margin-top:0!important;border-top:0!important;padding-top:0!important}
  #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left>.settings-utils{margin:12px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--nd-line-2)}
+}
+
+@media screen{
+ #appView #view-settings .nd-addr-detail{display:block;width:100%;box-sizing:border-box;margin-top:8px}
 }
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
@@ -8087,8 +8094,11 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
   const b=document.createElement('button');b.type='button';b.className='nd-addr-btn';b.innerHTML=svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')+'<span>주소 검색</span>';wrap.append(b);
-  input.placeholder=input.placeholder||'주소 검색 후 상세 주소(동·호수)를 이어서 입력';
-  b.onclick=()=>addressWindow(b,v=>{input.value=v+' ';input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));});}
+  input.placeholder='[주소 검색]으로 찾거나 직접 입력';
+  // 상세 주소 gets its own box like 거래처; on save it joins the base address (the record keeps one address field).
+  const detail=document.createElement('input');detail.id='nd_address_detail';detail.type='text';detail.autocomplete='address-line2';detail.placeholder='상세 주소 (동·층·호수)';detail.setAttribute('aria-label','상세 주소');detail.className='nd-addr-detail';wrap.after(detail);
+  b.onclick=()=>addressWindow(b,v=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';detail.focus();});
+  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
