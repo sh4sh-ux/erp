@@ -1,0 +1,50 @@
+# NARO Biz 배포 버튼 — GitHub 웹(어느 컴퓨터·폰)에서 Actions → "NARO Biz 배포" → Run workflow.
+# 고정된 후보(candidate)만 올린다: 파일 수·해시·인증 파일·호스팅 설정을 deploy.mjs가 검사하고,
+# '점검만'은 읽기 전용, '배포'는 점검을 통과해야만 진행한다. Firebase Hosting 외에는 아무것도 바꾸지 않는다.
+name: NARO Biz 배포
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '점검만 = 운영과 다른 파일 확인(읽기 전용) / 배포 = 점검 후 실제 배포'
+        type: choice
+        options: ['점검만', '배포']
+        default: '점검만'
+permissions:
+  contents: read
+concurrency:
+  group: naro-biz-hosting
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 배포할 버전 받기
+        uses: actions/checkout@v4
+        with:
+          ref: feature/naro-redesign
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 버전 표시
+        run: git log -1 --format='배포할 버전 %h — %s (%cr)'
+      - name: 사전 점검 (읽기 전용)
+        working-directory: naro-workspace/outputs/naro-redesign
+        env:
+          NARO_SA_KEY: ${{ secrets.NARO_FIREBASE_DEPLOY_KEY }}
+          NARO_DEPLOY_LOG_DIR: ${{ runner.temp }}/naro-log
+        run: |
+          [ -n "$NARO_SA_KEY" ] || { echo "::error::저장소 Settings → Secrets → Actions에 NARO_FIREBASE_DEPLOY_KEY가 없습니다."; exit 1; }
+          node deploy.mjs | tee "$RUNNER_TEMP/preflight.out"
+          node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").trim().split("\n").pop());if(j.status!=="PREFLIGHT_PASS"){console.log("::error::점검 실패 "+j.stage+" "+j.code);process.exit(1)}const s="파일 "+j.files+"개 · 운영과 다른 파일 "+j.changedVsLive+"개 · 현재 운영 "+j.previousVersion;console.log(s);require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,"### 사전 점검 통과\n"+s+"\n\n바뀌는 파일: "+j.changed.slice(0,20).join(", ")+"\n")' "$RUNNER_TEMP/preflight.out"
+      - name: 배포
+        if: ${{ inputs.mode == '배포' }}
+        working-directory: naro-workspace/outputs/naro-redesign
+        env:
+          NARO_SA_KEY: ${{ secrets.NARO_FIREBASE_DEPLOY_KEY }}
+          NARO_DEPLOY_LOG_DIR: ${{ runner.temp }}/naro-log
+        run: |
+          node deploy.mjs --deploy | tail -1 | tee "$RUNNER_TEMP/deploy.out"
+          node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8").trim());if(j.status!=="DEPLOYED_AND_VERIFIED"){console.log("::error::배포 중단 "+j.stage+" "+j.code+(j.liveReleaseSubmitted?" (운영 반영됨 — 되돌리기 필요할 수 있음)":" (운영은 그대로)"));process.exit(1)}require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,"### 배포 완료\n"+j.version+"\n\n이전 버전: "+j.previousVersion+"\n")' "$RUNNER_TEMP/deploy.out"

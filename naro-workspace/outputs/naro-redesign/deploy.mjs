@@ -2,9 +2,10 @@
 // Pinned to the verified candidate in ./candidate. No Auth/OAuth config, rules, functions or data writes.
 //   node deploy.mjs              → preflight only (read-only): checks + what changes vs live
 //   node deploy.mjs --deploy     → create version, upload, release, verify public files
-// Env: NARO_FIREBASE_DIR = folder whose node_modules has firebase-tools (CLI login is reused).
+// Env: NARO_SA_KEY = service-account JSON (GitHub Actions), or NARO_FIREBASE_DIR = folder whose
+//      node_modules has firebase-tools (Mac: the CLI login is reused).
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
+import {createHash,createSign} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {createRequire} from 'node:module';
 import {dirname,resolve} from 'node:path';
@@ -38,11 +39,24 @@ try{
  check(JSON.stringify(config)===JSON.stringify(approved),'CONFIG_DIFF');
 
  stage='AUTH';
- const fbDir=process.env.NARO_FIREBASE_DIR;check(fbDir,'NARO_FIREBASE_DIR');
- const api=createRequire(pathToFileURL(resolve(fbDir,'package.json')))('firebase-tools/lib/api.js');
- const cli=JSON.parse(await readFile(resolve(homedir(),'.config/configstore/firebase-tools.json')));
- const auth=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:cli.tokens.refresh_token,client_id:api.clientId(),client_secret:api.clientSecret()})});
- check(auth.ok,'CLI_AUTH');const token=(await auth.json()).access_token;
+ let token;
+ if(process.env.NARO_SA_KEY){
+  // GitHub Actions: a dedicated service account (Firebase Hosting Admin + Firebase Viewer) from a repository secret.
+  // The key is only used to sign one short-lived token request; it is never written or logged.
+  let key;try{key=JSON.parse(process.env.NARO_SA_KEY);}catch{throw Error('SA_KEY_FORMAT');}
+  check(key.type==='service_account'&&key.project_id==='naro-biz'&&key.client_email&&key.private_key,'SA_KEY_PROJECT');
+  const b64=v=>Buffer.from(typeof v==='string'?v:JSON.stringify(v)).toString('base64url'),now=Math.floor(Date.now()/1000);
+  const body=b64({alg:'RS256',typ:'JWT'})+'.'+b64({iss:key.client_email,scope:'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase',aud:'https://oauth2.googleapis.com/token',iat:now,exp:now+1800});
+  const jwt=body+'.'+createSign('RSA-SHA256').update(body).sign(key.private_key).toString('base64url');
+  const auth=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:jwt})});
+  check(auth.ok,'SA_AUTH');token=(await auth.json()).access_token;
+ }else{
+  const fbDir=process.env.NARO_FIREBASE_DIR;check(fbDir,'NARO_FIREBASE_DIR');
+  const api=createRequire(pathToFileURL(resolve(fbDir,'package.json')))('firebase-tools/lib/api.js');
+  const cli=JSON.parse(await readFile(resolve(homedir(),'.config/configstore/firebase-tools.json')));
+  const auth=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:cli.tokens.refresh_token,client_id:api.clientId(),client_secret:api.clientSecret()})});
+  check(auth.ok,'CLI_AUTH');token=(await auth.json()).access_token;
+ }
  async function req(url,method='GET',body){
   if(method!=='GET')check(url.startsWith(endpoint+'sites/naro-biz/'),'WRITE_SCOPE');
   const r=await fetch(url,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});check(r.ok,'HTTP_'+r.status);return r.json();
