@@ -539,3 +539,24 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  .nd-pop-filter .date-control>.date-control-display.empty{color:var(--nd-ink-3)}
  .nd-pop-filter :is(button.btn,#payClear){padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans)}
 }
+/* Popover v2: header row + body, same width as the tool row (receipt-app picker anatomy). */
+@media screen{
+ .nd-pop-panel{padding:0!important;overflow:hidden}
+ .nd-pop-panel>.nd-pop-hd{height:46px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--nd-line);font:600 13px/1 var(--sans);color:var(--nd-ink-2)}
+ .nd-pop-panel>.nd-pop-body{max-height:calc(100vh - 180px);overflow:auto}
+ .nd-pop-body.nd-pop-filter{padding:14px 16px 16px}
+ .nd-pop-body.nd-pop-filter :is(details,.filter-bar,label.ops-category):not([hidden]){gap:14px!important}
+ .nd-pop-body.nd-pop-filter label:not([hidden]){gap:7px}
+ .nd-pop-body.nd-pop-filter :is(button.btn,#payClear){width:100%;height:40px!important;align-self:stretch;margin-top:2px}
+ .nd-pop-body.nd-pop-menu{padding:6px}
+ .nd-pop-body.nd-pop-menu>button{display:flex;align-items:center;width:100%;height:50px;padding:0 12px;border-radius:10px;font:500 15px/1 var(--sans)}
+ .nd-pop-body.nd-pop-menu>button+button{margin-top:2px}
+}
+@media screen{
+ /* <details> can't lay its content out as flex: space the fields with margins instead. */
+ .nd-pop-body.nd-pop-filter label:not([hidden]){margin:0 0 14px!important}
+ .nd-pop-body.nd-pop-filter :is(button.btn,#payClear){margin-top:0!important}
+ .nd-pop-body.nd-pop-filter>label.nd-pop-field{margin-bottom:0!important}
+}
+@media screen{.nd-pop-body.nd-pop-filter .filter-bar{align-items:stretch!important}.nd-pop-body.nd-pop-filter .filter-bar>*{margin:0!important}}
+@media screen{.nd-pop-body.nd-pop-filter :is(select,input:not([type="checkbox"]),.date-control){max-width:none!important;flex:0 0 auto!important}}

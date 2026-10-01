@@ -7825,6 +7825,27 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  .nd-pop-filter .date-control>.date-control-display.empty{color:var(--nd-ink-3)}
  .nd-pop-filter :is(button.btn,#payClear){padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans)}
 }
+/* Popover v2: header row + body, same width as the tool row (receipt-app picker anatomy). */
+@media screen{
+ .nd-pop-panel{padding:0!important;overflow:hidden}
+ .nd-pop-panel>.nd-pop-hd{height:46px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--nd-line);font:600 13px/1 var(--sans);color:var(--nd-ink-2)}
+ .nd-pop-panel>.nd-pop-body{max-height:calc(100vh - 180px);overflow:auto}
+ .nd-pop-body.nd-pop-filter{padding:14px 16px 16px}
+ .nd-pop-body.nd-pop-filter :is(details,.filter-bar,label.ops-category):not([hidden]){gap:14px!important}
+ .nd-pop-body.nd-pop-filter label:not([hidden]){gap:7px}
+ .nd-pop-body.nd-pop-filter :is(button.btn,#payClear){width:100%;height:40px!important;align-self:stretch;margin-top:2px}
+ .nd-pop-body.nd-pop-menu{padding:6px}
+ .nd-pop-body.nd-pop-menu>button{display:flex;align-items:center;width:100%;height:50px;padding:0 12px;border-radius:10px;font:500 15px/1 var(--sans)}
+ .nd-pop-body.nd-pop-menu>button+button{margin-top:2px}
+}
+@media screen{
+ /* <details> can't lay its content out as flex: space the fields with margins instead. */
+ .nd-pop-body.nd-pop-filter label:not([hidden]){margin:0 0 14px!important}
+ .nd-pop-body.nd-pop-filter :is(button.btn,#payClear){margin-top:0!important}
+ .nd-pop-body.nd-pop-filter>label.nd-pop-field{margin-bottom:0!important}
+}
+@media screen{.nd-pop-body.nd-pop-filter .filter-bar{align-items:stretch!important}.nd-pop-body.nd-pop-filter .filter-bar>*{margin:0!important}}
+@media screen{.nd-pop-body.nd-pop-filter :is(select,input:not([type="checkbox"]),.date-control){max-width:none!important;flex:0 0 auto!important}}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8063,9 +8084,9 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  const TOOLS={
   materials:{search:'#view-materials .material-owners>input.panel-b-search',ph:'업체·자재 검색',add:[['자재 받음','#mm_new_receipt']],
    hide:['#view-materials .material-owners>input.panel-b-search','#view-materials #mm_new_receipt','#view-materials .material-owners-head'],count:'#view-materials .material-owners-head .hint'},
-  payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록','#payInbound'],['출금 기록','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
+  payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록 추가','#payInbound'],['출금 기록 추가','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
    chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
-  stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고','#stockRegister'],['출고','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
+  stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고 추가','#stockRegister'],['출고 추가','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
    chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 대비 부족'],['low','최소 미달'],['zero','품절'],['missing','기준 미설정']]},hide:['#view-stock .stock-tools']},
   items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
   sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
@@ -8075,10 +8096,13 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
   settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
  let pop=null;
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
- function openPop(btn,build,restore){if(pop&&pop.btn===btn){closePop();return;}closePop();
-  const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');build(el);(document.getElementById('appView')||document.body).append(el);
-  const r=btn.getBoundingClientRect(),row=btn.parentElement.getBoundingClientRect(),w=Math.min(Math.max(260,row.width),320,innerWidth-32);el.style.width=w+'px';
-  el.style.left=Math.max(16,Math.min(row.left,innerWidth-w-16))+'px';el.style.top=(r.bottom+8)+'px';
+ function openPop(btn,build,restore,title){if(pop&&pop.btn===btn){closePop();return;}closePop();
+  // Same width as the tool row it opens from, right under it (like the receipt app's pickers).
+  const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');
+  if(title){const h=document.createElement('div');h.className='nd-pop-hd';h.textContent=title;el.append(h);el.setAttribute('aria-label',title);}
+  const body=document.createElement('div');body.className='nd-pop-body';el.append(body);build(body);(document.getElementById('appView')||document.body).append(el);
+  const row=btn.parentElement.getBoundingClientRect(),w=Math.min(row.width,innerWidth-32);el.style.width=w+'px';
+  el.style.left=Math.max(16,Math.min(row.left,innerWidth-w-16))+'px';el.style.top=(row.bottom+8)+'px';
   btn.setAttribute('aria-expanded','true');pop={el,btn,restore};}
  document.addEventListener('pointerdown',e=>{if(pop&&!pop.el.contains(e.target)&&!pop.btn.contains(e.target))closePop();},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
@@ -8096,19 +8120,19 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
     input.addEventListener('input',push);
     const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
-    const label=()=>{const [f,t]=c.period.map(id=>document.getElementById(id)?.value||'');b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
-    label();c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
+    const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);return i?.value||(i?.parentElement?.querySelector('.date-control-display')?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
+    label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
     b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
-     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();});};}
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();},'기간 · 필터');};}
    if(c.filter&&!c.period){const b=toolBtn(ICON_FILTER,'필터');row.insertBefore(b,row.querySelector('.btn-add'));
     b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
-     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block));};}
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block),'필터');};}
    if(c.filterSelect){const b=toolBtn(ICON_FILTER,'필터');row.append(b);
     b.onclick=()=>{const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
-     openPop(b,el=>{el.classList.add('nd-pop-filter');const l=document.createElement('label');l.className='nd-pop-field';l.textContent='표시';l.append(sel);el.append(l);},()=>mark.replaceWith(sel));};}
+     openPop(b,el=>{el.classList.add('nd-pop-filter');const l=document.createElement('label');l.className='nd-pop-field';l.textContent='표시';l.append(sel);el.append(l);},()=>mark.replaceWith(sel),'필터');};}
    if(c.add){const b=toolBtn(ICON_PLUS,c.add.length>1?'새 기록':c.add[0][0],'nd-tadd');row.append(b);
     b.onclick=()=>{if(c.add.length===1){document.querySelector(c.add[0][1])?.click();return;}
-     openPop(b,el=>{el.classList.add('nd-pop-menu');for(const [l,sel] of c.add){const m=document.createElement('button');m.type='button';m.textContent=l+' 추가';m.onclick=()=>{closePop();document.querySelector(sel)?.click();};el.append(m);}});};}
+     openPop(b,el=>{el.classList.add('nd-pop-menu');for(const [l,sel] of c.add){const m=document.createElement('button');m.type='button';m.textContent=l;m.onclick=()=>{closePop();document.querySelector(sel)?.click();};el.append(m);}},null,'새로 만들기');};}
    if(c.count){const span=document.createElement('span');span.className='count nd-tcount';head.querySelector('h2')?.after(span);
     const upd=()=>{const t=document.querySelector(c.count)?.textContent.trim()||'';if(span.textContent!==t)span.textContent=t;};new MutationObserver(upd).observe(document.getElementById('view-'+view),{childList:true,subtree:true});upd();}
    if(c.chips){const {select:id,host:h,before:bf,items}=c.chips;const select=document.getElementById(id),host=document.querySelector(h),before=document.querySelector(bf);
