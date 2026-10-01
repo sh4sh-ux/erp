@@ -114,6 +114,17 @@ if(business){
  app=app.replace('prepareConnect(selectedProvider);',"prepareConnect(selectedProvider,{selectAccount:selectedProvider==='drive'&&document.getElementById('drive-select-account')?.checked===true});");
  app=app.replace('이전에 사용한 저장소입니다. 연결할 계정은 Google 또는 Dropbox 창에서 확인해 주세요.','이전에 사용한 저장소입니다. Google Drive는 이 기기에 기억한 연결 계정을 확인한 뒤 파일을 엽니다.');
 }
+// Returning user: one obvious action. Primary button right under the heading (icon + name, focused),
+// a line on what will happen, then the secondary choices. Same flow, no auth/token change.
+{
+ const reconnect="heading('내 저장공간에<br>다시 연결하세요.','이전에 사용한 저장소입니다. Google Drive는 이 기기에 기억한 연결 계정을 확인한 뒤 파일을 엽니다.')+`<div class=\"location\">${providerIcon(selectedProvider)}<span><strong>${providerName(selectedProvider)}</strong><small>NARO Biz</small></span></div>`+button('connect',providerName(selectedProvider)+' 재연결')+'<div class=\"support-link\">'+button('change-storage','다른 저장소 선택','text-button')+button('logout','로그아웃','text-button')+'</div>'";
+ if(app.includes(reconnect)){
+  app=app.replace(reconnect,"heading('저장공간을<br>다시 연결해 주세요.','보안을 위해 로그인할 때마다 한 번 연결합니다. 연결하면 바로 업무 화면이 열려요.')+`<button id=\"connect\" class=\"primary connect-hero\" type=\"button\">${providerIcon(selectedProvider)}<span>${providerName(selectedProvider)}로 계속하기</span></button><p class=\"connect-note\">${selectedProvider==='drive'?'Google':'Dropbox'} 창이 잠깐 열렸다 닫힙니다.</p>`+'<div class=\"support-link reconnect-links\">'+button('change-storage','다른 저장소 선택','text-button')+'<span aria-hidden=\"true\">·</span>'+button('logout','로그아웃','text-button')+'</div>'");
+  const place="document.getElementById('connect').before(accountChoice);";
+  if(!app.includes(place))throw Error('ACCOUNT_CHOICE_BOUNDARY_CHANGED');
+  app=app.replace(place,"if(reconnect){view.querySelector('.connect-note').after(accountChoice);requestAnimationFrame(()=>document.getElementById('connect')?.focus({preventScroll:true}));}else document.getElementById('connect').before(accountChoice);");
+ }else if(business)throw Error('RECONNECT_UI_BOUNDARY_CHANGED');
+}
 // Progress that says what is happening: account (1/3) → data (2/3) → workspace (3/3).
 {
  const connecting="heading(providerName(state.provider||selectedProvider)+'를<br>연결하고 있습니다.','안전하게 계정을 연결하고 있어요.')+\n    '<div class=\"progress\" role=\"progressbar\" aria-label=\"연결 중\"></div>';";

@@ -163,3 +163,12 @@ html[data-theme="dark"] .progress:after{background:linear-gradient(90deg,transpa
 @keyframes o-shimmer{to{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.progress:after{animation:none}}
 body[data-screen="ready"] .panel .progress{margin-top:28px}
+/* Returning user: the reconnect button is the one obvious action. */
+.primary.connect-hero{display:flex;align-items:center;justify-content:center;gap:12px;height:58px;margin-top:4px;font-size:16px;font-weight:600}
+.connect-hero .provider-icon{width:22px;height:22px;padding:6px;background:#fff;border-radius:9px;box-sizing:content-box;flex:none}
+.connect-note{margin:12px 0 0;text-align:center;font-size:13px;line-height:18px;color:var(--o-ink-3)}
+body[data-screen="storage"] .connect-note+.remember{justify-content:center;margin-top:22px;font-size:13px}
+.reconnect-links{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:28px;color:var(--o-ink-3)}
+.reconnect-links .text-button{padding:6px 2px;font-size:13px;color:var(--o-ink-2)}
+@media(max-width:1099px){.primary.connect-hero{height:56px}}
+.primary.connect-hero:focus-visible{outline:2px solid color-mix(in srgb,var(--o-link) 45%,transparent);outline-offset:3px}
