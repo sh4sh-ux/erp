@@ -30,3 +30,24 @@ test('bad references fail merge preview before persistence',()=>{
 test('unsupported extension and oversize rejected before reading',async()=>{
  await assert.rejects(readImport({name:'macro.xlsm',size:1}));await assert.rejects(readImport({name:'large.xlsx',size:8*1048576}));
 });
+test('v1.186 backups: companies without prices and moves of deleted quotes import unchanged otherwise',async()=>{
+ const {upgradeLegacyBackup}=await import('./tabular-import.mjs');
+ const {planMerge}=await import('../personal-cloud-onboarding/extended-contract.mjs');
+ const raw={app:'erp',format:1,settings:{name:'synthetic'},
+  companies:[{id:'c1',name:'가',type:'매출'},{id:'c2',name:'나',type:'매출',prices:[]}],
+  items:[{id:'i1',name:'품목',type:'단품',components:[],variants:[]}],
+  quotes:[{id:'q1',no:'Q-1',date:'2026-07-01',company_id:'c1',status:'작성중',lines:[{id:'l1',item_id:'i1',name:'품목',qty:1,price:1000}],deliveries:[]}],
+  payments:[],material_moves:[],
+  stock_moves:[{id:'s1',date:'2026-07-02',item_id:'i1',kind:'출고',qty:2,quote_id:'gone'},{id:'s2',date:'2026-07-03',item_id:'i1',kind:'입고',qty:2,quote_id:'gone'},{id:'s3',date:'2026-07-04',item_id:'i1',kind:'입고',qty:5,quote_id:'q1'}]};
+ const empty={companies:[],items:[],quotes:[],payments:[],stock_moves:[],material_moves:[],settings:{}};
+ assert.throws(()=>planMerge(empty,raw),{code:'VALIDATION'});
+ const {backup,notes}=upgradeLegacyBackup(raw);
+ assert.equal(notes.length,2);
+ assert.equal(raw.companies[0].prices,undefined);
+ assert.deepEqual(backup.companies[0].prices,[]);
+ assert.equal(backup.stock_moves[0].quote_id,undefined);assert.equal(backup.stock_moves[0].deleted_quote_id,'gone');
+ assert.equal(backup.stock_moves[2].quote_id,'q1');
+ assert.deepEqual(backup.stock_moves.map(m=>[m.id,m.kind,m.qty]),raw.stock_moves.map(m=>[m.id,m.kind,m.qty]));
+ const plan=planMerge(empty,backup);assert.equal(plan.steps.length,7);
+ assert.equal(planMerge(plan.merged,backup).steps.length,0);
+});

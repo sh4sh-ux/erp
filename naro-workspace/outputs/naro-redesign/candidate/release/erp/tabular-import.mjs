@@ -113,10 +113,25 @@ export async function parseXLSX(buffer,Zip){
  }
  return result;
 }
+// Backups from the v1.186 GitHub Pages app carry two shapes the stricter contract rejects:
+// companies made before 약정단가 existed have no `prices` (the old app read that as []), and
+// stock moves keep the quote_id of a quote that was later deleted (the old app kept the
+// history). Upgrade only those, in a copy: no record is dropped and no quantity changes.
+export function upgradeLegacyBackup(backup){
+ if(!backup||typeof backup!=='object'||backup.app!=='erp')return {backup,notes:[]};
+ const out=structuredClone(backup),notes=[];
+ if(Array.isArray(out.companies)){let n=0;for(const c of out.companies)if(c&&typeof c==='object'&&!Array.isArray(c.prices)&&c.prices===undefined){c.prices=[];n++;}if(n)notes.push(`약정단가가 없던 거래처 ${n}곳`);}
+ if(Array.isArray(out.stock_moves)){
+  const quotes=new Set((Array.isArray(out.quotes)?out.quotes:[]).map(q=>q?.id));let n=0;
+  for(const m of out.stock_moves)if(m&&typeof m==='object'&&typeof m.quote_id==='string'&&m.quote_id&&!quotes.has(m.quote_id)){m.deleted_quote_id=m.quote_id;delete m.quote_id;n++;}
+  if(n)notes.push(`삭제된 견적에 연결돼 있던 재고 기록 ${n}건(기록은 그대로 둡니다)`);
+ }
+ return {backup:out,notes};
+}
 export async function readImport(file,Zip){
  if(file.size>7*1048576)fail('파일은 7MB 이하여야 합니다.');
  const ext=file.name.split('.').at(-1).toLowerCase();
- if(ext==='json')return safeJSON(await file.text());
+ if(ext==='json')return upgradeLegacyBackup(safeJSON(await file.text())).backup;
  if(ext==='csv')return tableToBackup(parseCSV(await file.text()));
  if(ext==='xlsx')return parseXLSX(await file.arrayBuffer(),Zip);
  fail('JSON, UTF-8 CSV 또는 .xlsx 파일을 선택해 주세요.');

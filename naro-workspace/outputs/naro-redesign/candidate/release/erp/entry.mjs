@@ -130,6 +130,14 @@ export function start(bridge,build){
       const backup=await readImport(file,window.JSZip),count=await mergeRequest('MERGE_PREVIEW',backup);
       if(!confirm(`새 항목 ${count}건을 병합할까요? 기존 항목과 공급자 설정은 유지합니다. 같은 ID의 내용이 다르면 중단합니다. 파일별로 저장하므로 중간 실패 시 완료된 항목은 남습니다.`))return;
       locked=true;status.hidden=false;status.textContent='기존 데이터를 보존하며 가져오는 중…';await mergeRequest('MERGE_IMPORT',backup);
+      // Supplier settings are never written by an import. When this workspace has none yet, the
+      // backup's values go into the supplier form for the user to check and save themselves.
+      const s=backup?.settings,cur=bridge.db.settings||{};
+      if(s&&typeof s==='object'&&!String(cur.name||'').trim()&&String(s.name||'').trim())setTimeout(()=>{
+       const map={st_name:'name',st_ceo:'ceo',st_biz:'biz_no',st_phone:'phone',st_email:'email',st_address:'address',st_bank:'bank'};let n=0;
+       for(const [id,k] of Object.entries(map)){const el=document.getElementById(id);if(el&&!el.value.trim()&&typeof s[k]==='string'&&s[k]){el.value=s[k];el.dispatchEvent(new Event('input',{bubbles:true}));n++;}}
+       if(n){status.hidden=false;status.textContent=status.textContent+' · 백업의 공급자 정보를 칸에 채웠습니다. 확인 후 [저장]을 눌러 주세요.';}
+      },300);
      }catch(error){if(!locked){status.hidden=false;status.textContent=error instanceof SyntaxError?'올바른 JSON 백업을 선택해 주세요.':error.message;}}
     };
    }
