@@ -230,7 +230,28 @@
    const btns=sec.querySelectorAll(':scope>button');btns[0]?.classList.add('nd-assets-up');btns[1]?.classList.add('nd-assets-view');
    const row=document.createElement('div');row.className='nd-assets-row';sec.querySelector(':scope>select')?.before(row);row.append(...sec.querySelectorAll(':scope>select,:scope>button'));}}
   for(const [id,label] of [['st_card_url','명함'],['st_cert_url','사업자등록증']]){const hint=document.getElementById(id)?.closest('.field')?.querySelector('.hint');
-   if(hint&&!hint.dataset.nd){hint.dataset.nd='1';hint.textContent=`예전 방식(링크)입니다. 지금 '${label} 보내기'는 아래 '개인 클라우드 이미지'에 저장한 이미지를 보냅니다.`;}}}
+   if(hint&&!hint.dataset.nd){hint.dataset.nd='1';hint.textContent=`예전 방식(링크)입니다. 지금 '${label} 보내기'는 아래 '개인 클라우드 이미지'에 저장한 이미지를 보냅니다.`;}}
+  settingsSections(view);}
+ /* 백업·가져오기 lived in a fold under the left index and overflowed it. It is a section of the right panel now
+    (moved node, original handlers), and the left index lists it with 개인 클라우드 이미지 like any other section. */
+ function settingsSections(view){
+  const body=view.querySelector('.workspace-right>.card'),left=view.querySelector('.workspace-left');if(!body||!left)return;
+  const backup=view.querySelector('.settings-util-backup');
+  const assets=body.querySelector('.nd-assets');
+  if(backup&&(!body.contains(backup)||(assets&&assets.nextElementSibling!==backup))){backup.classList.add('nd-backup');(assets||body.lastElementChild).after(backup);
+   if(!backup.querySelector(':scope>.nd-sec-t')){const h=document.createElement('h3');h.className='nd-sec-t';h.textContent='백업·가져오기';backup.prepend(h);}}
+  view.querySelectorAll('.settings-utils>details.panel-b-more').forEach(d=>{if(!d.querySelector(':scope>:not(summary)'))d.closest('.settings-utils').classList.add('nd-empty');});
+  const list=left.querySelector('.panel-b-index:not(.nd-index-x)');if(!list)return;
+  let extra=left.querySelector('.nd-index-x');
+  if(!extra){extra=document.createElement('div');extra.className='panel-b-index nd-index-x';list.after(extra);
+   left.addEventListener('click',e=>{const b=e.target.closest('.panel-b-index button');if(!b)return;
+    left.querySelectorAll('.panel-b-index button').forEach(n=>n.classList.toggle('on',n===b));
+    if(!b.dataset.ndSec)body.querySelectorAll(':scope>.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));},true);}
+  const targets=[[body.querySelector('.nd-assets'),'개인 클라우드 이미지'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
+  if(extra.childElementCount!==targets.length){extra.replaceChildren(...targets.map(([t,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.ndSec='1';
+   b.onclick=()=>{view.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));t.classList.add('panel-b-selected');t.scrollIntoView({block:'start',behavior:'smooth'});};return b;}));}
+  const q=left.querySelector('.panel-b-search'),sync=()=>extra.querySelectorAll('button').forEach(b=>b.hidden=!!q?.value.trim()&&!b.textContent.includes(q.value.trim()));
+  if(q&&!q.dataset.ndX){q.dataset.ndX='1';q.addEventListener('input',sync);}sync();}
  function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}
 
  /* 왼쪽 패널 규칙 (all list screens): the header band holds every control — [검색 · 늘어남] [필터] [＋].

@@ -694,3 +694,51 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  #appView .shell .main #view-sales .sl-metric :is(.mv,#slMargin){font:700 20px/24px var(--sans)!important;letter-spacing:-.3px}
  #appView .shell .main #view-sales .sl-metric .mn{font:400 11.5px/15px var(--sans)!important;color:var(--nd-ink-3)!important}
 }
+@media screen{
+ /* Account menu: the rail foot must not clip the menu that opens above it. */
+ #appView[data-layout-system="b"] .shell .rail-foot{overflow:visible!important}
+ /* Selects: one chevron, inset like the text (native arrow sat on the box edge in popovers). */
+ #appView :is(.nd-pop-filter,.nd-assets-row,.nd-export) select,.nd-pop-panel select,.nd-export select{-webkit-appearance:none!important;appearance:none!important;padding:0 40px 0 14px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8F98' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 14px center!important;background-size:12px!important}
+ .nd-pop-filter input:not([type="checkbox"]){padding:0 14px!important}
+ /* Settings: the backup section reads like 개인 클라우드 이미지. */
+ #appView #view-settings .settings-utils.nd-empty{display:none!important}
+ #appView #view-settings .workspace-right .nd-backup{margin:24px 0 0!important;padding:24px 0 0!important;border:0!important;border-top:1px solid var(--nd-line)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+ #appView #view-settings .nd-backup>.nd-sec-t{margin:0 0 6px;font:700 16px/22px var(--sans);color:var(--nd-ink)}
+ #appView #view-settings .nd-backup>.detail{padding:0!important;margin:0!important;border:0!important;background:none!important}
+ #appView #view-settings .nd-backup>.detail>:is(h2,h3,h4,.card-title):first-child{display:none}
+ #appView #view-settings .nd-backup :is(p,.hint,small){font:400 12.5px/19px var(--sans);color:var(--nd-ink-3);margin:0 0 10px}
+ #appView #view-settings .nd-backup .settings-util-actions,#appView #view-settings .nd-backup .form-actions{display:flex!important;flex-wrap:wrap;gap:8px;margin:12px 0 10px!important;padding:0!important;border:0!important;position:static!important;background:none!important;justify-content:flex-start!important}
+ #appView #view-settings .nd-backup :is(button,.btn,label.btn){height:40px!important;padding:0 16px!important;border-radius:10px!important;display:inline-flex;align-items:center;gap:6px;font:600 13.5px/1 var(--sans)!important}
+ #appView #view-settings .nd-index-x{border-top:0!important;margin:0!important}
+}
+@media screen{
+ #appView #view-settings .nd-backup .settings-util-actions>p{order:2;flex:1 0 100%;margin:4px 0 0!important}
+ #appView #view-settings .nd-backup .settings-util-actions>button{order:1}
+}
+@media screen{
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left>.panel-b-index:not(.nd-index-x){flex:0 0 auto!important;overflow:visible!important}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left>.nd-index-x{flex:1 1 auto!important;overflow:auto!important;margin-top:0!important;border-top:0!important}
+}
+@media screen{
+ #appView #view-settings .nd-backup .settings-util-actions>button{border:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;color:var(--nd-ink)!important}
+ .nd-pop-filter :is(select,input:not([type="checkbox"])){height:40px!important;min-height:0!important;line-height:normal!important}
+}
+@media screen{
+ /* Search boxes: the input is part of the box (dark mode showed a second, offset box inside). */
+ #appView .shell .main :is(.list-head>.search,.nd-tsearch) input{background:transparent!important;border:0!important;box-shadow:none!important;height:100%!important;min-height:0!important;margin:0!important;padding-top:0!important;padding-bottom:0!important;align-self:stretch}
+}
+@media screen and (min-width:781px){
+ /* 견적서 필터: same anatomy as every other popover — tool-row width, 필터 header, labels on the field edge. */
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.quote-filters{left:var(--panel-inset,28px)!important;right:var(--panel-inset,28px)!important;top:calc(100% - 6px)!important;padding:0 16px 16px!important;gap:12px!important;background:var(--nd-raised)!important;border:1px solid var(--nd-line)!important;border-radius:14px!important;box-shadow:var(--nd-pop)!important}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.quote-filters::before{content:'필터';display:flex;align-items:center;height:46px;margin:0 -16px 2px;padding:0 16px;border-bottom:1px solid var(--nd-line);font:600 13px/1 var(--sans);color:var(--nd-ink-2);background:none!important;position:static!important;width:auto!important;border-radius:0!important}
+ #appView #view-quotes .quote-filters .filter-label{padding-left:0!important;margin-left:0!important;font:500 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important}
+}
+@media screen{
+ /* Backup card on every width: long sheet names wrap; the template button is a real button. */
+ #appView .settings-util-backup :is(p,.hint){overflow-wrap:anywhere;word-break:keep-all}
+ #appView .settings-util-backup .settings-util-actions>button:not(.btn){height:40px;padding:0 16px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);font:600 13.5px/1 var(--sans);cursor:pointer}
+}
+@media screen and (max-width:780px){
+ #appView .settings-util-backup .settings-util-actions>button:not(.btn){height:44px;width:100%}
+ #appView .settings-util-backup .settings-util-actions>p{font:400 12.5px/19px var(--sans);color:var(--nd-ink-3);margin:4px 0}
+}
