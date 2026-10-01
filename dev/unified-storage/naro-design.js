@@ -59,8 +59,13 @@
  }
  const mount=()=>{const foot=document.querySelector('#appView .rail-foot');if(foot&&!foot.querySelector('.nd-theme'))foot.prepend(control());
   const tools=foot?.querySelector('.rail-tools');if(tools&&!tools.querySelector('.nd-menu')){const menu=document.createElement('div');menu.className='nd-menu';
-   const acct=document.createElement('div');acct.className='nd-acct';acct.innerHTML='<b>내 계정</b><small></small>';menu.append(acct);
-   const who=()=>{const t=(document.getElementById('tbUser')?.textContent||'').trim();acct.querySelector('small').textContent=t||'연결된 저장공간';};who();const tb=document.getElementById('tbUser');tb&&new MutationObserver(who).observe(tb,{childList:true,characterData:true,subtree:true});tools.querySelectorAll(':scope>.rail-act').forEach(a=>menu.append(a));tools.append(menu);
+   const acct=document.createElement('div');acct.className='nd-acct';acct.innerHTML='<b>내 계정</b><small></small><span class="nd-acct-sync"><i></i><em></em></span>';menu.append(acct);
+   // The connection line lives here (rail stays short); the rail row itself shows only while syncing or on error.
+   const sync=foot.querySelector('.sync-state'),line=acct.querySelector('.nd-acct-sync');
+   const who=()=>{const t=(document.getElementById('tbUser')?.textContent||'').trim();acct.querySelector('small').textContent=t||'연결된 저장공간';
+    const st=(sync?.querySelector('.sync-text')?.textContent||sync?.textContent||'').trim();line.hidden=!st;line.querySelector('em').textContent=st;
+    line.className='nd-acct-sync '+(sync?.className.match(/\b(saved|syncing|error)\b/)?.[1]||'');};who();
+   const tb=document.getElementById('tbUser');for(const n of [tb,sync])n&&new MutationObserver(who).observe(n,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});tools.querySelectorAll(':scope>.rail-act').forEach(a=>menu.append(a));tools.append(menu);
    tools.querySelector('summary')?.setAttribute('aria-label','내 계정: 새로고침·로그아웃');tools.querySelector('summary')?.setAttribute('title','내 계정');document.addEventListener('click',e=>{if(tools.open&&!tools.contains(e.target))tools.open=false;});}
   apply();};
  /* Desktop scope row: companies/items keep their search + add in the 144px header, like quotes.
@@ -265,12 +270,12 @@
   payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록 추가','#payInbound'],['출금 기록 추가','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
    chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
   stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고 추가','#stockRegister'],['출고 추가','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
-   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 부족'],['low','최소 미달'],['zero','품절']]},hide:['#view-stock .stock-tools']},
+   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 부족'],['low','최소 미달'],['zero','품절']],mafter:'#view-stock>.page-head'},hide:['#view-stock .stock-tools']},
   items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
-  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
-   chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']]},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar']},
+  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar,#view-sales>.filter-bar',period:['slFrom','slTo'],
+   chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']],mafter:'#view-sales>.page-head'},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar','#view-sales>.filter-bar']},
   ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
-   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']]},hide:['#view-ar .workspace-left>.filter-bar']},
+   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
   settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
  let pop=null;
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
@@ -313,11 +318,14 @@
      openPop(b,el=>{el.classList.add('nd-pop-menu');for(const [l,sel] of c.add){const m=document.createElement('button');m.type='button';m.textContent=l;m.onclick=()=>{closePop();document.querySelector(sel)?.click();};el.append(m);}},null,'새로 만들기');};}
    if(c.count){const span=document.createElement('span');span.className='count nd-tcount';head.querySelector('h2')?.after(span);
     const upd=()=>{const t=document.querySelector(c.count)?.textContent.trim()||'';if(span.textContent!==t)span.textContent=t;};new MutationObserver(upd).observe(document.getElementById('view-'+view),{childList:true,subtree:true});upd();}
-   if(c.chips){const {select:id,host:h,before:bf,items}=c.chips;const select=document.getElementById(id),host=document.querySelector(h),before=document.querySelector(bf);
-    if(select&&host&&before&&!host.querySelector(':scope>.nd-chips')){const chipRow=document.createElement('div');chipRow.className='nd-chips';chipRow.setAttribute('role','group');chipRow.setAttribute('aria-label','빠른 필터');
+   if(c.chips){const {select:id,host:h,before:bf,items,mafter}=c.chips;const select=document.getElementById(id),host=document.querySelector(h),before=document.querySelector(bf);
+    const row=(cls)=>{const chipRow=document.createElement('div');chipRow.className='nd-chips'+(cls?' '+cls:'');chipRow.setAttribute('role','group');chipRow.setAttribute('aria-label','빠른 필터');
      const sync=()=>chipRow.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===select.value)));
      for(const [v,l] of items){const x=document.createElement('button');x.type='button';x.dataset.v=v;x.textContent=l;x.onclick=()=>{if(select.value!==v){select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));}sync();};chipRow.append(x);}
-     before.before(chipRow);select.addEventListener('change',sync);new MutationObserver(sync).observe(before,{childList:true});sync();}}
+     select.addEventListener('change',sync);new MutationObserver(sync).observe(select,{childList:true,attributes:true});sync();return chipRow;};
+    if(select&&host&&before&&!host.querySelector(':scope>.nd-chips'))before.before(row(''));
+    // Phones hide the left panel these chips live in; a twin row sits under the header there.
+    const ma=mafter&&document.querySelector(mafter);if(select&&ma&&!(ma.nextElementSibling?.classList.contains('nd-chips-m')))ma.after(row('nd-chips-m'));}
   }
   const utils=document.querySelector('#view-settings .workspace-left>.settings-utils'),idx=document.querySelector('#view-settings .workspace-left>.panel-b-index');
   if(utils&&idx&&idx.nextElementSibling!==utils)idx.after(utils);
