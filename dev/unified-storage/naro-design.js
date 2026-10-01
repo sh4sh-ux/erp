@@ -239,7 +239,7 @@
   payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록 추가','#payInbound'],['출금 기록 추가','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
    chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
   stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고 추가','#stockRegister'],['출고 추가','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
-   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 대비 부족'],['low','최소 미달'],['zero','품절'],['missing','기준 미설정']]},hide:['#view-stock .stock-tools']},
+   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 부족'],['low','최소 미달'],['zero','품절']]},hide:['#view-stock .stock-tools']},
   items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
   sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
    chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']]},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar']},
@@ -272,7 +272,7 @@
     input.addEventListener('input',push);
     const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
-    const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);return i?.value||(i?.parentElement?.querySelector('.date-control-display')?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
+    const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
     b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();},'기간 · 필터');};}
@@ -300,7 +300,11 @@
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
- document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
+ // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
+ let v5Queued=false;
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();watchMaterials();watchSettings();}catch(e){}});};
+ const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});

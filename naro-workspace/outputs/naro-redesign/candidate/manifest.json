@@ -83,7 +83,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "c776b414538326c8bd0e6e1a9abbe698680e2dd11dee17f8a7191483efcb361e"
+      "sha256": "34fbbe9e9bf9dc8fe96b9b0486ee584e7cb07a4377441602dd7406d7e9ce26b7"
     },
     {
       "path": "erp/favicon.png",
@@ -103,7 +103,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "e5dc98819e03c69a8a9f9365fbc189a9c2538095d90087694788fdf06509ccb9"
+      "sha256": "21e1474c8528ca524e7b53df27a3e4407cc3a993895b333c1ec923bfb0004cce"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -250,8 +250,8 @@
       "sha256": "e5274a6b86c8ddf6ed3ba5c563d1beabe138b666e802432f56926185b7b12cc5"
     }
   ],
-  "aggregate": "d0aa99ea3193ab9608b87ec290ed13200348d39eb827974b05e2d19d9fbc3100",
-  "previousPublicAggregate": "0a62e7da42a777fed9783911b61da7a0c139f323eeeade3c04e259ecab1d3833",
+  "aggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
+  "previousPublicAggregate": "d0aa99ea3193ab9608b87ec290ed13200348d39eb827974b05e2d19d9fbc3100",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
 }

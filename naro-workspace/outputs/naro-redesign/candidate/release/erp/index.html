@@ -7341,7 +7341,7 @@ body{color:var(--nd-ink)}
 
 /* ---------- 3. Desktop frame, wide rail, receipt-db panels ---------- */
 @media screen and (min-width:1024px){
- #appView[data-layout-system="b"]{--panel-rail:248px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
+ #appView[data-layout-system="b"]{--panel-rail:220px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
  #appView[data-layout-system="b"] .shell{max-width:1840px;border-radius:22px;background:var(--nd-frame);box-shadow:var(--nd-shadow);border:1px solid var(--nd-line);overflow:hidden}
 
  /* Rail: brand header on the shared 144px line, scrolling nav, fixed footer. */
@@ -7857,6 +7857,20 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:30px!important;min-height:30px!important;flex:0 0 30px!important}
 }
 @media screen and (min-width:1024px){#appView[data-layout-system="b"] .shell .main>.view>.page-head>:is(.list-head,.nd-tools){width:auto!important;max-width:none!important;box-sizing:border-box}}
+
+/* ---------- 11. Below the 144 line: one rhythm on every list screen ---------- */
+@keyframes nd-flash{from{background-color:var(--nd-blue-soft)}to{background-color:transparent}}
+@media screen{
+ /* Jumping to a section: a soft fading tint, not a blue box. */
+ #appView .shell .main .panel-b-selected{outline:none!important;animation:nd-flash 1.4s ease-out}
+ /* Empty states line up with list text. */
+ #appView .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems)>:is(.hint,p),#appView .material-owner-list>.hint{display:block;margin:0!important;padding:20px var(--panel-inset,16px)!important;font:400 13px/20px var(--sans);color:var(--nd-ink-3);text-align:left}
+}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main>.view:has(>.page-head.nd-own-tools) .workspace-left,#appView[data-layout-system="b"] .shell .main #view-materials .material-owners{padding-top:0!important;gap:0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems),#appView[data-layout-system="b"] .shell .main .material-owner-list{margin-top:0!important;border-top:0!important;padding-top:0!important}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left>.settings-utils{margin:12px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--nd-line-2)}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8098,7 +8112,7 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
   payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록 추가','#payInbound'],['출금 기록 추가','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
    chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
   stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고 추가','#stockRegister'],['출고 추가','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
-   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 대비 부족'],['low','최소 미달'],['zero','품절'],['missing','기준 미설정']]},hide:['#view-stock .stock-tools']},
+   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 부족'],['low','최소 미달'],['zero','품절']]},hide:['#view-stock .stock-tools']},
   items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
   sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
    chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']]},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar']},
@@ -8131,7 +8145,7 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
     input.addEventListener('input',push);
     const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
-    const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);return i?.value||(i?.parentElement?.querySelector('.date-control-display')?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
+    const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
     b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();},'기간 · 필터');};}
@@ -8159,7 +8173,11 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
- document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
+ // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
+ let v5Queued=false;
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();watchMaterials();watchSettings();}catch(e){}});};
+ const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});

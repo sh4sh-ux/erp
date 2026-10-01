@@ -55,7 +55,7 @@ body{color:var(--nd-ink)}
 
 /* ---------- 3. Desktop frame, wide rail, receipt-db panels ---------- */
 @media screen and (min-width:1024px){
- #appView[data-layout-system="b"]{--panel-rail:248px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
+ #appView[data-layout-system="b"]{--panel-rail:220px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
  #appView[data-layout-system="b"] .shell{max-width:1840px;border-radius:22px;background:var(--nd-frame);box-shadow:var(--nd-shadow);border:1px solid var(--nd-line);overflow:hidden}
 
  /* Rail: brand header on the shared 144px line, scrolling nav, fixed footer. */
@@ -571,3 +571,17 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:30px!important;min-height:30px!important;flex:0 0 30px!important}
 }
 @media screen and (min-width:1024px){#appView[data-layout-system="b"] .shell .main>.view>.page-head>:is(.list-head,.nd-tools){width:auto!important;max-width:none!important;box-sizing:border-box}}
+
+/* ---------- 11. Below the 144 line: one rhythm on every list screen ---------- */
+@keyframes nd-flash{from{background-color:var(--nd-blue-soft)}to{background-color:transparent}}
+@media screen{
+ /* Jumping to a section: a soft fading tint, not a blue box. */
+ #appView .shell .main .panel-b-selected{outline:none!important;animation:nd-flash 1.4s ease-out}
+ /* Empty states line up with list text. */
+ #appView .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems)>:is(.hint,p),#appView .material-owner-list>.hint{display:block;margin:0!important;padding:20px var(--panel-inset,16px)!important;font:400 13px/20px var(--sans);color:var(--nd-ink-3);text-align:left}
+}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main>.view:has(>.page-head.nd-own-tools) .workspace-left,#appView[data-layout-system="b"] .shell .main #view-materials .material-owners{padding-top:0!important;gap:0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems),#appView[data-layout-system="b"] .shell .main .material-owner-list{margin-top:0!important;border-top:0!important;padding-top:0!important}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left>.settings-utils{margin:12px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--nd-line-2)}
+}

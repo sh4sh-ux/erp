@@ -27,7 +27,7 @@ export function start(bridge,build){
  // Don't override the existing form's own disabled/validation states.
  document.addEventListener('click',e=>{
   const el=e.composedPath().find(n=>n?.matches?.('button,input,select,textarea,[role="button"]'));
-  if(el&&!status.contains(el)&&(pending||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
+  if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary')&&(pending||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
  },true);
  window.addEventListener('beforeunload',e=>{if(pending||locked){e.preventDefault();e.returnValue='';}});
  const reconcile=()=>new Promise((resolve,reject)=>{
