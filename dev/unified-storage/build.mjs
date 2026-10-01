@@ -27,8 +27,10 @@ await copyFile(resolve(onboarding,'office-silver-v3.png'),resolve(release,'offic
 await copyFile(resolve(onboarding,'office-silver-v3.jpg'),resolve(release,'office-polish-v2.jpg'));
 const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png">')
  // Same theme preference as /erp/ ('naroTheme': light | dark | system), applied before first paint.
- .replace('</head>',`<script>(()=>{const m=matchMedia('(prefers-color-scheme: dark)'),a=()=>{let p=null;try{p=localStorage.getItem('naroTheme')}catch{}document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(m.matches?'dark':'light')};a();m.addEventListener?.('change',a);addEventListener('storage',e=>{if(e.key==='naroTheme'||e.key===null)a()})})()</script></head>`);
+ // External file: the page CSP allows 'self' scripts only (no inline).
+ .replace('</head>','<script src="./theme.js"></script></head>');
 await writeFile(resolve(release,'index.html'),onboardingHtml);
+await copyFile(resolve(onboarding,'theme.js'),resolve(release,'theme.js'));
 await copyFile(resolve(onboarding,'google-backend.mjs'),resolve(release,'google-backend.mjs'));
 await copyFile(resolve(onboarding,'company-contract.mjs'),resolve(release,'company-contract.mjs'));
 await copyFile(resolve(onboarding,'business-contract.mjs'),resolve(release,'business-contract.mjs'));
