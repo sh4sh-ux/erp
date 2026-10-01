@@ -203,7 +203,7 @@
  addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='NARO_POSTCODE'||!addrWin||e.source!==addrWin)return;const done=addrDone;addrWin=addrDone=null;done?.(String(e.data.address||'').slice(0,200));});
  function addressWindow(btn,done){
   const w=Math.min(520,screen.availWidth||520),h=Math.min(680,screen.availHeight||680);
-  addrWin=window.open(new URL('/postcode.html',location.href).href,'naro-postcode',`popup=yes,width=${w},height=${h},left=${Math.max(0,((screen.availWidth||w)-w)/2)},top=${Math.max(0,((screen.availHeight||h)-h)/2)}`);
+  addrWin=window.open(new URL('/postcode.html?theme='+(document.documentElement.dataset.theme==='dark'?'dark':'light'),location.href).href,'naro-postcode',`popup=yes,width=${w},height=${h},left=${Math.max(0,((screen.availWidth||w)-w)/2)},top=${Math.max(0,((screen.availHeight||h)-h)/2)}`);
   addrDone=done;
   if(!addrWin){typeof window.toast==='function'&&window.toast('팝업이 막혀 주소 검색 창을 열지 못했습니다. 팝업을 허용하거나 주소를 직접 입력해 주세요.');return;}
   addrWin.focus();}

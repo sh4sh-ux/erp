@@ -1,6 +1,7 @@
 // Address search window: loads the Kakao(Daum) postcode widget here, sends the chosen address to the app window
 // that opened it (same origin only), then closes. The app page itself never loads third-party script.
 (()=>{
+ const theme=new URLSearchParams(location.search).get('theme');if(theme==='dark'||theme==='light')document.documentElement.dataset.theme=theme;
  const box=document.getElementById('box'),msg=document.getElementById('msg');
  document.getElementById('close').onclick=()=>window.close();
  const fail=()=>{box.hidden=true;msg.hidden=false;};

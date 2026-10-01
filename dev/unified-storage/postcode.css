@@ -1,6 +1,8 @@
 /* Address search window. Runs the postcode widget in its own page (own CSP), apart from the app's data. */
 :root{color-scheme:light dark;--bg:#fff;--ink:#161A23;--ink2:#5B6273;--line:#E6E8ED}
-@media (prefers-color-scheme:dark){:root{--bg:#151618;--ink:#ECEDEF;--ink2:#A3A8B2;--line:#26282D}}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#151618;--ink:#ECEDEF;--ink2:#A3A8B2;--line:#26282D}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#151618;--ink:#ECEDEF;--ink2:#A3A8B2;--line:#26282D}
+:root[data-theme=light]{color-scheme:light}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif}
 body{display:flex;flex-direction:column}
 header{flex:none;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid var(--line)}

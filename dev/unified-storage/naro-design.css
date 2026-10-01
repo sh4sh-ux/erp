@@ -560,3 +560,14 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
 }
 @media screen{.nd-pop-body.nd-pop-filter .filter-bar{align-items:stretch!important}.nd-pop-body.nd-pop-filter .filter-bar>*{margin:0!important}}
 @media screen{.nd-pop-body.nd-pop-filter :is(select,input:not([type="checkbox"]),.date-control){max-width:none!important;flex:0 0 auto!important}}
+
+/* Small/older laptops (13" · 1280×800, browser ~700px tall): tool rows never overflow; the rail menu shows it scrolls. */
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>:is(.list-head,.nd-tools)>:is(.search,.nd-tsearch,.nd-tperiod){flex:1 1 0!important;min-width:0!important;width:auto!important}
+ #appView[data-layout-system="b"] .shell .rail-nav{-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}
+}
+@media screen and (min-width:1024px) and (max-height:820px){
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding:6px 12px 2px}
+ #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:30px!important;min-height:30px!important;flex:0 0 30px!important}
+}
+@media screen and (min-width:1024px){#appView[data-layout-system="b"] .shell .main>.view>.page-head>:is(.list-head,.nd-tools){width:auto!important;max-width:none!important;box-sizing:border-box}}
