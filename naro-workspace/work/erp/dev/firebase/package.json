@@ -1,0 +1,17 @@
+{
+  "name": "naro-firebase-step3-isolated",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --project demo-naro-step3 --only auth,firestore --config firebase.json \"node foundation.test.mjs && node atomic.test.mjs && node concurrency.test.mjs\"",
+    "test:server-command": "firebase emulators:exec --project demo-naro-step3 --only auth,firestore --config firebase.json \"node server-command.test.mjs\""
+  },
+  "dependencies": {
+    "firebase": "12.19.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase-admin": "14.4.0",
+    "firebase-tools": "15.30.2"
+  }
+}

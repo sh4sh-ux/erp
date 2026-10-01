@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>NARO Biz — 개인정보처리방침 검토 초안</title>
+  <link rel="stylesheet" href="about.css">
+</head>
+<body>
+<main>
+  <p class="eyebrow">비공개 검토용 · 배포 전 승인 필요</p>
+  <h1>개인정보처리방침 초안</h1>
+  <p>THE EDIT (디에디트)가 운영하는 NARO Biz의 데이터 처리 안내입니다. 보관·삭제 운영 기준은 2026년 9월 29일 운영자가 승인했습니다. 이 문서는 공개 전 검토본이며 아직 시행 중인 방침이 아닙니다.</p>
+  <section>
+    <h2>1. 로그인과 계정 정보</h2>
+    <p>이메일·비밀번호 인증은 Firebase Authentication을 통해 처리합니다. 이메일 주소, 계정 식별자, 이메일 인증 상태 등을 회원가입, 로그인, 이메일 인증 및 비밀번호 재설정에 사용합니다. 비밀번호나 인증 코드를 고객지원 이메일로 보내지 마세요.</p>
+  </section>
+  <section>
+    <h2>2. 업무 데이터와 저장 위치</h2>
+    <p>거래처, 품목, 견적서, 입금·출금, 재고 이동, 자재 이동 및 설정을 화면 표시·계산·저장에 사용합니다. 입력 내용에는 담당자명, 연락처, 이메일, 주소 등 개인정보가 포함될 수 있습니다. 업무에 필요한 정보만 입력해 주세요.</p>
+    <p>업무 데이터는 이용자가 선택한 Google Drive 또는 Dropbox의 NARO Biz 저장공간에 저장됩니다. 현재 이 업무 저장 경로는 Firestore를 업무 데이터 저장소로 사용하지 않습니다. 데이터는 이용자의 브라우저에서 읽고 처리합니다.</p>
+  </section>
+  <section>
+    <h2>3. 클라우드 접근 권한</h2>
+    <p>Google Drive에는 drive.file 권한으로 앱이 생성하거나 사용자가 앱에 사용을 허용한 파일에 접근합니다. Dropbox에는 전용 App Folder 범위로 접근합니다. 읽기·저장·삭제 등 사용자가 실행한 업무 기능을 제공하기 위해 파일 내용과 식별 정보, 변경 버전을 사용합니다.</p>
+    <p>공급자 access token은 현재 브라우저 실행 중 메모리에 유지하며 localStorage에 저장하지 않습니다. 새 실행이나 만료 후에는 다시 연결이 필요할 수 있습니다.</p>
+  </section>
+  <section>
+    <h2>4. 로그아웃·연결 해제·파일 삭제의 차이</h2>
+    <p>로그아웃 또는 앱 안의 연결 종료는 실행 중인 인증·연결 상태를 종료합니다. 이미 저장된 클라우드 파일이나 Firebase 계정이 자동 삭제되는 것은 아니며, 공급자 계정에서 앱 권한을 철회하는 것과도 다릅니다.</p>
+    <p>클라우드 접근 승인은 해당 Google 또는 Dropbox 계정의 연결 앱 관리에서 철회할 수 있습니다. 저장 파일의 보관·삭제는 해당 클라우드의 파일 및 복구 정책을 따릅니다.</p>
+  </section>
+  <section>
+    <h2>5. 보관 및 삭제 — 운영자 승인 완료</h2>
+    <ul>
+      <li>Firebase 계정 정보는 탈퇴 처리까지 보관합니다.</li>
+      <li>고객지원 이메일로 탈퇴·개인정보 삭제 요청을 받고 본인 확인 후 처리합니다.</li>
+      <li>계정 탈퇴 시 개인 클라우드 업무 파일은 자동 삭제하지 않고 이용자가 직접 삭제하도록 안내합니다.</li>
+    </ul>
+    <p>요청 처리 절차와 법령상 보존 예외 등은 공개 전 확정해야 합니다. 현재 앱에 즉시 회원 탈퇴 버튼이 구현되어 있다고 안내하지 않습니다.</p>
+  </section>
+  <section>
+    <h2>6. 외부 서비스의 처리</h2>
+    <p>Firebase Authentication은 인증 정보를 미국 데이터센터에서 처리합니다. Google의 공식 안내에 따르면 인증 보안용 IP 로그는 수 주간 보관하며, 계정 삭제 개시 후 관련 인증 정보는 운영·백업 시스템에서 180일 이내 제거됩니다. NARO의 탈퇴 처리 완료와 공급자의 백업 제거 완료 시점은 다를 수 있습니다.</p>
+    <p>Firebase Hosting은 웹페이지 제공 및 부정 사용 방지를 위해 IP 주소를 처리하고 수개월간 보관할 수 있으며 글로벌 인프라를 사용합니다. <a href="https://firebase.google.com/support/privacy">Firebase 개인정보 및 처리 위치 안내</a></p>
+    <p>Google Drive는 이용자의 Google 계정에 업무 파일을 저장하는 서비스입니다. 처리 위치와 공급자 자체 보관·삭제에는 <a href="https://policies.google.com/privacy">Google 개인정보처리방침</a>이 적용됩니다. 선택한 파일의 내용과 메타데이터는 읽기·저장 요청 시 브라우저와 공급자 사이에서 전송됩니다.</p>
+    <p>Dropbox는 미국 및 기타 국가에서 데이터를 처리할 수 있습니다. 파일과 공급자 계정의 보관·삭제는 Dropbox 정책을 따릅니다. NARO 탈퇴는 Dropbox 계정 탈퇴가 아닙니다. <a href="https://www.dropbox.com/privacy">Dropbox 개인정보처리방침</a></p>
+    <p>고객지원 메일에는 발신 주소, 요청 내용 및 이용자가 첨부한 정보가 포함될 수 있습니다. 비밀번호, 인증 토큰, 불필요한 업무 자료를 보내지 마세요. 외부 공급자의 자체 보안·접속 로그까지 수집하지 않는다고 안내하지 않습니다.</p>
+  </section>
+  <section>
+    <h2>7. 공개 전 남은 운영 결정</h2>
+    <p>고객지원 문의 이력 보관 기간 및 삭제 담당, 시행일·변경 고지 절차는 아직 확정되지 않았습니다. 처리 위탁·국외 이전의 적용 법적 근거와 고지 적정성도 별도 검토 대상입니다. 이 문서만으로 법적 적합성을 보장하지 않습니다.</p>
+  </section>
+  <footer>
+    <p>운영자: THE EDIT (디에디트)</p>
+    <p>고객지원: <a href="mailto:sh4sh@nate.com">sh4sh@nate.com</a></p>
+    <p><a href="about.html">서비스 안내</a></p>
+  </footer>
+</main>
+</body>
+</html>

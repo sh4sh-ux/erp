@@ -1,0 +1,26 @@
+// Offline build only. Never deploys or reads credentials. Explicit allowlist.
+import {readFile,writeFile,mkdir,copyFile,mkdtemp} from 'node:fs/promises';
+import {resolve,dirname} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const here=dirname(fileURLToPath(import.meta.url));
+const root=resolve(here,'../../../..');
+const esbuildPath=process.env.NARO_ESBUILD_MODULE;
+if(!esbuildPath)throw Error('NARO_ESBUILD_MODULE_REQUIRED');
+const {build}=await import(pathToFileURL(esbuildPath));
+const dependencies=resolve(root,'work/erp/dev/firebase/node_modules');
+const pkg=JSON.parse(await readFile(resolve(dependencies,'firebase/package.json'),'utf8'));
+if(pkg.version!=='12.19.0')throw Error('SDK_VERSION_MISMATCH');
+await mkdir(resolve(root,'outputs'),{recursive:true});
+const output=await mkdtemp(resolve(root,'outputs/personal-cloud-auth-candidate-'));
+const release=resolve(output,'release');await mkdir(release);
+const files=['index.html','style.css','app.mjs','boot.mjs','core.mjs','providers.mjs','firebase-auth.mjs','design-master.png','drive-icon.png','dropbox-icon.png','dropbox-oauth.mjs','dropbox-backend.mjs','dropbox-callback.html','dropbox-callback.mjs','dropbox-waiting.html','google-oauth.mjs','google-backend.mjs'];
+for(const file of files)await copyFile(resolve(here,file),resolve(release,file));
+await copyFile(resolve(here,'runtime-live.mjs'),resolve(release,'runtime.mjs'));files.push('runtime.mjs');
+await copyFile(resolve(here,'../../firebase-login-shell/client-config.mjs'),resolve(release,'client-config.mjs'));files.push('client-config.mjs');
+await build({stdin:{contents:"export {initializeApp} from 'firebase/app'; export {initializeAuth,inMemoryPersistence,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendEmailVerification,reload,sendPasswordResetEmail,signOut} from 'firebase/auth';",resolveDir:resolve(root,'work/erp/dev/firebase'),sourcefile:'auth-entry.mjs'},bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,outfile:resolve(release,'sdk.mjs'),logLevel:'silent'});files.push('sdk.mjs');
+const manifest=[];
+for(const path of files.sort())manifest.push({path,sha256:createHash('sha256').update(await readFile(resolve(release,path))).digest('hex')});
+const aggregate=createHash('sha256').update(manifest.map(x=>`${x.sha256}  ${x.path}\n`).join('')).digest('hex');
+await writeFile(resolve(output,'manifest.json'),JSON.stringify({project:'naro-biz',mode:'REAL_AUTH_PERSONAL_CLOUD_LOCAL_CANDIDATE',sdk:pkg.version,files:manifest,aggregate},null,2)+'\n');
+console.log(JSON.stringify({output,files:files.length,aggregate}));

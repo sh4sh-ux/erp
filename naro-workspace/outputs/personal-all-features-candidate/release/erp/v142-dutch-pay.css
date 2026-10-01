@@ -1,0 +1,662 @@
+/* v1.150 — fixed quote filters and balanced controls.
+   Desktop presentation only: application logic and tablet/mobile layout are untouched. */
+.app-view-meta { display:none; }
+
+@media (min-width:1024px) {
+  :root {
+    --ink:#111;
+    --ink-2:#666;
+    --ink-3:#b0b0b8;
+    --paper:#f7f7f8;
+    --card:#fff;
+    --line:#ebebed;
+    --line-2:#ebebed;
+    --nav-bg:#f1f2f6;
+    --primary:#4355e8;
+    --primary-soft:#eeeffe;
+    --primary-text:#2636b8;
+    --shadow:none;
+    --shadow-sm:none;
+    --r:12px;
+    --r-sm:9px;
+    --sans:-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  }
+
+  html,body {
+    min-height:100%;
+    background:#f7f7f8;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    line-height:normal;
+    letter-spacing:normal;
+  }
+  body { margin:0; overflow:hidden; }
+  input,select,textarea,button { font-family:inherit; }
+
+  /* One stable application window: 76px utility rail + remaining workspace. */
+  .shell {
+    display:flex;
+    width:calc(100vw - 56px);
+    max-width:1484px;
+    height:calc(100dvh - 60px);
+    min-height:min(780px,calc(100vh - 60px));
+    margin:30px auto;
+    padding:0;
+    gap:0;
+    overflow:hidden;
+    background:var(--card);
+    border:1px solid #ebebed;
+    border-radius:22px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 32px rgba(0,0,0,.06);
+  }
+  .shell>.rail-gutter {
+    position:relative;
+    z-index:30;
+    flex:0 0 76px;
+    width:76px;
+    min-width:76px;
+    height:100%;
+    overflow:visible;
+    background:var(--nav-bg);
+    border-right:1px solid var(--line);
+    transition:none;
+  }
+  .shell>.rail-gutter:hover { flex-basis:76px; width:76px; min-width:76px; }
+  .shell>.rail-gutter>.sidebar,
+  .shell>.rail-gutter>.sidebar:hover {
+    position:relative;
+    inset:auto;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    width:76px;
+    min-width:76px;
+    height:100%;
+    padding:22px 10px;
+    overflow:visible;
+    background:var(--nav-bg);
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    transition:none;
+  }
+
+  /* Dutch Pay-style icon rail. Labels appear as non-layout tooltips. */
+  .shell .rail-logo,
+  .shell .rail-nav .nav-item,
+  .shell .rail-foot .rail-act,
+  .shell .rail-foot .sync-state {
+    position:relative;
+    display:grid;
+    place-items:center;
+    grid-template-columns:none;
+    flex:0 0 48px;
+    width:48px;
+    min-width:48px;
+    height:48px;
+    min-height:48px;
+    margin:0 auto;
+    padding:0;
+    gap:0;
+    border-radius:12px;
+  }
+  .shell .rail-logo { flex-basis:48px; height:48px; margin-bottom:12px; }
+  .shell .rail-mark {
+    display:grid;
+    place-items:center;
+    width:48px;
+    height:48px;
+    border-radius:15px;
+    box-shadow:0 8px 24px rgba(67,85,232,.28);
+  }
+  .shell .rail-nav {
+    display:flex;
+    flex:1;
+    flex-direction:column;
+    gap:10px;
+    min-height:0;
+    padding:0;
+    overflow-y:auto;
+    overflow-x:visible;
+  }
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-sec { display:none; }
+  .shell .rail-nav .nav-item { color:#8e8e93; }
+  .shell .rail-nav .nav-item:hover,
+  .shell .rail-foot .rail-act:hover { background:#ececf0; color:#111113; }
+  .shell .rail-nav .nav-item.on { background:var(--primary-soft); color:var(--primary); }
+  .shell .rail-nav .nav-item svg,
+  .shell .rail-foot .rail-act svg { width:22px; height:22px; justify-self:center; }
+
+  .shell .rail-brand,
+  .shell .rail-foot .tb-user { display:none; }
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .sync-state>.sync-text {
+    position:absolute;
+    left:52px;
+    top:50%;
+    z-index:80;
+    display:block;
+    width:max-content;
+    max-width:190px;
+    margin:0;
+    padding:6px 9px;
+    overflow:visible;
+    opacity:0;
+    transform:translateY(-50%) translateX(-3px);
+    pointer-events:none;
+    color:#fff;
+    background:#2c2c2e;
+    border:1px solid #3a3a3c;
+    border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.20);
+    font-size:12px;
+    font-weight:500;
+    line-height:1.3;
+    white-space:nowrap;
+    transition:opacity .12s ease,transform .12s ease;
+  }
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item:hover>span,
+  .shell>.rail-gutter>.sidebar .rail-nav .nav-item:focus-visible>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act:hover>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .rail-act:focus-visible>span,
+  .shell>.rail-gutter>.sidebar .rail-foot .sync-state:hover>.sync-text {
+    width:max-content;
+    padding:6px 9px;
+    opacity:1;
+    transform:translateY(-50%) translateX(0);
+  }
+  .shell .rail-foot {
+    display:flex;
+    flex:0 0 auto;
+    flex-direction:column;
+    gap:10px;
+    padding:10px 0 0;
+    border-top:1px solid var(--line);
+  }
+  .shell .rail-foot .sync-state { height:32px; min-height:32px; flex-basis:32px; }
+  .shell .rail-foot .sync-dot { width:8px; height:8px; justify-self:center; }
+
+  /* Workspace and page hierarchy. */
+  .shell>.main {
+    position:relative;
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    height:100%;
+    min-height:0;
+    padding:0;
+    overflow:hidden;
+    background:#fff;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .shell .main>.view { width:100%; max-width:none; }
+  .shell .main>.view>.page-head { margin-bottom:20px; }
+  .shell .main>.view>.page-head h2 {
+    color:#111113;
+    font-size:24px;
+    font-weight:700;
+    line-height:1.25;
+    letter-spacing:-.035em;
+  }
+  .shell .main>.view>.page-head .count {
+    color:#8e8e93;
+    background:#f7f7f8;
+    border:0;
+    font-size:12px;
+    font-weight:500;
+  }
+
+  /* Master/detail screens keep the proven 360px work list from the mock-up. */
+  .shell #view-companies .cols,
+  .shell #view-items .cols,
+  .shell #view-quotes .quote-cols { border-top:1px solid var(--line); }
+  .shell #view-companies .cols>.card:first-child,
+  .shell #view-items .cols>.card:first-child,
+  .shell #view-quotes .quote-cols>.card:first-child {
+    flex:0 0 360px;
+    width:360px;
+    max-width:360px;
+    background:#fafafa;
+    border-right:1px solid var(--line);
+  }
+  .shell #view-companies .cols>.card+.card,
+  .shell #view-items .cols>.card+.card,
+  .shell #view-quotes .quote-cols>.card+.card {
+    background:#fff;
+    border-left:0;
+  }
+  .shell #view-companies .list-head,
+  .shell #view-items .list-head,
+  .shell #view-quotes .list-head { padding:18px 22px; background:#fafafa; }
+  .shell #view-companies .list-item,
+  .shell #view-items .list-item,
+  .shell #view-quotes .list-item { padding:15px 28px; }
+
+  /* Common surfaces, fields and rows follow the same quiet Dutch Pay rhythm. */
+  .shell .card {
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:none;
+  }
+  .shell .search,
+  .shell input,
+  .shell select,
+  .shell textarea {
+    color:#111113;
+    background:#f7f7f8;
+    border-color:#dedee3;
+    border-radius:9px;
+    font-size:14px;
+  }
+  .shell .search:focus-within,
+  .shell input:focus,
+  .shell select:focus,
+  .shell textarea:focus { border-color:#aab4ff; box-shadow:0 0 0 3px rgba(67,85,232,.10); }
+  .shell .btn,
+  .shell .btn-sm,
+  .shell .btn-add { border-radius:9px; }
+  .shell .tbl th {
+    color:#8e8e93;
+    background:#fafafa;
+    font-size:11.5px;
+    font-weight:600;
+  }
+  .shell .tbl th,
+  .shell .tbl td { border-bottom-color:var(--line-2); }
+  .shell .stat { border-color:var(--line); border-radius:12px; box-shadow:none; }
+  .shell .stat .k,
+  .shell .hint,
+  .shell .sub { color:#8e8e93; }
+
+  /* v1.143 — Dutch Pay typography contract for the workspace panels.
+     The master and detail panes now share one role-based type scale instead
+     of inheriting view-specific weights and grey values from older releases. */
+  .shell {
+    --panel-text:#111;
+    --panel-secondary:#666;
+    --panel-muted:#b0b0b8;
+    --panel-title-size:23px;
+    --panel-heading-size:18px;
+    --panel-body-size:14px;
+    --panel-caption-size:12px;
+  }
+
+  .shell .main>.view>.page-head {
+    align-content:flex-start;
+    row-gap:4px;
+  }
+  .shell .main>.view>.page-head .app-view-meta {
+    display:flex;
+    flex:0 0 100%;
+    align-items:center;
+    gap:7px;
+    color:var(--panel-muted);
+    font-size:11px;
+    font-weight:600;
+    line-height:normal;
+    margin-bottom:4px;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+  }
+  .shell .main>.view>.page-head .app-view-meta .version {
+    color:var(--panel-muted);
+    font-size:10px;
+    font-weight:600;
+    line-height:1.4;
+    letter-spacing:.2px;
+    padding:1px 2px;
+    border:1px solid transparent;
+    border-radius:4px;
+    text-transform:none;
+  }
+  .shell .main>.view>.page-head h2 {
+    color:var(--panel-text);
+    font-size:var(--panel-title-size);
+    font-weight:700;
+    line-height:1.15;
+    letter-spacing:-.55px;
+  }
+
+  /* Exact Dutch Pay v6.20 .left-top geometry: 144px, 30/28/20 padding. */
+  .shell .main>#view-companies>.page-head,
+  .shell .main>#view-items>.page-head,
+  .shell .main>#view-quotes>.page-head {
+    height:144px;
+    min-height:144px;
+    padding:30px 28px 20px;
+    row-gap:0;
+    align-content:flex-start;
+    border-bottom:0;
+  }
+  .shell .main>.view>.page-head .count {
+    margin-left:2px;
+    padding:0;
+    color:var(--panel-muted);
+    background:transparent;
+    border:0;
+    border-radius:0;
+    font-size:11px;
+    font-weight:500;
+  }
+
+  /* Master/detail surfaces: identical typography for identical information roles. */
+  .shell #view-companies .cols,
+  .shell #view-items .cols,
+  .shell #view-quotes .quote-cols {
+    color:var(--panel-text);
+    font-size:var(--panel-body-size);
+    font-weight:400;
+  }
+  .shell #view-companies .list-item,
+  .shell #view-items .list-item {
+    gap:0;
+  }
+  .shell #view-companies .list-item,
+  .shell #view-items .list-item,
+  .shell #view-quotes .list-item {
+    min-height:64px;
+    padding:12px 28px;
+  }
+  .shell #view-companies .list-item .li-name,
+  .shell #view-items .list-item .li-name,
+  .shell #view-quotes .list-item .li-nm,
+  .shell #view-companies .co-title-name,
+  .shell #view-items .detail h3,
+  .shell #view-quotes .quote-flow-title,
+  .shell #view-quotes .qt-sec-t {
+    color:var(--panel-text);
+    font-size:13.5px;
+    font-weight:500;
+    line-height:1.35;
+    letter-spacing:-.1px;
+  }
+  .shell #view-companies .list-item.on .li-name,
+  .shell #view-items .list-item.on .li-name,
+  .shell #view-quotes .list-item.on .li-nm { font-weight:600; }
+  .shell #view-companies .co-title-name {
+    font-size:24px;
+    font-weight:700;
+    line-height:1.2;
+    letter-spacing:-.6px;
+  }
+  .shell #view-companies .li-sub,
+  .shell #view-companies .li-date,
+  .shell #view-companies .li-no,
+  .shell #view-items .li-sub,
+  .shell #view-items .li-date,
+  .shell #view-items .li-no,
+  .shell #view-quotes .li-sub,
+  .shell #view-quotes .li-date,
+  .shell #view-quotes .li-no,
+  .shell #view-companies .hint,
+  .shell #view-items .hint,
+  .shell #view-quotes .hint,
+  .shell #view-quotes .quote-flow-sub {
+    color:var(--panel-muted);
+    font-size:11px;
+    font-weight:400;
+    line-height:1.5;
+  }
+  .shell #view-companies .li-amt,
+  .shell #view-items .li-amt,
+  .shell #view-quotes .li-amt,
+  .shell #view-quotes .quote-flow-value,
+  .shell #view-quotes .qtotals .v {
+    color:var(--panel-text);
+    font-size:13.5px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .shell #view-companies .field>label,
+  .shell #view-items .field>label,
+  .shell #view-quotes .field>label,
+  .shell #view-companies .tbl th,
+  .shell #view-items .tbl th,
+  .shell #view-quotes .tbl th {
+    color:var(--panel-secondary);
+    font-size:12px;
+    font-weight:600;
+    line-height:1.35;
+  }
+  .shell #view-companies input,
+  .shell #view-companies select,
+  .shell #view-companies textarea,
+  .shell #view-items input,
+  .shell #view-items select,
+  .shell #view-items textarea,
+  .shell #view-quotes input,
+  .shell #view-quotes select,
+  .shell #view-quotes textarea,
+  .shell #view-companies .tbl td,
+  .shell #view-items .tbl td,
+  .shell #view-quotes .tbl td {
+    color:var(--panel-text);
+    font-size:var(--panel-body-size);
+    font-weight:400;
+  }
+
+  /* Exact Dutch Pay v6.20 field contract (.field-g/.field-inp/.field-sel). */
+  .shell #view-companies .field,
+  .shell #view-items .field,
+  .shell #view-quotes .field { margin-bottom:18px; }
+  .shell #view-companies .field>label,
+  .shell #view-items .field>label,
+  .shell #view-quotes .field>label {
+    min-height:16px;
+    margin-bottom:8px;
+  }
+  .shell #view-companies input,
+  .shell #view-companies select,
+  .shell #view-items input,
+  .shell #view-items select,
+  .shell #view-quotes input,
+  .shell #view-quotes select {
+    height:32px;
+    min-height:32px;
+    padding:7px 10px;
+    border:1px solid #d4d4d8;
+    border-radius:9px;
+    background:#fff;
+    font-size:13px;
+    font-weight:400;
+  }
+  .shell #view-companies textarea,
+  .shell #view-items textarea,
+  .shell #view-quotes textarea {
+    padding:9px 12px;
+    border:1px solid #d4d4d8;
+    border-radius:9px;
+    background:#fff;
+    font-size:14px;
+    font-weight:400;
+  }
+  .shell #view-companies .detail,
+  .shell #view-items .detail,
+  .shell #view-quotes .detail { padding:26px 34px; }
+  .shell #view-companies .list-head,
+  .shell #view-items .list-head,
+  .shell #view-quotes .list-head { padding:18px 28px 14px; }
+  .shell #view-companies .search,
+  .shell #view-items .search,
+  .shell #view-quotes .search {
+    height:32px;
+    min-height:32px;
+    padding:7px 10px;
+    border:1px solid #d4d4d8;
+    border-radius:9px;
+    background:#fff;
+  }
+  .shell #view-companies .btn-add,
+  .shell #view-items .btn-add,
+  .shell #view-quotes .btn-add { width:32px; height:32px; min-height:32px; border-radius:9px; }
+  .shell #view-quotes .quote-filters { padding:0 28px 18px; flex:none; }
+  .shell #view-quotes .quote-cols>.quote-list-card {
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .shell #view-quotes .quote-list-card>.list-head { flex:none; border-bottom:0; }
+  .shell #view-quotes #qtList {
+    flex:1 1 0;
+    min-height:0;
+    max-height:none;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+
+  /* Search owns the Dutch Pay field border; its child input stays unboxed. */
+  .shell #view-companies .search input,
+  .shell #view-items .search input,
+  .shell #view-quotes .search input {
+    min-height:0;
+    height:auto;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  /* Dutch Pay v6.20 .sec-label: section labels are not list-item titles. */
+  .shell #view-quotes .qt-sec-t {
+    color:#666;
+    font-size:12px;
+    font-weight:600;
+    line-height:1.35;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes .qt-sec-t .cnt {
+    color:#b0b0b8;
+    font-size:11px;
+    font-weight:400;
+    letter-spacing:normal;
+  }
+
+  /* Live v6.20 editor overrides .field-inp background to --card. */
+  .shell #view-companies .detail input,
+  .shell #view-companies .detail select,
+  .shell #view-companies .detail textarea,
+  .shell #view-items .detail input,
+  .shell #view-items .detail select,
+  .shell #view-items .detail textarea,
+  .shell #view-quotes .detail input,
+  .shell #view-quotes .detail select,
+  .shell #view-quotes .detail textarea { background:#fff; line-height:normal; }
+
+  .shell #view-companies .list-item.on,
+  .shell #view-items .list-item.on,
+  .shell #view-quotes .list-item.on { background:#eeeffe; }
+  .shell #view-companies .list-item.on::before,
+  .shell #view-items .list-item.on::before,
+  .shell #view-quotes .list-item.on::before { width:3px; background:#4355e8; }
+  .shell #view-companies .list-item .li-name,
+  .shell #view-items .list-item .li-name,
+  .shell #view-quotes .list-item .li-nm { line-height:normal; }
+  .shell #view-companies .list-item.on .li-name,
+  .shell #view-items .list-item.on .li-name,
+  .shell #view-quotes .list-item.on .li-nm { color:#2636b8; }
+  .shell #view-companies .li-sub,
+  .shell #view-items .li-sub,
+  .shell #view-quotes .li-date { margin-top:3px; line-height:1.35; }
+  .shell .rail-nav .nav-item { color:#b0b0b8; }
+  .shell .rail-nav .nav-item.on {
+    color:#2636b8;
+    background:#eeeffe;
+    box-shadow:inset 0 0 0 1px rgba(67,85,232,.28);
+  }
+  /* Live Dutch Pay assigns a separate system font to monetary values. */
+  .shell #view-companies .li-amt,
+  .shell #view-items .li-amt,
+  .shell #view-quotes .li-amt,
+  .shell #view-quotes .qtotals .v {
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif;
+    line-height:normal;
+    letter-spacing:-.1px;
+  }
+
+  /* Match the reference's compact .pin-row control, including item pickers. */
+  .shell :is(#view-companies,#view-items,#view-quotes) .ip-btn {
+    box-sizing:border-box;
+    height:32px;
+    min-height:32px;
+    padding:7px 26px 7px 10px;
+    border:1px solid #d4d4d8;
+    border-radius:9px;
+    background:#fff;
+    color:#111;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:400;
+    line-height:normal;
+    letter-spacing:normal;
+  }
+  .shell :is(#view-companies,#view-items,#view-quotes) :is(input,select,textarea) {
+    font-family:var(--sans);
+    font-size:13px;
+    letter-spacing:normal;
+    line-height:normal;
+  }
+  /* Reference .dp-txt: 13px x 1.4 + 8px vertical padding + 2px border. */
+  .shell :is(#view-companies,#view-items,#view-quotes) input:is([type=date],[type=month]) {
+    height:36.2px;
+    min-height:36.2px;
+    padding:8px 10px;
+    line-height:1.4;
+  }
+  .shell #view-quotes :is(.filter-label,.quote-period-label,.qt-sec-t,.quote-flow-title,.qline.head,.qs-k,.qs-amt-k),
+  .shell :is(#view-companies,#view-items,#view-quotes) .field>label {
+    color:#666;
+    font-family:var(--sans);
+    font-size:12px;
+    font-weight:600;
+    line-height:1.35;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes .filter-label { min-height:16px; margin-bottom:8px; }
+  .shell #view-quotes :is(.qs-no,.qs-val) {
+    color:#111;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:400;
+    line-height:normal;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes :is(.quote-filter-summary,.ip-btn .cd,.hint,.qt-sec-t .cnt) {
+    color:#b0b0b8;
+    font-family:var(--sans);
+    font-size:11px;
+    font-weight:400;
+    line-height:1.35;
+    letter-spacing:normal;
+  }
+  .shell #view-quotes .qline .amt {
+    color:#111;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    line-height:normal;
+    letter-spacing:-.1px;
+  }
+  .shell #view-quotes #qtStatus {
+    appearance:none;
+    padding-left:12px;
+    padding-right:36px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23666' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:12px 12px;
+  }
+  .shell #view-quotes #qtAllDates {
+    height:36.2px;
+    min-height:36.2px;
+    padding:0 12px;
+    font-size:12px;
+    line-height:normal;
+  }
+}

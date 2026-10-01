@@ -1,0 +1,186 @@
+/* B: named rail / search-list / detail. One geometry and typography contract.
+   Scoped to personal-cloud HTML only. Print documents remain untouched. */
+@media screen {
+ #appView[data-layout-system="b"]{--panel-rail:176px;--panel-list:300px;--panel-head:96px;--panel-inset:24px;--panel-title:20px;--panel-body:13px;--panel-label:12px;--panel-line:#e4e8ef;--panel-ink:#20283b;--panel-muted:#69758c;--panel-left:#f9fafc;--panel-surface:#fff;--panel-rail-bg:#f3f5f9;--panel-selected:#edf0ff;--panel-accent:#474fea;--line:var(--panel-line);--primary:var(--panel-accent);--ink:var(--panel-ink);--ink-2:var(--panel-muted);--ink-3:var(--panel-muted)}
+ #appView[data-layout-system="b"] .shell .main{font-size:var(--panel-body);color:var(--panel-ink)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.field>label,.pf>label,.filter-label,.hint,.li-sub,.li-date,.workspace-caption){font-size:var(--panel-label);color:var(--panel-muted)}
+ #appView[data-layout-system="b"] .shell .main .view :is(input,select,textarea,.btn,.btn-sm,.ip-btn){font-family:inherit}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active){background:var(--panel-selected);color:var(--panel-accent)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.li-name,.li-nm,.material-record-name){font-size:var(--panel-body);font-weight:600;color:var(--panel-ink)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.tbl th,.tbl td){border-bottom-color:var(--panel-line)}
+}
+@media screen and (min-width:1024px) {
+ #appView[data-layout-system="b"] .shell{max-width:1760px;border-radius:18px}
+ #appView[data-layout-system="b"] .shell>.rail-gutter{width:var(--panel-rail);min-width:var(--panel-rail);flex-basis:var(--panel-rail);background:var(--panel-rail-bg)}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar{width:var(--panel-rail);min-width:var(--panel-rail);padding:0 10px 14px;background:var(--panel-rail-bg);border-right:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar .rail-logo{height:var(--panel-head);min-height:var(--panel-head);flex-basis:var(--panel-head);margin:0;padding:0 8px;gap:8px}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item{height:40px;min-height:40px;border:1px solid transparent;border-radius:8px}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item.on{background:var(--panel-selected);color:var(--panel-accent);border-color:transparent}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding-top:10px;color:var(--panel-muted)}
+ #appView[data-layout-system="b"] .shell .rail-foot .sync-state>.sync-text{white-space:normal;font-size:11px}
+ #appView[data-layout-system="b"] .shell .main>:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings):not(.hidden){grid-template-columns:var(--panel-list) minmax(0,1fr);grid-template-rows:var(--panel-head) minmax(0,1fr);height:100%;min-height:0;padding:0;gap:0;overflow:hidden}
+ #appView[data-layout-system="b"] .shell .main>:is(#view-payments,#view-stock,#view-sales,#view-ar,#view-settings).workspace-split:not(.hidden){display:grid}
+ #appView[data-layout-system="b"] .shell .main #view-stock.workspace-split>.cols{display:none}
+ #appView[data-layout-system="b"] .shell .main>.view.hidden{display:none}
+ #appView[data-layout-system="b"] .shell .main>.view:not(#view-dash)>.page-head{height:var(--panel-head);min-height:var(--panel-head);padding:18px var(--panel-inset);border-bottom:1px solid var(--panel-line);border-right:1px solid var(--panel-line);background:var(--panel-left);display:flex;align-items:center;gap:8px;margin:0;grid-column:1;grid-row:1}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head h2{font:650 var(--panel-title)/1.3 var(--sans);letter-spacing:-.5px;margin:0;color:var(--panel-ink);white-space:normal}
+ #appView[data-layout-system="b"] .shell .main>.view:not(#view-dash)>.page-head .page-title p{display:none}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.workspace-record-heading,.panel-b-empty-heading){height:var(--panel-head);min-height:var(--panel-head);padding:18px var(--panel-inset);background:var(--panel-surface);border-bottom:1px solid var(--panel-line);box-sizing:border-box;overflow:hidden}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading h3,.panel-b-empty-heading h3,.workspace-record-heading .co-title-name){font:650 var(--panel-title)/1.3 var(--sans);letter-spacing:-.5px;color:var(--panel-ink);margin:5px 0 0}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-caption,.qs-k,.material-eyebrow){font:400 var(--panel-label)/1.4 var(--sans);color:var(--panel-muted)}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading{grid-column:2;grid-row:1}
+ #appView[data-layout-system="b"] .shell .main .workspace-left{grid-column:1;grid-row:2;min-height:0;overflow:auto;padding:18px var(--panel-inset);border-right:1px solid var(--panel-line);background:var(--panel-left)}
+ #appView[data-layout-system="b"] .shell .main .workspace-right{grid-column:2;grid-row:2;min-height:0;min-width:0;overflow:auto;padding:20px var(--panel-inset);background:var(--panel-surface);overscroll-behavior:contain}
+ #appView[data-layout-system="b"] .shell .main :is(#view-companies,#view-items,#view-quotes)>.cols>.card:first-child{width:var(--panel-list);max-width:var(--panel-list);background:var(--panel-left);border-right:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main :is(#view-companies,#view-items,#view-quotes) :is(.list-head,.quote-filters,.list-category){padding-left:var(--panel-inset);padding-right:var(--panel-inset);background:var(--panel-left);border-bottom-color:var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item,.material-owner){padding:14px var(--panel-inset);min-height:64px}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm).workspace-form{grid-template-rows:var(--panel-head) minmax(0,1fr) auto}
+ #appView[data-layout-system="b"] .shell .main #qtForm.workspace-form{grid-template-rows:minmax(0,1fr) auto}
+ #appView[data-layout-system="b"] .shell .main #qtForm.workspace-form>.workspace-form-body{padding-top:0}
+ #appView[data-layout-system="b"] .shell .main #qtForm.workspace-form .quote-summary{position:sticky;top:0;z-index:3;box-sizing:border-box;height:var(--panel-head);min-height:var(--panel-head);padding:18px var(--panel-inset);margin:0 calc(-1 * var(--panel-inset)) 20px;background:var(--panel-surface);border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main .workspace-form>.workspace-form-body{padding:20px var(--panel-inset) 26px}
+ #appView[data-layout-system="b"] .shell .main .workspace-form>.form-actions{padding:14px var(--panel-inset);border-top:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm).workspace-form::before{height:var(--panel-head);min-height:var(--panel-head);padding:30px var(--panel-inset);font-size:var(--panel-title)}
+ #appView[data-layout-system="b"] .shell .main #qtForm.workspace-form>.quote-summary{height:var(--panel-head);min-height:var(--panel-head);padding:14px var(--panel-inset);border-bottom:1px solid var(--panel-line);align-items:center}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qs-val.co{font-size:var(--panel-title);line-height:1.25;color:var(--panel-ink)}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qs-amt-v{font-size:22px;line-height:1.25}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qs-info{gap:5px 12px}
+ #appView[data-layout-system="b"] .shell .main .panel-b-empty-heading:has(~.detail:not(.hidden)){display:none}
+ #appView[data-layout-system="b"] .shell .main .panel-b-empty-heading~.detail-empty{height:calc(100% - var(--panel-head));min-height:200px;padding:40px 24px;margin:0}
+ #appView[data-layout-system="b"] .shell .main #view-materials:not(.hidden){grid-template-columns:var(--panel-list) minmax(0,1fr);grid-template-rows:var(--panel-head) minmax(0,1fr)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail{padding:0 var(--panel-inset) 26px;grid-row:1/3}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail:not(:has(.material-detail-head))::before{content:'자재 상세';display:flex;align-items:center;height:var(--panel-head);box-sizing:border-box;margin:0 calc(-1 * var(--panel-inset)) 20px;padding:18px var(--panel-inset);border-bottom:1px solid var(--panel-line);font:650 var(--panel-title)/1.3 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head{position:sticky;top:0;height:var(--panel-head);min-height:var(--panel-head);margin:0 calc(-1 * var(--panel-inset)) 20px;padding:18px var(--panel-inset);border-bottom:1px solid var(--panel-line);grid-template-rows:auto;align-items:center;background:var(--panel-surface)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head h3{font:650 var(--panel-title)/1.3 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-header-note{display:none}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owners{background:var(--panel-left);border-right:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owners-head{padding:18px var(--panel-inset)}
+ #appView[data-layout-system="b"] .shell .main #view-materials #materialContent .material-owner{padding:14px var(--panel-inset);border-left:0;border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-new-owner{margin:14px var(--panel-inset);width:calc(100% - 2 * var(--panel-inset))}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head .material-balance-hero strong{font-size:22px}
+ /* Full-width dashboard is the sole exception. Header stays outside body scroll. */
+ #appView[data-layout-system="b"] .shell .main #view-dash:not(.hidden){display:flex;flex-direction:column;height:100%;overflow:hidden;padding:0}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.page-head{flex:none;height:var(--panel-head);min-height:var(--panel-head);padding:18px var(--panel-inset);border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.dash-brief{flex:1;min-height:0;overflow:auto;padding:24px}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments,#view-sales,#view-ar,#view-settings)>.workspace-left{padding:18px var(--panel-inset);overflow:auto;display:block}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments,#view-sales,#view-ar,#view-settings)>.workspace-heading{height:var(--panel-head);min-height:var(--panel-head);padding:18px var(--panel-inset)}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments)>.workspace-heading{display:block;text-align:left}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments)>.workspace-heading h3{display:block;text-align:left;margin:5px 0 0;font:650 var(--panel-title)/1.3 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-left .stock-tools{display:grid;grid-template-columns:1fr;padding:0 0 18px;gap:12px;border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-stock .ops-actions{display:flex;gap:6px;flex-wrap:wrap}
+ #appView[data-layout-system="b"] .shell .main #view-stock #stockItems{display:flex;flex-direction:column;gap:0;margin:12px 0;max-height:none;overflow:visible}
+ #appView[data-layout-system="b"] .shell .main #view-stock .stock-item{width:100%;padding:14px 12px;min-height:68px;border:0;border-bottom:1px solid var(--panel-line);border-radius:8px;text-align:left}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-right>.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 22px;gap:12px}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-right>.stats .stat{padding:10px;min-width:0;background:var(--panel-left);border:1px solid var(--panel-line);border-radius:8px}
+ #appView[data-layout-system="b"] .shell .main #view-stock .stat .v{font-size:22px}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-right .stock-add[hidden]{display:none}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-right .stock-add{padding:16px;border:1px solid var(--panel-line);border-radius:8px;margin-bottom:22px}
+ #appView[data-layout-system="b"] .shell .main #view-stock :is(.stock-option-scroll,.tbl-wrap){overflow-x:auto;max-width:100%}
+ #appView[data-layout-system="b"] .shell .main #view-payments .workspace-left .ops-filters{display:grid;grid-template-columns:minmax(0,1fr);padding:14px 0;gap:12px}
+ #appView[data-layout-system="b"] .shell .main #view-payments .workspace-left .ops-filters>*{min-width:0;width:100%;grid-column:1}
+ #appView[data-layout-system="b"] .shell .main #view-payments .workspace-left .ops-actions{display:flex;flex-wrap:wrap;gap:8px}
+ #appView[data-layout-system="b"] .shell .main #view-payments .workspace-right .pay-add{grid-template-columns:repeat(2,minmax(0,1fr));padding:16px 0}
+ #appView[data-layout-system="b"] .shell .main #view-payments .workspace-right .ops-summary{padding:0 0 20px;margin:0 0 20px;border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-right{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-right>.card{padding:20px var(--panel-inset);max-width:none!important;width:100%;min-height:0;overflow:auto;margin:0!important}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-left{overflow-wrap:anywhere}
+ #appView[data-layout-system="b"] .shell .main #view-settings .settings-utils{min-width:0;max-width:100%;display:block}
+ #appView[data-layout-system="b"] .shell .main #view-settings .settings-utils .card{min-width:0;max-width:100%;overflow-wrap:anywhere}
+ #appView[data-layout-system="b"] .shell .main #view-settings .workspace-right>.form-actions{padding:14px var(--panel-inset)}
+ #appView[data-layout-system="b"] .shell .main .panel-b-index{display:flex;flex-direction:column;margin-top:18px;border-top:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main .panel-b-index button{display:block;width:100%;min-height:56px;padding:14px 12px;text-align:left;border:0;border-bottom:1px solid var(--panel-line);background:transparent;color:var(--panel-ink);font:500 var(--panel-body)/1.5 var(--sans);cursor:pointer;overflow-wrap:anywhere}
+ #appView[data-layout-system="b"] .shell .main .panel-b-index button:is(.on,:hover){background:var(--panel-selected);color:var(--panel-accent)}
+ #appView[data-layout-system="b"] .shell .main .panel-b-selected{outline:2px solid var(--panel-accent);outline-offset:-2px}
+ #appView[data-layout-system="b"] .shell .main .panel-b-search{display:block;width:100%;min-width:0;margin:14px 0;font:400 var(--panel-body)/1.4 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owners>.panel-b-search{width:calc(100% - 2 * var(--panel-inset));margin:18px var(--panel-inset) 0}
+ #appView[data-layout-system="b"] .shell .main :is(.panel-b-index button,.material-owner)[hidden]{display:none}
+ #appView[data-layout-system="b"] .shell .main .workspace-record-heading .co-title{margin:4px 0 0}
+ #appView[data-layout-system="b"] .shell .main .workspace-record-heading .scr-hero:not(#dashHero)>:is(.hint,.sub){position:static;text-align:right;margin:3px 0 0;font-size:11px}
+ /* Fixed controls, independent list scrolling. All nine views share this contract. */
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments,#view-sales,#view-ar,#view-settings)>.workspace-left{display:flex;flex-direction:column;overflow:hidden;gap:0}
+ #appView[data-layout-system="b"] .shell .main .workspace-left>:not(.panel-b-index):not(.workspace-record-index):not(#stockItems){flex:none}
+ #appView[data-layout-system="b"] .shell .main .workspace-left>:is(.panel-b-index,.workspace-record-index,#stockItems){flex:1;min-height:80px;overflow:auto;overscroll-behavior:contain;margin-bottom:0}
+ #appView[data-layout-system="b"] .shell .main #view-stock .workspace-left>#stockItems{overflow:auto;min-height:80px;margin-bottom:0}
+ #appView[data-layout-system="b"] .shell .main .workspace-left .panel-b-more{max-height:30vh;overflow:auto}
+ #appView[data-layout-system="b"] .shell .main .panel-b-more{border-top:1px solid var(--panel-line);padding:8px 0;min-width:0}
+ #appView[data-layout-system="b"] .shell .main .panel-b-more>summary{cursor:pointer;color:var(--panel-muted);font-size:12px;padding:6px 0}
+ #appView[data-layout-system="b"] .shell .main .panel-b-more[open]>*:not(summary){margin-top:10px}
+ #appView[data-layout-system="b"] .shell .main #view-payments .ops-filters .panel-b-more label{display:grid;gap:6px}
+ #appView[data-layout-system="b"] .shell .main #view-payments .ops-filters .panel-b-more label[hidden]{display:none}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owners{display:flex;flex-direction:column;overflow:hidden}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owners>:not(.material-owner-list){flex:none}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-owner-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-new-owner{position:sticky;bottom:0;z-index:2;background:var(--panel-left);box-shadow:0 -8px 0 var(--panel-left)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-head,.quote-filters,.list-category){flex:none}
+ #appView[data-layout-system="b"] .shell .main .view :is(#coList,#itList,#qtList){flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+ #appView[data-layout-system="b"] .shell .main #coForm .workspace-form-body>div:has(>#coActPay){position:sticky;top:-20px;z-index:3;background:var(--panel-surface);padding:12px 0;border-bottom:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qp-tabs{position:sticky;top:var(--panel-head);z-index:3;background:var(--panel-surface)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head{z-index:4}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-quick{position:sticky;top:var(--panel-head);z-index:3;background:var(--panel-surface)}
+ #appView[data-layout-system="b"] .shell .main .panel-b-danger{position:relative;flex:none}
+ #appView[data-layout-system="b"] .shell .main .panel-b-danger>summary{list-style:none;cursor:pointer;padding:8px 12px;border:1px solid var(--panel-line);border-radius:8px;font-size:12px;color:var(--panel-muted)}
+ #appView[data-layout-system="b"] .shell .main .panel-b-danger[open]>.btn{position:absolute;right:0;bottom:calc(100% + 8px);min-width:100px;background:#fff;border:1px solid #f3caca;box-shadow:0 4px 16px #20283b1a;z-index:8}
+ #appView[data-layout-system="b"] .shell .main #view-stock .stock-min-actions{position:sticky;bottom:0;z-index:3;background:var(--panel-surface);padding:12px 0;border-top:1px solid var(--panel-line)}
+ #appView[data-layout-system="b"] .shell .main #view-payments #payEntry .pf-btn{position:sticky;bottom:0;z-index:3;background:var(--panel-surface);padding:10px 0}
+}
+/* Shared header contract: caption y24, title y48, divider y144.
+   Applies to every rail destination, including the full-width dashboard. */
+@media screen and (min-width:1024px) {
+ #appView[data-layout-system="b"]{--panel-head:144px;--panel-list:340px;--panel-caption-y:24px;--panel-title-y:48px;--panel-title-line:26px}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar .rail-logo{align-items:flex-start;padding:45px 8px 0;height:var(--panel-head);min-height:var(--panel-head)}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-brand{display:flex;align-items:center;height:32px}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-brand-name{line-height:var(--panel-title-line)}
+ #appView[data-layout-system="b"] .shell .main>.view:not(#view-dash)>.page-head{align-items:flex-start;padding:var(--panel-title-y) var(--panel-inset) 20px}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head h2{font:650 var(--panel-title)/var(--panel-title-line) var(--sans);margin:0}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.count{line-height:var(--panel-title-line);margin:0}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.page-head{align-items:flex-start;padding:var(--panel-title-y) var(--panel-inset) 20px}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.page-head .page-title p{margin:8px 0 0}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.page-head h2{font:650 var(--panel-title)/var(--panel-title-line) var(--sans)}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.workspace-record-heading,.panel-b-empty-heading){padding:var(--panel-caption-y) var(--panel-inset) 20px;align-items:flex-start}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments,#view-sales,#view-ar,#view-settings)>.workspace-heading{padding:var(--panel-caption-y) var(--panel-inset) 20px;position:relative}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-caption,.material-eyebrow){display:block;font:400 12px/18px var(--sans);margin:0}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading h3,.panel-b-empty-heading h3,.workspace-record-heading .co-title-name){font:650 var(--panel-title)/var(--panel-title-line) var(--sans);margin:6px 0 0}
+ #appView[data-layout-system="b"] .shell .main :is(#view-stock,#view-payments)>.workspace-heading h3{font:650 var(--panel-title)/var(--panel-title-line) var(--sans);margin:6px 0 0}
+ #appView[data-layout-system="b"] .shell .main .workspace-record-heading .co-title{margin:6px 0 0;line-height:var(--panel-title-line)}
+ #appView[data-layout-system="b"] .shell .main .workspace-record-heading .co-title .co-title-name{margin:0}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm).workspace-form::before{padding:var(--panel-title-y) var(--panel-inset) 20px;line-height:var(--panel-title-line)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head{padding:var(--panel-caption-y) var(--panel-inset) 20px;align-items:start}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail-head h3{margin:6px 0 0;font:650 var(--panel-title)/var(--panel-title-line) var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-materials .material-detail:not(:has(.material-detail-head))::before{align-items:flex-start;padding:var(--panel-title-y) var(--panel-inset) 20px;line-height:var(--panel-title-line)}
+ #appView[data-layout-system="b"] .shell .main :is(#view-sales,#view-ar)>.workspace-heading>:is(.sl-hero,.scr-hero){position:absolute;right:24px;top:24px;max-width:45%;margin:0}
+ #appView[data-layout-system="b"] .shell .main :is(#view-sales,#view-ar)>.workspace-heading>.workspace-caption{display:block;font:400 12px/18px var(--sans);margin:0}
+ #appView[data-layout-system="b"] .shell .main :is(#view-sales,#view-ar)>.workspace-heading>h3{display:block;font:650 var(--panel-title)/var(--panel-title-line) var(--sans);margin:6px 0 0}
+}
+/* Search and detail tabs remain within the common 144px header. */
+@media screen and (min-width:1024px) {
+ #appView[data-layout-system="b"] .shell .main .view#view-quotes>.page-head{position:relative;z-index:8;display:flex;flex-wrap:wrap;align-content:space-between;align-items:flex-start;padding:var(--panel-title-y) 24px 20px;gap:0 8px;overflow:visible}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.list-head{display:flex;position:static;flex:0 0 100%;width:100%;padding:0;margin:0;border:0;gap:8px;min-width:0;background:transparent;order:1}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head .list-head>.search{flex:1;min-width:0;width:auto;height:40px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head .list-head input{height:40px;min-width:0;font-size:13px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head .list-head>:is(button,details){flex:none}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtFilterBtn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;padding:10px;font-size:0;border:1px solid var(--panel-line);border-radius:8px;background:#fff;position:relative}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtFilterBtn svg{width:18px;height:18px;flex:none}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtFilterBadge{position:absolute;right:-4px;top:-5px;font-size:10px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtNewBtn{width:40px;height:40px;order:1}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtFilterBtn{order:2}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .workspace-export{position:absolute;top:44px;right:24px;order:0}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.quote-filters{display:none;position:absolute;top:calc(100% + 8px);left:12px;right:12px;width:auto;margin:0;padding:18px;grid-template-columns:minmax(0,1fr);gap:14px;background:#fff;border:1px solid var(--panel-line);border-radius:12px;box-shadow:0 12px 32px #20283b1f;max-height:calc(100dvh - 220px);overflow:auto;z-index:10}
+ #appView[data-layout-system="b"] .shell .main #view-quotes.qfilters-open>.page-head>.quote-filters{display:grid}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .quote-filters>*{grid-column:1;min-width:0;width:100%}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .quote-filters :is(.quote-period-row,.quote-filter-actions){display:flex;align-items:center;justify-content:space-between;gap:8px;white-space:nowrap}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .quote-filters :is(.naro-period-selector,.qp-filter-close){display:none}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .qfilter-backdrop{display:none}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm.workspace-form{grid-template-rows:var(--panel-head) minmax(0,1fr) auto}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.panel-b-work-header{height:var(--panel-head);min-height:0;display:grid;grid-template-rows:104px 40px;background:var(--panel-surface);border-bottom:1px solid var(--panel-line);overflow:hidden}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.quote-summary{position:static;height:104px;min-height:0;margin:0;padding:var(--panel-caption-y) 24px 4px;border:0;gap:4px 16px;align-content:start}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .quote-summary :is(.qs-k,.qs-amt-k){font:400 12px/18px var(--sans);margin:0 0 6px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .quote-summary :is(.qs-val.co,.qs-amt-v){font-size:var(--panel-title);line-height:var(--panel-title-line)}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs{display:flex;position:static;height:40px;min-height:0;margin:0;padding:0 24px;gap:24px;justify-content:flex-start;border:0}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs>button{flex:0 0 auto;min-width:72px;min-height:40px;padding:8px;font-size:13px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.workspace-form-body{padding-top:20px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .panel-b-empty-heading{padding:var(--panel-caption-y) 24px 20px}
+}
+@media screen and (max-width:1023px) {
+ #appView[data-layout-system="b"] .main :is(#view-companies,#view-items,#view-quotes) .list-head{position:sticky;top:0;z-index:3;background:var(--panel-left)}
+ #appView[data-layout-system="b"] .main :is(#coForm,#itForm,#qtForm)>.form-actions{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:5;background:var(--panel-surface);padding:12px;border-top:1px solid var(--panel-line)}
+}
