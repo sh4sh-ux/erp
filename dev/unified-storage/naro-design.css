@@ -592,3 +592,105 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
 @media screen{
  #appView #view-settings .nd-addr-detail{display:block;width:100%;box-sizing:border-box;margin-top:8px}
 }
+/* Icon-only summaries: their hidden label is a zero-width flex item, so a gap would push the icon 4px off centre. */
+@media screen{#appView .rail-foot .rail-tools>summary,#appView .form-actions>.panel-b-danger>summary{gap:0!important}}
+
+/* ---------- 12. Account button · materials form · stock history · company prices · section jump ---------- */
+@media screen{
+ /* Rail footer: the ⋯ becomes the account button (person icon); menu opens with who is signed in. */
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E")!important;mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E")!important;width:17px!important;height:17px!important}
+ #appView .rail-foot .nd-menu{padding:0!important;overflow:hidden}
+ #appView .rail-foot .nd-menu>.nd-acct{padding:12px 14px;border-bottom:1px solid var(--nd-line)}
+ #appView .rail-foot .nd-menu>.nd-acct>b{display:block;font:600 13px/18px var(--sans);color:var(--nd-ink)}
+ #appView .rail-foot .nd-menu>.nd-acct>small{display:block;margin-top:2px;font:400 11.5px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView .rail-foot .nd-menu>.rail-act{margin:0 6px;width:calc(100% - 12px)!important}
+ #appView .rail-foot .nd-menu>.rail-act:first-of-type{margin-top:6px}
+ #appView .rail-foot .nd-menu>.rail-act:last-child{margin-bottom:6px}
+ #appView .rail-foot .nd-menu>#logoutBtn{color:var(--nd-red)!important}
+ /* 업체 제공 자재 · 상세 기록: a section, not a boxed card. */
+ #appView #view-materials .material-entry-card{border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;padding:0!important;margin-top:28px!important}
+ #appView #view-materials .material-entry-card .material-section-head{padding:0 0 10px!important;margin:0 0 16px!important;border-bottom:1px solid var(--nd-line)!important}
+ #appView #view-materials .material-entry-card .material-section-head h3{font:700 15px/20px var(--sans)!important;margin:0}
+ #appView #view-materials .material-form-actions{display:flex!important;justify-content:flex-end;gap:8px;margin-top:16px}
+ #appView #view-materials .material-form-actions>#mm_save{order:2;flex:none!important;width:auto!important;min-width:160px;height:40px}
+ #appView #view-materials .material-form-actions>#mm_edit_cancel{order:1;height:40px;min-width:88px}
+ /* 재고 · 최근 입출고: the action column never clips (견적 연결 / 수정·취소). */
+ #appView #ivHist{table-layout:auto!important;width:100%}
+ #appView #ivHist :is(td,th):last-child{width:1%;white-space:nowrap}
+ #appView #ivHist td:last-child{overflow:visible!important}
+ /* 거래처 · 약정 판매 단가: breathing room between title, note and action. */
+ #appView #coForm section.quote-flow{padding:20px!important;border-radius:14px}
+ #appView #coForm section.quote-flow>h3{margin:0 0 6px!important}
+ #appView #coForm section.quote-flow>.hint{margin:0!important;line-height:19px}
+ #appView #coForm section.quote-flow>#coPriceRules:not(:empty){margin:14px 0 0}
+ #appView #coForm section.quote-flow>#coPriceAdd{margin:14px 0 0!important;height:36px}
+ #appView #coForm section.quote-flow>#coPriceAdd+.hint{margin-top:10px!important}
+ /* Section jump (공급자 정보 etc.): a calm, padded highlight that stays while selected — no layout shift, no box outline. */
+ #appView .shell .main .panel-b-selected:not(tr){background:var(--nd-blue-soft)!important;border-radius:12px;box-shadow:0 0 0 12px var(--nd-blue-soft)!important;transition:background-color .2s,box-shadow .2s}
+ #appView .shell .main .workspace-left .panel-b-index button:focus{outline:none}
+ #appView .shell .main .workspace-left .panel-b-index button:focus-visible{outline:2px solid var(--nd-blue-line);outline-offset:-2px}
+}
+@media screen{
+ /* 견적 품목 줄: fits a 13" detail width — flexible columns, no sideways scroll. */
+ #appView #qtForm .qline{grid-template-columns:minmax(0,1fr) minmax(112px,176px) 56px minmax(76px,100px) minmax(80px,100px) 24px!important;gap:6px!important}
+ #appView #qtForm .qline>*{min-width:0}
+ #appView #qtForm .qlines{overflow-x:visible!important}
+ /* 재고 · 옵션 표: status badges never squeezed. */
+ #appView #view-stock .stock-option-table{table-layout:auto!important}
+ #appView #view-stock .stock-option-table td:has(.st,.badge,.pill,span[class*="status"]){white-space:nowrap}
+}
+@media screen and (min-width:1024px){#appView .shell .main #view-quotes .qline{min-width:0!important}}
+
+/* ---------- 13. Consistency pass (audit) ---------- */
+@media screen{
+ /* Stat strips: one style everywhere — a single filled strip, cells divided by hairlines, text left-aligned. */
+ #appView .shell .main .stats{background:var(--nd-fill)!important;border:0!important;border-radius:12px!important;gap:0!important;padding:0!important;overflow:hidden;box-shadow:none!important}
+ #appView .shell .main .stats>.stat{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;padding:14px 18px!important;text-align:left!important;display:flex!important;flex-direction:column;align-items:flex-start!important;justify-content:flex-start!important;gap:6px;min-height:0!important}
+ #appView .shell .main .stats>.stat+.stat{border-left:1px solid var(--nd-line)!important}
+ #appView .shell .main .stats>.stat>*{text-align:left!important;margin:0!important;align-self:flex-start!important}
+ #appView .shell .main .stats>.stat .k{font:500 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+ #appView .shell .main .stats>.stat .v{font:700 20px/24px var(--sans)!important;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+ #appView .shell .main .stats>.stat .sub,#appView .shell .main .stats>.stat small{font:400 11.5px/15px var(--sans)!important;color:var(--nd-ink-3)!important}
+ #appView .shell .main button.stat:hover{background:var(--nd-fill-2)!important}
+ #appView #view-stock .workspace-right>.stats{margin-top:0!important;border-top:0!important;border-bottom:0!important}
+ /* Save/recovery status (from the storage bridge): a bottom-centred toast, clear of the rail. */
+ body>div[role="status"]{left:50%!important;right:auto!important;bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;transform:translateX(-50%);max-width:min(560px,calc(100vw - 32px))!important;padding:11px 16px!important;border:0!important;border-radius:12px!important;background:#161A23!important;color:#fff!important;font:500 13px/19px -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',system-ui,sans-serif;box-shadow:0 12px 32px -12px rgba(17,22,35,.45)}
+ html[data-theme="dark"] body>div[role="status"]{background:#2A2C31!important}
+ body>div[role="status"] button{margin-left:10px;border:0;background:none;color:#8C94FF;font:600 13px/19px inherit;cursor:pointer;padding:0}
+}
+@media screen and (min-width:1024px){
+ /* 업체 제공 자재 detail header on the shared y-grid (eyebrow 30 · title 50). */
+ #appView[data-layout-system="b"] #view-materials .material-detail-head{padding-top:30px!important}
+ #appView[data-layout-system="b"] #view-materials .material-detail-head .material-eyebrow{margin:0 0 7px!important;font:600 11px/13px var(--sans)!important;letter-spacing:.8px;color:var(--nd-ink-3)!important}
+ #appView[data-layout-system="b"] #view-materials .material-detail-head h3{margin:0!important;font:700 24px/30px var(--sans)!important;letter-spacing:-.5px}
+}
+@media screen{
+ /* 입금·출금 summary: 입금 · 출금 · 차액 in one strip (same anatomy as every other stat strip). */
+ #appView #view-payments .ops-summary{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0!important;background:var(--nd-fill)!important;border-radius:12px;overflow:hidden;border:0!important;padding:0!important}
+ #appView #view-payments .ops-summary>.stats{order:1;background:transparent!important;border-radius:0!important}
+ #appView #view-payments .ops-summary>.scr-hero{order:2;position:static!important;margin:0!important;padding:14px 18px!important;background:transparent!important;border:0!important;border-left:1px solid var(--nd-line)!important;border-radius:0!important;box-shadow:none!important;text-align:left!important;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+ #appView #view-payments .ops-summary>.scr-hero .lbl{font:500 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important;margin:0!important}
+ #appView #view-payments .ops-summary>.scr-hero .big{font:700 20px/24px var(--sans)!important;letter-spacing:-.3px;margin:0!important}
+ #appView #view-payments .ops-summary>.scr-hero .hint{font:400 11.5px/15px var(--sans)!important;margin:0!important}
+}
+@media screen{
+ /* 매출 현황 header: legacy ::before/::after repeated the title; hero is one right-aligned block like 받을 금액. */
+ #appView .shell .main #view-sales .workspace-heading .sl-hero::before,
+ #appView .shell .main #view-sales .workspace-heading .sl-hero::after{content:none!important;display:none!important}
+ #appView .shell .main #view-sales .workspace-heading .sl-hero{display:flex!important;flex-direction:column;align-items:flex-end;width:auto!important;gap:0;text-align:right}
+ #appView .shell .main #view-sales .workspace-heading :is(.sl-hero-k,.sl-hero-v,.sl-hero-meta){text-align:right!important;margin-left:0}
+ #appView .shell .main #view-sales .workspace-heading .sl-hero-v{font:700 28px/1.15 var(--sans)!important;margin:3px 0 0!important}
+ #appView .shell .main #view-sales .workspace-heading .sl-hero-meta{margin-top:4px!important}
+ /* Sales metrics strip: left-aligned like every other strip. */
+ #appView #view-sales .sl-metrics{text-align:left!important}
+ #appView #view-sales .sl-metrics :is(.sl-metric,.mk,.mv){text-align:left!important;align-items:flex-start!important;justify-items:start!important}
+}
+@media screen{
+ #appView .shell .main #view-sales .sl-metrics{background:var(--nd-fill)!important;border:0!important;border-radius:12px!important;gap:0!important;padding:0!important;overflow:hidden;box-shadow:none!important}
+ #appView .shell .main #view-sales .sl-metric{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;padding:14px 18px!important;display:flex!important;flex-direction:column;align-items:flex-start!important;gap:6px}
+ #appView .shell .main #view-sales .sl-metric+.sl-metric{border-left:1px solid var(--nd-line)!important}
+ #appView .shell .main #view-sales .sl-metric>*{margin:0!important;text-align:left!important}
+ #appView .shell .main #view-sales .sl-metric .mk{font:500 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+ #appView .shell .main #view-sales .sl-metric :is(.mv,#slMargin){font:700 20px/24px var(--sans)!important;letter-spacing:-.3px}
+ #appView .shell .main #view-sales .sl-metric .mn{font:400 11.5px/15px var(--sans)!important;color:var(--nd-ink-3)!important}
+}

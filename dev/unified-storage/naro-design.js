@@ -58,8 +58,10 @@
   const design=document.getElementById('naro-design');design?design.before(style):document.head.append(style);
  }
  const mount=()=>{const foot=document.querySelector('#appView .rail-foot');if(foot&&!foot.querySelector('.nd-theme'))foot.prepend(control());
-  const tools=foot?.querySelector('.rail-tools');if(tools&&!tools.querySelector('.nd-menu')){const menu=document.createElement('div');menu.className='nd-menu';tools.querySelectorAll(':scope>.rail-act').forEach(a=>menu.append(a));tools.append(menu);
-   tools.querySelector('summary')?.setAttribute('aria-label','더보기');document.addEventListener('click',e=>{if(tools.open&&!tools.contains(e.target))tools.open=false;});}
+  const tools=foot?.querySelector('.rail-tools');if(tools&&!tools.querySelector('.nd-menu')){const menu=document.createElement('div');menu.className='nd-menu';
+   const acct=document.createElement('div');acct.className='nd-acct';acct.innerHTML='<b>내 계정</b><small></small>';menu.append(acct);
+   const who=()=>{const t=(document.getElementById('tbUser')?.textContent||'').trim();acct.querySelector('small').textContent=t||'연결된 저장공간';};who();const tb=document.getElementById('tbUser');tb&&new MutationObserver(who).observe(tb,{childList:true,characterData:true,subtree:true});tools.querySelectorAll(':scope>.rail-act').forEach(a=>menu.append(a));tools.append(menu);
+   tools.querySelector('summary')?.setAttribute('aria-label','내 계정: 새로고침·로그아웃');tools.querySelector('summary')?.setAttribute('title','내 계정');document.addEventListener('click',e=>{if(tools.open&&!tools.contains(e.target))tools.open=false;});}
   apply();};
  /* Desktop scope row: companies/items keep their search + add in the 144px header, like quotes.
     Original nodes move (listeners intact) and return when the viewport leaves desktop. */
@@ -300,12 +302,16 @@
   if(utils&&idx&&idx.nextElementSibling!==utils)idx.after(utils);
   if(!document.getElementById('nd-tools-hide')){const st=document.createElement('style');st.id='nd-tools-hide';st.textContent=`@media screen{${hide.map(x=>'#appView '+x).join(',')}{display:none!important}}`;document.head.append(st);}
  }
+
+ /* Detail-header eyebrow = the rail group of the screen (one vocabulary everywhere). */
+ const EYEBROW={quotes:'업무',materials:'업무',payments:'업무',stock:'업무',companies:'기준정보',items:'기준정보',sales:'분석',ar:'분석',settings:'설정'};
+ function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();watchMaterials();watchSettings();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
