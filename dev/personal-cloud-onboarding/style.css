@@ -95,3 +95,53 @@ body[data-screen="reset"] .panel,body[data-screen="reset-sent"] .panel{padding-t
  .primary{font-size:12.8px}.provider strong,.location strong{font-size:12px}.provider small,.location small,#notice{font-size:9.6px}
  .page-footer{font-size:7.2px}
 }
+/* NARO design system v2 — legible type (inputs ≥16px: no iOS zoom), shared neutral tokens,
+   light + dark themes. Theme comes from html[data-theme] (same 'naroTheme' preference as /erp/). */
+:root{--o-page:#E9EEF5;--o-frame:#F5F8FD;--o-card:#FFFFFF;--o-field:#FFFFFF;--o-line:#DCE3EE;--o-line-2:#EEF2F8;--o-ink:#0F1A2E;--o-ink-2:#4A5A75;--o-ink-3:#7D8BA3;--o-link:#2563FF;--o-soft:#F3F6FB;--o-focus:rgba(37,99,255,.16);color-scheme:light}
+html[data-theme="dark"]{--o-page:#0B0C0E;--o-frame:#121316;--o-card:#17181B;--o-field:#1E2023;--o-line:#2A2C31;--o-line-2:#212328;--o-ink:#ECEDEF;--o-ink-2:#A3A8B2;--o-ink-3:#747A85;--o-link:#7C9BFF;--o-soft:#1E2023;--o-focus:rgba(124,155,255,.22);color-scheme:dark}
+:root{color:var(--o-ink)}
+body{background:var(--o-page)}
+.onboarding{background:var(--o-frame);box-shadow:0 1px 2px rgba(15,26,46,.04),0 28px 64px -32px rgba(15,26,46,.28)}
+.account{background:var(--o-frame)}.account:before{background:var(--o-card);box-shadow:0 1px 2px rgba(15,26,46,.04),0 12px 32px -18px rgba(15,26,46,.16)}
+.panel h2{font-size:30px;line-height:38px;letter-spacing:-1px;color:var(--o-ink)}
+.intro{font-size:15px;line-height:22px;letter-spacing:-.3px;color:var(--o-ink-2)}
+.master-field input{font-size:16px;border-color:var(--o-line);background:var(--o-field);color:var(--o-ink);border-radius:12px}
+.master-field input:focus{border-color:var(--o-link);box-shadow:0 0 0 4px var(--o-focus)}
+.master-field input::placeholder{color:var(--o-ink-3)}
+.field-icon,.visibility{color:var(--o-ink-3)}
+.remember{font-size:14px;color:var(--o-ink-2)}.remember input{accent-color:var(--o-link)}
+.text-button{font-size:14px;color:var(--o-link);letter-spacing:-.3px}
+.primary{font-size:16px;font-weight:600;letter-spacing:-.2px;border-radius:12px;box-shadow:0 8px 20px -10px rgba(40,96,255,.6)}
+.secondary{font-size:15px;border-color:var(--o-line);background:var(--o-field);color:var(--o-ink-2);border-radius:12px}
+.row{font-size:14px;background:var(--o-soft);color:var(--o-ink-2);border-radius:12px}.row .text-button{font-size:14px}
+.support-link .text-button{font-size:13px;color:var(--o-ink-3)}
+.provider{border-color:var(--o-line);background:var(--o-field);color:var(--o-ink);border-radius:14px}
+.provider[aria-pressed="true"]{border-color:var(--o-link);background:color-mix(in srgb,var(--o-link) 8%,var(--o-field));box-shadow:0 0 0 1px var(--o-link)}
+.provider strong,.location strong{font-size:15px;color:var(--o-ink)}.provider small,.location small{font-size:13px;color:var(--o-ink-3)}
+.radio{border-color:var(--o-line);background:var(--o-field)}.provider[aria-pressed="true"] .radio{border-color:var(--o-link)}
+.connecting-icon{border-color:var(--o-line);background:var(--o-field)}.progress{background:var(--o-line-2)}
+.location{border-color:var(--o-line);background:var(--o-soft)}.location-caption{font-size:12px;color:var(--o-ink-3)}
+.data-summary li{background:var(--o-soft);font-size:13px;color:var(--o-ink-2)}
+#notice{font-size:13px}
+.page-footer{font-size:12px;color:var(--o-ink-3)}.page-footer a{color:inherit;text-underline-offset:2px}
+@media(max-width:1099px){
+ body{background:var(--o-frame)}
+ .top{background:var(--o-frame)}
+ .onboarding{background:var(--o-frame)}
+ .mobile-tagline{font-size:12px;line-height:16px;color:var(--o-ink-3)}
+ .panel h2{font-size:26px;line-height:34px;letter-spacing:-.8px}
+ .intro{font-size:14px;line-height:21px}
+ .master-field,.master-field input{height:52px}.master-field input,.secondary{font-size:16px}
+ .remember,.master-options .text-button{font-size:13px}
+ body[data-screen] .row,.row .text-button{font-size:13px}
+ .support-link .text-button{font-size:13px}
+ .primary{height:52px;font-size:16px}
+ .provider strong,.location strong{font-size:15px}.provider small,.location small,#notice{font-size:12px}
+ .page-footer{font-size:12px;padding:20px 28px calc(20px + env(safe-area-inset-bottom,0px))}
+}
+html[data-theme="dark"] .master-logo-slot,html[data-theme="dark"] .mobile-logo{mix-blend-mode:normal}
+html[data-theme="dark"] .mobile-logo:after{filter:brightness(0) invert(.93)}
+html[data-theme="dark"] .primary{box-shadow:none}
+html[data-theme="dark"] .brand{filter:saturate(.92) brightness(.96)}
+/* The brand panel is a light photograph in every theme: keep its ink dark. */
+.master-brand{color:#0F1A2E}.master-brand h1 em{color:#0860ff}.master-brand .master-tagline{color:#425a80}.master-brand .master-motto{color:#fff}

@@ -1,0 +1,203 @@
+/* NARO design layer — theme tokens (light/dark), wide rail, receipt-db style panels.
+   Loaded after panel-layout-b. Presentation only: no data, storage or calculation rules.
+   Print output (#printArea, preview sheet) stays on white paper in every theme. */
+
+/* ---------- 1. Theme tokens ---------- */
+:root{
+ color-scheme:light;
+ --nd-page:#EEF0F4;--nd-frame:#FFFFFF;--nd-rail:#F7F8FA;--nd-left:#FAFAFC;--nd-surface:#FFFFFF;--nd-raised:#FFFFFF;
+ --nd-fill:#F2F3F6;--nd-fill-2:#E9EBF0;--nd-line:#E6E8ED;--nd-line-2:#EFF1F4;
+ --nd-ink:#161A23;--nd-ink-2:#5B6273;--nd-ink-3:#8A909D;
+ --nd-blue:#4355E8;--nd-blue-ink:#3445D6;--nd-blue-soft:rgba(67,85,232,.08);--nd-blue-line:rgba(67,85,232,.28);
+ --nd-green:#1DAD53;--nd-green-soft:rgba(29,173,83,.10);--nd-red:#E53E3E;--nd-red-soft:rgba(229,62,62,.09);
+ --nd-amber:#FF9500;--nd-amber-soft:rgba(255,149,0,.12);
+ --nd-shadow:0 1px 2px rgba(17,22,35,.04),0 18px 48px -24px rgba(17,22,35,.18);
+ --nd-pop:0 12px 32px -12px rgba(17,22,35,.22),0 2px 6px rgba(17,22,35,.06);
+}
+html[data-theme="dark"]{
+ color-scheme:dark;
+ --nd-page:#0B0C0E;--nd-frame:#151618;--nd-rail:#101113;--nd-left:#131416;--nd-surface:#17181B;--nd-raised:#1E2023;
+ --nd-fill:#202226;--nd-fill-2:#2A2C31;--nd-line:#26282D;--nd-line-2:#1F2125;
+ --nd-ink:#ECEDEF;--nd-ink-2:#A3A8B2;--nd-ink-3:#6F747E;
+ --nd-blue:#6E78F7;--nd-blue-ink:#8C94FF;--nd-blue-soft:rgba(110,120,247,.14);--nd-blue-line:rgba(110,120,247,.40);
+ --nd-green:#34C97D;--nd-green-soft:rgba(52,201,125,.14);--nd-red:#FF5A5A;--nd-red-soft:rgba(255,90,90,.14);
+ --nd-amber:#FF9F0A;--nd-amber-soft:rgba(255,159,10,.15);
+ --nd-shadow:0 0 0 1px rgba(255,255,255,.04),0 24px 60px -28px rgba(0,0,0,.8);
+ --nd-pop:0 0 0 1px rgba(255,255,255,.06),0 16px 40px -12px rgba(0,0,0,.7);
+}
+/* Feed the existing token names so every legacy rule follows the theme. */
+:root,html[data-theme]{
+ --ink:var(--nd-ink);--ink-2:var(--nd-ink-2);--ink-3:var(--nd-ink-3);--ink-4:var(--nd-fill-2);
+ --paper:var(--nd-page);--card:var(--nd-surface);--line:var(--nd-line);--line-2:var(--nd-line-2);
+ --primary:var(--nd-blue);--primary-soft:var(--nd-blue-soft);
+ --danger:var(--nd-red);--danger-soft:var(--nd-red-soft);--ok:var(--nd-green);--ok-soft:var(--nd-green-soft);
+ --warn-c:var(--nd-amber);--warn-soft:var(--nd-amber-soft);
+}
+#appView[data-layout-system="b"]{
+ --panel-line:var(--nd-line);--panel-ink:var(--nd-ink);--panel-muted:var(--nd-ink-2);--panel-left:var(--nd-left);
+ --panel-surface:var(--nd-surface);--panel-rail-bg:var(--nd-rail);--panel-selected:var(--nd-blue-soft);--panel-accent:var(--nd-blue);
+ --line:var(--nd-line);--primary:var(--nd-blue);--ink:var(--nd-ink);--ink-2:var(--nd-ink-2);--ink-3:var(--nd-ink-3);
+}
+html,body{background:var(--nd-page)}
+body{color:var(--nd-ink)}
+
+/* ---------- 2. Shared controls ---------- */
+@media screen{
+ html[data-theme="dark"] #appView :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){background-color:var(--nd-raised)!important;color:var(--nd-ink);border-color:var(--nd-line)}
+ #appView :is(input,textarea)::placeholder{color:var(--nd-ink-3)}
+ #appView :is(input,select,textarea):focus{border-color:var(--nd-blue-line);outline:none;box-shadow:0 0 0 3px var(--nd-blue-soft)}
+ html[data-theme="dark"] #appView .btn:not(.primary):not(.danger):not(.save){background-color:var(--nd-raised);color:var(--nd-ink);border-color:var(--nd-line)}
+ html[data-theme="dark"] #appView .btn:not(.primary):not(.danger):not(.save):hover{background-color:var(--nd-fill-2)}
+ #appView ::selection{background:var(--nd-blue-soft)}
+ #appView .tbl :is(.badge,.chip,.tag,.st,.kind,.pill,[class*="badge"]){white-space:nowrap;word-break:keep-all}
+ .nd-scroll-thin{scrollbar-width:thin}
+}
+
+/* ---------- 3. Desktop frame, wide rail, receipt-db panels ---------- */
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"]{--panel-rail:248px;--panel-list:360px;--panel-head:144px;--panel-inset:28px;--panel-title:24px;--panel-title-line:30px;--panel-title-y:50px}
+ #appView[data-layout-system="b"] .shell{max-width:1840px;border-radius:22px;background:var(--nd-frame);box-shadow:var(--nd-shadow);border:1px solid var(--nd-line);overflow:hidden}
+
+ /* Rail: brand header on the shared 144px line, scrolling nav, fixed footer. */
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar{display:flex;flex-direction:column;padding:0 14px 16px;border-right:1px solid var(--nd-line);background:var(--nd-rail);height:100%;box-sizing:border-box}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar .rail-logo{flex:none;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;height:var(--panel-head);min-height:var(--panel-head);padding:0 10px;margin:0;border-bottom:1px solid var(--nd-line);margin:0 -14px;padding:0 24px;background:transparent;border-radius:0;text-align:left}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-mark{width:36px;height:36px;display:grid;place-items:center;flex:none}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-mark>img{width:36px;height:auto}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-brand{display:flex;flex-direction:column;align-items:flex-start;gap:2px;height:auto}
+ #appView[data-layout-system="b"] .shell .rail-logo .rail-brand-name{font:700 17px/22px var(--sans);letter-spacing:-.3px;color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .rail-logo .tb-ver{font:600 10.5px/14px var(--sans);color:var(--nd-ink-3);letter-spacing:.4px;background:none;padding:0;border:0}
+ #appView[data-layout-system="b"] .shell .rail-nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 0 12px;margin:0 -4px;padding-inline:4px;scrollbar-width:thin;display:flex;flex-direction:column;gap:2px}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{font:600 11px/14px var(--sans);letter-spacing:.6px;color:var(--nd-ink-3);padding:12px 12px 4px;margin:0;text-transform:uppercase}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec:first-child{padding-top:6px}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item{display:flex;align-items:center;gap:12px;width:100%;height:36px;min-height:36px;padding:0 12px;border:0;border-radius:10px;font:500 14px/20px var(--sans);color:var(--nd-ink-2);background:transparent;transition:background .12s,color .12s;justify-content:flex-start}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item>svg{width:18px;height:18px;flex:none;opacity:.9}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item>span{display:inline!important;opacity:1!important;white-space:nowrap}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item.on{background:var(--nd-blue-soft);color:var(--nd-blue-ink);font-weight:650;box-shadow:none;border:0}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-item.on>svg{opacity:1}
+ /* Footer: status line, then [theme switch | more] on one row. */
+ #appView[data-layout-system="b"] .shell .rail-foot{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:12px 0 0;border-top:1px solid var(--nd-line);margin:0;position:relative}
+ #appView[data-layout-system="b"] .shell .rail-foot>.sync-state{grid-column:1/-1;grid-row:1}
+ #appView[data-layout-system="b"] .shell .rail-foot>.nd-theme{grid-column:1;grid-row:2}
+ #appView[data-layout-system="b"] .shell .rail-foot>.rail-tools{grid-column:2;grid-row:2;position:static}
+ #appView[data-layout-system="b"] .shell .rail-foot>.tb-user:empty{display:none}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools[open]>summary{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools .nd-menu{position:absolute;left:0;right:0;bottom:calc(100% + 8px);display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--nd-raised);border:1px solid var(--nd-line);border-radius:12px;box-shadow:var(--nd-pop);z-index:30}
+ #appView[data-layout-system="b"] .shell .rail-foot .sync-state{display:flex;align-items:center;gap:8px;padding:2px 4px 2px 12px;border:0;background:none;color:var(--nd-ink-3);font-size:12px;width:100%;box-sizing:border-box}
+ #appView[data-layout-system="b"] .shell .rail-foot .sync-state>.sync-text{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary{list-style:none;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:10px;font:500 13px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary::-webkit-details-marker{display:none}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary::before{content:'';width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-tools>summary{width:38px;height:38px;padding:0;justify-content:center;font-size:0!important;border:1px solid var(--nd-line);background:var(--nd-surface)}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-act{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border-radius:8px;color:var(--nd-ink-2);font-size:13px}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-act:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .rail-foot .rail-act>svg{width:16px;height:16px}
+
+ /* Panels share one 144px header line (receipt-db header contract). */
+ #appView[data-layout-system="b"] .shell .main{background:var(--nd-surface)}
+ #appView[data-layout-system="b"] .shell .main>.view:not(#view-dash)>.page-head{position:relative;background:var(--nd-left);border-color:var(--nd-line)}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head{position:relative}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head::before{content:'NARO BIZ';position:absolute;top:30px;left:var(--panel-inset);font:600 11px/13px var(--sans);letter-spacing:.8px;color:var(--nd-ink-3)}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.count{background:none!important;padding:0}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head h2{font:700 var(--panel-title)/var(--panel-title-line) var(--sans)!important;letter-spacing:-.5px!important;color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.count,#appView[data-layout-system="b"] .shell .main>.view>.page-head .count{font:600 12px/var(--panel-title-line) var(--sans);color:var(--nd-ink-3)}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-caption,.material-eyebrow,.qs-k){font:600 11px/13px var(--sans)!important;letter-spacing:.8px;color:var(--nd-ink-3)!important;text-transform:uppercase}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading h3,.panel-b-empty-heading h3,.workspace-record-heading .co-title-name,#qtForm .qs-val.co,.material-detail-head h3){font:700 var(--panel-title)/var(--panel-title-line) var(--sans)!important;letter-spacing:-.5px;color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.workspace-record-heading,.panel-b-empty-heading,#qtForm .quote-summary,.material-detail-head){background:var(--nd-surface);border-color:var(--nd-line)}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qs-amt-v{font:700 24px/30px var(--sans);letter-spacing:-.4px;color:var(--nd-ink)}
+ /* Right header geometry: caption y30, title y50 — same as the left panel and receipt-db. */
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.panel-b-empty-heading){position:relative;padding:30px var(--panel-inset) 0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading{display:block!important}
+ #appView[data-layout-system="b"] .shell .main :is(#qtForm .quote-summary,.workspace-record-heading){padding-top:30px!important}
+ #appView[data-layout-system="b"] .shell .main :is(#qtForm .quote-summary,.workspace-record-heading) :is(.qs-k,.workspace-caption){line-height:13px!important;margin:0 0 7px!important}
+ #appView[data-layout-system="b"] .shell .main .panel-b-empty-heading:not(:has(~.detail:not(.hidden))){display:block}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption{display:block;margin:0!important}
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-heading,.panel-b-empty-heading)>h3{margin:7px 0 0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading>.scr-hero{position:absolute;top:30px;right:var(--panel-inset);margin:0;padding:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:50%;background:none;border:0}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading>.scr-hero>*{position:static!important;transform:none!important;margin:0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading>.scr-hero>.lbl{font:500 12px/13px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading>.scr-hero>.big{font:700 24px/30px var(--sans)!important;letter-spacing:-.4px;color:var(--nd-ink);white-space:nowrap;margin:0}
+ #appView[data-layout-system="b"] .shell .main .workspace-heading>.scr-hero>.sub{font:500 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap;position:static;margin:0}
+
+ /* Left panel: list surface + flat rows (straight dividers, tint for selection). */
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-left,.material-owners),
+ #appView[data-layout-system="b"] .shell .main :is(#view-companies,#view-items,#view-quotes)>.cols>.card:first-child,
+ #appView[data-layout-system="b"] .shell .main :is(#view-companies,#view-items,#view-quotes) :is(.list-head,.quote-filters,.list-category){background:var(--nd-left);border-color:var(--nd-line)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item,.material-owner,.stock-item,.panel-b-index button){border-radius:0!important;border-bottom:1px solid var(--nd-line-2);background:transparent;transition:background .1s}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item,.material-owner,.stock-item,.panel-b-index button):hover{background:var(--nd-fill)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active,.panel-b-index button.on){background:var(--nd-blue-soft)!important;box-shadow:inset 3px 0 0 var(--nd-blue);color:var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active) :is(.li-name,.li-nm,.material-record-name){color:var(--nd-blue-ink)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.li-name,.li-nm,.material-record-name){font:600 14px/20px var(--sans);letter-spacing:-.2px}
+ #appView[data-layout-system="b"] .shell .main .view :is(.li-sub,.li-date){font-size:12px;color:var(--nd-ink-3)}
+ #appView[data-layout-system="b"] .shell .main .view :is(.li-amt,.li-amount,.li-right b,.li-r b){font-weight:700;color:var(--nd-ink);letter-spacing:-.2px}
+
+ /* Search row reads as the receipt-db scope row. */
+ #appView[data-layout-system="b"] .shell .main :is(.search,.panel-b-search,.quote-filters input[type=search]){height:40px;border-radius:10px;background:var(--nd-surface);border:1px solid var(--nd-line)}
+ #appView[data-layout-system="b"] .shell .main .search:focus-within{border-color:var(--nd-blue-line);box-shadow:0 0 0 3px var(--nd-blue-soft)}
+
+ /* Right panel + sticky action bar. */
+ #appView[data-layout-system="b"] .shell .main :is(.workspace-right,.workspace-form-body,.detail){background:var(--nd-surface)}
+ #appView[data-layout-system="b"] .shell .main .workspace-form>.form-actions,#appView[data-layout-system="b"] .shell .main #view-settings .workspace-right>.form-actions{background:color-mix(in srgb,var(--nd-surface) 92%,transparent);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-top:1px solid var(--nd-line)}
+
+ /* Dashboard: same header line, calmer cards. */
+ #appView[data-layout-system="b"] .shell .main #view-dash{background:var(--nd-surface)}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.page-head{background:var(--nd-surface);border-color:var(--nd-line)}
+ #appView[data-layout-system="b"] .shell .main #view-dash .page-head .page-title p{color:var(--nd-ink-2);font-size:13px}
+ #appView[data-layout-system="b"] .shell .main #view-dash>.dash-brief{padding:28px var(--panel-inset) 40px}
+ #appView[data-layout-system="b"] .shell .main #view-dash :is(.dash-grid>.card,#salesInsight,.dash-month,.brief-card,.now-card){background:var(--nd-surface);border:1px solid var(--nd-line);box-shadow:none}
+}
+
+/* ---------- 3b. Mobile & tablet (≤1023px): one header line, one thumb-reach action bar ---------- */
+@media screen and (max-width:1023px){
+ #appView .shell{background:var(--nd-frame)}
+ #appView .shell .main>.view>.page-head{margin-inline:-16px;padding-inline:16px;background:var(--nd-frame)!important;border-color:var(--nd-line)}
+ #appView .shell .main>.view>.page-head::before{content:'NARO BIZ';position:absolute;top:16px;left:16px;font:600 11px/13px var(--sans);letter-spacing:.9px;color:var(--nd-ink-3)}
+ #appView .shell .main>.view>.page-head h2{font:700 23px/28px var(--sans)!important;letter-spacing:-.5px;color:var(--nd-ink)}
+ #appView .shell .main>.view>.page-head .app-view-meta:empty{display:none}
+ /* Save bar: opaque, full-bleed, flush on the bottom navigation. */
+ /* Clearance for the bottom nav lives in a spacer, not scroll padding (sticky offsets would double). */
+ #appView .shell .main>.view:not(.hidden){padding-bottom:0!important}
+ #appView .shell .main>.view:not(.hidden)::after{content:'';display:block;flex:none;grid-column:1/-1;height:calc(96px + env(safe-area-inset-bottom,0px))}
+ #appView .shell .main #view-quotes .quote-detail-card{padding-bottom:0!important}
+ #appView .shell .main>.view.mobile-record-open:not(.hidden)::after{display:none}
+ #appView .shell .main>.view.mobile-record-open>.cols>.card:last-child{padding-bottom:calc(58px + env(safe-area-inset-bottom,0px))}
+ #appView .shell .main>.view.mobile-record-open>.cols>.card:last-child :is(#coForm,#itForm,#qtForm)>.form-actions{bottom:0!important}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions,#appView .shell .main #view-items #itForm .form-actions{position:sticky;bottom:calc(58px + env(safe-area-inset-bottom,0px))!important;z-index:15;margin:0 -16px!important;padding:10px 16px!important;background:var(--nd-surface)!important;border-top:1px solid var(--nd-line);box-shadow:0 -10px 20px -16px rgba(17,22,35,.25)}
+ #appView .shell .main #view-quotes .form-actions{padding:10px 16px!important}
+ /* One save: the bottom bar. The header copy in the quote screen is redundant. */
+ #appView .shell .main #view-quotes .qp-mobile-actions .qp-primary{display:none}
+ #appView .shell .main .view .list-item.on{box-shadow:inset 3px 0 0 var(--nd-blue);background:var(--nd-blue-soft)}
+ #bottomNav{background:color-mix(in srgb,var(--nd-frame) 90%,transparent);backdrop-filter:saturate(170%) blur(16px);-webkit-backdrop-filter:saturate(170%) blur(16px);border-top:1px solid var(--nd-line)}
+ #bottomNav>button{color:var(--nd-ink-3)}
+ #bottomNav>button:is(.on,[aria-current="page"],.active){color:var(--nd-blue)}
+ #appView .rail-foot .nd-theme{margin:0 0 4px}
+}
+
+/* ---------- 4. Theme switch (rail footer + mobile drawer) ---------- */
+.nd-theme{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px;border-radius:10px;background:var(--nd-fill);border:1px solid var(--nd-line)}
+.nd-theme button{display:flex;align-items:center;justify-content:center;gap:6px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--nd-ink-3);font:600 12px/1 var(--sans);cursor:pointer}
+.nd-theme button svg{width:15px;height:15px}
+.nd-theme button:hover{color:var(--nd-ink)}
+.nd-theme button[aria-pressed="true"]{background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--nd-line)}
+html[data-theme="dark"] .nd-theme button[aria-pressed="true"]{background:var(--nd-fill-2);box-shadow:none}
+.nd-theme .nd-t-label{display:none}
+
+/* ---------- 5. Dark: neutralise legacy hard-coded light surfaces ---------- */
+html[data-theme="dark"] #appView :is(.card,.detail,.list-head,.quote-filters,.list-category,.material-owners,.material-detail-head,.material-entry-card,.stock-add,.pay-add,.kpi,.stat,.segments,.search,.quote-flow-head,.photo,.key,.header,.work,.tinybtn,.inspector,.quote-detail-card,.qp-tabs,.qline,.vline,.cline,.ops-summary,.settings-util-card,.recent-item,.stat-link,.brief,.dash-brief>*,.toast){background-color:var(--nd-surface);border-color:var(--nd-line);color:var(--nd-ink)}
+html[data-theme="dark"] #appView :is(.page-head,.workspace-heading,.workspace-left,.workspace-right,.workspace-record-heading,.panel-b-empty-heading){border-color:var(--nd-line)}
+html[data-theme="dark"] #appView :is(.badge,.chip,.tag,.st,.status,.pill){filter:saturate(1.05)}
+html[data-theme="dark"] #appView .shell{background:var(--nd-frame)}
+html[data-theme="dark"] #appView img[src$="naro-symbol.png"]{mix-blend-mode:normal!important;filter:none}
+html[data-theme="dark"] .m-burger{background:var(--nd-surface);color:var(--nd-ink);border-color:var(--nd-line)}
+html[data-theme="dark"] #bottomNav{background:color-mix(in srgb,var(--nd-frame) 88%,transparent);border-color:var(--nd-line)}
+html[data-theme="dark"] :is(.modal,.sheet,.dialog,.popover,.menu,.dropdown,[role=dialog]):not(#printArea *){background-color:var(--nd-raised);color:var(--nd-ink);border-color:var(--nd-line)}
+/* Paper stays paper. */
+html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--ink:#0B1220;--ink-2:#5A6577;--ink-3:#8A94A6;--line:#E5E9EF;--line-2:#EEF1F5;--card:#fff;--paper:#F2F4F7}
+@media print{html[data-theme="dark"]{color-scheme:light}}
+@media screen and (min-width:1024px){
+ /* Quote header packs caption · title · meta above the sticky tabs within the 144px band. */
+ #appView[data-layout-system="b"] .shell .main #qtForm .qt-hero{row-gap:0!important}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qt-hero .qp-metadata{margin-top:6px!important;line-height:16px;min-height:0}
+ #appView[data-layout-system="b"] .shell .main #qtForm .qt-hero .qp-metadata :is(.badge,.chip,.st,span[class*="status"]){line-height:16px;padding-block:1px}
+}

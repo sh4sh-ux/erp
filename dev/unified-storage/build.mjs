@@ -22,7 +22,9 @@ await bundleAuth({stdin:{contents:"export {initializeApp} from 'firebase/app'; e
 // UI-only assets use current editable source; auth/bootstrap stay pinned below.
 for(const name of ['style.css','office-polish-v2.png','naro-symbol.png','naro-wordmark.png'])await copyFile(resolve(onboarding,name),resolve(release,name));
 await copyFile(resolve(onboarding,'office-silver-v3.png'),resolve(release,'office-polish-v2.png'));
-const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png">');
+const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png">')
+ // Same theme preference as /erp/ ('naroTheme': light | dark | system), applied before first paint.
+ .replace('</head>',`<script>(()=>{const m=matchMedia('(prefers-color-scheme: dark)'),a=()=>{let p=null;try{p=localStorage.getItem('naroTheme')}catch{}document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(m.matches?'dark':'light')};a();m.addEventListener?.('change',a);addEventListener('storage',e=>{if(e.key==='naroTheme'||e.key===null)a()})})()</script></head>`);
 await writeFile(resolve(release,'index.html'),onboardingHtml);
 await copyFile(resolve(onboarding,'google-backend.mjs'),resolve(release,'google-backend.mjs'));
 await copyFile(resolve(onboarding,'company-contract.mjs'),resolve(release,'company-contract.mjs'));
@@ -130,6 +132,9 @@ if(business){
  html=html.replace('<link rel="stylesheet" href="./inventory-presentation.css">','').replace('<script src="./inventory-presentation.js"></script>','');
  html=html.replace('</body>',`<style id="naro-panel-system-b">${await readFile(resolve(here,'panel-layout-b.css'),'utf8')}</style><script>${await readFile(resolve(here,'panel-layout-b.js'),'utf8')}</script></body>`);
 }
+// NARO design layer (theme tokens, wide rail, panels) loads last; theme is set before first paint.
+html=html.replace('</head>',`<script>try{const p=localStorage.getItem('naroTheme');document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}</script><style>html[data-theme="dark"]{background:#0B0C0E;color-scheme:dark}</style></head>`);
+html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}</script></body>`);
 // Strip legacy OAuth/network transport and snapshot writes from the business bundle.
 const begin=html.indexOf('/* ---------- PKCE 유틸'),end=html.indexOf('const db =',begin);
 if(begin<0||end<0)throw Error('SOURCE_BOUNDARY_CHANGED');

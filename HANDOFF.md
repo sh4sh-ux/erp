@@ -18,3 +18,10 @@ Base: b8efd90 (v1.186, = main). This branch adds the uncommitted local source us
 ## Rebuild (verified 55/57 before these inputs; onboarding 28/28)
 Place `dev/` at `<root>/work/erp-login-shell-v186-release/dev` and `naro-workspace/*` at `<root>/`, install `firebase@12.19.0` in `<root>/work/erp/dev/firebase`, point the esbuild import in `build.mjs` (hard-coded `/private/tmp/naro-onboarding-build-tools/...`) to esbuild 0.28.2, then from `<root>`:
 `node work/erp-login-shell-v186-release/dev/unified-storage/build.mjs --business --extended && node outputs/general-public-readiness/build-features.mjs`
+
+## Design layer (branch feature/naro-redesign)
+- `dev/unified-storage/naro-design.css` + `naro-design.js` — injected by `build.mjs` after layout B (`naro-panel-system-b`), last in `<body>`. Presentation only.
+  - Theme: `naroTheme` in localStorage (`light` | `dark` | absent = system), shared by the onboarding shell and `/erp/` (same origin, synced via `storage` events). `build.mjs` adds a pre-paint script to both pages.
+  - Dark mode for legacy hard-coded colours is generated at load (`darkAuto`): screen-only rules under `html[data-theme="dark"]`; print/document selectors are skipped so paper output stays white.
+  - Desktop ≥1024: wide rail (248px), list 360px, shared header line 144px (eyebrow y30 · title y50, receipt-db contract). Mobile ≤1023: one sticky save bar flush on the bottom nav (clearance is a spacer, not scroll padding — sticky offsets would double).
+- `dev/personal-cloud-onboarding/style.css` — "NARO design system v2" block at the end: legible type (inputs 16px), shared tokens, dark theme; the brand photo panel keeps dark ink in every theme.
