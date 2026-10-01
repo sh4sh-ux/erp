@@ -74,7 +74,7 @@
     Existing nodes keep their handlers; only placement changes. */
  const svgI=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
  const ICON_CARD='<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.5 1.8-2 3-2s2.4.5 3 2M14 10h4M14 13h3"/>',
-  ICON_DOC='<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/>';
+  ICON_DOC='<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/>',ICON_DOWN='<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 19h16"/>';
  function railDocs(){const nav=document.querySelector('#appView .rail-nav');if(!nav||nav.querySelector('.nd-docs'))return;
   const before=[...nav.querySelectorAll('.nav-sec')].find(s=>s.textContent.trim()==='설정');
   const sec=document.createElement('div');sec.className='nav-sec nd-docs';sec.textContent='자료';
@@ -85,7 +85,9 @@
    if(src)new MutationObserver(mirror).observe(src,{attributes:true,attributeFilter:['disabled']});mirror();
    b.onclick=()=>{if(!src||src.disabled){typeof window.toast==='function'&&window.toast('이번 버전에서는 아직 지원하지 않습니다.');return;}
     src.click();if(!desk.matches&&typeof window.toggleNav==='function')window.toggleNav(false);};return b;};
-  const nodes=[sec,act('bizCardBtn','명함 보내기',ICON_CARD),act('bizCertBtn','사업자등록증',ICON_DOC)];
+  const exp=document.createElement('button');exp.type='button';exp.className='nd-nav-act';exp.innerHTML=svgI(ICON_DOWN)+'<span>데이터 내보내기</span>';
+  exp.onclick=()=>{if(!desk.matches&&typeof window.toggleNav==='function')window.toggleNav(false);openExport();};
+  const nodes=[sec,act('bizCardBtn','명함 보내기',ICON_CARD),act('bizCertBtn','사업자등록증',ICON_DOC),exp];
   before?before.before(...nodes):nav.append(...nodes);}
  const CHIPS=[
   {select:'qtStatus',host:'#view-quotes .quote-list-card',list:'qtList',items:[['','전체'],['작성중','작성중'],['발송','발송'],['수주','수주'],['납품','납품']]},
@@ -124,7 +126,100 @@
    +`<div class="nd-mat-legend">${segs.map(([l,v,k])=>`<span><i class="${k}"></i>${l}<b>${n(v)}</b></span>`).join('')}</div>`;
   const summary=root.querySelector('.material-summary');summary?summary.before(card):hero.after(card);}
  function watchMaterials(){const root=document.getElementById('materialContent');if(!root||root.dataset.ndWatch)return;root.dataset.ndWatch='1';new MutationObserver(materialGraph).observe(root,{childList:true});materialGraph();}
- function v5(){railDocs();chips();actions();watchMaterials();
+
+ /* 데이터 내보내기: one place for every export (rail · 자료). CSV = UTF-8 with BOM (Excel opens Korean as-is),
+    header row in Korean, plain numbers. Reads db only; sales/receivables/backup reuse the app's own exporters. */
+ const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);};
+ const ymd=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+ const PERIODS={all:['전체 기간',()=>['','']],month:['이번 달',()=>{const d=new Date();return [ymd(new Date(d.getFullYear(),d.getMonth(),1)),today()];}],
+  last:['지난 달',()=>{const d=new Date();return [ymd(new Date(d.getFullYear(),d.getMonth()-1,1)),ymd(new Date(d.getFullYear(),d.getMonth(),0))];}],
+  year:['올해',()=>[new Date().getFullYear()+'-01-01',today()]],prev:['작년',()=>{const y=new Date().getFullYear()-1;return [y+'-01-01',y+'-12-31'];}],custom:['직접 기간',null]};
+ const cell=v=>v==null?'':typeof v==='number'?String(v):(typeof csvEsc==='function'?csvEsc(v):String(v));
+ const inRange=(d,[from,to])=>(!from||String(d||'')>=from)&&(!to||String(d||'')<=to);
+ const company=id=>typeof coName==='function'?coName(id):((db.companies||[]).find(c=>c.id===id)?.name||'');
+ const totals=lines=>{try{return quoteTotals({lines});}catch{const supply=lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0),vat=Math.round(supply*.1);return {supply,vat,total:supply+vat};}};
+ const SETS=[
+  {key:'quotes',label:'견적서',sub:'견적 1건 = 1줄 · 품목 줄로 펼치기 선택',period:true,opts:[['lines','품목 줄로 펼치기','견적 1건이 품목 수만큼 여러 줄이 됩니다'],['cancel','취소된 견적 포함','']],
+   rows(o,r){const qs=(db.quotes||[]).filter(q=>inRange(q.date,r)&&(o.cancel||q.status!=='취소')).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    if(o.lines){const out=[['견적번호','견적일','거래처','상태','품명','색상','규격/옵션','단위','수량','단가','공급가액']];
+     qs.forEach(q=>(q.lines||[]).filter(l=>(l.name||'').trim()).forEach(l=>out.push([q.no,q.date,company(q.company_id),q.status,l.name,l.color||'',l.spec||'',l.unit||'',Number(l.qty)||0,Number(l.price)||0,(Number(l.qty)||0)*(Number(l.price)||0)])));return out;}
+    const out=[['견적번호','견적일','거래처','상태','유효기간','품목 수','총수량','공급가액','세액','합계','비고']];
+    qs.forEach(q=>{const lines=(q.lines||[]).filter(l=>(l.name||'').trim()),t=totals(lines);out.push([q.no,q.date,company(q.company_id),q.status,q.valid||'',lines.length,lines.reduce((s,l)=>s+(Number(l.qty)||0),0),t.supply,t.vat,t.total,q.memo||'']);});return out;}},
+  {key:'companies',label:'거래처',sub:'상호 · 연락처 · 사업자번호 · 주소',
+   rows(){const out=[['상호','구분','담당자','연락처','이메일','사업자번호','주소','상세주소','메모']];
+    (db.companies||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'ko')).forEach(c=>out.push([c.name,c.type||'',c.contact||'',c.phone||'',c.email||'',c.biz_no||'',c.address_base??c.address??'',c.address_detail||'',c.memo||'']));return out;}},
+  {key:'items',label:'품목',sub:'코드 · 단가 · 색상 · 규격',
+   rows(){const out=[['품목코드','품명','유형','카테고리','단위','매입단가','매출단가','색상','규격/옵션']];
+    (db.items||[]).forEach(i=>out.push([i.code||'',i.name,i.type||'',i.category||'',i.unit||'',Number(i.buy_price)||0,Number(i.sell_price)||0,(i.colors||[]).join(' / '),(i.variants||[]).map(v=>v.spec).filter(Boolean).join(' / ')]));return out;}},
+  {key:'payments',label:'입금·출금',sub:'기간별 내역 · 들어온 돈과 나간 돈',period:true,
+   rows(o,r){const quote=id=>(db.quotes||[]).find(q=>q.id===id)?.no||'';const out=[['날짜','구분','거래처','결제수단','금액','연결 견적','메모']];
+    (db.payments||[]).filter(p=>!p.void_at&&inRange(p.date,r)).sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(p=>out.push([p.date,p.kind==='수금'?'입금':p.kind==='지급'?'출금':p.kind||'',company(p.company_id),p.method||'',Number(p.amount)||0,quote(p.quote_id),p.memo||'']));return out;}},
+  {key:'sales',label:'매출 집계',sub:'거래처별 품목 집계 · 매출 집계 화면과 같은 계산',period:true,app:true,
+   run(r){const from=document.getElementById('slFrom'),to=document.getElementById('slTo');if(!from||!to||typeof exportSalesCsv!=='function')return false;
+    const keep=[from.value,to.value];const [a,b]=r[0]?r:['2000-01-01',today()];from.value=a;to.value=b;try{exportSalesCsv();}finally{from.value=keep[0];to.value=keep[1];}return true;}},
+  {key:'ar',label:'받을 금액',sub:'거래처별 납품 − 입금 · 오늘 기준',app:true,run(){if(typeof exportArCsv!=='function')return false;exportArCsv();return true;}},
+  {key:'backup',label:'전체 백업',sub:'JSON · 다시 불러오기용 (모든 자료)',json:true,app:true,run(){if(typeof exportBackup!=='function')return false;exportBackup();return true;}}];
+ let exportDialog=null;
+ function openExport(){
+  if(exportDialog){exportDialog.showModal();return;}
+  const d=document.createElement('dialog');d.className='nd-export';d.setAttribute('aria-labelledby','ndExportTitle');
+  const state={key:'quotes',period:'all',from:'',to:'',opts:{}};
+  const range=()=>state.period==='custom'?[state.from,state.to]:PERIODS[state.period][1]();
+  const n=v=>Math.round(v).toLocaleString('ko-KR'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const draw=()=>{const set=SETS.find(x=>x.key===state.key),r=range(),rows=set.rows?set.rows(state.opts,r):null,count=rows?rows.length-1:null;
+   const list=SETS.map(x=>`<button type="button" class="nd-ex-item${x.key===state.key?' on':''}" data-k="${x.key}" aria-pressed="${x.key===state.key}"><span><b>${x.label}</b><small>${x.sub}</small></span><em>${x.json?'JSON':'CSV'}</em></button>`).join('');
+   const period=set.period?`<div class="nd-ex-row"><label>기간<select data-f="period">${Object.entries(PERIODS).map(([k,[l]])=>`<option value="${k}"${k===state.period?' selected':''}>${l}</option>`).join('')}</select></label>${state.period==='custom'?`<label>시작일<input type="date" data-f="from" value="${state.from}"></label><label>종료일<input type="date" data-f="to" value="${state.to}"></label>`:`<span class="nd-ex-range">${r[0]?`${r[0]} – ${r[1]}`:'처음부터 오늘까지'}</span>`}</div>`:'';
+   const opts=(set.opts||[]).map(([k,l,h])=>`<label class="nd-ex-check"><input type="checkbox" data-o="${k}"${state.opts[k]?' checked':''}><span>${l}${h?`<small>${h}</small>`:''}</span></label>`).join('');
+   const fname=fileName(set,r);
+   const preview=rows?(count?`<div class="nd-ex-table" role="table"><div class="nd-ex-tr nd-ex-th">${rows[0].map(h=>`<span>${esc(h)}</span>`).join('')}</div>${rows.slice(1,4).map(row=>`<div class="nd-ex-tr">${row.map(v=>`<span class="${typeof v==='number'?'num':''}">${esc(v)}</span>`).join('')}</div>`).join('')}</div>`:'<p class="nd-ex-empty">이 조건에 해당하는 자료가 없습니다.</p>'):`<p class="nd-ex-empty">${set.json?'모든 자료(거래처·품목·견적서·입금·출금·재고·자재·공급자 정보)를 한 파일로 저장합니다. 앱의 가져오기로 다시 불러올 수 있습니다.':'앱의 '+set.label+' 계산 그대로 만듭니다.'}</p>`;
+   d.innerHTML=`<div class="nd-ex-head"><div><div class="nd-ex-eye">자료</div><h2 id="ndExportTitle">데이터 내보내기</h2></div><button type="button" class="nd-ex-close" aria-label="닫기">닫기</button></div>
+    <div class="nd-ex-body"><nav class="nd-ex-list" aria-label="내보낼 자료">${list}</nav>
+    <section class="nd-ex-main"><div class="nd-ex-title"><h3>${set.label}</h3>${count!=null?`<span>${n(count)}건</span>`:''}</div>${period}${opts?`<div class="nd-ex-opts">${opts}</div>`:''}
+     <div class="nd-ex-file"><div><span>파일</span><b>${esc(fname)}</b></div><div><span>형식</span>${set.json?'JSON — 앱 복원용':'CSV · UTF-8(BOM) · 쉼표 구분 — 엑셀에서 더블클릭해도 한글이 깨지지 않습니다'}</div>${set.json?'':'<div><span>숫자</span>쉼표 없는 숫자(엑셀에서 바로 합계·정렬) · 날짜 2026-10-03</div>'}</div>
+     <div class="nd-ex-prev"><div class="nd-ex-sub">미리보기${rows&&count?` <small>처음 ${Math.min(3,count)}줄</small>`:''}</div>${preview}</div></section></div>
+    <div class="nd-ex-foot"><button type="button" class="nd-ex-go"${count===0?' disabled':''}>${set.json?'백업 내려받기':'CSV 내려받기'}</button></div>`;
+   d.querySelector('.nd-ex-close').onclick=()=>d.close();
+   d.querySelectorAll('.nd-ex-item').forEach(b=>b.onclick=()=>{state.key=b.dataset.k;draw();d.querySelector(`.nd-ex-item[data-k="${state.key}"]`)?.focus();});
+   d.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{state[el.dataset.f]=el.value;if(el.dataset.f==='period'&&el.value==='custom'&&!state.from){[state.from,state.to]=PERIODS.month[1]();}draw();});
+   d.querySelectorAll('[data-o]').forEach(el=>el.onchange=()=>{state.opts[el.dataset.o]=el.checked;draw();});
+   d.querySelector('.nd-ex-go').onclick=()=>{
+    if(set.run){if(!set.run(r)&&typeof window.toast==='function')window.toast('이 자료는 지금 내보낼 수 없습니다.');return;}
+    if(!count)return;const csv=rows.map(row=>row.map(cell).join(','));
+    if(typeof downloadCsv==='function')downloadCsv(csv,fname);else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=fname;a.click();}};
+  };
+  const fileName=(set,r)=>set.json?`erp_백업_${today()}.json`:set.key==='ar'?`미수금_${today()}.csv`:set.key==='sales'?`매출집계_${r[0]||'전체'}_${r[1]||today()}.csv`:`NARO_${set.label.replace('·','')}_${set.period?(r[0]?`${r[0]}_${r[1]}`:`전체_${today()}`):today()}.csv`;
+  d.addEventListener('click',e=>{if(e.target===d)d.close();});
+  document.body.append(d);exportDialog=d;draw();d.showModal();
+ }
+ window.naroExport=openExport;
+ /* Per-screen CSV buttons retire: the rail's 데이터 내보내기 is the one place (functions stay, reused above). */
+ function retireCsv(){for(const id of ['qtCsvBtn','slCsvBtn','arCsvBtn']){const b=document.getElementById(id);if(b)b.classList.add('nd-retired');}
+}
+ /* 공급자 정보 주소: the same address search as 거래처 (Daum postcode, loaded on demand). */
+ function supplierAddress(){
+  const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
+  const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
+  const b=document.createElement('button');b.type='button';b.className='nd-addr-btn';b.innerHTML=svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')+'<span>주소 검색</span>';wrap.append(b);
+  input.placeholder=input.placeholder||'주소 검색 후 상세 주소(동·호수)를 이어서 입력';
+  b.onclick=async()=>{if(typeof loadCompanyPostcode!=='function'){input.focus();return;}b.disabled=true;let dlg;
+   try{await loadCompanyPostcode();dlg=document.createElement('dialog');dlg.className='company-address-dialog';dlg.setAttribute('aria-labelledby','ndAddrTitle');
+    dlg.innerHTML='<div class="company-address-heading"><strong id="ndAddrTitle">주소 검색</strong><button type="button" class="btn ghost" aria-label="주소 검색 닫기">닫기</button></div><div class="company-address-embed"></div>';
+    document.body.append(dlg);dlg.addEventListener('close',()=>{dlg.remove();b.focus();});dlg.querySelector('button').onclick=()=>dlg.close();dlg.showModal();
+    new window.daum.Postcode({width:'100%',height:'100%',oncomplete(data){const v=data.userSelectedType==='J'?data.jibunAddress||data.address:data.roadAddress||data.address;
+     input.value=v+' ';dlg.close();input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));}}).embed(dlg.querySelector('.company-address-embed'));}
+   catch{dlg?.close();typeof window.toast==='function'&&window.toast('주소 검색을 불러오지 못했습니다. 주소를 직접 입력해 주세요.');}
+   finally{b.disabled=false;}};}
+
+ /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
+ function settingsPolish(){
+  const view=document.getElementById('view-settings');if(!view)return;
+  for(const sec of view.querySelectorAll('section.card')){const h=sec.querySelector(':scope>h3');if(h&&h.textContent.trim()==='개인 클라우드 이미지'&&!sec.classList.contains('nd-assets')){sec.classList.add('nd-assets');
+   const btns=sec.querySelectorAll(':scope>button');btns[0]?.classList.add('nd-assets-up');btns[1]?.classList.add('nd-assets-view');
+   const row=document.createElement('div');row.className='nd-assets-row';sec.querySelector(':scope>select')?.before(row);row.append(...sec.querySelectorAll(':scope>select,:scope>button'));}}
+  for(const [id,label] of [['st_card_url','명함'],['st_cert_url','사업자등록증']]){const hint=document.getElementById(id)?.closest('.field')?.querySelector('.hint');
+   if(hint&&!hint.dataset.nd){hint.dataset.nd='1';hint.textContent=`예전 방식(링크)입니다. 지금 '${label} 보내기'는 아래 '개인 클라우드 이미지'에 저장한 이미지를 보냅니다.`;}}}
+ function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}
+ function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
