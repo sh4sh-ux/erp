@@ -145,3 +145,10 @@ html[data-theme="dark"] .primary{box-shadow:none}
 html[data-theme="dark"] .brand{filter:saturate(.92) brightness(.96)}
 /* The brand panel is a light photograph in every theme: keep its ink dark. */
 .master-brand{color:#0F1A2E}.master-brand h1 em{color:#0860ff}.master-brand .master-tagline{color:#425a80}.master-brand .master-motto{color:#fff}
+/* Steady steps: every screen's title starts on the same line, so moving through
+   signup → verify → storage → ready never makes the heading jump. */
+@media(min-width:1100px){
+ body[data-screen] .panel{padding-top:160px}
+ body[data-screen="connecting"] .panel,body[data-screen="preparing"] .panel{padding-top:122px}
+ .connecting-icon{margin-bottom:28px;height:82px}
+}

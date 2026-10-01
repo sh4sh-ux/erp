@@ -22,6 +22,15 @@
   split('stock','재고 상세',['.stock-tools','#stockItems'],['.stats','.stock-add','#stockOverview','.stock-history-title','.tbl-wrap:has(#ivHist)']);
   split('payments','입금·출금 상세',['.ops-actions','.ops-filters'],['.ops-summary','.card:has(#payTbl)','.card:has(#payByCo)']);
   // Read the already-rendered rows. Index navigation never changes filters or data.
+  // Ledger row → list row (same anatomy as quote rows): counterparty + amount, then date · kind · method · note.
+  function paymentRow(button,row){
+   const cells=[...row.querySelectorAll('td')].map(c=>c.textContent.trim()),blank=v=>!v||v==='—'||v==='-';
+   const pill=row.querySelector('.pill'),kind=pill?.textContent.trim()||'',out=pill?.classList.contains('out')||/지급|출금/.test(kind);
+   const part=(cls,text)=>{const s=document.createElement('span');s.className=cls;s.textContent=text;return s;};
+   const top=part('pbr-top',''),sub=part('pbr-sub',[cells[0],kind,cells[5],cells[2],cells[3]].filter(v=>!blank(v)).join(' · '));
+   top.append(part('pbr-name',blank(cells[1])?'거래처 없음':cells[1]),part('pbr-amt'+(out?' out':' in'),(out?'−':'+')+(cells[6]||'')));
+   button.classList.add('pbr');button.append(top,sub);
+  }
   function index(id,sourceSelector,rowSelector,label){
    const view=document.getElementById('view-'+id),left=view?.querySelector('.workspace-left'),source=view?.querySelector(sourceSelector);
    if(!left||!source)return;
@@ -33,7 +42,8 @@
     list.replaceChildren();
     if(!rows.length){const note=document.createElement('p');note.className='hint';note.textContent='표시할 '+label+' 내역이 없습니다.';list.append(note);return;}
     rows.forEach(row=>{const button=document.createElement('button');button.type='button';
-     button.textContent=id==='sales'?row.querySelector('h3')?.textContent: id==='settings'?row.querySelector('h3')?.textContent:[...row.querySelectorAll('td')].slice(0,4).map(c=>c.textContent.trim()).filter(Boolean).join(' · ');
+     if(id==='payments')paymentRow(button,row);
+     else button.textContent=id==='sales'?row.querySelector('h3')?.textContent: id==='settings'?row.querySelector('h3')?.textContent:[...row.querySelectorAll('td')].slice(0,4).map(c=>c.textContent.trim()).filter(Boolean).join(' · ');
      if(!button.textContent)return;button.hidden=!button.textContent.includes(query);
      button.onclick=()=>{source.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));row.classList.add('panel-b-selected');list.querySelectorAll('button').forEach(n=>n.classList.toggle('on',n===button));row.scrollIntoView({block:'nearest',behavior:'smooth'});};list.append(button);
     });

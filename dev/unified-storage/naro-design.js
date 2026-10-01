@@ -61,6 +61,16 @@
   const tools=foot?.querySelector('.rail-tools');if(tools&&!tools.querySelector('.nd-menu')){const menu=document.createElement('div');menu.className='nd-menu';tools.querySelectorAll(':scope>.rail-act').forEach(a=>menu.append(a));tools.append(menu);
    tools.querySelector('summary')?.setAttribute('aria-label','더보기');document.addEventListener('click',e=>{if(tools.open&&!tools.contains(e.target))tools.open=false;});}
   apply();};
+ /* Desktop scope row: companies/items keep their search + add in the 144px header, like quotes.
+    Original nodes move (listeners intact) and return when the viewport leaves desktop. */
+ const desk=matchMedia('(min-width:1024px)'),moved=[];
+ function scope(){
+  if(desk.matches&&!moved.length){for(const v of ['companies','items']){const head=document.querySelector(`#view-${v}>.page-head`),row=document.querySelector(`#view-${v} .list-head`);
+    if(!head||!row||head.contains(row))continue;const mark=document.createComment('nd-scope-origin');row.before(mark);head.append(row);head.classList.add('nd-scope');moved.push([mark,row,head]);}}
+  else if(!desk.matches&&moved.length){moved.splice(0).forEach(([mark,row,head])=>{mark.replaceWith(row);head.classList.remove('nd-scope');});}
+ }
+ desk.addEventListener?.('change',scope);
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
 })();
