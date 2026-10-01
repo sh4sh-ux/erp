@@ -7554,6 +7554,116 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
  /* Ledger table: short cells never wrap mid-word. */
  #appView #payTbl td:not(.ledger-memo),#appView #payTbl th{white-space:nowrap;word-break:keep-all}
 }
+
+/* ---------- 7. v5 시안 1차 — rail '자료', quick-filter chips, tabs band, action bar ---------- */
+@media screen{
+ /* Rail: '자료' actions look like menu items; the ⋯ menu keeps refresh · logout only. */
+ #appView .shell .rail-nav .nd-nav-act{display:flex;align-items:center;gap:12px;width:100%;height:36px;min-height:36px;padding:0 12px;border:0;border-radius:10px;font:500 14px/20px var(--sans);color:var(--nd-ink-2);background:transparent;cursor:pointer;text-align:left;transition:background .12s,color .12s}
+ #appView .shell .rail-nav .nd-nav-act>svg{width:18px;height:18px;flex:none;opacity:.9}
+ #appView .shell .rail-nav .nd-nav-act>span{white-space:nowrap}
+ #appView .shell .rail-nav .nd-nav-act:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView .shell .rail-foot .nd-menu>:is(#bizCardBtn,#bizCertBtn){display:none}
+ #appView .shell .rail-nav .nd-nav-act>.nd-soon{display:none;margin-left:auto;font:600 10.5px/1 var(--sans);font-style:normal;color:var(--nd-ink-3);background:var(--nd-fill);border-radius:6px;padding:4px 6px;white-space:nowrap}
+ #appView .shell .rail-nav .nd-nav-act.nd-off{color:var(--nd-ink-3)}
+ #appView .shell .rail-nav .nd-nav-act.nd-off>.nd-soon{display:inline-block}
+ /* Quick-filter chips: 44px band — the same height as the detail tab band, so both dividers meet. */
+ #appView .nd-chips{flex:none;height:44px;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:0 var(--panel-inset,16px);border-bottom:1px solid var(--nd-line);overflow-x:auto;scrollbar-width:none}
+ #appView .nd-chips::-webkit-scrollbar{display:none}
+ #appView .nd-chips>button{flex:none;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12px/1 var(--sans);white-space:nowrap;cursor:pointer}
+ #appView .nd-chips>button:hover{color:var(--nd-ink)}
+ #appView .nd-chips>button[aria-pressed="true"]{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame)}
+ #appView select.nd-chip-source#coType{display:none!important}
+ /* ⋯ more menu (delete · copy · email): an icon button with a small popover. */
+ #appView .shell .main .form-actions>.panel-b-danger{position:relative;flex:none}
+ #appView .shell .main .form-actions>.panel-b-danger>summary{list-style:none;width:40px;height:40px;padding:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font-size:0!important;cursor:pointer}
+ #appView .shell .main .form-actions>.panel-b-danger>summary::-webkit-details-marker{display:none}
+ #appView .shell .main .form-actions>.panel-b-danger>summary::before{content:'';width:17px;height:17px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView .shell .main .form-actions>.panel-b-danger[open]>summary,#appView .shell .main .form-actions>.panel-b-danger>summary:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop{position:absolute;right:0;bottom:calc(100% + 8px);min-width:168px;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--nd-raised);border:1px solid var(--nd-line);border-radius:12px;box-shadow:var(--nd-pop);z-index:40}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn{position:static!important;display:flex!important;align-items:center;justify-content:flex-start;gap:10px;width:100%!important;min-width:0!important;height:38px!important;min-height:38px!important;margin:0!important;padding:0 10px!important;border:0!important;border-radius:8px;background:transparent!important;box-shadow:none!important;color:var(--nd-ink)!important;font:500 13.5px/1 var(--sans)!important;white-space:nowrap}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn:hover{background:var(--nd-fill)!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del{color:var(--nd-red)!important;margin-top:4px!important;position:relative!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del::before{content:'';position:absolute;left:6px;right:6px;top:-3px;height:1px;background:var(--nd-line-2)}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn>svg{width:16px;height:16px;flex:none}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del:only-child{margin-top:0!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del:only-child::before{display:none}
+ /* One order everywhere: secondary … ⋯ · save (right end). */
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger{order:8}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{order:9}
+}
+@media screen and (min-width:1024px){
+ /* Rail: 13 items + 7 groups fit a 900px window; below that the menu (only) scrolls. Dividers run edge to edge. */
+ #appView[data-layout-system="b"] .shell .rail-nav{overflow-y:auto;scrollbar-width:none;padding-top:6px!important;padding-bottom:4px!important}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding:8px 12px 3px}
+ #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:32px!important;min-height:32px!important;flex:0 0 32px!important}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar .rail-logo{width:calc(100% + 28px)!important;max-width:none}
+ #appView[data-layout-system="b"] .shell .rail-foot{margin:0 -14px!important;padding:12px 14px 0!important}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions{display:flex!important;align-items:center;gap:8px;flex-wrap:nowrap}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger{margin-left:auto}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{flex:none!important;width:auto!important;min-width:160px;height:40px;margin:0!important}
+ /* Quote header: 144 (summary) + 44 (tabs) — the tab divider lines up with the list's chip divider. */
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm.workspace-form{grid-template-rows:calc(var(--panel-head) + 44px) minmax(0,1fr) auto}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.panel-b-work-header{height:calc(var(--panel-head) + 44px);grid-template-rows:var(--panel-head) 43px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.quote-summary{height:var(--panel-head);box-sizing:border-box;padding:30px var(--panel-inset) 0;border-bottom:1px solid var(--nd-line)!important}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs{height:43px;padding:0 var(--panel-inset);gap:24px;align-items:stretch}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs>button{min-width:0;min-height:0;height:43px;padding:0 2px;border:0!important;border-radius:0;background:none;color:var(--nd-ink-3);font:500 14px/1 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs>button[aria-selected="true"]{color:var(--nd-ink);font-weight:650;box-shadow:inset 0 -2px 0 var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.workspace-form-body{padding-top:24px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .quote-list-card>.nd-chips{background:var(--nd-left)}
+}
+@media screen and (max-width:1023px){
+ #appView .nd-chips{padding:0 16px;margin:0 -16px}
+ #appView .nd-chips>button{height:30px;padding:0 12px;border-radius:15px;font-size:13px}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{flex:1 1 auto}
+}
+@media screen and (max-width:1023px){
+ /* Record screens: the save bar takes the bottom tab bar's place — one row [⋯][저장], nothing stacked. */
+ #appView:has(#view-quotes:not(.hidden) #qtCols.detail-open) #bottomNav,#appView:has(.view.mobile-record-open:not(.hidden)) #bottomNav{display:none!important}
+ #appView .shell .main>#view-quotes:not(.hidden):has(#qtCols.detail-open)::after{display:none}
+ #appView .shell .main>.view.mobile-record-open>.cols>.card:last-child{padding-bottom:0!important}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions{bottom:0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;gap:8px!important}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions>.btn.save{height:48px;min-height:48px;border-radius:12px;font-size:16px}
+ #appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger>summary{width:48px;height:48px;border-radius:12px}
+ #appView .shell .main #view-quotes .quote-form-actions{display:grid!important;grid-template-columns:48px minmax(0,1fr);align-items:start}
+ #appView .shell .main #view-quotes .quote-form-actions>.btn.save{grid-column:2;grid-row:1}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more{grid-column:1;grid-row:1;padding:0;border-radius:12px;background:var(--nd-surface)}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary{width:100%;height:46px;min-height:46px;padding:0;font-size:0!important;display:flex;align-items:center;justify-content:center;color:var(--nd-ink-2)}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary::before{content:'';width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more[open]{grid-column:1/-1;padding:0 10px 10px}
+ #appView .shell .main #view-quotes .quote-form-actions:has(>.qp-more[open])>.btn.save{grid-column:1/-1;grid-row:2}
+}
+@media screen and (max-width:1023px){
+ #appView .shell .rail-nav .nd-nav-act{height:48px;min-height:48px;padding:10px 12px;gap:10px;border-radius:12px;font:600 14px/1.2 var(--sans)}
+ #appView #view-companies .nd-chips{margin:0}
+}
+@media screen and (max-width:1023px){#appView .shell .rail-nav .nd-nav-act.nd-off>.nd-soon{display:none}}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>:is(.btn.ghost,select){flex:none;white-space:nowrap;height:40px!important;min-height:40px!important;box-sizing:border-box}
+}
+/* Narrow desktop: quote secondary actions become 40px icon buttons so the bar stays one line. */
+@media screen and (min-width:1024px) and (max-width:1439px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost{width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;justify-content:center;gap:0}
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost>svg{width:17px;height:17px}
+}
+
+/* ---------- 8. 업체 제공 자재 — stacked bar (validated blue ramp; 보유 = strongest) ---------- */
+:root{--nd-mat-held:#3445D6;--nd-mat-used:#7E8BEE;--nd-mat-ret:#C3CAF6}
+html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret:#363D78}
+@media screen{
+ #appView .nd-mat{margin:18px 0 6px;padding:16px 18px;border-radius:14px;background:var(--nd-fill)}
+ #appView .nd-mat-hd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;font:600 12.5px/16px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mat-hd>span:last-child{font-weight:500;font-size:12px;color:var(--nd-ink-3);white-space:nowrap}
+ #appView .nd-mat-bar{display:flex;gap:2px;height:10px;border-radius:10px;overflow:hidden;background:var(--nd-fill)}
+ #appView .nd-mat-bar>i{display:block;min-width:4px;flex-basis:0}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.held{background:var(--nd-mat-held)}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.used{background:var(--nd-mat-used)}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.ret{background:var(--nd-mat-ret)}
+ #appView .nd-mat-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px}
+ #appView .nd-mat-legend>span{display:inline-flex;align-items:center;gap:6px;font:500 12.5px/16px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mat-legend>span>i{width:8px;height:8px;border-radius:50%}
+ #appView .nd-mat-legend b{font-weight:700;color:var(--nd-ink);font-variant-numeric:tabular-nums}
+}
+@media screen and (max-width:1023px){#appView .nd-mat-hd>span:last-child{display:none}}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -7625,6 +7735,65 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
     if(!head||!row||head.contains(row))continue;const mark=document.createComment('nd-scope-origin');row.before(mark);head.append(row);head.classList.add('nd-scope');moved.push([mark,row,head]);}}
   else if(!desk.matches&&moved.length){moved.splice(0).forEach(([mark,row,head])=>{mark.replaceWith(row);head.classList.remove('nd-scope');});}
  }
+
+ /* v5 시안 1차: rail '자료' group · quick-filter chips (drive the existing selects) · one action-bar order.
+    Existing nodes keep their handlers; only placement changes. */
+ const svgI=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+ const ICON_CARD='<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.5 1.8-2 3-2s2.4.5 3 2M14 10h4M14 13h3"/>',
+  ICON_DOC='<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/>';
+ function railDocs(){const nav=document.querySelector('#appView .rail-nav');if(!nav||nav.querySelector('.nd-docs'))return;
+  const before=[...nav.querySelectorAll('.nav-sec')].find(s=>s.textContent.trim()==='설정');
+  const sec=document.createElement('div');sec.className='nav-sec nd-docs';sec.textContent='자료';
+  // Not .nav-item: the app rebinds every .nav-item to switchView(dataset.view).
+  // Mirrors the source button: when this build disables it, say so instead of a dead click.
+  const act=(id,label,icon)=>{const b=document.createElement('button'),src=document.getElementById(id);b.type='button';b.className='nd-nav-act';b.innerHTML=svgI(icon)+`<span>${label}</span><em class="nd-soon">준비 중</em>`;
+   const mirror=()=>{const off=!src||src.disabled;b.classList.toggle('nd-off',off);b.title=off?'이번 버전에서는 아직 지원하지 않습니다.':label;};
+   if(src)new MutationObserver(mirror).observe(src,{attributes:true,attributeFilter:['disabled']});mirror();
+   b.onclick=()=>{if(!src||src.disabled){typeof window.toast==='function'&&window.toast('이번 버전에서는 아직 지원하지 않습니다.');return;}
+    src.click();if(!desk.matches&&typeof window.toggleNav==='function')window.toggleNav(false);};return b;};
+  const nodes=[sec,act('bizCardBtn','명함 보내기',ICON_CARD),act('bizCertBtn','사업자등록증',ICON_DOC)];
+  before?before.before(...nodes):nav.append(...nodes);}
+ const CHIPS=[
+  {select:'qtStatus',host:'#view-quotes .quote-list-card',list:'qtList',items:[['','전체'],['작성중','작성중'],['발송','발송'],['수주','수주'],['납품','납품']]},
+  {select:'coType',host:'#view-companies>.cols>.card:first-child',list:'coList',items:[['','전체'],['매출','매출'],['매입','매입']]}];
+ function chips(){for(const c of CHIPS){const select=document.getElementById(c.select),host=document.querySelector(c.host),list=document.getElementById(c.list);
+  if(!select||!host||!list||host.querySelector('.nd-chips'))continue;
+  const row=document.createElement('div');row.className='nd-chips';row.setAttribute('role','group');row.setAttribute('aria-label','빠른 필터');
+  const sync=()=>row.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===select.value)));
+  for(const [v,label] of c.items){const b=document.createElement('button');b.type='button';b.dataset.v=v;b.textContent=label;
+   b.onclick=()=>{if(select.value!==v){select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));}sync();};row.append(b);}
+  list.before(row);select.classList.add('nd-chip-source');
+  select.addEventListener('change',sync);new MutationObserver(sync).observe(list,{childList:true});sync();}}
+ /* Action bar: [secondary ≤4] … [⋯ more] [save]. Quote copy/email join delete inside ⋯. */
+ function actions(){
+  for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
+   let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
+    menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
+   if(menu.closest('#qtForm'))for(const id of ['qtMailBtn','qtCopyBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==pop)pop.prepend(b);}
+   menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
+   if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
+    pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}}
+
+ /* 업체 제공 자재: received = 보유 + 사용 + 반환·불량 for the selected material, as one stacked bar (blue ramp).
+    Reads the same ledger the screen already shows; draws only. */
+ function materialGraph(){
+  const root=document.getElementById('materialContent'),hero=root?.querySelector('.material-balance-hero');if(!hero||root.querySelector('.nd-mat'))return;
+  let cid,name,rows;try{cid=materialSelectedCompanyId;name=materialSelectedName;rows=db.material_moves;}catch{return;}
+  rows=(rows||[]).filter(m=>!m.void_at&&m.company_id===cid&&m.material===name);
+  const sum=test=>rows.filter(m=>test(m.kind)).reduce((s,m)=>s+(Number(m.qty)||0),0);
+  const recv=sum(k=>k==='받음'),used=sum(k=>k==='작업 완료'),ret=sum(k=>k!=='받음'&&k!=='작업 완료');if(recv<=0)return;
+  const n=v=>Math.round(v).toLocaleString('ko-KR'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const segs=[['보유',Math.max(0,recv-used-ret),'held'],['사용',used,'used'],['반환·불량',ret,'ret']];
+  const card=document.createElement('div');card.className='nd-mat';
+  card.innerHTML=`<div class="nd-mat-hd"><span>받은 ${esc(name)} ${n(recv)}개</span><span>받음 = 보유 + 사용 + 반환·불량</span></div>`
+   +`<div class="nd-mat-bar" role="img" aria-label="${segs.map(([l,v])=>`${l} ${n(v)}개`).join(', ')}">${segs.filter(([,v])=>v>0).map(([l,v,k])=>`<i class="${k}" style="flex-grow:${v}" title="${l} ${n(v)}개"></i>`).join('')}</div>`
+   +`<div class="nd-mat-legend">${segs.map(([l,v,k])=>`<span><i class="${k}"></i>${l}<b>${n(v)}</b></span>`).join('')}</div>`;
+  const summary=root.querySelector('.material-summary');summary?summary.before(card):hero.after(card);}
+ function watchMaterials(){const root=document.getElementById('materialContent');if(!root||root.dataset.ndWatch)return;root.dataset.ndWatch='1';new MutationObserver(materialGraph).observe(root,{childList:true});materialGraph();}
+ function v5(){railDocs();chips();actions();watchMaterials();
+  const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
+  if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});

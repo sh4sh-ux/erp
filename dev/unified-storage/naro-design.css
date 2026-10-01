@@ -359,3 +359,22 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
  #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost{width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;justify-content:center;gap:0}
  #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost>svg{width:17px;height:17px}
 }
+
+/* ---------- 8. 업체 제공 자재 — stacked bar (validated blue ramp; 보유 = strongest) ---------- */
+:root{--nd-mat-held:#3445D6;--nd-mat-used:#7E8BEE;--nd-mat-ret:#C3CAF6}
+html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret:#363D78}
+@media screen{
+ #appView .nd-mat{margin:18px 0 6px;padding:16px 18px;border-radius:14px;background:var(--nd-fill)}
+ #appView .nd-mat-hd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px;font:600 12.5px/16px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mat-hd>span:last-child{font-weight:500;font-size:12px;color:var(--nd-ink-3);white-space:nowrap}
+ #appView .nd-mat-bar{display:flex;gap:2px;height:10px;border-radius:10px;overflow:hidden;background:var(--nd-fill)}
+ #appView .nd-mat-bar>i{display:block;min-width:4px;flex-basis:0}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.held{background:var(--nd-mat-held)}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.used{background:var(--nd-mat-used)}
+ #appView .nd-mat :is(.nd-mat-bar,.nd-mat-legend) i.ret{background:var(--nd-mat-ret)}
+ #appView .nd-mat-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px}
+ #appView .nd-mat-legend>span{display:inline-flex;align-items:center;gap:6px;font:500 12.5px/16px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mat-legend>span>i{width:8px;height:8px;border-radius:50%}
+ #appView .nd-mat-legend b{font-weight:700;color:var(--nd-ink);font-variant-numeric:tabular-nums}
+}
+@media screen and (max-width:1023px){#appView .nd-mat-hd>span:last-child{display:none}}

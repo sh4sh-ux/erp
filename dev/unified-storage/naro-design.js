@@ -107,7 +107,24 @@
    menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
    if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
     pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}}
- function v5(){railDocs();chips();actions();
+
+ /* 업체 제공 자재: received = 보유 + 사용 + 반환·불량 for the selected material, as one stacked bar (blue ramp).
+    Reads the same ledger the screen already shows; draws only. */
+ function materialGraph(){
+  const root=document.getElementById('materialContent'),hero=root?.querySelector('.material-balance-hero');if(!hero||root.querySelector('.nd-mat'))return;
+  let cid,name,rows;try{cid=materialSelectedCompanyId;name=materialSelectedName;rows=db.material_moves;}catch{return;}
+  rows=(rows||[]).filter(m=>!m.void_at&&m.company_id===cid&&m.material===name);
+  const sum=test=>rows.filter(m=>test(m.kind)).reduce((s,m)=>s+(Number(m.qty)||0),0);
+  const recv=sum(k=>k==='받음'),used=sum(k=>k==='작업 완료'),ret=sum(k=>k!=='받음'&&k!=='작업 완료');if(recv<=0)return;
+  const n=v=>Math.round(v).toLocaleString('ko-KR'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const segs=[['보유',Math.max(0,recv-used-ret),'held'],['사용',used,'used'],['반환·불량',ret,'ret']];
+  const card=document.createElement('div');card.className='nd-mat';
+  card.innerHTML=`<div class="nd-mat-hd"><span>받은 ${esc(name)} ${n(recv)}개</span><span>받음 = 보유 + 사용 + 반환·불량</span></div>`
+   +`<div class="nd-mat-bar" role="img" aria-label="${segs.map(([l,v])=>`${l} ${n(v)}개`).join(', ')}">${segs.filter(([,v])=>v>0).map(([l,v,k])=>`<i class="${k}" style="flex-grow:${v}" title="${l} ${n(v)}개"></i>`).join('')}</div>`
+   +`<div class="nd-mat-legend">${segs.map(([l,v,k])=>`<span><i class="${k}"></i>${l}<b>${n(v)}</b></span>`).join('')}</div>`;
+  const summary=root.querySelector('.material-summary');summary?summary.before(card):hero.after(card);}
+ function watchMaterials(){const root=document.getElementById('materialContent');if(!root||root.dataset.ndWatch)return;root.dataset.ndWatch='1';new MutationObserver(materialGraph).observe(root,{childList:true});materialGraph();}
+ function v5(){railDocs();chips();actions();watchMaterials();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();

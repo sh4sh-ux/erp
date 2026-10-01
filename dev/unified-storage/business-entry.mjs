@@ -15,7 +15,7 @@ export function start(bridge,build){
  });
  bridge.StorageRepository.saveSnapshot=()=>{throw Error('WRITE_BLOCKED');};
  Object.freeze(bridge.Table);Object.freeze(bridge.StorageRepository);
- const denied=build?.extendedWrite?'#resetDbxBtn,#bizCardBtn,#bizCertBtn,[data-delivery-remove],[data-stock-edit],[data-stock-delete]':'#view-settings,#view-materials,#bkImportBtn,#bkExportBtn,#resetDbxBtn,#bizCardBtn,#bizCertBtn,#coDelBtn,#itDelBtn,#qtDelBtn,[data-delivery-remove],#payTbl .rm,[data-stock-edit],[data-stock-delete]';
+ const denied=build?.extendedWrite?'#resetDbxBtn,[data-delivery-remove],[data-stock-edit],[data-stock-delete]':'#view-settings,#view-materials,#bkImportBtn,#bkExportBtn,#resetDbxBtn,#bizCardBtn,#bizCertBtn,#coDelBtn,#itDelBtn,#qtDelBtn,[data-delivery-remove],#payTbl .rm,[data-stock-edit],[data-stock-delete]';
  const restrict=()=>{
   for(const el of document.querySelectorAll(denied)){
    for(const control of el.matches('button,input,select,textarea')?[el]:el.querySelectorAll('button,input,select,textarea')){
@@ -96,6 +96,30 @@ export function start(bridge,build){
    if(build.extendedWrite){
     const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,...details});});
     installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>{status.hidden=false;status.textContent=text;}});
+    // 명함·사업자등록증 보내기: the image saved under 공급자 정보 → 개인 클라우드 이미지 (settings.assets).
+    // Phone: share sheet. Desktop: copy the image, else download it. The file is kept after the first read,
+    // so if the browser refuses to share after the network wait, the next tap shares instantly.
+    const sent={};
+    const say=text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text);
+    const sendAsset=async(kind,label,filename)=>{
+     const path=bridge.db.settings?.assets?.[kind];
+     if(!path){say(`${label} 이미지가 아직 없습니다 — 공급자 정보의 '개인 클라우드 이미지'에서 먼저 저장해 주세요.`);bridge.switchView('settings');return;}
+     let file=sent[kind]?.path===path?sent[kind].file:null;
+     if(!file){
+      say(`${label} 이미지를 불러오는 중…`);
+      try{const {bytes}=await assetRequest('ASSET_READ',{path});file=new File([bytes],filename,{type:'image/png'});sent[kind]={path,file};}
+      catch(error){say(error.message||`${label} 이미지를 불러오지 못했습니다.`);return;}
+     }
+     if(navigator.canShare?.({files:[file]})){
+      try{await navigator.share({files:[file]});return;}
+      catch(error){if(error?.name==='AbortError')return;if(error?.name==='NotAllowedError'){say(`${label} 이미지가 준비됐습니다 — 한 번 더 눌러 주세요.`);return;}}
+     }
+     try{if(navigator.clipboard?.write&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);say(`${label} 이미지를 복사했습니다 — 메일·메신저에 붙여넣기로 보내세요.`);return;}}catch{}
+     const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+     say(`${label} 이미지를 내려받았습니다.`);
+    };
+    // ASCII file names: some browsers drop non-ASCII download names.
+    for(const [id,kind,label,filename] of [['bizCardBtn','card','명함','business-card.png'],['bizCertBtn','registration','사업자등록증','business-registration.png']]){const b=document.getElementById(id);if(b){b.disabled=false;b.title=label+' 보내기';b.onclick=()=>sendAsset(kind,label,filename);}}
     const input=document.getElementById('bkFile'),button=document.getElementById('bkImportBtn');input.accept='.json,.csv,.xlsx';button.textContent='JSON / CSV / Excel 가져오기';button.onclick=()=>input.click();
     const help=document.createElement('p');help.textContent='CSV: UTF-8, dataset와 id 열 필수. Excel: companies/items/quotes/payments/stock_moves/material_moves 시트와 id 열 필수. 날짜는 YYYY-MM-DD 텍스트, 수식은 값으로 변환해 주세요. 최대 5,000행·7MB. 기존 항목은 덮어쓰지 않습니다.';button.parentElement.append(help);
     const template=document.createElement('button');template.type='button';template.textContent='거래처 CSV 양식';button.parentElement.append(template);template.onclick=()=>{const url=URL.createObjectURL(new Blob(['\uFEFFdataset,id,name,type,contact,phone,email,memo\r\n'],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='naro-companies-template.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
