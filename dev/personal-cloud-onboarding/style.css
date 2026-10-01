@@ -152,3 +152,14 @@ html[data-theme="dark"] .brand{filter:saturate(.92) brightness(.96)}
  body[data-screen="connecting"] .panel,body[data-screen="preparing"] .panel{padding-top:122px}
  .connecting-icon{margin-bottom:28px;height:82px}
 }
+/* Light assets: photo as progressive JPEG (was a 1.3MB PNG). */
+.brand{background-image:url('./office-polish-v2.jpg')}
+/* Progress shows the step: account 1/3 → data 2/3 → workspace 3/3, with a gentle shimmer. */
+.progress{position:relative;overflow:hidden;background:var(--o-line-2)}
+.progress:before{width:33%;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.progress[data-step="2"]:before{width:66%}.progress[data-step="3"]:before{width:100%}
+.progress:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:o-shimmer 1.4s ease-in-out infinite}
+html[data-theme="dark"] .progress:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent)}
+@keyframes o-shimmer{to{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.progress:after{animation:none}}
+body[data-screen="ready"] .panel .progress{margin-top:28px}

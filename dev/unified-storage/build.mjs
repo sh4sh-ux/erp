@@ -17,11 +17,14 @@ const original=resolve(root,'outputs/personal-cloud-onboarding-public-release/re
 for(const name of await readdir(original)){if(!name.startsWith('dropbox-')||name==='dropbox-icon.png')await copyFile(resolve(original,name),resolve(release,name));}
 const onboarding=resolve(here,'../personal-cloud-onboarding');
 for(const name of ['core.mjs','firebase-auth.mjs','google-oauth.mjs','drive-account-binding.mjs'])await copyFile(resolve(onboarding,name),resolve(release,name));
+// Icons at display size (the originals were up to 2400px for a 35px icon).
+for(const name of ['drive-icon.png','dropbox-icon.png'])await copyFile(resolve(onboarding,name),resolve(release,name));
 const {build:bundleAuth}=await import('/private/tmp/naro-onboarding-build-tools/node_modules/esbuild/lib/main.js');
 await bundleAuth({stdin:{contents:"export {initializeApp} from 'firebase/app'; export {initializeAuth,inMemoryPersistence,browserLocalPersistence,setPersistence,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendEmailVerification,reload,sendPasswordResetEmail,signOut} from 'firebase/auth';",resolveDir:resolve(root,'work/erp/dev/firebase'),sourcefile:'auth-entry.mjs'},bundle:true,format:'esm',platform:'browser',target:'es2022',minify:true,outfile:resolve(release,'sdk.mjs'),logLevel:'silent'});
 // UI-only assets use current editable source; auth/bootstrap stay pinned below.
 for(const name of ['style.css','office-polish-v2.png','naro-symbol.png','naro-wordmark.png'])await copyFile(resolve(onboarding,name),resolve(release,name));
 await copyFile(resolve(onboarding,'office-silver-v3.png'),resolve(release,'office-polish-v2.png'));
+await copyFile(resolve(onboarding,'office-silver-v3.jpg'),resolve(release,'office-polish-v2.jpg'));
 const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png">')
  // Same theme preference as /erp/ ('naroTheme': light | dark | system), applied before first paint.
  .replace('</head>',`<script>(()=>{const m=matchMedia('(prefers-color-scheme: dark)'),a=()=>{let p=null;try{p=localStorage.getItem('naroTheme')}catch{}document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(m.matches?'dark':'light')};a();m.addEventListener?.('change',a);addEventListener('storage',e=>{if(e.key==='naroTheme'||e.key===null)a()})})()</script></head>`);
@@ -41,7 +44,7 @@ runtime=runtime.replace('createGoogleBackend({oauth:drive,signal})','createGoogl
 if(companies)runtime=runtime.replace('signal,readOnly:true','signal,readOnly:true,companiesCreate:true');
 if(business)runtime=runtime.replace('signal,readOnly:true','signal,readOnly:true,businessWrite:true');
 if(extended)runtime=runtime.replace('businessWrite:true','businessWrite:true,extendedWrite:true');
-runtime=runtime.replace("blockedProviders:drive?{}:{drive:'GOOGLE SDK UNAVAILABLE'}","blockedProviders:{dropbox:'READ FOUNDATION — NOT CONNECTED',...(!drive?{drive:'GOOGLE SDK UNAVAILABLE'}:{})}");
+runtime=runtime.replace("blockedProviders:blocked}","blockedProviders:Object.assign(blocked,{dropbox:'READ FOUNDATION — NOT CONNECTED'})}");
 if(extended){
  runtime=(await readFile(resolve(onboarding,'runtime-live.mjs'),'utf8')).replace('createGoogleBackend({oauth:drive,signal})','createGoogleBackend({oauth:drive,signal,readOnly:true,businessWrite:true,extendedWrite:true,initializeNew:true})').replace('createDropboxBackend({oauth,signal})','createDropboxBackend({oauth,signal,businessWrite:true})');
  for(const name of ['dropbox-oauth.mjs','dropbox-backend.mjs','dropbox-callback.html','dropbox-callback.mjs','dropbox-waiting.html'])await copyFile(resolve(onboarding,name),resolve(release,name));
@@ -110,6 +113,14 @@ if(business){
  app=app.replace('selectedProvider=el.dataset.provider;',"selectedProvider=el.dataset.provider;accountChoice.hidden=selectedProvider!=='drive';accountChoice.querySelector('input').checked=false;");
  app=app.replace('prepareConnect(selectedProvider);',"prepareConnect(selectedProvider,{selectAccount:selectedProvider==='drive'&&document.getElementById('drive-select-account')?.checked===true});");
  app=app.replace('이전에 사용한 저장소입니다. 연결할 계정은 Google 또는 Dropbox 창에서 확인해 주세요.','이전에 사용한 저장소입니다. Google Drive는 이 기기에 기억한 연결 계정을 확인한 뒤 파일을 엽니다.');
+}
+// Progress that says what is happening: account (1/3) → data (2/3) → workspace (3/3).
+{
+ const connecting="heading(providerName(state.provider||selectedProvider)+'를<br>연결하고 있습니다.','안전하게 계정을 연결하고 있어요.')+\n    '<div class=\"progress\" role=\"progressbar\" aria-label=\"연결 중\"></div>';";
+ if(!app.includes(connecting))throw Error('CONNECTING_UI_BOUNDARY_CHANGED');
+ app=app.replace(connecting,"(state.screen==='preparing'?heading('업무 데이터를<br>불러오고 있습니다.','저장공간에서 최신 자료를 가져오고 있어요.'):heading(providerName(state.provider||selectedProvider)+'에<br>연결하고 있습니다.','계정 확인 창이 열리면 승인해 주세요.'))+\n    `<div class=\"progress\" role=\"progressbar\" aria-label=\"${state.screen==='preparing'?'데이터 불러오는 중':'연결 중'}\" data-step=\"${state.screen==='preparing'?2:1}\"></div>`;");
+ const ready="view.innerHTML=heading('업무 화면을<br>열고 있습니다.','저장공간 확인이 완료되었습니다.');";
+ if(app.includes(ready))app=app.replace(ready,"view.innerHTML=heading('업무 화면을<br>열고 있습니다.','저장공간 확인이 완료되었습니다.')+'<div class=\"progress\" role=\"progressbar\" aria-label=\"화면 여는 중\" data-step=\"3\"></div>';");
 }
 await writeFile(resolve(release,'app.mjs'),app);
 if(business)await copyFile(resolve(here,'business-workspace.mjs'),resolve(release,'workspace.mjs'));
@@ -201,6 +212,14 @@ if(extended){
 }
 const guard=(await readFile(resolve(root,companies?'outputs/privacy-safe-companies-pilot/source/app/firebase-login-shell/readonly-guard.mjs':'work/erp-login-shell-v186-release/firebase-login-shell/readonly-guard.mjs'),'utf8')).replace('for(const key of Object.keys(Table))Table[key]=blocked;',"for(const key of Object.keys(Table))if(!['load','loadObj'].includes(key))Table[key]=blocked;").replace("if(typeof StorageRepository[key]==='function')", "if(!['loadCollection','loadObject'].includes(key)&&typeof StorageRepository[key]==='function')");
 await writeFile(resolve(release,'erp/readonly-guard.mjs'),guard);
+// Fetch the whole module graph in parallel (boot → app → runtime → sdk was a serial waterfall),
+// and open the auth / Drive connections before they are needed.
+{
+ const modules=(await readdir(release)).filter(name=>name.endsWith('.mjs')&&!['boot.mjs','dropbox-callback.mjs'].includes(name)).sort();
+ const hints=['https://accounts.google.com','https://identitytoolkit.googleapis.com','https://securetoken.googleapis.com','https://www.googleapis.com'].map(href=>`<link rel="preconnect" href="${href}" crossorigin>`).join('')+modules.map(name=>`<link rel="modulepreload" href="./${name}">`).join('');
+ const index=await readFile(resolve(release,'index.html'),'utf8');if(!index.includes('</head>'))throw Error('INDEX_HEAD_MISSING');
+ await writeFile(resolve(release,'index.html'),index.replace('</head>',hints+'</head>'));
+}
 const files=[];
 async function walk(dir,prefix=''){for(const item of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){const name=prefix+item.name;if(item.isDirectory())await walk(resolve(dir,item.name),name+'/');else files.push({path:name,sha256:createHash('sha256').update(await readFile(resolve(dir,item.name))).digest('hex')});}}
 await walk(release);await writeFile(resolve(out,'manifest.json'),JSON.stringify({mode:business?'LOCAL_PERSONAL_BUSINESS_CANDIDATE':publicRelease?'PUBLIC_PERSONAL_COMPANIES_CREATE':companies?'LOCAL_PERSONAL_COMPANIES_CREATE':'LOCAL_UNIFIED_STORAGE_READ_ONLY',files,aggregate:createHash('sha256').update(JSON.stringify(files)).digest('hex')},null,2));

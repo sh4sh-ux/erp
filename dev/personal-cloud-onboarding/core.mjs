@@ -3,7 +3,7 @@ export const tables = Object.freeze(['companies','items','quotes','payments','st
 export const folders = Object.freeze(['NARO Biz','NARO Biz/Data','NARO Biz/Images','NARO Biz/Images/Products','NARO Biz/Documents','NARO Biz/Documents/Business Cards','NARO Biz/Documents/Business Registration','NARO Biz/Backup']);
 export const emptyData = () => ({...Object.fromEntries(tables.map(k => [k, []])), settings:{schema:3}});
 export const fault = code => Object.assign(new Error(code), {code});
-const codes = new Set(['QUOTA_LIMIT','NETWORK_ERROR','RECONNECT_REQUIRED','CANCELLED','STORAGE_CONFLICT','STORAGE_INVALID','WRITE_BLOCKED','OAUTH_SETUP_REQUIRED','EMAIL_NOT_VERIFIED','PASSWORD_MISMATCH','BUSY','SESSION_EXPIRED','auth/invalid-credential','auth/invalid-email','auth/weak-password','auth/email-already-in-use','auth/too-many-requests','auth/quota-exceeded','auth/network-request-failed']);
+const codes = new Set(['QUOTA_LIMIT','NETWORK_ERROR','RECONNECT_REQUIRED','CANCELLED','STORAGE_CONFLICT','STORAGE_INVALID','WRITE_BLOCKED','OAUTH_SETUP_REQUIRED','EMAIL_NOT_VERIFIED','PASSWORD_MISMATCH','BUSY','SESSION_EXPIRED','auth/invalid-credential','auth/invalid-email','auth/weak-password','auth/email-already-in-use','auth/too-many-requests','auth/quota-exceeded','auth/network-request-failed','PREPARING']);
 for(const code of ['DRIVE_ACCOUNT_MISMATCH','DRIVE_ACCOUNT_UNVERIFIED','DRIVE_ACCOUNT_CHANGED'])codes.add(code);
 export function safeCode(error) { return codes.has(error?.code) ? error.code : 'UNAVAILABLE'; }
 export function message(error) {
@@ -22,6 +22,7 @@ export function message(error) {
  if(code === 'DRIVE_ACCOUNT_UNVERIFIED') return 'Google 계정을 확인할 수 없어 파일을 열지 않았습니다. 다시 연결해 주세요.';
  if(code === 'DRIVE_ACCOUNT_CHANGED') return '다른 창에서 연결 계정이 변경되어 작업을 중단했습니다. 다시 연결해 주세요.';
  if(code === 'OAUTH_SETUP_REQUIRED') return '저장소 연결 설정 승인 후 사용할 수 있습니다.';
+ if(code === 'PREPARING') return '연결을 준비하고 있습니다. 잠시 후 다시 눌러 주세요.';
  return '지금은 작업을 완료할 수 없습니다. 잠시 후 다시 시도해 주세요.';
 }
 
