@@ -268,3 +268,94 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
  /* Ledger table: short cells never wrap mid-word. */
  #appView #payTbl td:not(.ledger-memo),#appView #payTbl th{white-space:nowrap;word-break:keep-all}
 }
+
+/* ---------- 7. v5 시안 1차 — rail '자료', quick-filter chips, tabs band, action bar ---------- */
+@media screen{
+ /* Rail: '자료' actions look like menu items; the ⋯ menu keeps refresh · logout only. */
+ #appView .shell .rail-nav .nd-nav-act{display:flex;align-items:center;gap:12px;width:100%;height:36px;min-height:36px;padding:0 12px;border:0;border-radius:10px;font:500 14px/20px var(--sans);color:var(--nd-ink-2);background:transparent;cursor:pointer;text-align:left;transition:background .12s,color .12s}
+ #appView .shell .rail-nav .nd-nav-act>svg{width:18px;height:18px;flex:none;opacity:.9}
+ #appView .shell .rail-nav .nd-nav-act>span{white-space:nowrap}
+ #appView .shell .rail-nav .nd-nav-act:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView .shell .rail-foot .nd-menu>:is(#bizCardBtn,#bizCertBtn){display:none}
+ #appView .shell .rail-nav .nd-nav-act>.nd-soon{display:none;margin-left:auto;font:600 10.5px/1 var(--sans);font-style:normal;color:var(--nd-ink-3);background:var(--nd-fill);border-radius:6px;padding:4px 6px;white-space:nowrap}
+ #appView .shell .rail-nav .nd-nav-act.nd-off{color:var(--nd-ink-3)}
+ #appView .shell .rail-nav .nd-nav-act.nd-off>.nd-soon{display:inline-block}
+ /* Quick-filter chips: 44px band — the same height as the detail tab band, so both dividers meet. */
+ #appView .nd-chips{flex:none;height:44px;box-sizing:border-box;display:flex;align-items:center;gap:6px;padding:0 var(--panel-inset,16px);border-bottom:1px solid var(--nd-line);overflow-x:auto;scrollbar-width:none}
+ #appView .nd-chips::-webkit-scrollbar{display:none}
+ #appView .nd-chips>button{flex:none;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12px/1 var(--sans);white-space:nowrap;cursor:pointer}
+ #appView .nd-chips>button:hover{color:var(--nd-ink)}
+ #appView .nd-chips>button[aria-pressed="true"]{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame)}
+ #appView select.nd-chip-source#coType{display:none!important}
+ /* ⋯ more menu (delete · copy · email): an icon button with a small popover. */
+ #appView .shell .main .form-actions>.panel-b-danger{position:relative;flex:none}
+ #appView .shell .main .form-actions>.panel-b-danger>summary{list-style:none;width:40px;height:40px;padding:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font-size:0!important;cursor:pointer}
+ #appView .shell .main .form-actions>.panel-b-danger>summary::-webkit-details-marker{display:none}
+ #appView .shell .main .form-actions>.panel-b-danger>summary::before{content:'';width:17px;height:17px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView .shell .main .form-actions>.panel-b-danger[open]>summary,#appView .shell .main .form-actions>.panel-b-danger>summary:hover{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop{position:absolute;right:0;bottom:calc(100% + 8px);min-width:168px;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--nd-raised);border:1px solid var(--nd-line);border-radius:12px;box-shadow:var(--nd-pop);z-index:40}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn{position:static!important;display:flex!important;align-items:center;justify-content:flex-start;gap:10px;width:100%!important;min-width:0!important;height:38px!important;min-height:38px!important;margin:0!important;padding:0 10px!important;border:0!important;border-radius:8px;background:transparent!important;box-shadow:none!important;color:var(--nd-ink)!important;font:500 13.5px/1 var(--sans)!important;white-space:nowrap}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn:hover{background:var(--nd-fill)!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del{color:var(--nd-red)!important;margin-top:4px!important;position:relative!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del::before{content:'';position:absolute;left:6px;right:6px;top:-3px;height:1px;background:var(--nd-line-2)}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn>svg{width:16px;height:16px;flex:none}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del:only-child{margin-top:0!important}
+ #appView .shell .main .form-actions>.panel-b-danger>.nd-pop>.btn.del:only-child::before{display:none}
+ /* One order everywhere: secondary … ⋯ · save (right end). */
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger{order:8}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{order:9}
+}
+@media screen and (min-width:1024px){
+ /* Rail: 13 items + 7 groups fit a 900px window; below that the menu (only) scrolls. Dividers run edge to edge. */
+ #appView[data-layout-system="b"] .shell .rail-nav{overflow-y:auto;scrollbar-width:none;padding-top:6px!important;padding-bottom:4px!important}
+ #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding:8px 12px 3px}
+ #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:32px!important;min-height:32px!important;flex:0 0 32px!important}
+ #appView[data-layout-system="b"] .shell>.rail-gutter>.sidebar .rail-logo{width:calc(100% + 28px)!important;max-width:none}
+ #appView[data-layout-system="b"] .shell .rail-foot{margin:0 -14px!important;padding:12px 14px 0!important}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions{display:flex!important;align-items:center;gap:8px;flex-wrap:nowrap}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger{margin-left:auto}
+ #appView[data-layout-system="b"] .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{flex:none!important;width:auto!important;min-width:160px;height:40px;margin:0!important}
+ /* Quote header: 144 (summary) + 44 (tabs) — the tab divider lines up with the list's chip divider. */
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm.workspace-form{grid-template-rows:calc(var(--panel-head) + 44px) minmax(0,1fr) auto}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.panel-b-work-header{height:calc(var(--panel-head) + 44px);grid-template-rows:var(--panel-head) 43px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.quote-summary{height:var(--panel-head);box-sizing:border-box;padding:30px var(--panel-inset) 0;border-bottom:1px solid var(--nd-line)!important}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs{height:43px;padding:0 var(--panel-inset);gap:24px;align-items:stretch}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs>button{min-width:0;min-height:0;height:43px;padding:0 2px;border:0!important;border-radius:0;background:none;color:var(--nd-ink-3);font:500 14px/1 var(--sans)}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm .panel-b-work-header>.qp-tabs>button[aria-selected="true"]{color:var(--nd-ink);font-weight:650;box-shadow:inset 0 -2px 0 var(--nd-ink)}
+ #appView[data-layout-system="b"] .shell .main #view-quotes #qtForm>.workspace-form-body{padding-top:24px}
+ #appView[data-layout-system="b"] .shell .main #view-quotes .quote-list-card>.nd-chips{background:var(--nd-left)}
+}
+@media screen and (max-width:1023px){
+ #appView .nd-chips{padding:0 16px;margin:0 -16px}
+ #appView .nd-chips>button{height:30px;padding:0 12px;border-radius:15px;font-size:13px}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm) .form-actions>.btn.save{flex:1 1 auto}
+}
+@media screen and (max-width:1023px){
+ /* Record screens: the save bar takes the bottom tab bar's place — one row [⋯][저장], nothing stacked. */
+ #appView:has(#view-quotes:not(.hidden) #qtCols.detail-open) #bottomNav,#appView:has(.view.mobile-record-open:not(.hidden)) #bottomNav{display:none!important}
+ #appView .shell .main>#view-quotes:not(.hidden):has(#qtCols.detail-open)::after{display:none}
+ #appView .shell .main>.view.mobile-record-open>.cols>.card:last-child{padding-bottom:0!important}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions{bottom:0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;gap:8px!important}
+ #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions>.btn.save{height:48px;min-height:48px;border-radius:12px;font-size:16px}
+ #appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger>summary{width:48px;height:48px;border-radius:12px}
+ #appView .shell .main #view-quotes .quote-form-actions{display:grid!important;grid-template-columns:48px minmax(0,1fr);align-items:start}
+ #appView .shell .main #view-quotes .quote-form-actions>.btn.save{grid-column:2;grid-row:1}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more{grid-column:1;grid-row:1;padding:0;border-radius:12px;background:var(--nd-surface)}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary{width:100%;height:46px;min-height:46px;padding:0;font-size:0!important;display:flex;align-items:center;justify-content:center;color:var(--nd-ink-2)}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary::before{content:'';width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more[open]{grid-column:1/-1;padding:0 10px 10px}
+ #appView .shell .main #view-quotes .quote-form-actions:has(>.qp-more[open])>.btn.save{grid-column:1/-1;grid-row:2}
+}
+@media screen and (max-width:1023px){
+ #appView .shell .rail-nav .nd-nav-act{height:48px;min-height:48px;padding:10px 12px;gap:10px;border-radius:12px;font:600 14px/1.2 var(--sans)}
+ #appView #view-companies .nd-chips{margin:0}
+}
+@media screen and (max-width:1023px){#appView .shell .rail-nav .nd-nav-act.nd-off>.nd-soon{display:none}}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>:is(.btn.ghost,select){flex:none;white-space:nowrap;height:40px!important;min-height:40px!important;box-sizing:border-box}
+}
+/* Narrow desktop: quote secondary actions become 40px icon buttons so the bar stays one line. */
+@media screen and (min-width:1024px) and (max-width:1439px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost{width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;justify-content:center;gap:0}
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost>svg{width:17px;height:17px}
+}

@@ -69,6 +69,48 @@
     if(!head||!row||head.contains(row))continue;const mark=document.createComment('nd-scope-origin');row.before(mark);head.append(row);head.classList.add('nd-scope');moved.push([mark,row,head]);}}
   else if(!desk.matches&&moved.length){moved.splice(0).forEach(([mark,row,head])=>{mark.replaceWith(row);head.classList.remove('nd-scope');});}
  }
+
+ /* v5 시안 1차: rail '자료' group · quick-filter chips (drive the existing selects) · one action-bar order.
+    Existing nodes keep their handlers; only placement changes. */
+ const svgI=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+ const ICON_CARD='<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.5 1.8-2 3-2s2.4.5 3 2M14 10h4M14 13h3"/>',
+  ICON_DOC='<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/>';
+ function railDocs(){const nav=document.querySelector('#appView .rail-nav');if(!nav||nav.querySelector('.nd-docs'))return;
+  const before=[...nav.querySelectorAll('.nav-sec')].find(s=>s.textContent.trim()==='설정');
+  const sec=document.createElement('div');sec.className='nav-sec nd-docs';sec.textContent='자료';
+  // Not .nav-item: the app rebinds every .nav-item to switchView(dataset.view).
+  // Mirrors the source button: when this build disables it, say so instead of a dead click.
+  const act=(id,label,icon)=>{const b=document.createElement('button'),src=document.getElementById(id);b.type='button';b.className='nd-nav-act';b.innerHTML=svgI(icon)+`<span>${label}</span><em class="nd-soon">준비 중</em>`;
+   const mirror=()=>{const off=!src||src.disabled;b.classList.toggle('nd-off',off);b.title=off?'이번 버전에서는 아직 지원하지 않습니다.':label;};
+   if(src)new MutationObserver(mirror).observe(src,{attributes:true,attributeFilter:['disabled']});mirror();
+   b.onclick=()=>{if(!src||src.disabled){typeof window.toast==='function'&&window.toast('이번 버전에서는 아직 지원하지 않습니다.');return;}
+    src.click();if(!desk.matches&&typeof window.toggleNav==='function')window.toggleNav(false);};return b;};
+  const nodes=[sec,act('bizCardBtn','명함 보내기',ICON_CARD),act('bizCertBtn','사업자등록증',ICON_DOC)];
+  before?before.before(...nodes):nav.append(...nodes);}
+ const CHIPS=[
+  {select:'qtStatus',host:'#view-quotes .quote-list-card',list:'qtList',items:[['','전체'],['작성중','작성중'],['발송','발송'],['수주','수주'],['납품','납품']]},
+  {select:'coType',host:'#view-companies>.cols>.card:first-child',list:'coList',items:[['','전체'],['매출','매출'],['매입','매입']]}];
+ function chips(){for(const c of CHIPS){const select=document.getElementById(c.select),host=document.querySelector(c.host),list=document.getElementById(c.list);
+  if(!select||!host||!list||host.querySelector('.nd-chips'))continue;
+  const row=document.createElement('div');row.className='nd-chips';row.setAttribute('role','group');row.setAttribute('aria-label','빠른 필터');
+  const sync=()=>row.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===select.value)));
+  for(const [v,label] of c.items){const b=document.createElement('button');b.type='button';b.dataset.v=v;b.textContent=label;
+   b.onclick=()=>{if(select.value!==v){select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));}sync();};row.append(b);}
+  list.before(row);select.classList.add('nd-chip-source');
+  select.addEventListener('change',sync);new MutationObserver(sync).observe(list,{childList:true});sync();}}
+ /* Action bar: [secondary ≤4] … [⋯ more] [save]. Quote copy/email join delete inside ⋯. */
+ function actions(){
+  for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
+   let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
+    menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
+   if(menu.closest('#qtForm'))for(const id of ['qtMailBtn','qtCopyBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==pop)pop.prepend(b);}
+   menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
+   if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
+    pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}}
+ function v5(){railDocs();chips();actions();
+  const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
+  if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});
