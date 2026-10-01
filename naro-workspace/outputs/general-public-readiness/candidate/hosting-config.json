@@ -68,6 +68,12 @@
         }
       },
       {
+        "glob": "/postcode.html",
+        "headers": {
+          "Content-Security-Policy": "default-src 'none'; script-src 'self' https://t1.daumcdn.net https://t1.kakaocdn.net https://*.daumcdn.net https://*.kakaocdn.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.daumcdn.net https://*.kakaocdn.net https://*.daum.net https://*.kakao.com; frame-src https://*.daum.net https://*.kakao.com https://*.daumcdn.net https://*.kakaocdn.net; connect-src https://*.daum.net https://*.kakao.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'"
+        }
+      },
+      {
         "glob": "/about.html",
         "headers": {
           "Content-Security-Policy": "default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",

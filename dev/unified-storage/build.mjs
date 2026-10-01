@@ -213,6 +213,8 @@ if(s<0||e<0)throw Error('STOCK_BOUNDARY_CHANGED');
 stock=stock.slice(0,s)+(business?"async function saveStockChecked(expected,next){if(stockFingerprint(db.stock_moves)!==expected)throw Error('재고 변경 충돌');await Table.save('stock_moves',next);}\n":"async function saveStockChecked(){throw Error('WRITE_BLOCKED');}\n")+stock.slice(e);
 await writeFile(resolve(release,'erp/stock-entry.js'),stock);
 await copyFile(resolve(here,business?'business-entry.mjs':'erp-entry.mjs'),resolve(release,'erp/entry.mjs'));
+// Address search window (own page + own CSP): the app page never loads the third-party postcode script.
+for(const f of ['postcode.html','postcode.css','postcode.js'])await copyFile(resolve(here,f),resolve(release,f));
 if(business){
  await copyFile(resolve(here,'tabular-import.mjs'),resolve(release,'erp/tabular-import.mjs'));
  await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));

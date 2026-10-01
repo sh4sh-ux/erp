@@ -196,19 +196,27 @@
  function retireCsv(){for(const id of ['qtCsvBtn','slCsvBtn','arCsvBtn']){const b=document.getElementById(id);if(b)b.classList.add('nd-retired');}
 }
  /* 공급자 정보 주소: the same address search as 거래처 (Daum postcode, loaded on demand). */
+
+ /* Address search opens /postcode.html in its own window: the app page's CSP (no third-party script) stays as is,
+    and the widget never runs next to business data. The window posts the address back (same origin only). */
+ let addrWin=null,addrDone=null;
+ addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='NARO_POSTCODE'||!addrWin||e.source!==addrWin)return;const done=addrDone;addrWin=addrDone=null;done?.(String(e.data.address||'').slice(0,200));});
+ function addressWindow(btn,done){
+  const w=Math.min(520,screen.availWidth||520),h=Math.min(680,screen.availHeight||680);
+  addrWin=window.open(new URL('/postcode.html',location.href).href,'naro-postcode',`popup=yes,width=${w},height=${h},left=${Math.max(0,((screen.availWidth||w)-w)/2)},top=${Math.max(0,((screen.availHeight||h)-h)/2)}`);
+  addrDone=done;
+  if(!addrWin){typeof window.toast==='function'&&window.toast('팝업이 막혀 주소 검색 창을 열지 못했습니다. 팝업을 허용하거나 주소를 직접 입력해 주세요.');return;}
+  addrWin.focus();}
+ // 거래처 주소 검색 uses the same window (the app binds #coAddressSearch to this global on each render).
+ window.openCompanyAddressSearch=function(){const address=document.getElementById('f_address'),detail=document.getElementById('f_address_detail'),btn=document.getElementById('coAddressSearch');
+  addressWindow(btn,v=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}detail?.isConnected&&detail.focus();});};
  function supplierAddress(){
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
   const b=document.createElement('button');b.type='button';b.className='nd-addr-btn';b.innerHTML=svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')+'<span>주소 검색</span>';wrap.append(b);
   input.placeholder=input.placeholder||'주소 검색 후 상세 주소(동·호수)를 이어서 입력';
-  b.onclick=async()=>{if(typeof loadCompanyPostcode!=='function'){input.focus();return;}b.disabled=true;let dlg;
-   try{await loadCompanyPostcode();dlg=document.createElement('dialog');dlg.className='company-address-dialog';dlg.setAttribute('aria-labelledby','ndAddrTitle');
-    dlg.innerHTML='<div class="company-address-heading"><strong id="ndAddrTitle">주소 검색</strong><button type="button" class="btn ghost" aria-label="주소 검색 닫기">닫기</button></div><div class="company-address-embed"></div>';
-    document.body.append(dlg);dlg.addEventListener('close',()=>{dlg.remove();b.focus();});dlg.querySelector('button').onclick=()=>dlg.close();dlg.showModal();
-    new window.daum.Postcode({width:'100%',height:'100%',oncomplete(data){const v=data.userSelectedType==='J'?data.jibunAddress||data.address:data.roadAddress||data.address;
-     input.value=v+' ';dlg.close();input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));}}).embed(dlg.querySelector('.company-address-embed'));}
-   catch{dlg?.close();typeof window.toast==='function'&&window.toast('주소 검색을 불러오지 못했습니다. 주소를 직접 입력해 주세요.');}
-   finally{b.disabled=false;}};}
+  b.onclick=()=>addressWindow(b,v=>{input.value=v+' ';input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));});}
+
 
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
  function settingsPolish(){
@@ -219,7 +227,74 @@
   for(const [id,label] of [['st_card_url','명함'],['st_cert_url','사업자등록증']]){const hint=document.getElementById(id)?.closest('.field')?.querySelector('.hint');
    if(hint&&!hint.dataset.nd){hint.dataset.nd='1';hint.textContent=`예전 방식(링크)입니다. 지금 '${label} 보내기'는 아래 '개인 클라우드 이미지'에 저장한 이미지를 보냅니다.`;}}}
  function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}
- function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();
+
+ /* 왼쪽 패널 규칙 (all list screens): the header band holds every control — [검색 · 늘어남] [필터] [＋].
+    Below the 144 line: an optional 44px chip band, then only the list scrolls. Nothing moves when the list scrolls.
+    Header controls proxy to the screen's own inputs/buttons (found at event time, so re-renders are safe);
+    filter blocks move as-is into a popover so their handlers stay intact. */
+ const ICON_SEARCH='<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',ICON_FILTER='<path d="M4 6h16M7 12h10M10 18h4"/>',ICON_PLUS='<path d="M12 5v14M5 12h14"/>';
+ const TOOLS={
+  materials:{search:'#view-materials .material-owners>input.panel-b-search',ph:'업체·자재 검색',add:[['자재 받음','#mm_new_receipt']],
+   hide:['#view-materials .material-owners>input.panel-b-search','#view-materials #mm_new_receipt','#view-materials .material-owners-head'],count:'#view-materials .material-owners-head .hint'},
+  payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록','#payInbound'],['출금 기록','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
+   chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
+  stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고','#stockRegister'],['출고','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
+   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 대비 부족'],['low','최소 미달'],['zero','품절'],['missing','기준 미설정']]},hide:['#view-stock .stock-tools']},
+  items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
+  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
+   chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']]},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar']},
+  ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
+   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']]},hide:['#view-ar .workspace-left>.filter-bar']},
+  settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
+ let pop=null;
+ function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
+ function openPop(btn,build,restore){if(pop&&pop.btn===btn){closePop();return;}closePop();
+  const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');build(el);(document.getElementById('appView')||document.body).append(el);
+  const r=btn.getBoundingClientRect(),row=btn.parentElement.getBoundingClientRect(),w=Math.min(Math.max(260,row.width),320,innerWidth-32);el.style.width=w+'px';
+  el.style.left=Math.max(16,Math.min(row.left,innerWidth-w-16))+'px';el.style.top=(r.bottom+8)+'px';
+  btn.setAttribute('aria-expanded','true');pop={el,btn,restore};}
+ document.addEventListener('pointerdown',e=>{if(pop&&!pop.el.contains(e.target)&&!pop.btn.contains(e.target))closePop();},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
+ const toolBtn=(icon,label,cls='')=>{const b=document.createElement('button');b.type='button';b.className='nd-tool '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svgI(icon);return b;};
+ function tools(){
+  const hide=[];
+  for(const [view,c] of Object.entries(TOOLS)){
+   hide.push(...(c.hide||[]));
+   const head=document.querySelector(`#view-${view}>.page-head`);if(!head||(view!=='items'&&head.querySelector('.nd-tools')))continue;
+   const row=view==='items'?document.querySelector('#view-items .list-head'):document.createElement('div');if(!row||row.querySelector('.nd-tool'))continue;
+   if(view!=='items'){row.className='nd-tools';head.append(row);head.classList.add('nd-scope','nd-own-tools');}
+   if(c.search){const lab=document.createElement('label');lab.className='nd-tsearch';lab.innerHTML=svgI(ICON_SEARCH);
+    const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
+    const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
+    input.addEventListener('input',push);
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+   if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
+    const label=()=>{const [f,t]=c.period.map(id=>document.getElementById(id)?.value||'');b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
+    label();c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
+    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();});};}
+   if(c.filter&&!c.period){const b=toolBtn(ICON_FILTER,'필터');row.insertBefore(b,row.querySelector('.btn-add'));
+    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block));};}
+   if(c.filterSelect){const b=toolBtn(ICON_FILTER,'필터');row.append(b);
+    b.onclick=()=>{const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
+     openPop(b,el=>{el.classList.add('nd-pop-filter');const l=document.createElement('label');l.className='nd-pop-field';l.textContent='표시';l.append(sel);el.append(l);},()=>mark.replaceWith(sel));};}
+   if(c.add){const b=toolBtn(ICON_PLUS,c.add.length>1?'새 기록':c.add[0][0],'nd-tadd');row.append(b);
+    b.onclick=()=>{if(c.add.length===1){document.querySelector(c.add[0][1])?.click();return;}
+     openPop(b,el=>{el.classList.add('nd-pop-menu');for(const [l,sel] of c.add){const m=document.createElement('button');m.type='button';m.textContent=l+' 추가';m.onclick=()=>{closePop();document.querySelector(sel)?.click();};el.append(m);}});};}
+   if(c.count){const span=document.createElement('span');span.className='count nd-tcount';head.querySelector('h2')?.after(span);
+    const upd=()=>{const t=document.querySelector(c.count)?.textContent.trim()||'';if(span.textContent!==t)span.textContent=t;};new MutationObserver(upd).observe(document.getElementById('view-'+view),{childList:true,subtree:true});upd();}
+   if(c.chips){const {select:id,host:h,before:bf,items}=c.chips;const select=document.getElementById(id),host=document.querySelector(h),before=document.querySelector(bf);
+    if(select&&host&&before&&!host.querySelector(':scope>.nd-chips')){const chipRow=document.createElement('div');chipRow.className='nd-chips';chipRow.setAttribute('role','group');chipRow.setAttribute('aria-label','빠른 필터');
+     const sync=()=>chipRow.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===select.value)));
+     for(const [v,l] of items){const x=document.createElement('button');x.type='button';x.dataset.v=v;x.textContent=l;x.onclick=()=>{if(select.value!==v){select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));}sync();};chipRow.append(x);}
+     before.before(chipRow);select.addEventListener('change',sync);new MutationObserver(sync).observe(before,{childList:true});sync();}}
+  }
+  const utils=document.querySelector('#view-settings .workspace-left>.settings-utils'),idx=document.querySelector('#view-settings .workspace-left>.panel-b-index');
+  if(utils&&idx&&idx.nextElementSibling!==utils)idx.after(utils);
+  if(!document.getElementById('nd-tools-hide')){const st=document.createElement('style');st.id='nd-tools-hide';st.textContent=`@media screen{${hide.map(x=>'#appView '+x).join(',')}{display:none!important}}`;document.head.append(st);}
+ }
+ function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();

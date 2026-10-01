@@ -103,7 +103,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "8e0524d69809db643c974fdcd51129b6dec4d664bfa620dfd0cb38dff51d4f8b"
+      "sha256": "e6a3d8543aa462d4c8d86896e0a2e563b6f6459628e1612abf7ce0df8bff8e8d"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -206,6 +206,18 @@
       "sha256": "32b7acaaecd882ca7b83a66febdf562f991ffd224986034dec31ec5cabf2c470"
     },
     {
+      "path": "postcode.css",
+      "sha256": "b6f993d18f80fe0f4b4dbe36749a723e726bc017043338fb59d8e1becd9c5ed2"
+    },
+    {
+      "path": "postcode.html",
+      "sha256": "ecfc9bd39390a4ef7a17085b80910ba1fa15cca7d8f64d7a930b49775666b669"
+    },
+    {
+      "path": "postcode.js",
+      "sha256": "ae4d3de336ed8a32bb7138ce528e5c2b78edb4a30bc889dad60e049a60d41563"
+    },
+    {
       "path": "privacy.html",
       "sha256": "31535514d9863ae838f459cc3ccab4d60a3670a17565e2c3116ecc08b659a0f9"
     },
@@ -238,8 +250,8 @@
       "sha256": "e5274a6b86c8ddf6ed3ba5c563d1beabe138b666e802432f56926185b7b12cc5"
     }
   ],
-  "aggregate": "c462c526c11edd315cc6b9841b3c8bdf9a0a27687d587ffe7c3b8669a3824af8",
-  "previousPublicAggregate": "df577f5f8d71404ef7e2ad69874ec632b74b049ccf15122c8fef1336512385a3",
+  "aggregate": "06e9090ad2319db8bf05937db65a65977faa6d22861f6476638528c1e4063a59",
+  "previousPublicAggregate": "c462c526c11edd315cc6b9841b3c8bdf9a0a27687d587ffe7c3b8669a3824af8",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
 }

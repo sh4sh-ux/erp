@@ -7712,9 +7712,9 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  .nd-export .nd-ex-go{min-width:180px;height:42px;border:0;border-radius:10px;background:var(--nd-blue);color:#fff;font:600 14px/1 var(--sans);cursor:pointer}
  .nd-export .nd-ex-go:disabled{opacity:.45;cursor:default}
  /* 공급자 정보 · 주소 검색 + personal-cloud image panel */
- #appView .nd-addr{display:flex;gap:8px;align-items:center}
+ #appView .nd-addr{display:flex;gap:8px;align-items:stretch}
  #appView .nd-addr>input{flex:1;min-width:0}
- #appView .nd-addr-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);font:600 13px/1 var(--sans);cursor:pointer;white-space:nowrap}
+ #appView .nd-addr-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:auto;min-height:0;box-sizing:border-box;padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);font:600 13px/1 var(--sans);cursor:pointer;white-space:nowrap}
  #appView .nd-addr-btn>svg{width:16px;height:16px}
  #appView #view-settings section.card.nd-assets{padding:20px 0 4px!important;margin:24px 0 0!important;border:0!important;border-top:1px solid var(--nd-line)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
  #appView .nd-assets>h3{margin:0 0 6px;font:700 15px/20px var(--sans);color:var(--nd-ink)}
@@ -7744,6 +7744,86 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  .nd-export .nd-ex-go{flex:1;height:48px;border-radius:12px;font-size:16px}
  .nd-export .nd-ex-row :is(select,input){min-width:0;width:100%}
  .nd-export .nd-ex-row label{flex:1 1 140px}
+}
+
+/* ---------- 10. 왼쪽 패널 규칙 — header [검색][필터][＋] · 36px · equal 14px above/below ---------- */
+@media screen{
+ #appView .nd-tools{display:flex;align-items:center;gap:8px}
+ #appView .nd-tsearch{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;box-sizing:border-box;border-radius:10px;background:var(--nd-fill);color:var(--nd-ink-3)}
+ #appView .nd-tsearch>svg{width:16px;height:16px;flex:none}
+ #appView .nd-tsearch>input{flex:1;min-width:0;height:100%;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;padding:0!important;font:400 13.5px/1 var(--sans);color:var(--nd-ink)}
+ #appView .nd-tool{flex:none;width:36px;height:36px;padding:0;display:grid;place-items:center;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);cursor:pointer}
+ #appView .nd-tool>svg{width:17px;height:17px}
+ #appView .nd-tool:hover,#appView .nd-tool[aria-expanded="true"]{background:var(--nd-fill);color:var(--nd-ink)}
+ #appView .nd-tool.nd-tadd{border:0;background:var(--nd-blue);color:#fff}
+ #appView .nd-tool.nd-tadd:hover,#appView .nd-tool.nd-tadd[aria-expanded="true"]{background:var(--nd-blue);filter:brightness(1.06);color:#fff}
+ #appView .nd-tperiod{flex:1;min-width:0;height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;border-radius:10px;background:var(--nd-fill);color:var(--nd-ink);font:600 13px/1 var(--sans);cursor:pointer;text-align:left}
+ #appView .nd-tperiod>svg{width:16px;height:16px;flex:none;color:var(--nd-ink-3)}
+ #appView .nd-tperiod>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ /* Popovers: filter blocks keep their own controls; menu lists the add choices. */
+ .nd-pop-panel{position:fixed;z-index:1000;box-sizing:border-box;padding:12px;border:1px solid var(--nd-line);border-radius:14px;background:var(--nd-raised);color:var(--nd-ink);box-shadow:var(--nd-pop);font-family:var(--sans);max-height:calc(100vh - 120px);overflow:auto}
+ .nd-pop-menu{display:flex;flex-direction:column;gap:2px;padding:6px}
+ .nd-pop-menu>button{height:42px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--nd-ink);font:500 14px/1 var(--sans);text-align:left;cursor:pointer}
+ .nd-pop-menu>button:hover{background:var(--nd-fill)}
+ .nd-pop-filter>details>summary{display:none}
+ .nd-pop-filter :is(details,.filter-bar,label.ops-category):not([hidden]){display:flex!important;flex-direction:column;gap:10px;margin:0!important;padding:0!important;border:0!important;background:none!important;width:auto!important}
+ .nd-pop-filter label:not([hidden]),.nd-pop-filter .nd-pop-field{display:flex;flex-direction:column;gap:6px;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
+ .nd-pop-filter :is(select,input:not([type="checkbox"]),.date-control){width:100%!important;min-width:0!important;height:40px!important;box-sizing:border-box}
+ .nd-pop-filter .filter-bar>span{display:none}
+ .nd-pop-filter :is(button.btn,#payClear){height:36px;align-self:flex-end}
+}
+@media screen and (min-width:1024px){
+ /* Every header tool row sits 14px below the title and 14px above the 144 line. */
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head.nd-scope>:is(.list-head,.nd-tools){position:absolute;left:var(--panel-inset);right:var(--panel-inset);bottom:14px;height:36px;margin:0;padding:0!important;border:0!important;background:none!important;display:flex;align-items:center;gap:8px}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head.nd-scope>.list-head>.search{height:36px!important;min-height:36px!important;box-sizing:border-box}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head>:is(.btn-add,.qfilter-btn,.nd-tool){width:36px!important;min-width:36px!important;max-width:36px!important;height:36px!important;min-height:36px!important;max-height:36px!important;padding:0!important}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.list-head{position:absolute;left:var(--panel-inset);right:var(--panel-inset);bottom:14px;height:36px;margin:0;padding:0!important;gap:8px;display:flex;align-items:center}
+ #appView[data-layout-system="b"] .shell .main #view-quotes>.page-head>.list-head>.search{height:36px!important;min-height:36px!important;box-sizing:border-box}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head .search>input{height:100%}
+ /* Below the line: chip band flush to the divider, then the list. */
+ #appView[data-layout-system="b"] .shell .main .workspace-left:has(>.nd-chips){padding-top:0!important}
+ #appView[data-layout-system="b"] .shell .main .workspace-left>.nd-chips{margin:0 calc(-1 * var(--panel-inset)) 0!important;background:var(--nd-left)}
+ #appView[data-layout-system="b"] .shell .main .workspace-left:not(:has(>.nd-chips)):has(>.panel-b-index,>.workspace-record-index){padding-top:0!important}
+}
+@media screen and (max-width:1023px){
+ #appView .shell .main>.view>.page-head.nd-own-tools{flex-wrap:wrap;height:auto!important;min-height:0!important}
+ #appView .shell .main>.view>.page-head>.nd-tools{flex:1 0 100%;margin-top:12px;height:40px}
+ #appView .nd-tools>:is(.nd-tsearch,.nd-tperiod){height:40px}
+ #appView .nd-tools>.nd-tool{width:40px;height:40px}
+ #appView .nd-tsearch>input{font-size:16px}
+}
+@media screen{
+ /* One search look everywhere: filled, borderless, same height as the tools beside it. */
+ #appView .list-head>.search{border:0!important;background:var(--nd-fill)!important;border-radius:10px!important;box-shadow:none!important;box-sizing:border-box}
+ #appView .list-head>.search>input{border:0!important;background:transparent!important;box-shadow:none!important;outline:0}
+ #appView .page-head .count.nd-tcount{margin-left:8px}
+ #appView .workspace-left:has(>.nd-chips){gap:0!important}
+ #appView .workspace-left>.nd-chips+*{margin-top:0!important}
+}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head{flex-wrap:nowrap!important}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head>.search{flex:1 1 auto!important;min-width:0!important;width:auto!important;order:0!important}
+ /* Order is always [검색][필터][＋]. */
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head>:is(.qfilter-btn,.nd-tool:not(.nd-tadd)){order:1!important;margin:0!important}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head>.list-head>.btn-add{order:2!important;margin:0!important}
+ #appView[data-layout-system="b"] .shell .main>.view>.page-head.nd-scope>h2+.count{margin-left:8px}
+}
+@media screen and (min-width:1024px){
+ #appView[data-layout-system="b"] #view-items>.page-head>.list-head>#itNewBtn{width:36px!important;min-width:36px!important;max-width:36px!important;height:36px!important;min-height:36px!important;max-height:36px!important}
+}
+@media screen and (max-width:1023px){
+ #appView .shell .main>.view>.page-head>.nd-tools{flex:0 0 100%;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+ #appView .nd-tools>:is(.nd-tsearch,.nd-tperiod){flex:1 1 0;min-width:0}
+}
+
+@media screen{
+ .nd-pop-filter [hidden]{display:none!important}
+ .nd-pop-filter :is(select,input:not([type="checkbox"])){padding:0 12px;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;color:var(--nd-ink);font:400 14px/1 var(--sans)}
+ .nd-pop-filter .date-control{position:relative}
+ .nd-pop-filter .date-control>input{position:absolute;inset:0;opacity:0}
+ .nd-pop-filter .date-control>.date-control-display{display:flex;align-items:center;height:40px;padding:0 12px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);font:400 14px/1 var(--sans);color:var(--nd-ink)}
+ .nd-pop-filter .date-control>.date-control-display.empty{color:var(--nd-ink-3)}
+ .nd-pop-filter :is(button.btn,#payClear){padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans)}
 }
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
@@ -7943,19 +8023,27 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
  function retireCsv(){for(const id of ['qtCsvBtn','slCsvBtn','arCsvBtn']){const b=document.getElementById(id);if(b)b.classList.add('nd-retired');}
 }
  /* 공급자 정보 주소: the same address search as 거래처 (Daum postcode, loaded on demand). */
+
+ /* Address search opens /postcode.html in its own window: the app page's CSP (no third-party script) stays as is,
+    and the widget never runs next to business data. The window posts the address back (same origin only). */
+ let addrWin=null,addrDone=null;
+ addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='NARO_POSTCODE'||!addrWin||e.source!==addrWin)return;const done=addrDone;addrWin=addrDone=null;done?.(String(e.data.address||'').slice(0,200));});
+ function addressWindow(btn,done){
+  const w=Math.min(520,screen.availWidth||520),h=Math.min(680,screen.availHeight||680);
+  addrWin=window.open(new URL('/postcode.html',location.href).href,'naro-postcode',`popup=yes,width=${w},height=${h},left=${Math.max(0,((screen.availWidth||w)-w)/2)},top=${Math.max(0,((screen.availHeight||h)-h)/2)}`);
+  addrDone=done;
+  if(!addrWin){typeof window.toast==='function'&&window.toast('팝업이 막혀 주소 검색 창을 열지 못했습니다. 팝업을 허용하거나 주소를 직접 입력해 주세요.');return;}
+  addrWin.focus();}
+ // 거래처 주소 검색 uses the same window (the app binds #coAddressSearch to this global on each render).
+ window.openCompanyAddressSearch=function(){const address=document.getElementById('f_address'),detail=document.getElementById('f_address_detail'),btn=document.getElementById('coAddressSearch');
+  addressWindow(btn,v=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}detail?.isConnected&&detail.focus();});};
  function supplierAddress(){
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
   const b=document.createElement('button');b.type='button';b.className='nd-addr-btn';b.innerHTML=svgI('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')+'<span>주소 검색</span>';wrap.append(b);
   input.placeholder=input.placeholder||'주소 검색 후 상세 주소(동·호수)를 이어서 입력';
-  b.onclick=async()=>{if(typeof loadCompanyPostcode!=='function'){input.focus();return;}b.disabled=true;let dlg;
-   try{await loadCompanyPostcode();dlg=document.createElement('dialog');dlg.className='company-address-dialog';dlg.setAttribute('aria-labelledby','ndAddrTitle');
-    dlg.innerHTML='<div class="company-address-heading"><strong id="ndAddrTitle">주소 검색</strong><button type="button" class="btn ghost" aria-label="주소 검색 닫기">닫기</button></div><div class="company-address-embed"></div>';
-    document.body.append(dlg);dlg.addEventListener('close',()=>{dlg.remove();b.focus();});dlg.querySelector('button').onclick=()=>dlg.close();dlg.showModal();
-    new window.daum.Postcode({width:'100%',height:'100%',oncomplete(data){const v=data.userSelectedType==='J'?data.jibunAddress||data.address:data.roadAddress||data.address;
-     input.value=v+' ';dlg.close();input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));}}).embed(dlg.querySelector('.company-address-embed'));}
-   catch{dlg?.close();typeof window.toast==='function'&&window.toast('주소 검색을 불러오지 못했습니다. 주소를 직접 입력해 주세요.');}
-   finally{b.disabled=false;}};}
+  b.onclick=()=>addressWindow(b,v=>{input.value=v+' ';input.focus();input.setSelectionRange(input.value.length,input.value.length);input.dispatchEvent(new Event('input',{bubbles:true}));});}
+
 
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
  function settingsPolish(){
@@ -7966,7 +8054,74 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
   for(const [id,label] of [['st_card_url','명함'],['st_cert_url','사업자등록증']]){const hint=document.getElementById(id)?.closest('.field')?.querySelector('.hint');
    if(hint&&!hint.dataset.nd){hint.dataset.nd='1';hint.textContent=`예전 방식(링크)입니다. 지금 '${label} 보내기'는 아래 '개인 클라우드 이미지'에 저장한 이미지를 보냅니다.`;}}}
  function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}
- function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();
+
+ /* 왼쪽 패널 규칙 (all list screens): the header band holds every control — [검색 · 늘어남] [필터] [＋].
+    Below the 144 line: an optional 44px chip band, then only the list scrolls. Nothing moves when the list scrolls.
+    Header controls proxy to the screen's own inputs/buttons (found at event time, so re-renders are safe);
+    filter blocks move as-is into a popover so their handlers stay intact. */
+ const ICON_SEARCH='<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',ICON_FILTER='<path d="M4 6h16M7 12h10M10 18h4"/>',ICON_PLUS='<path d="M12 5v14M5 12h14"/>';
+ const TOOLS={
+  materials:{search:'#view-materials .material-owners>input.panel-b-search',ph:'업체·자재 검색',add:[['자재 받음','#mm_new_receipt']],
+   hide:['#view-materials .material-owners>input.panel-b-search','#view-materials #mm_new_receipt','#view-materials .material-owners-head'],count:'#view-materials .material-owners-head .hint'},
+  payments:{search:'#paySearch',ph:'거래처·메모·견적번호',add:[['입금 기록','#payInbound'],['출금 기록','#payOutbound']],filter:'#view-payments .ops-filters>details.panel-b-more',
+   chips:{select:'payFilter',host:'#view-payments .workspace-left',before:'#view-payments .workspace-left>.panel-b-index',items:[['','전체'],['수금','입금'],['지급','출금']]},hide:['#view-payments .ops-actions','#view-payments .ops-filters']},
+  stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고','#stockRegister'],['출고','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
+   chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 대비 부족'],['low','최소 미달'],['zero','품절'],['missing','기준 미설정']]},hide:['#view-stock .stock-tools']},
+  items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
+  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar',period:['slFrom','slTo'],
+   chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']]},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar']},
+  ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
+   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']]},hide:['#view-ar .workspace-left>.filter-bar']},
+  settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
+ let pop=null;
+ function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
+ function openPop(btn,build,restore){if(pop&&pop.btn===btn){closePop();return;}closePop();
+  const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');build(el);(document.getElementById('appView')||document.body).append(el);
+  const r=btn.getBoundingClientRect(),row=btn.parentElement.getBoundingClientRect(),w=Math.min(Math.max(260,row.width),320,innerWidth-32);el.style.width=w+'px';
+  el.style.left=Math.max(16,Math.min(row.left,innerWidth-w-16))+'px';el.style.top=(r.bottom+8)+'px';
+  btn.setAttribute('aria-expanded','true');pop={el,btn,restore};}
+ document.addEventListener('pointerdown',e=>{if(pop&&!pop.el.contains(e.target)&&!pop.btn.contains(e.target))closePop();},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
+ const toolBtn=(icon,label,cls='')=>{const b=document.createElement('button');b.type='button';b.className='nd-tool '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svgI(icon);return b;};
+ function tools(){
+  const hide=[];
+  for(const [view,c] of Object.entries(TOOLS)){
+   hide.push(...(c.hide||[]));
+   const head=document.querySelector(`#view-${view}>.page-head`);if(!head||(view!=='items'&&head.querySelector('.nd-tools')))continue;
+   const row=view==='items'?document.querySelector('#view-items .list-head'):document.createElement('div');if(!row||row.querySelector('.nd-tool'))continue;
+   if(view!=='items'){row.className='nd-tools';head.append(row);head.classList.add('nd-scope','nd-own-tools');}
+   if(c.search){const lab=document.createElement('label');lab.className='nd-tsearch';lab.innerHTML=svgI(ICON_SEARCH);
+    const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
+    const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
+    input.addEventListener('input',push);
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+   if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
+    const label=()=>{const [f,t]=c.period.map(id=>document.getElementById(id)?.value||'');b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
+    label();c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
+    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();});};}
+   if(c.filter&&!c.period){const b=toolBtn(ICON_FILTER,'필터');row.insertBefore(b,row.querySelector('.btn-add'));
+    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
+     openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block));};}
+   if(c.filterSelect){const b=toolBtn(ICON_FILTER,'필터');row.append(b);
+    b.onclick=()=>{const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
+     openPop(b,el=>{el.classList.add('nd-pop-filter');const l=document.createElement('label');l.className='nd-pop-field';l.textContent='표시';l.append(sel);el.append(l);},()=>mark.replaceWith(sel));};}
+   if(c.add){const b=toolBtn(ICON_PLUS,c.add.length>1?'새 기록':c.add[0][0],'nd-tadd');row.append(b);
+    b.onclick=()=>{if(c.add.length===1){document.querySelector(c.add[0][1])?.click();return;}
+     openPop(b,el=>{el.classList.add('nd-pop-menu');for(const [l,sel] of c.add){const m=document.createElement('button');m.type='button';m.textContent=l+' 추가';m.onclick=()=>{closePop();document.querySelector(sel)?.click();};el.append(m);}});};}
+   if(c.count){const span=document.createElement('span');span.className='count nd-tcount';head.querySelector('h2')?.after(span);
+    const upd=()=>{const t=document.querySelector(c.count)?.textContent.trim()||'';if(span.textContent!==t)span.textContent=t;};new MutationObserver(upd).observe(document.getElementById('view-'+view),{childList:true,subtree:true});upd();}
+   if(c.chips){const {select:id,host:h,before:bf,items}=c.chips;const select=document.getElementById(id),host=document.querySelector(h),before=document.querySelector(bf);
+    if(select&&host&&before&&!host.querySelector(':scope>.nd-chips')){const chipRow=document.createElement('div');chipRow.className='nd-chips';chipRow.setAttribute('role','group');chipRow.setAttribute('aria-label','빠른 필터');
+     const sync=()=>chipRow.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.v===select.value)));
+     for(const [v,l] of items){const x=document.createElement('button');x.type='button';x.dataset.v=v;x.textContent=l;x.onclick=()=>{if(select.value!==v){select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));}sync();};chipRow.append(x);}
+     before.before(chipRow);select.addEventListener('change',sync);new MutationObserver(sync).observe(before,{childList:true});sync();}}
+  }
+  const utils=document.querySelector('#view-settings .workspace-left>.settings-utils'),idx=document.querySelector('#view-settings .workspace-left>.panel-b-index');
+  if(utils&&idx&&idx.nextElementSibling!==utils)idx.after(utils);
+  if(!document.getElementById('nd-tools-hide')){const st=document.createElement('style');st.id='nd-tools-hide';st.textContent=`@media screen{${hide.map(x=>'#appView '+x).join(',')}{display:none!important}}`;document.head.append(st);}
+ }
+ function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v5):v5();
