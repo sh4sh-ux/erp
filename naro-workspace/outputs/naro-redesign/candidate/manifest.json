@@ -83,7 +83,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "db09d8f9b99327d2b77c5f5f17d28577e42ab01f98274db622d4de5701a8920f"
+      "sha256": "a11a3befa195f860ff669305f6cf0041ab791e060fb547e08309c0d2a6027695"
     },
     {
       "path": "erp/favicon.png",
@@ -250,7 +250,7 @@
       "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
     }
   ],
-  "aggregate": "978755994f635ccf83dd28eb3d44c0100b82ca521b8338138e6d3f8cd1c8ff66",
+  "aggregate": "5b40291590132010fed651707e221e81196fa6b57cedf5d281c39be066754a6f",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
