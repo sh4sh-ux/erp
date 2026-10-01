@@ -70,6 +70,8 @@ export function start(bridge,build){
    snapshot=validateData(e.data.data);Object.assign(bridge.db,structuredClone(snapshot));port=e.ports[0];providerLabel=e.data.provider==='dropbox'?'Dropbox':'Google Drive';
    port.onmessage=async e=>{
     const m=e.data;if(!pending||m?.requestId!==pending.requestId)return;
+    // Each record is saved and read back one by one; show where it is so a long import doesn't look frozen.
+    if(m.type==='MERGE_PROGRESS'){status.hidden=false;status.textContent=`가져오는 중… ${m.done} / ${m.total}건 저장 (창을 닫지 마세요)`;return;}
     const p=pending;pending=null;
     if(m.type==='ASSET_DONE'){p.resolve(m);return;}
     if(m.type==='ASSET_ERROR'){p.reject(Error(messages[m.code]||'이미지 작업을 완료하지 못했습니다.'));return;}

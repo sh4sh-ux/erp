@@ -83,7 +83,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "b4e678fd2d3774e7197dfe30089a527dfcf2cb03948bc46ec18f730a13e72349"
+      "sha256": "db09d8f9b99327d2b77c5f5f17d28577e42ab01f98274db622d4de5701a8920f"
     },
     {
       "path": "erp/favicon.png",
@@ -187,7 +187,7 @@
     },
     {
       "path": "merge-import.mjs",
-      "sha256": "79cf4de7c6b44662c4cc5ebd1f62ef7b613d188c2836f3c16b39b641f0577e2d"
+      "sha256": "4a57159f2c30f60d2302570a3e868e56815810da408fcfb9fa19be45245631a4"
     },
     {
       "path": "naro-symbol.png",
@@ -247,10 +247,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "e5274a6b86c8ddf6ed3ba5c563d1beabe138b666e802432f56926185b7b12cc5"
+      "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
     }
   ],
-  "aggregate": "705e317af76e03a2d384c953e3fd2e9b2f13cb91e0ba014153d1979c8dd64b6e",
+  "aggregate": "978755994f635ccf83dd28eb3d44c0100b82ca521b8338138e6d3f8cd1c8ff66",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

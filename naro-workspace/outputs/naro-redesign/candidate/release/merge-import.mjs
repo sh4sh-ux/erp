@@ -6,14 +6,14 @@ export function createMergeImport(repository){
  return {
   active:()=>plan!==null,
   preview(backup){if(plan||busy)throw fault('BUSY');return {count:planMerge(snapshot(),backup).steps.length};},
-  async run(backup){
+  async run(backup,onProgress){
    if(busy)throw fault('BUSY');busy=true;
    try{
     if(!plan){plan=planMerge(snapshot(),backup);index=0;}
     for(;index<plan.steps.length;index++){
      const {key,row}=plan.steps[index];
      if(uncertain){await repository.saveTable(key,null,{recover:true});uncertain=false;continue;}
-     try{await repository.saveTable(key,[...repository.loadCollection(key),row]);}
+     try{await repository.saveTable(key,[...repository.loadCollection(key),row]);try{onProgress?.(index+1,plan.steps.length);}catch{}}
      catch(e){if(e.code==='SAVE_UNCONFIRMED')uncertain=true;throw e;}
     }
     const result={data:snapshot(),completed:index,total:plan.steps.length};plan=null;return result;

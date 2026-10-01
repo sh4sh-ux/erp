@@ -42,7 +42,7 @@ export function openWorkspace(data,logout,repository){
    if(m?.type==='MERGE_IMPORT'&&!busy){
     if(!repository?.capabilities?.merge)return;
     busy=true;
-    try{const result=await importer.run(m.backup);Object.assign(data,result.data);if(port===current)current.postMessage({type:'MERGE_DONE',requestId:m.requestId,...result});}
+    try{const result=await importer.run(m.backup,(done,total)=>{if(port===current)current.postMessage({type:'MERGE_PROGRESS',requestId:m.requestId,done,total});});Object.assign(data,result.data);if(port===current)current.postMessage({type:'MERGE_DONE',requestId:m.requestId,...result});}
     catch(error){if(port===current)current.postMessage({type:'MERGE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error),progress:error.importProgress,active:importer.active()});}
     finally{busy=false;}return;
    }
