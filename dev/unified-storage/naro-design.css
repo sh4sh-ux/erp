@@ -1092,10 +1092,11 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .card-head>.nd-chd[hidden],#appView .card-head>.legend[hidden]{display:none!important}
 #appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}
 /* 견적서 인쇄: 품명 칸 작은 사진 (사진 있는 품목만). 인쇄 블록이라 색은 직접 지정. */
-#printArea .nd-pq{display:flex;align-items:center;gap:8px;min-width:0}
+#printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
+#printArea .p-etc .k{padding-left:14px}
 #printArea .nd-pq>span{min-width:0;overflow-wrap:anywhere}
-#printArea .nd-pq>img{flex:none;width:38px;height:38px;box-sizing:border-box;padding:2px;border-radius:8px;background:#F4F5F7;object-fit:contain}
-#printArea .nd-pq>i{flex:none;width:38px}
+#printArea .nd-pq>img{flex:none;width:56px;height:56px;box-sizing:border-box;padding:3px;border-radius:10px;background:#F4F5F7;object-fit:contain}
+#printArea .nd-pq>i{flex:none;width:56px}
 #printArea tr.nd-pq-grp>td{border-bottom-color:transparent!important}
 /* ── 업체 제공 자재: 자재 칩·기록 창 버튼 순서 (PC·폰 공통) ── */
 #appView #view-materials .material-type-tabs{display:flex;flex-wrap:wrap;gap:6px}

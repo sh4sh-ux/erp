@@ -5439,11 +5439,11 @@ function drawQuoteCanvas(q,docType){
 
   mc.font=F(400,12.5);
   const rowInfo=lines.map(l=>{
-    const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const nameLs=qimgWrap(mc,l.name,COLS[0]-22-(ph?46:0));
+    const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const nameLs=qimgWrap(mc,l.name,COLS[0]-22-(ph?66:0));
     const colorLs=qimgWrap(mc,l.color||"",COLS[1]-16);
     const specLs=qimgWrap(mc,l.spec||"",COLS[2]-16);
     const n=Math.max(nameLs.length,colorLs.length,specLs.length);
-    return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?54:42,n*18+24) };
+    return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?72:42,n*18+24) };
   });
   const tableH=30+rowInfo.reduce((h,r)=>h+r.h,0);
 
@@ -5524,9 +5524,9 @@ function drawQuoteCanvas(q,docType){
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
-    const baseY=ty+12+13+(r.ph&&r.ph.first?6:0);
+    const baseY=ty+12+13+(r.ph&&r.ph.first?15:0);
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
-    if(r.ph){if(r.ph.first&&r.ph.img){const S=38,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,8);ctx.fill();qimgRR(ctx,ix,iy,S,S,8);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}ctx.textAlign="left";r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11+46,baseY+j*18));}else r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
+    if(r.ph){if(r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}ctx.textAlign="left";r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11+66,baseY+j*18));}else r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
     r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
     r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
     [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>cell(v,i+3,baseY));
@@ -5544,7 +5544,7 @@ function drawQuoteCanvas(q,docType){
   cell(fmt(t.vat),6,by+22);
   by+=34+16+11;
   ctx.fillStyle="#8A8F98"; ctx.font=F(700,11);
-  ctx.fillText("비 고",MX,by);
+  ctx.fillText("비 고",MX+13,by);
   by+=7;
   ctx.strokeStyle="#E4E6E9"; ctx.lineWidth=1;
   qimgRR(ctx,MX+.5,by+.5,CW-1,etcBoxH-1,11); ctx.stroke();
@@ -8378,10 +8378,11 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .card-head>.nd-chd[hidden],#appView .card-head>.legend[hidden]{display:none!important}
 #appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}
 /* 견적서 인쇄: 품명 칸 작은 사진 (사진 있는 품목만). 인쇄 블록이라 색은 직접 지정. */
-#printArea .nd-pq{display:flex;align-items:center;gap:8px;min-width:0}
+#printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
+#printArea .p-etc .k{padding-left:14px}
 #printArea .nd-pq>span{min-width:0;overflow-wrap:anywhere}
-#printArea .nd-pq>img{flex:none;width:38px;height:38px;box-sizing:border-box;padding:2px;border-radius:8px;background:#F4F5F7;object-fit:contain}
-#printArea .nd-pq>i{flex:none;width:38px}
+#printArea .nd-pq>img{flex:none;width:56px;height:56px;box-sizing:border-box;padding:3px;border-radius:10px;background:#F4F5F7;object-fit:contain}
+#printArea .nd-pq>i{flex:none;width:56px}
 #printArea tr.nd-pq-grp>td{border-bottom-color:transparent!important}
 /* ── 업체 제공 자재: 자재 칩·기록 창 버튼 순서 (PC·폰 공통) ── */
 #appView #view-materials .material-type-tabs{display:flex;flex-wrap:wrap;gap:6px}
