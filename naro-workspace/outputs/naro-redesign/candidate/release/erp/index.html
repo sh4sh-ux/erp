@@ -8996,6 +8996,18 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
  html body #appView #view-materials.nd-mm-open .material-record{padding:12px 16px!important}
 }
 html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-detail .material-type-tabs[hidden]{display:none!important}
+/* ── 폰 아래 고정 바 규칙(견적서·거래처·품목 저장 바, 업체 제공 자재 사용 바) ──
+   위 12 · 아래 16 + 기기 안전 영역(아이폰 홈 막대) · 좌우 16, 버튼 높이 48 · 모서리 12. */
+@media screen and (max-width:780px){
+ html body #appView .shell .main :is(#qtForm,#coForm,#itForm) .form-actions,
+ html body #appView #view-materials.nd-mm-open .material-quick{padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px))!important}
+ /* 수량 입력: 한 덩어리 [ − | 1 | + ] — 같은 흰 바탕, 얇은 테두리 하나, 칸 사이 가는 선 */
+ html body #appView #view-materials.nd-mm-open .material-stepper{display:flex!important;align-items:stretch;height:48px!important;padding:0!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;overflow:hidden}
+ html body #appView #view-materials.nd-mm-open .material-stepper>button{width:44px!important;height:100%!important;min-width:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--nd-ink-2)!important;font:500 20px/1 var(--sans)!important;display:grid;place-items:center}
+ html body #appView #view-materials.nd-mm-open .material-stepper>button:active{background:var(--nd-fill)!important}
+ html body #appView #view-materials.nd-mm-open .material-stepper>input{width:48px!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-left:1px solid var(--nd-line-2)!important;border-right:1px solid var(--nd-line-2)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font:700 16px/1 var(--sans)!important;color:var(--nd-ink)!important;font-variant-numeric:tabular-nums}
+ html body #appView #view-materials.nd-mm-open .material-stepper>input:focus{background:var(--nd-fill)!important;outline:none}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
