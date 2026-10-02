@@ -1484,3 +1484,46 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
 }
 @media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-stock:not(.nd-st-open) #stockItems>.stock-item.selected>span:first-child{color:var(--nd-ink)!important}}
 @media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-materials .material-owner{border-bottom:1px solid var(--nd-line-2)!important}html body #appView[data-layout-system] .shell .main #view-materials .material-owner:last-child{border-bottom:0!important}}
+/* v-mm2 — phone materials detail: full width like the quote detail, two clear cards (summary · history) */
+@media screen and (max-width:780px){
+ html body #appView #view-materials.nd-mm-open .material-detail{width:auto!important;max-width:none!important;margin:0!important;align-self:stretch;background:none!important;border-radius:0!important;overflow:visible!important}
+ html body #appView #view-materials.nd-mm-open .material-detail>:is(.nd-mm-bar,.material-detail-head,.material-type-tabs,.material-balance-hero,.nd-mat){background:var(--nd-surface)!important;margin:0!important}
+ html body #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{border-radius:16px 16px 0 0;border-bottom:0!important;padding:10px 12px 0 16px!important;top:0}
+ html body #appView #view-materials.nd-mm-open .material-detail-head{padding:8px 16px 0!important}
+ html body #appView #view-materials.nd-mm-open .material-detail-head h3{font:700 22px/28px var(--sans)!important;letter-spacing:-.4px}
+ html body #appView #view-materials.nd-mm-open .material-type-tabs{display:flex!important;flex-wrap:nowrap!important;gap:6px;overflow-x:auto;scrollbar-width:none;padding:14px 16px 0!important}
+ html body #appView #view-materials.nd-mm-open .material-type-tabs::-webkit-scrollbar{display:none}
+ html body #appView #view-materials.nd-mm-open .material-type-tab{flex:none;height:32px;padding:0 12px!important;border-radius:999px!important;white-space:nowrap;font:600 13px/1 var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-balance-hero{display:flex!important;flex-direction:column-reverse;align-items:flex-start;gap:6px;padding:20px 16px 0!important}
+ html body #appView #view-materials.nd-mm-open .material-balance-hero>span{font:600 13px/18px var(--sans)!important;color:var(--nd-ink-2)!important;margin:0!important}
+ html body #appView #view-materials.nd-mm-open .material-balance-hero strong{font:800 44px/1 var(--sans)!important;letter-spacing:-1px;color:var(--nd-ink)!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat{padding:16px 16px 18px!important;border-radius:0 0 16px 16px!important;border:0!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-hd{display:flex;justify-content:flex-start;margin:0 0 8px!important;font:500 12.5px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-hd>span+span{display:none}
+ html body #appView #view-materials.nd-mm-open .nd-mat-bar{height:8px!important;border-radius:4px!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend{display:grid!important;grid-template-columns:repeat(3,1fr);gap:0!important;margin:16px 0 0!important;padding-top:14px;border-top:1px solid var(--nd-line-2)}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend>span{display:flex!important;flex-wrap:wrap;align-items:center;gap:6px;padding:0 0 0 12px;border-left:1px solid var(--nd-line-2);font:500 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend>span:first-child{padding-left:0;border-left:0}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend b{flex-basis:100%;font:700 20px/24px var(--sans)!important;letter-spacing:-.3px;color:var(--nd-ink)!important}
+ html body #appView #view-materials.nd-mm-open .material-history-wrap{margin:12px 0 0!important;padding:16px 0 4px!important;border:0!important;border-radius:16px;background:var(--nd-surface)!important}
+ html body #appView #view-materials.nd-mm-open .material-history-wrap>.material-section-head{padding:0 16px 8px!important;border-bottom:1px solid var(--nd-line-2)!important}
+ html body #appView #view-materials.nd-mm-open .material-history-wrap>.material-section-head h3{font:700 15px/20px var(--sans)!important;margin:0!important}
+ html body #appView #view-materials.nd-mm-open .material-day+.material-day .material-record,html body #appView #view-materials.nd-mm-open .material-record+.material-record{border-top:1px solid var(--nd-line-2)!important}
+ html body #appView #view-materials.nd-mm-open .material-record{display:flex!important;align-items:center;gap:12px;padding:14px 16px!important;border:0;border-bottom:0!important;border-radius:0!important}
+ html body #appView #view-materials.nd-mm-open .material-record-main{flex:1;display:grid!important;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"l l" "m d";column-gap:0;row-gap:4px}
+ html body #appView #view-materials.nd-mm-open .material-record-line{grid-area:l;display:flex;align-items:center;gap:6px;min-width:0;margin:0!important}
+ html body #appView #view-materials.nd-mm-open .material-record-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 15px/20px var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-record-kind{flex:none}
+ html body #appView #view-materials.nd-mm-open .material-record-meta{grid-area:m;margin:0!important;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12.5px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+ html body #appView #view-materials.nd-mm-open .material-record-date{grid-area:d;margin:0!important;font:400 12.5px/16px var(--sans)!important;color:var(--nd-ink-3)!important;white-space:nowrap}
+ html body #appView #view-materials.nd-mm-open .material-record-main:has(.material-record-meta) .material-record-date::before{content:'·';margin:0 5px}
+ html body #appView #view-materials.nd-mm-open .material-record-qty{font:700 17px/22px var(--sans)!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+ html body #appView #view-materials.nd-mm-open .material-quick{margin:auto -12px 0!important}
+ html body #appView #view-materials.nd-mm-open .material-detail-form{margin:0!important}
+ html body #appView #view-materials.nd-mm-open .material-history-wrap{flex:none!important;margin-bottom:12px!important}
+ html body #appView #view-materials.nd-mm-open .material-history{border:0!important}
+ html body #appView #view-materials.nd-mm-open .material-record-side{padding:0!important;margin:0!important;align-self:center}
+ html body #appView #view-materials.nd-mm-open .material-record-main:has(.material-record-meta) .material-record-date::before{content:none}
+ html body #appView #view-materials.nd-mm-open .material-record-main:has(.material-record-meta:not(:empty)) .material-record-date::before{content:'·'}
+ html body #appView #view-materials.nd-mm-open .material-record-meta:empty{display:none}
+}
