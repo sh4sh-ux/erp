@@ -8377,6 +8377,16 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .card-head>.nd-chd b{font-weight:700;color:var(--nd-ink)}
 #appView .card-head>.nd-chd[hidden],#appView .card-head>.legend[hidden]{display:none!important}
 #appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}
+/* 견적서 인쇄: 품목 사진 쪽 (사진이 있는 품목이 있을 때만 붙는다). 인쇄 블록이라 색은 직접 지정. */
+#printArea .nd-pphotos{min-height:0!important;margin-top:32px;padding-top:24px;border-top:1px solid #ECEDEF;break-before:page;page-break-before:always}
+#printArea .nd-pp-title{font-size:20px;font-weight:800;color:#111;margin:0 0 16px}
+#printArea .nd-pp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#printArea .nd-pp-grid figure{margin:0;break-inside:avoid}
+#printArea .nd-pp-img{aspect-ratio:1;border-radius:12px;background:#F4F5F7;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#printArea .nd-pp-img img{max-width:calc(100% - 16px);max-height:calc(100% - 16px);object-fit:contain}
+#printArea .nd-pp-grid figcaption{margin-top:7px;display:flex;flex-direction:column;gap:2px;min-width:0}
+#printArea .nd-pp-grid figcaption b{font-size:12.5px;font-weight:700;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#printArea .nd-pp-grid figcaption span{font-size:11.5px;color:#8A8F98}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
