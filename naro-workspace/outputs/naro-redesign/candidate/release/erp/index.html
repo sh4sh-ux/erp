@@ -5272,11 +5272,11 @@ function printQuote(q,docType){
   const fmtb=v=>Number(v)?fmt(v):"";                     // 0은 빈칸으로
   const t=quoteTotals({lines});
   const colgroup=`<colgroup><col><col style="width:46px"><col style="width:112px"><col style="width:58px"><col style="width:88px"><col style="width:100px"><col style="width:82px"></colgroup>`;
-  const rows=lines.map((l,li)=>{const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);
+  const rows=lines.map((l,li)=>{const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""},pn=`<span class="nd-pn"><b>${escapeHtml(sp.name)}</b>${sp.code?`<small>${escapeHtml(sp.code)}</small>`:""}</span>`;const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
     return `
     <tr${ph&&nx&&!nx.first?' class="nd-pq-grp"':''}>
-      <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:'<i></i>'}<span>${escapeHtml(l.name)}</span></div>`:escapeHtml(l.name)}</td>
+      <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:'<i></i>'}${pn}</div>`:pn}</td>
       <td>${escapeHtml(l.color||"")}</td>
       <td class="ctr">${escapeHtml(l.spec||"")}</td>
       <td class="ctr">${fmtb(l.qty)}</td>
@@ -5439,7 +5439,7 @@ function drawQuoteCanvas(q,docType){
 
   mc.font=F(400,12.5);
   const rowInfo=lines.map(l=>{
-    const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const nameLs=qimgWrap(mc,l.name,COLS[0]-22-(ph?66:0));
+    const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""};const nameLs=(window.naroWrapWords||qimgWrap)(mc,sp.name,COLS[0]-22-(ph?66:0));if(sp.code)nameLs.push({code:sp.code});
     const colorLs=qimgWrap(mc,l.color||"",COLS[1]-16);
     const specLs=qimgWrap(mc,l.spec||"",COLS[2]-16);
     const n=Math.max(nameLs.length,colorLs.length,specLs.length);
@@ -5524,9 +5524,9 @@ function drawQuoteCanvas(q,docType){
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
-    const baseY=ty+12+13+(r.ph&&r.ph.first?15:0);
+    const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
-    if(r.ph){if(r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}ctx.textAlign="left";r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11+66,baseY+j*18));}else r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
+    if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}
     r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
     r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
     [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>cell(v,i+3,baseY));
@@ -8380,7 +8380,11 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 /* 견적서 인쇄: 품명 칸 작은 사진 (사진 있는 품목만). 인쇄 블록이라 색은 직접 지정. */
 #printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
 #printArea .p-etc .k{padding-left:14px}
-#printArea .nd-pq>span{min-width:0;overflow-wrap:anywhere}
+#printArea .nd-pq>span{min-width:0;word-break:keep-all;overflow-wrap:break-word}
+#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word}
+#printArea .nd-pn{display:flex;flex-direction:column;gap:1px;min-width:0}
+#printArea .nd-pn>b{font-weight:400;color:inherit}
+#printArea .nd-pn>small{font-size:11px;color:#8A8F98;line-height:1.35}
 #printArea .nd-pq>img{flex:none;width:56px;height:56px;box-sizing:border-box;padding:3px;border-radius:10px;background:#F4F5F7;object-fit:contain}
 #printArea .nd-pq>i{flex:none;width:56px}
 #printArea tr.nd-pq-grp>td{border-bottom-color:transparent!important}
@@ -8394,7 +8398,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView #view-materials .nd-mm-bar,#appView #view-materials .nd-mm-asof{display:none}
 /* ── 폰: 목록 → 상세 ── */
 @media screen and (max-width:780px){
- #appView .shell .main>#view-materials{display:flex!important;flex-direction:column}
+ #appView .shell .main>#view-materials:not(.hidden){display:flex!important;flex-direction:column}
  #appView .shell .main>#view-materials>#materialContent{order:2}
  #appView .shell .main>#view-materials>.copy-note{order:3;display:flex;gap:8px;margin:16px!important;padding:0!important;border:0!important;background:none!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
  #appView .shell .main>#view-materials>.copy-note::before{content:'i';flex:none;width:15px;height:15px;margin-top:1px;border:1.5px solid currentColor;border-radius:50%;display:grid;place-items:center;font:700 10px/1 var(--sans);box-sizing:border-box}
@@ -8494,6 +8498,16 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView :is(#coForm,#itForm) .form-actions>.panel-b-danger.nd-solo-menu>.nd-pop>:is(button,.btn){width:auto!important;min-width:72px;height:40px!important;min-height:40px!important;margin:0!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;color:var(--nd-red)!important;font:600 14px/1 var(--sans)!important;box-shadow:none!important;display:inline-flex!important;align-items:center;justify-content:center}
 @media screen and (max-width:1023px){#appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger.nd-solo-menu>.nd-pop>:is(button,.btn){height:48px!important;min-height:48px!important;border-radius:12px!important;min-width:76px}}
 @media screen and (max-width:1023px){#appView .shell .main :is(#coForm,#itForm)>.form-actions>:is(#coDelBtn,#itDelBtn){flex:none!important;width:auto!important;min-width:76px;height:48px!important;min-height:48px!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;color:var(--nd-red)!important;font:600 15px/1 var(--sans)!important;box-shadow:none!important}}
+/* ── 비침 방지 규칙: 고정(sticky/fixed) 막대는 항상 불투명 바탕, 스크롤 영역 가장자리에 틈 없이 붙는다 ── */
+/* 오른쪽 패널(.workspace-right)은 아래 여백 20px가 있어 bottom:0이면 그 아래로 내용이 비친다 → 여백만큼 내린다 */
+#appView[data-layout-system="b"] .shell .main .workspace-right .stock-min-actions{bottom:-20px!important;background:var(--nd-surface)!important;padding-bottom:20px!important;margin-bottom:-20px!important;z-index:4}
+@media screen and (max-width:1023px){
+ /* 폰 하단 탭: 반투명(뒤 내용이 비침) → 불투명 */
+ #bottomNav,html[data-theme="dark"] #bottomNav{background:var(--nd-frame)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ /* 폰 목록 검색 줄: 투명 → 목록 바탕과 같은 불투명 */
+ #appView .shell .main .view .list-head{background:var(--nd-surface)!important}
+}
+@media screen and (max-width:1023px){#appView .shell .main :is(#view-companies,#view-items,#view-quotes)>.cols>.card>.list-head{background:var(--nd-surface)!important}}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {

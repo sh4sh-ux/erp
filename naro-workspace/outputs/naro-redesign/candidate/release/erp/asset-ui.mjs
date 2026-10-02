@@ -93,6 +93,17 @@ export function installAssets({db,request,save,notify}){
   itemCard.refresh();};
  // 견적서 출력(시안 A): 사진이 등록된 품목은 품명 칸에 작은 사진 — 인쇄·이미지·공유·이메일·복사 공통.
  // 그리는 쪽(build.mjs가 drawQuoteCanvas·printQuote에 넣은 몇 줄)은 동기라, 여기서 사진을 미리 읽어 두고 naroQuotePhoto로 건넨다.
+ // 품명 줄바꿈: 글자 중간이 아니라 띄어쓰기 단위로 나눈다("디자인공임 / [Design Fee]"). 한 단어가 한 줄보다 길 때만 글자 단위.
+ // 품명/품번: 이름 끝의 [품번]을 떼어 둘째 줄(회색)로. 괄호가 없으면 품목에 등록된 코드를 쓴다.
+ window.naroSplitName=l=>{const raw=String(l?.name||'').trim();const m=/^(.*\S)\s*\[([^\]]+)\]$/.exec(raw);if(m)return {name:m[1],code:m[2].trim()};
+  const it=l?.item_id&&db.items.find(i=>i.id===l.item_id);const code=(it?.code||'').trim();return {name:raw,code:code&&!raw.includes(code)?code:''};};
+ window.naroWrapWords=(ctx,text,width)=>{const words=String(text||'').split(/(\s+)/).filter(w=>w!=='');const lines=[];let cur='';
+  const hard=w=>{let part='';for(const ch of w){if(part&&ctx.measureText(part+ch).width>width){lines.push(part);part=ch;}else part+=ch;}return part;};
+  for(const w of words){if(/^\s+$/.test(w)){if(cur)cur+=' ';continue;}const next=cur+w;
+   if(ctx.measureText(next).width<=width){cur=next;continue;}
+   if(cur.trim()){lines.push(cur.trimEnd());cur='';}
+   cur=ctx.measureText(w).width>width?hard(w):w;}
+  if(cur.trim())lines.push(cur.trimEnd());return lines.length?lines:[''];};
  const thumbs=new Map();
  const pathOf=id=>id?db.settings?.assets?.['product:'+id]||'':'';
  window.naroQuotePhoto=(l,prev)=>{const id=l?.item_id,path=pathOf(id),t=id&&thumbs.get(id);if(!path||!t||t.path!==path)return null;
