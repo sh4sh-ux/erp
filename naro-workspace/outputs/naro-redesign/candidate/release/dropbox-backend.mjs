@@ -4,7 +4,14 @@ import {createAssetStore} from './asset-store.mjs';
 const paths=new Set([...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`));
 const api='https://api.dropboxapi.com/2/files/';
 const content='https://content.dropboxapi.com/2/files/';
-export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,businessWrite=false,locks=globalThis.navigator?.locks}){
+// Dropbox content_hash: 4MB 블록마다 SHA-256, 이어 붙여 다시 SHA-256 (hex). 저장 응답과 비교해 다시 내려받지 않고 확인한다.
+export async function dropboxContentHash(bytes,subtle=globalThis.crypto?.subtle){
+ if(!subtle)return null;const BLOCK=4194304,parts=[];
+ for(let i=0;i<bytes.length;i+=BLOCK)parts.push(new Uint8Array(await subtle.digest('SHA-256',bytes.subarray(i,i+BLOCK))));
+ const all=new Uint8Array(parts.length*32);parts.forEach((p,i)=>all.set(p,i*32));
+ return [...new Uint8Array(await subtle.digest('SHA-256',all))].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,businessWrite=false,locks=globalThis.navigator?.locks,subtle=globalThis.crypto?.subtle}){
  let token=null,expires=0,disposed=false,prepared=false;
  let windowStart=now(),requests=0;
  const metrics={readRequests:0,datasetCreateRequests:0,businessWriteRequests:0,blockedWrites:0};
@@ -54,6 +61,21 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
    return locks.request('naro-dropbox:'+expected.fileId,{mode:'exclusive',ifAvailable:true},async lock=>{
     if(!lock)throw fault('BUSY');
     const read=fn=>boundedRead(fn,{signal});
+    if(!recoveryOnly){
+     // 빠른 저장(왕복 1번): 마지막으로 확인한 rev를 조건으로 바로 올린다 — rev가 바뀌었으면 Dropbox가 거절한다(409, 덮어쓰지 않음).
+     // 저장된 내용은 응답의 content_hash와 직접 계산한 해시로 확인한다. 확인값이 없거나 다르면 예전처럼 다시 읽어 확인한다.
+     const body=JSON.stringify(next),hash=await dropboxContentHash(new TextEncoder().encode(body),subtle);
+     let dispatched=false,committed;
+     try{committed=await request(content+'upload',{path:pathArg(path),mode:{'.tag':'update',update:expected.revision},autorename:false,strict_conflict:true,mute:true},{upload:next,onDispatch:()=>{dispatched=true;}});}
+     catch(e){if(!dispatched||e.writeRejected)throw e;throw fault('SAVE_UNCONFIRMED');}
+     const same=committed?.id===expected.fileId&&typeof committed.rev==='string'&&!!committed.rev&&committed.path_lower===('/'+path).toLowerCase();
+     if(same&&hash&&committed.content_hash===hash)return {rows:JSON.parse(body),identity:{provider:'dropbox',logicalKey:key,fileId:committed.id,path:committed.path_lower,revision:committed.rev,revisionKind:'dropbox.rev',etag:null},recovered:false};
+     try{
+      const value=await read(()=>load(path)),after=await read(()=>identity(path));
+      if(!same||after.fileId!==committed.id||after.revision!==committed.rev||canonical(value)!==canonical(next))throw Error();
+      return {rows:value,identity:after,recovered:false};
+     }catch{throw fault('SAVE_UNCONFIRMED');}
+    }
     const a=await read(()=>identity(path)),current=await read(()=>load(path)),b=await read(()=>identity(path));
     if(a.fileId!==expected.fileId||a.fileId!==b.fileId||a.revision!==b.revision)throw fault('STORAGE_CONFLICT');
     if(canonical(current)===canonical(next))return {rows:current,identity:b,recovered:true};

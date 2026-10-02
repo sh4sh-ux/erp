@@ -10,7 +10,27 @@ const folderMime='application/vnd.google-apps.folder';
 const marker={naroPersonalCloud:'1'};
 const api='https://www.googleapis.com/drive/v3/';
 const escapeQuery=value=>value.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+// Drive md5Checksum 확인용 MD5(보안 용도 아님 — 저장된 내용이 보낸 내용과 같은지 비교만). 브라우저 WebCrypto에 MD5가 없어 직접 계산한다.
+export function md5Hex(input){
+ const bytes=typeof input==='string'?new TextEncoder().encode(input):input,n=bytes.length,words=new Uint32Array(((n+8>>>6)+1)*16);
+ for(let i=0;i<n;i++)words[i>>2]|=bytes[i]<<(i%4*8);
+ words[n>>2]|=0x80<<(n%4*8);words[words.length-2]=n*8>>>0;words[words.length-1]=Math.floor(n/0x20000000);
+ const K=new Uint32Array(64).map((_,i)=>Math.floor(Math.abs(Math.sin(i+1))*2**32)),R=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
+ let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+ for(let o=0;o<words.length;o+=16){
+  let a=a0,b=b0,c=c0,d=d0;
+  for(let i=0;i<64;i++){
+   const r=i>>4;let f,g;
+   if(r===0){f=(b&c)|(~b&d);g=i;}else if(r===1){f=(d&b)|(~d&c);g=(5*i+1)%16;}else if(r===2){f=b^c^d;g=(3*i+5)%16;}else{f=c^(b|~d);g=7*i%16;}
+   const t=d;d=c;c=b;const x=(a+f+K[i]+words[o+g])>>>0,sh=R[r*4+i%4];b=(b+((x<<sh)|(x>>>(32-sh))))>>>0;a=t;
+  }
+  a0=(a0+a)>>>0;b0=(b0+b)>>>0;c0=(c0+c)>>>0;d0=(d0+d)>>>0;
+ }
+ return [a0,b0,c0,d0].map(v=>[0,8,16,24].map(s=>((v>>>s)&255).toString(16).padStart(2,'0')).join('')).join('');
+}
 export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,locks=globalThis.navigator?.locks,readOnly=false,companiesCreate=false,businessWrite=false,extendedWrite=false,initializeNew=false}){
+ // 마지막 저장 응답의 버전·ETag(파일별). 다음 저장은 이 ETag를 조건으로 바로 올린다(빠른 저장).
+ const savedEtags=new Map();
  let token=null,expires=0,disposed=false,prepared=false,requests=0,releaseLock=null,accountBinding=null;
  let windowStart=now(),windowRequests=0;
  const nodes=new Map(),reserved=new Map(),attempted=new Set();
@@ -125,7 +145,7 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
     accountBinding=result.accountBinding;accountBinding.assertCurrent();
    }catch(e){token=null;expires=0;accountBinding=null;throw e;}}
   },
-  async disconnect(){disposed=true;token=null;expires=0;accountBinding=null;nodes.clear();reserved.clear();discoveryIdentities=null;discoveryMetadata.clear();releaseLock?.();releaseLock=null;oauth.close();},
+  async disconnect(){disposed=true;token=null;expires=0;accountBinding=null;savedEtags.clear();nodes.clear();reserved.clear();discoveryIdentities=null;discoveryMetadata.clear();releaseLock?.();releaseLock=null;oauth.close();},
   async exists(path){validPath(path);check();return nodes.has(path);},load,
   metrics(){return {...metrics};},
   async checkCompanyWrite(expected){await companyValidator(expected);return {ready:true};},
@@ -141,6 +161,29 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
     try{
     // Retry only safe reads. A PUT is never replayed, including on lost replies.
     const read=operation=>boundedRead(async()=>{try{return await operation();}catch(e){transport=e.transport||'';throw e;}},{signal});
+    const cached=savedEtags.get(id);
+    if(!recoveryOnly&&cached&&cached.version===expected.revision&&strongEtag(cached.etag)){
+     // 빠른 저장(왕복 1번): 지난 저장에서 받은 ETag를 조건(If-Match)으로 바로 올린다 — 그 사이 바뀌었으면 Drive가 412로 거절(덮어쓰지 않음).
+     // 저장된 내용은 응답의 md5Checksum과 직접 계산한 MD5로 확인한다. 412면 아래 예전 방식으로 처음부터 다시 확인한다.
+     const body=JSON.stringify(next);stage='CONDITIONAL_WRITE';transport='';let dispatched=false,res=null;
+     try{res=await request('files/'+encodeURIComponent(id)+'?uploadType=media&fields=id,version,etag,md5Checksum,headRevisionId',{version:2,method:'PUT',body,upload:true,datasetPatch:true,etag:cached.etag,onDispatch:()=>{dispatched=true;}});}
+     catch(e){
+      transport=e.transport||'';savedEtags.delete(id);
+      if(e.code!=='STORAGE_CONFLICT'){if(!dispatched||e.writeRejected)throw e;throw fault('SAVE_UNCONFIRMED');}
+     }
+     if(res){
+      if(res.id===id&&/^\d+$/.test(res.version||'')&&strongEtag(res.etag))savedEtags.set(id,{version:res.version,etag:res.etag});else savedEtags.delete(id);
+      if(res.id===id&&/^\d+$/.test(res.version||'')&&res.md5Checksum&&res.md5Checksum===md5Hex(body))
+       return {rows:JSON.parse(body),identity:Object.freeze({provider:'drive',logicalKey:key,fileId:id,path,revision:res.version,revisionKind:'drive.version',headRevisionId:res.headRevisionId||null,etag:null}),recovered:false};
+      try{
+       stage='READBACK_CONTENT';const persisted=await read(()=>load(path));
+       stage='READBACK_IDENTITY';const updated=await read(()=>this.identity(path));
+       if(canonical(persisted)!==canonical(next))throw fault('SAVE_UNCONFIRMED');
+       return {rows:persisted,identity:updated,recovered:false};
+      }catch{throw fault('SAVE_UNCONFIRMED');}
+     }
+     stage='IDENTITY_READ';
+    }
     const identity=await read(()=>this.identity(path));stage='CONTENT_READ';
     const current=await read(()=>load(path));
     if(recoveryOnly){
@@ -159,9 +202,10 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
     if(validator.id!==id||validator.version!==identity.revision)throw fault('STORAGE_CONFLICT');
     if(!strongEtag(validator.etag))throw fault('CONCURRENCY_UNAVAILABLE');
     stage='CONDITIONAL_WRITE';transport='';let dispatched=false;
-    try{await request('files/'+encodeURIComponent(id)+'?uploadType=media&fields=id,version',{version:2,method:'PUT',body:JSON.stringify(next),upload:true,datasetPatch:true,etag:validator.etag,onDispatch:()=>{dispatched=true;}});}
+    try{const res=await request('files/'+encodeURIComponent(id)+'?uploadType=media&fields=id,version,etag',{version:2,method:'PUT',body:JSON.stringify(next),upload:true,datasetPatch:true,etag:validator.etag,onDispatch:()=>{dispatched=true;}});
+     if(res?.id===id&&/^\d+$/.test(res.version||'')&&strongEtag(res.etag))savedEtags.set(id,{version:res.version,etag:res.etag});else savedEtags.delete(id);}
     catch(e){
-     transport=e.transport||'';
+     transport=e.transport||'';savedEtags.delete(id);
      // No network request, or an explicit client-error rejection: do not invent
      // an uncertain write. Transport/5xx/response decoding failures stay locked.
      if(!dispatched||e.writeRejected||e.code==='STORAGE_CONFLICT')throw e;
