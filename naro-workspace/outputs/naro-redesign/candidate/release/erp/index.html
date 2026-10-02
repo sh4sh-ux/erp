@@ -2481,7 +2481,7 @@
       <!-- ========== 품목 ========== -->
       <section class="view hidden" id="view-items">
         <div class="page-head">
-          <h2>품목 관리</h2>
+          <h2>품목</h2>
           <span class="count" id="itCount">0개</span>
           <div class="sp"></div>
         </div>
@@ -8868,6 +8868,19 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
  #appView .nd-acc-foot,#appView .nd-acc-empty{padding-left:16px;padding-right:16px}
  #appView .nd-acc-msg{margin:16px}
 }
+/* 선입금: 받을 금액 0원 아래 '미리 받은 돈 N원' */
+#appView .nd-adv{margin-top:4px;font:500 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+#appView .scr-hero>.nd-adv{margin-top:6px;font-size:13px}
+/* 폰 거래처 목록: 다른 목록처럼 화면 끝까지(.cols가 overflow:hidden이라 좌우 12px씩 잘렸다) */
+@media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-companies>.cols{overflow:visible!important}}
+/* 폰 견적서·거래처 목록(목록 안에서 스크롤): 아래 바와 목록 사이 회색 틈 없이 — 바닥 여백 = 아래 바 높이, 카드 아래 여백 0 */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-companies):not(.mobile-record-open):not(.hidden)::after{height:calc(69px + env(safe-area-inset-bottom,0px))!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes:not(.mobile-record-open)>#qtCols,#view-companies:not(.mobile-record-open)>.cols)>.card:first-child{margin-bottom:0!important}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{height:100%!important}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{display:flex!important;flex-direction:column}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9512,6 +9525,21 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
   if(add.parentElement!==row)row.append(add);if(size.parentElement!==row)row.append(size);
  }
  /* 재고 부족 알림: 줄마다 [품명 코드 …… 부족 N] / [색상 · 규격 …… 필요 · 보유] 두 줄로. 원래 문장에서 값만 읽어 다시 그린다. */
+ // 받을 금액이 음수(입금이 납품보다 많음 = 선입금)면 '0원' + '미리 받은 돈 N원'. 계산은 그대로, 보이는 것만.
+ // 고친 값은 끝에 보이지 않는 표시(​)를 달아, 앱이 다시 쓴 값과 구분한다(같은 값을 또 고치지 않게).
+ const ADV='​';
+ function advancePaid(){
+  const spots=[];
+  document.querySelectorAll('#view-dash .mo-sub>div').forEach(d=>{const k=d.querySelector('.k'),v=d.querySelector('.v');if(k&&v&&/미수금|받을 금액/.test(k.textContent))spots.push([v,d]);});
+  document.querySelectorAll('#appView .scr-hero').forEach(h=>{const l=h.querySelector('.lbl'),v=h.querySelector('.big');if(l&&v&&/미수금|받을 금액/.test(l.textContent))spots.push([v,h]);});
+  for(const [v,host] of spots){
+   const t=v.textContent;if(t.endsWith(ADV))continue;
+   const m=/^\s*[-−]([\d,]+)원\s*$/.exec(t),old=host.querySelector(':scope>.nd-adv');
+   if(!m){old?.remove();continue;}
+   v.textContent='0원'+ADV;v.classList.remove('neg');
+   const n=old||document.createElement('div');n.className='nd-adv';n.textContent='미리 받은 돈 '+m[1]+'원';if(!old)host.append(n);
+  }
+ }
  function shortageTidy(){
   for(const box of document.querySelectorAll('#appView .shortbox:not([data-nd])')){
    box.dataset.nd='1';const rows=[...box.querySelectorAll(':scope>.row')];
@@ -9529,7 +9557,24 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 저장 전 확인(거래처·품목): 잘못된 메일 주소·사업자번호, 같은 이름 거래처, 음수 단가. 앱의 저장 함수 앞에서 막는다.
+ const SAVE_CHECKS={
+  coSaveBtn(){
+   const v=id=>(document.getElementById(id)?.value||'').trim(),name=v('f_name'),email=v('f_email'),biz=v('f_biz');
+   if(email&&!email.split(/[,;]/).map(x=>x.trim()).filter(Boolean).every(x=>/^[^\s@,;<>"]+@[^\s@,;<>"]+\.[^\s@,;<>"]{2,}$/.test(x)))return {msg:'이메일 형식을 확인해 주세요. (예: name@company.co.kr — 여러 개는 쉼표로)',focus:'f_email'};
+   if(biz&&biz.replace(/\D/g,'').length!==10)return {msg:'사업자등록번호는 숫자 10자리예요. (예: 123-45-67890)',focus:'f_biz'};
+   const key=t=>String(t||'').replace(/\s+/g,'').toLowerCase(),same=name&&(db.companies||[]).filter(c=>c.id!==coSel&&key(c.name)===key(name));
+   if(same&&same.length&&!confirm(`같은 이름의 거래처 "${same[0].name}"가 이미 있어요.\n그래도 따로 등록할까요? (지점 등 다른 거래처일 때만)`))return {msg:'',focus:'f_name'};
+  },
+  itSaveBtn(){
+   for(const [id,label] of [['fi_sell','판매가'],['fi_buy','매입가']]){const el=document.getElementById(id);if(!el)continue;const n=Number(String(el.value).replace(/,/g,''));if(String(el.value).trim()&&(!Number.isFinite(n)||n<0))return {msg:label+'는 0 이상의 숫자로 입력해 주세요.',focus:id};}
+  }
+ };
+ document.addEventListener('click',e=>{const b=e.target.closest?.('#coSaveBtn,#itSaveBtn');if(!b||!document.getElementById('appView')?.contains(b))return;
+  let r;try{r=SAVE_CHECKS[b.id]();}catch{return;}
+  if(!r)return;e.preventDefault();e.stopImmediatePropagation();
+  if(r.msg&&typeof window.toast==='function')window.toast(r.msg);const f=document.getElementById(r.focus);f?.focus();f?.select?.();},true);
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

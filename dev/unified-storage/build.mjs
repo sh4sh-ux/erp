@@ -252,6 +252,7 @@ const initStart=html.indexOf('async function init(){'),initEnd=html.indexOf('// 
 if(initStart<0||initEnd<0)throw Error('INIT_BOUNDARY_CHANGED');
 html=html.slice(0,initStart)+html.slice(initEnd);
 html=html.replace('if(mode===\'OFF\') init();',"if(mode==='OFF') throw Error('UNSUPPORTED_MODE');");
+if(!html.includes('<h2>품목 관리</h2>'))throw Error('ITEMS_TITLE_BOUNDARY');html=html.replace('<h2>품목 관리</h2>','<h2>품목</h2>'); // 다른 탭처럼 메뉴 이름 그대로
 await writeFile(resolve(release,'erp/index.html'),html);
 let stock=await readFile(resolve(erp,'stock-entry.js'),'utf8');
 const s=stock.indexOf('async function saveStockChecked('),e=stock.indexOf('\nasync function ',s+10);

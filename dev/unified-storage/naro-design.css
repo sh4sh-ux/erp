@@ -1577,3 +1577,16 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
  #appView .nd-acc-foot,#appView .nd-acc-empty{padding-left:16px;padding-right:16px}
  #appView .nd-acc-msg{margin:16px}
 }
+/* 선입금: 받을 금액 0원 아래 '미리 받은 돈 N원' */
+#appView .nd-adv{margin-top:4px;font:500 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+#appView .scr-hero>.nd-adv{margin-top:6px;font-size:13px}
+/* 폰 거래처 목록: 다른 목록처럼 화면 끝까지(.cols가 overflow:hidden이라 좌우 12px씩 잘렸다) */
+@media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-companies>.cols{overflow:visible!important}}
+/* 폰 견적서·거래처 목록(목록 안에서 스크롤): 아래 바와 목록 사이 회색 틈 없이 — 바닥 여백 = 아래 바 높이, 카드 아래 여백 0 */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-companies):not(.mobile-record-open):not(.hidden)::after{height:calc(69px + env(safe-area-inset-bottom,0px))!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes:not(.mobile-record-open)>#qtCols,#view-companies:not(.mobile-record-open)>.cols)>.card:first-child{margin-bottom:0!important}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{height:100%!important}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{display:flex!important;flex-direction:column}
+ html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
+}
