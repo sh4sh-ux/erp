@@ -1053,7 +1053,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 /* 합계 열: 구분선 대신 옅은 바탕 열로 묶어 한눈에 */
 #appView .nd-sz-table .sum{width:84px;border-left:0!important;background:var(--nd-blue-soft)}
 #appView .nd-sz-table th.sum{color:var(--nd-blue-ink,var(--nd-blue));font-weight:700;border-radius:10px 10px 0 0;border-bottom-color:transparent}
-#appView .nd-sz-table tr:last-child .sum{border-radius:0 0 10px 10px}
+#appView .nd-sz-table tbody tr:last-child .sum{border-radius:0 0 10px 10px}
 #appView .nd-sz-table tr.after .sum{border-top-color:transparent;font-size:15px}
 #appView .nd-sz-table tr.qty .sum{font:700 17px/1 var(--sans)}
 #appView .nd-sz-table tr.qty .sum small{margin-left:1px;font:600 12px/1 var(--sans);color:var(--nd-blue)}
@@ -1081,3 +1081,13 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 /* 견적서: 기간 칩이 '전체 기간' 버튼과 '검색 기간' 줄을 대신한다 */
 #appView #view-quotes #qtAllDates,#appView #view-quotes .quote-period-row{display:none!important}
 @media screen and (max-width:820px){#appView .nd-period>.nd-period-l{font-weight:600}}
+/* 월별 매출·입금 짚어 보기 */
+#appView #dashChart{position:relative;touch-action:pan-y;cursor:crosshair}
+#appView #dashChart>.nd-ccur{position:absolute;width:0;border-left:1px solid var(--nd-ink-3);opacity:.55;pointer-events:none;transform:translateX(-.5px)}
+#appView #dashChart>.nd-ccur[hidden]{display:none}
+#appView #dashChart.nd-chov .cgroup .cbar{opacity:.35}
+#appView #dashChart.nd-chov .cgroup.nd-con .cbar{opacity:1}
+#appView .card-head>.nd-chd{margin-left:auto;font:500 12px/16px var(--sans);color:var(--nd-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView .card-head>.nd-chd b{font-weight:700;color:var(--nd-ink)}
+#appView .card-head>.nd-chd[hidden],#appView .card-head>.legend[hidden]{display:none!important}
+#appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}

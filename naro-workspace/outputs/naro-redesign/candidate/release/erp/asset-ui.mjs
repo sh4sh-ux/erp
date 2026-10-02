@@ -1,4 +1,4 @@
-async function normalize(file){
+async function normalize(file,maxSide=1600){
  if(file.size>8*1048576)throw Error('원본 이미지는 8MB 이하여야 합니다.');
  const head=new Uint8Array(await file.slice(0,12).arrayBuffer());
  const png=[137,80,78,71,13,10,26,10].every((v,i)=>head[i]===v),jpeg=head[0]===255&&head[1]===216&&head[2]===255,webp=new TextDecoder().decode(head.slice(0,4))==='RIFF'&&new TextDecoder().decode(head.slice(8,12))==='WEBP';
@@ -6,7 +6,7 @@ async function normalize(file){
  let bitmap;try{bitmap=await createImageBitmap(file);}catch{throw Error('이미지를 읽을 수 없습니다.');}
  try{
   if(bitmap.width>4096||bitmap.height>4096||bitmap.width*bitmap.height>16000000)throw Error('이미지는 가로·세로 4,096px 이하여야 합니다.');
-  const ratio=Math.min(1,1600/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*ratio));canvas.height=Math.max(1,Math.round(bitmap.height*ratio));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const ratio=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*ratio));canvas.height=Math.max(1,Math.round(bitmap.height*ratio));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob||blob.size>1048576)throw Error('변환 이미지가 1MB를 초과합니다. 더 작은 이미지를 선택해 주세요.');return new Uint8Array(await blob.arrayBuffer());
  }finally{bitmap.close();}
 }
@@ -24,7 +24,7 @@ export function installAssets({db,request,save,notify}){
  async function attach(target,kind,file,onState){
   if(busy)throw Error('다른 사진을 저장하고 있습니다. 잠시 후 다시 시도해 주세요.');busy=true;let uploaded=false;
   try{
-   onState('정리하는 중…');const bytes=await normalize(file);
+   onState('정리하는 중…');const bytes=await normalize(file,kind==='product'?900:1600);
    onState('저장하는 중…');const result=await call('ASSET_UPLOAD',{kind,bytes});uploaded=true;
    await save('settings',{...db.settings,assets:{...(db.settings.assets||{}),[target]:result.path}});
    urls.set(result.path,await dataUrl(bytes));
@@ -54,17 +54,23 @@ export function installAssets({db,request,save,notify}){
   const act=document.createElement('div');act.className='nd-photo-act';
   const up=document.createElement('button');up.type='button';up.className='nd-photo-up';
   const big=document.createElement('button');big.type='button';big.className='nd-photo-big';big.textContent='크게 보기';
-  act.append(up,big);
+  const del=document.createElement('button');del.type='button';del.className='nd-photo-del';del.textContent='삭제';
+  act.append(up,big,del);
   const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>setState(t));await show(path);setState('저장 완료');say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){setState(e.message);}});
   el.append(shot,name,state,act,input);
   let current='';
-  async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
+  async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;del.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
    if(!current){emptyText();return;}
    setState('불러오는 중…');try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;setState('등록됨');}catch{setState('사진을 불러오지 못했습니다 — 잠시 후 다시 시도합니다');setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
   const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}setState(ok?'등록 안 됨':(hint||'등록 안 됨'));};
   show('');
   const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(t&&!busy)input.click();};
   shot.onclick=()=>{current&&!img.hidden?open(img.src,label):choose();};up.onclick=choose;big.onclick=()=>{if(!img.hidden)open(img.src,label);};
+  del.onclick=async()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(!current||busy)return;
+   if(!confirm(label+' 사진을 지울까요?\n(클라우드의 원본 파일은 남겨 두고, 이 화면에서만 연결을 끊어요.)'))return;
+   busy=true;setState('지우는 중…');
+   try{const a={...(db.settings.assets||{})};delete a[t];await save('settings',{...db.settings,assets:a});await show('');setState('지움');say(label+' 사진을 지웠어요');}
+   catch(e){setState('지우지 못했어요: '+e.message);}finally{busy=false;}};
   return {el,refresh:()=>{let t='';try{t=target();}catch{}const path=t?db.settings.assets?.[t]:'';if((path||'')!==current)show(path);else if(!current&&!/중…/.test(state.textContent))emptyText();}};
  }
  // 공급자 정보: one section, two cards.

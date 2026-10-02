@@ -463,13 +463,35 @@
    row.querySelectorAll('button').forEach(b=>{const v=b.dataset.p===on;if(b.classList.contains('on')!==v)b.classList.toggle('on',v);if(b.getAttribute('aria-pressed')!==String(v))b.setAttribute('aria-pressed',String(v));});
   }
  }
+ /* 월별 매출·입금 짚어 보기 (영수증 앱 지출 추이와 같은 방식): 차트 위에 마우스를 대거나 손가락으로 밀면
+    그 달에 얇은 세로선이 생기고, 범례 자리에 '9월 · 매출 N원 · 입금 N원'이 나온다. 떼면 범례로 돌아간다. */
+ function dashHover(){
+  const chart=document.getElementById('dashChart');if(!chart)return;
+  chart.querySelectorAll('.cbar[title]').forEach(b=>{b.dataset.v=b.getAttribute('title');b.removeAttribute('title');});
+  if(chart.dataset.ndHover)return;chart.dataset.ndHover='1';
+  const head=chart.parentElement?.querySelector('.card-head');const legend=head?.querySelector('.legend');if(!legend)return;
+  const note=document.createElement('div');note.className='nd-chd';note.setAttribute('aria-live','polite');note.hidden=true;legend.after(note);
+  const cur=document.createElement('i');cur.className='nd-ccur';cur.hidden=true;
+  let last=null;
+  const pick=x=>{const gs=[...chart.querySelectorAll('.cgroup')];let best=null,bd=1e9;for(const g of gs){const r=g.getBoundingClientRect(),d=Math.abs(r.left+r.width/2-x);if(d<bd){bd=d;best=g;}}return best;};
+  const show=e=>{const g=pick(e.clientX);if(!g)return;if(g===last)return;last?.classList.remove('nd-con');last=g;g.classList.add('nd-con');
+   if(cur.parentElement!==chart)chart.append(cur);
+   const cr=chart.getBoundingClientRect(),gr=g.getBoundingClientRect(),bars=g.querySelector('.cbars')?.getBoundingClientRect()||gr;
+   cur.style.left=(gr.left-cr.left+gr.width/2)+'px';cur.style.top=(bars.top-cr.top)+'px';cur.style.height=bars.height+'px';cur.hidden=false;
+   const label=g.querySelector('.clabel')?.textContent.trim()||'';const v=k=>(g.querySelector('.cbar.'+k)?.dataset.v||'').replace(/^\S+\s*/,'');
+   note.innerHTML='';const b=document.createElement('b');b.textContent=label;note.append(b,` · 매출 ${v('sale')} · 입금 ${v('in')}`);
+   note.hidden=false;legend.hidden=true;chart.classList.add('nd-chov');};
+  const hide=()=>{last?.classList.remove('nd-con');last=null;cur.hidden=true;note.hidden=true;legend.hidden=false;chart.classList.remove('nd-chov');};
+  chart.addEventListener('pointermove',show);chart.addEventListener('pointerdown',show);
+  chart.addEventListener('pointerleave',hide);chart.addEventListener('pointercancel',hide);chart.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')hide();});
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
