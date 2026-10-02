@@ -38,6 +38,7 @@ await copyFile(resolve(onboarding,'extended-contract.mjs'),resolve(release,'exte
 await copyFile(resolve(onboarding,'asset-store.mjs'),resolve(release,'asset-store.mjs'));
 for(const name of ['workspace.mjs'])await copyFile(resolve(here,name),resolve(release,name));
 await writeFile(resolve(release,'merge-import.mjs'),(await readFile(resolve(here,'merge-import.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
+await writeFile(resolve(release,'gmail-send.mjs'),(await readFile(resolve(here,'gmail-send.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
 await writeFile(resolve(release,'storage.mjs'),(await readFile(resolve(here,'storage.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
 let runtime=await readFile(resolve(onboarding,'runtime-live.mjs'),'utf8');
 runtime=runtime.replace(/^import .*Dropbox.*\n/gm,'').replace("const oauth=createDropboxOAuth({clientId:'ehmn2pd14wm98im'});",'const oauth={close(){}};');
@@ -218,6 +219,7 @@ for(const f of ['postcode.html','postcode.css','postcode.js'])await copyFile(res
 if(business){
  await copyFile(resolve(here,'tabular-import.mjs'),resolve(release,'erp/tabular-import.mjs'));
  await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));
+ await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
 }
 if(extended){
  await copyFile(resolve(here,'vendor/jszip-3.10.1.min.js'),resolve(release,'erp/jszip.min.js'));

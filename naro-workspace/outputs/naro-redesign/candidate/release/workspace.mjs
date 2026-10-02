@@ -1,4 +1,6 @@
 import {createMergeImport} from './merge-import.mjs';
+import {createGmailSender} from './gmail-send.mjs';
+let gmail=null;
 // Only fixed diagnostic labels cross into the UI; never forward provider messages.
 export function safeStorageFailure(error){
  const codes=['VALIDATION','WRITE_BLOCKED','BUSY','STORAGE_CONFLICT','CONCURRENCY_UNAVAILABLE','SAVE_UNCONFIRMED','SAVE_NOT_OBSERVED','QUOTA_LIMIT','RECONNECT_REQUIRED','RATE_LIMIT','NETWORK_ERROR','STORAGE_INVALID','CANCELLED','UNAVAILABLE','DRIVE_ACCOUNT_MISMATCH','DRIVE_ACCOUNT_UNVERIFIED','DRIVE_ACCOUNT_CHANGED','SESSION_EXPIRED'];
@@ -45,6 +47,17 @@ export function openWorkspace(data,logout,repository){
     try{const result=await importer.run(m.backup,(done,total)=>{if(port===current)current.postMessage({type:'MERGE_PROGRESS',requestId:m.requestId,done,total});});Object.assign(data,result.data);if(port===current)current.postMessage({type:'MERGE_DONE',requestId:m.requestId,...result});}
     catch(error){if(port===current)current.postMessage({type:'MERGE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error),progress:error.importProgress,active:importer.active()});}
     finally{busy=false;}return;
+   }
+   // 견적서 이메일 (Gmail): separate from storage writes, so it never waits on or blocks a save.
+   if(typeof m?.type==='string'&&m.type.startsWith('MAIL_')){
+    gmail??=createGmailSender();const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
+    const codes=['BAD_RECIPIENT','BAD_MESSAGE','CANCELLED','POPUP_BLOCKED','SCOPE_DENIED','GMAIL_NOT_ENABLED','OAUTH_SETUP_REQUIRED','RATE_LIMIT','AUTH_EXPIRED','UNAVAILABLE','MAIL_FAILED'];
+    const fail=e=>reply({type:'MAIL_ERROR',code:codes.includes(e?.code)?e.code:'MAIL_FAILED'});
+    if(m.type==='MAIL_PREPARE'){gmail.prepare().then(()=>reply({type:'MAIL_STATUS',...gmail.status()}),()=>reply({type:'MAIL_STATUS',...gmail.status(),unavailable:true}));return;}
+    if(m.type==='MAIL_STATUS'){reply({type:'MAIL_STATUS',...gmail.status()});return;}
+    if(m.type==='MAIL_DISCONNECT'){gmail.disconnect();reply({type:'MAIL_STATUS',...gmail.status()});return;}
+    if(m.type==='MAIL_SEND'){gmail.send({to:m.to,subject:m.subject,body:m.body,filename:m.filename,bytes:m.bytes instanceof Uint8Array?m.bytes:null}).then(r=>reply({type:'MAIL_DONE',...r}),fail);return;}
+    return;
    }
    if(importer.active())return;
    if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&!busy){

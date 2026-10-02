@@ -8191,6 +8191,36 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView #view-settings .workspace-right section.card.nd-assets.panel-b-selected::before{top:8px!important;bottom:-8px!important}
  #appView #view-settings .workspace-right .nd-backup.panel-b-selected::before{top:12px!important}
 }
+@media screen{
+ /* 견적서 이메일 sheet */
+ #appView .nd-mail{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,16,.45)}
+ #appView .nd-mail-box{width:min(560px,100%);max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:20px 22px 18px;border-radius:16px;background:var(--nd-raised);color:var(--nd-ink);box-shadow:var(--nd-pop);font-family:var(--sans)}
+ #appView .nd-mail-hd{display:flex;align-items:center;justify-content:space-between}
+ #appView .nd-mail-hd>b{font:700 16px/22px var(--sans)}
+ #appView .nd-mail-x{width:32px;height:32px;border:0;border-radius:16px;background:var(--nd-fill);color:var(--nd-ink-2);font:400 20px/1 var(--sans);cursor:pointer}
+ #appView .nd-mail-from{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 12px;border-radius:10px;background:var(--nd-fill);font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mail-from>b{font-weight:600;color:var(--nd-ink)}
+ #appView .nd-mail-off{margin-left:auto;border:0;background:none;color:var(--nd-ink-3);font:500 12px/1 var(--sans);text-decoration:underline;cursor:pointer;padding:0}
+ #appView .nd-mail-f{display:flex;flex-direction:column;gap:6px;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-mail-f>:is(input,textarea){width:100%;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);font:400 14px/20px var(--sans);padding:10px 12px}
+ #appView .nd-mail-f>input{height:42px;padding-top:0;padding-bottom:0}
+ #appView .nd-mail-f>textarea{resize:vertical;min-height:150px}
+ #appView .nd-mail-f>:is(input,textarea):focus{outline:none;border-color:var(--nd-blue);box-shadow:0 0 0 3px var(--nd-blue-soft)}
+ #appView .nd-mail-att{display:flex;align-items:center;gap:8px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2);overflow-wrap:anywhere}
+ #appView .nd-mail-clip{flex:none;padding:2px 8px;border-radius:6px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font-weight:600}
+ #appView .nd-mail-msg{font:500 12.5px/18px var(--sans);color:var(--nd-red)}
+ #appView .nd-mail-msg:empty{display:none}
+ #appView .nd-mail-act{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+ #appView .nd-mail-act>button{height:42px;padding:0 18px;border-radius:10px;font:600 14px/1 var(--sans);cursor:pointer}
+ #appView .nd-mail-app{border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink)}
+ #appView .nd-mail-send{border:0;background:var(--nd-blue);color:#fff;min-width:140px}
+ #appView .nd-mail-act>button:disabled{opacity:.55;cursor:default}
+}
+@media screen and (max-width:780px){
+ #appView .nd-mail{align-items:flex-end;padding:0}
+ #appView .nd-mail-box{width:100%;max-height:92vh;border-radius:16px 16px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+ #appView .nd-mail-act>button{flex:1 1 0;height:46px}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {

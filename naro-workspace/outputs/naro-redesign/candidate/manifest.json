@@ -83,7 +83,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "a11a3befa195f860ff669305f6cf0041ab791e060fb547e08309c0d2a6027695"
+      "sha256": "13691f04d5916e563f31714b2e5806df026cb9fe1564c957bca9033aa2e89b39"
     },
     {
       "path": "erp/favicon.png",
@@ -103,7 +103,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "e94760ca584e7c6b4c668d9f386c486ba83815a982b64db17073170f69fde7e9"
+      "sha256": "e7dba951e2f051d4220700c32cab21b73b93942e3e280d91ef99dbb2a031e909"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -116,6 +116,10 @@
     {
       "path": "erp/jszip.min.js",
       "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "path": "erp/mail-ui.mjs",
+      "sha256": "f81880c10562eeda133b6c2b6974bfa95b9a310704b4b36c3413eebaa746e5db"
     },
     {
       "path": "erp/manifest.webmanifest",
@@ -174,6 +178,10 @@
       "sha256": "ab6a9cb9736d4579eba9c057660e0120eafe2c32931b49b7de05f669676a444e"
     },
     {
+      "path": "gmail-send.mjs",
+      "sha256": "5aa048bbbc1a2e059f0402f05bf205991a20850a866505e576eff33f9a739888"
+    },
+    {
       "path": "google-backend.mjs",
       "sha256": "9f664f1630089abe595c6686a2a27cd8ea459ad5e886ce89e3a281fe3bd4c0f1"
     },
@@ -183,7 +191,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "42c516c86f6a2eb885aa9b90ebbc5503b6e988113e2a283337b124ae8292451e"
+      "sha256": "1afd87b2cba09a8705498078c411620f87c5ff058daf20c82e198c1a1188ae4b"
     },
     {
       "path": "merge-import.mjs",
@@ -247,10 +255,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
+      "sha256": "43f0ffd0bb3037205639e39de84bad9ce59237cd3d766bf7e1365981c1c17d77"
     }
   ],
-  "aggregate": "90e1a2077b7e221c7d5e5d7ba1593db04d2a7aee72939caabf03f1b4a32a96d9",
+  "aggregate": "cc4b290bb36e08a76f0985a764eda0c0aec7916dcb4ff42248a5d18bb85964d1",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
