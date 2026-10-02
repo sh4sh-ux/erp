@@ -1704,3 +1704,4 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
  html body #appView #view-materials.nd-mm-open .material-record-qty{font:700 14px/20px var(--sans)!important}
  html body #appView #view-materials.nd-mm-open .material-record{padding:12px 16px!important}
 }
+html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-detail .material-type-tabs[hidden]{display:none!important}

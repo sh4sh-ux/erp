@@ -8995,6 +8995,7 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
  html body #appView #view-materials.nd-mm-open .material-record-qty{font:700 14px/20px var(--sans)!important}
  html body #appView #view-materials.nd-mm-open .material-record{padding:12px 16px!important}
 }
+html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-detail .material-type-tabs[hidden]{display:none!important}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9143,7 +9144,7 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
   const n=v=>Math.round(v).toLocaleString('ko-KR'),esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const segs=[['보유',Math.max(0,recv-used-ret),'held'],['사용',used,'used'],['반환·불량',ret,'ret']];
   const card=document.createElement('div');card.className='nd-mat';
-  card.innerHTML=`<div class="nd-mat-hd"><span>받은 ${esc(name)} ${n(recv)}개</span><span>받음 = 보유 + 사용 + 반환·불량</span></div>`
+  card.innerHTML=`<div class="nd-mat-hd"><span>받은 수량 ${n(recv)}개</span><span>받음 = 보유 + 사용 + 반환·불량</span></div>`
    +`<div class="nd-mat-bar" role="img" aria-label="${segs.map(([l,v])=>`${l} ${n(v)}개`).join(', ')}">${segs.filter(([,v])=>v>0).map(([l,v,k])=>`<i class="${k}" style="flex-grow:${v}" title="${l} ${n(v)}개"></i>`).join('')}</div>`
    +`<div class="nd-mat-legend">${segs.map(([l,v,k])=>`<span><i class="${k}"></i>${l}<b>${n(v)}</b></span>`).join('')}</div>`;
   const summary=root.querySelector('.material-summary');summary?summary.before(card):hero.after(card);}
@@ -9868,7 +9869,16 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
    materials:v=>!v.classList.contains('nd-mm-open')};
   for(const [k,fn] of Object.entries(st)){const v=document.getElementById('view-'+k);if(!v)continue;const want=fn(v)?'list':'detail';if(v.dataset.ndPhone!==want)v.dataset.ndPhone=want;}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();phoneListState();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 업체 제공 자재: 칩의 '· N개'와 큰 숫자가 같은 내용 → 칩은 이름만, 자재가 하나면 칩 줄을 숨기고, 여럿이면 큰 숫자 위 글자는 '남은 수량'.
+ function materialDedupe(){
+  const tabs=document.querySelector('#view-materials .material-type-tabs');if(!tabs)return;
+  const list=[...tabs.querySelectorAll('.material-type-tab')];
+  for(const t of list){const m=/^(.*?)\s*·\s*([\d,]+개)$/.exec(t.textContent.trim());if(m){t.textContent=m[1];t.title=m[1]+' '+m[2]+' 남음';}}
+  const single=list.length<=1;if(tabs.hidden!==single)tabs.hidden=single;
+  const label=document.querySelector('#view-materials .material-balance-hero>span');
+  if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
+ }
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
