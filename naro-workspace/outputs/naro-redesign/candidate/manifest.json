@@ -103,7 +103,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "8fe4e2e155f363f314d5678feaae96483a8d60939d30aecc75c3dd7d74007e7b"
+      "sha256": "19ce78c875b0d762a91aae5129a62b87276711c84f8fb7cf1581226aa9e3d510"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -250,7 +250,7 @@
       "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
     }
   ],
-  "aggregate": "e2dbaa4f9dcf00d3fe16eaed4ec90718896f13c5a01602d3a11a4ad1dc0afb6a",
+  "aggregate": "91eeec9e9f28c3b642fccf264b7a92238acdc070adef5f0b3d68edbb77ba02ea",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

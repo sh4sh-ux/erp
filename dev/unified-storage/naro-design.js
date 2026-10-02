@@ -249,7 +249,7 @@
   const assets=body.querySelector('.nd-assets');
   if(backup&&(!body.contains(backup)||(assets&&assets.nextElementSibling!==backup))){backup.classList.add('nd-backup');(assets||body.lastElementChild).after(backup);
    if(!backup.querySelector(':scope>.nd-sec-t')){const h=document.createElement('h3');h.className='nd-sec-t';h.textContent='백업·가져오기';backup.prepend(h);}}
-  view.querySelectorAll('.settings-utils>details.panel-b-more').forEach(d=>{if(!d.querySelector(':scope>:not(summary)'))d.closest('.settings-utils').classList.add('nd-empty');});
+  view.querySelectorAll('.settings-utils>details.panel-b-more').forEach(d=>{if(![...d.children].some(c=>c.tagName!=='SUMMARY'&&!c.hidden&&c.classList.contains('settings-util-card')))d.closest('.settings-utils').classList.add('nd-empty');});
   const list=left.querySelector('.panel-b-index:not(.nd-index-x)');if(!list)return;
   let extra=left.querySelector('.nd-index-x');
   if(!extra){extra=document.createElement('div');extra.className='panel-b-index nd-index-x';list.after(extra);

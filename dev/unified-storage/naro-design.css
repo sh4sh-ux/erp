@@ -890,3 +890,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView .nd-photo-view-cap{color:#fff;font:600 14px/20px var(--sans)}
  #appView .nd-photo-view-x{position:absolute;top:14px;right:16px;width:40px;height:40px;border:0;border-radius:20px;background:rgba(255,255,255,.14);color:#fff;font:400 26px/1 var(--sans);cursor:pointer}
 }
+@media screen{
+ /* The left 백업·가져오기 fold is empty once its card moves to the right panel: no line, no gap. */
+ #appView #view-settings .workspace-left>.settings-utils:not(:has(.settings-util-card)){display:none!important;margin:0!important;padding:0!important;border:0!important}
+}
