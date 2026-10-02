@@ -536,13 +536,43 @@
    if(mmVoid&&!card.hidden&&actions&&MM_PHONE.matches){if(!vb){vb=document.createElement('button');vb.type='button';vb.className='btn ghost nd-mm-void';vb.textContent='기록 취소';actions.prepend(vb);}if(vb.dataset.id!==mmVoid)vb.dataset.id=mmVoid;}
    else if(vb)vb.remove();}
  }
+ /* 색 정의에 맞춘 꼬리표 이름: 재고 '조정' = 청록, '부분납품' = 앰버, 대시보드 '예상 이익' = 청록. (원래 화면은 in/out만 구분) */
+ function colorTags(){
+  document.querySelectorAll('#appView .pill:not(.adj)').forEach(p=>{const t=p.textContent.trim();if(t==='조정'||t==='재고 조정')p.classList.add('adj');});
+  document.querySelectorAll('#appView .pill.st-sent:not(.st-partial)').forEach(p=>{if(p.textContent.trim()==='부분납품')p.classList.add('st-partial');});
+  document.querySelectorAll('#appView #view-dash .k').forEach(k=>{if(/예상 (이익|마진)/.test(k.textContent)){const v=k.nextElementSibling;if(v&&!v.classList.contains('nd-profit'))v.classList.add('nd-profit');}});
+ }
+ /* 재고 — 폰(≤780px): 목록 → 상세. 상세 = [‹ 재고] 품목명 · 옵션 표(한 줄에 한 옵션) · 최근 입출고, 아래 [입고][출고][조정] 고정.
+    입력 폼(원래 '재고 입력' 카드)은 아래에서 올라오는 창. 원래 버튼·폼을 그대로 쓰고 위치·모양만 바꾼다. */
+ const ST_PHONE=matchMedia('(max-width:780px)');let stSheet=false;
+ function stockMobile(){
+  const view=document.getElementById('view-stock');if(!view)return;const cards=view.querySelectorAll(':scope>.cols>.card');const detail=cards[1];if(!detail)return;
+  if(!view.dataset.ndSt){view.dataset.ndSt='1';
+   const setOpen=v=>{view.classList.toggle('nd-st-open',v);view.classList.toggle('mobile-record-open',v);};
+   // 품목 줄은 원래 화면이 눌린 즉시 다시 그리므로(눌린 요소가 사라짐) 캡처 단계에서 먼저 잡는다.
+   view.addEventListener('click',e=>{if(!ST_PHONE.matches)return;if(e.target.closest('#stockItems>.stock-item')){stSheet=false;setOpen(true);requestAnimationFrame(()=>{view.scrollTop=0;stockMobile();});}},true);
+   view.addEventListener('click',e=>{if(!ST_PHONE.matches)return;
+    if(e.target.closest('.nd-st-back')){stSheet=false;setOpen(false);requestAnimationFrame(stockMobile);return;}
+    const a=e.target.closest('.nd-st-act [data-go]');if(a){stSheet=true;document.getElementById(a.dataset.go)?.click();requestAnimationFrame(stockMobile);}});
+   ST_PHONE.addEventListener('change',()=>setOpen(false));}
+  let bar=detail.querySelector(':scope>.nd-st-bar');
+  if(!bar){bar=document.createElement('div');bar.className='nd-st-bar';bar.innerHTML='<button type="button" class="nd-st-back">‹ 재고</button><b class="nd-st-title"></b>';detail.prepend(bar);}
+  const sel=view.querySelector('#stockItems>.stock-item.selected>span:first-child,#stockItems>.stock-item.selected');
+  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');if(tt.textContent!==name)tt.textContent=name;
+  let act=detail.querySelector(':scope>.nd-st-act');
+  if(!act){act=document.createElement('div');act.className='nd-st-act';act.innerHTML='<button type="button" data-go="stockRegister" class="p">입고</button><button type="button" data-go="stockOutbound">출고</button><button type="button" data-go="stockAdjust">조정</button>';detail.append(act);}
+  // 입력 창은 아래 바의 [입고][출고][조정]으로 열었을 때만 시트로 띄운다(품목을 고르면 원래 화면이 폼을 자동으로 펴기 때문).
+  const add=detail.querySelector(':scope>.stock-add');const formOn=!!(add&&!add.hidden&&getComputedStyle(add).display!=='none'||add&&view.classList.contains('nd-st-sheet')&&!add.hidden);
+  if(!add||add.hidden)stSheet=false;const open=ST_PHONE.matches&&stSheet&&!!add&&!add.hidden;
+  if(view.classList.contains('nd-st-sheet')!==open)view.classList.toggle('nd-st-sheet',open);
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

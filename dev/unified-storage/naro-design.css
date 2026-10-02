@@ -1276,3 +1276,141 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  /* 카드 밖 글자 블록은 카드 안 글자와 같은 선(16px)에 */
  #appView .shell .main>.view>:not(.card):not(.cols):not(.page-head):not(.nd-chips-m):not(.stats):not(.ops-summary):not(#materialContent):not(.copy-note){padding-left:4px;padding-right:4px}
 }
+/* ════════ 색 정의 (의미별 · 앱 전체) ════════
+   파랑 = 매출·핵심·버튼·선택 / 초록 = 입금·완료·정상(숫자 "+") / 앰버 = 주의·부족·예정·부분(꼬리표)
+   빨강 = 출금·출고·지출(숫자 "−", 바탕 없음) / 진한 빨강 꽉 찬 꼬리표 + "!" = 미수·연체·품절·오류
+   청록 = 이익·분석·조정 / 회색 = 비교·미설정·비활성. 글자는 진한 값, 막대·점·꼬리표 바탕은 -fill·-soft. */
+:root{
+ --nd-green:#0B7A3B;--nd-green-fill:#12A150;--nd-green-soft:rgba(18,161,80,.10);
+ --nd-red:#D92D20;--nd-red-fill:#E5483C;--nd-red-soft:rgba(217,45,32,.08);
+ --nd-bad:#B42318;
+ --nd-amber:#B45309;--nd-amber-fill:#E8A317;--nd-amber-soft:rgba(232,163,23,.15);
+ --nd-teal:#0E7490;--nd-teal-fill:#0891B2;--nd-teal-soft:rgba(8,145,178,.10);
+ --nd-mute:#64748B;--nd-mute-fill:#94A3B8;
+}
+html[data-theme="dark"]{
+ --nd-green:#34C97D;--nd-green-fill:#34C97D;--nd-green-soft:rgba(52,201,125,.14);
+ --nd-red:#FF6B6B;--nd-red-fill:#FF6B6B;--nd-red-soft:rgba(255,107,107,.14);
+ --nd-bad:#B42318;
+ --nd-amber:#F5B83D;--nd-amber-fill:#F5B83D;--nd-amber-soft:rgba(245,184,61,.15);
+ --nd-teal:#22B8CF;--nd-teal-fill:#22B8CF;--nd-teal-soft:rgba(34,184,207,.14);
+ --nd-mute:#8A94A6;--nd-mute-fill:#8A94A6;
+}
+:root,html[data-theme]{--ok:var(--nd-green);--ok-ink:var(--nd-green);--ok-soft:var(--nd-green-soft);--danger:var(--nd-red);--danger-soft:var(--nd-red-soft);--warn-c:var(--nd-amber);--warn-ink:var(--nd-amber);--warn-soft:var(--nd-amber-soft);--tax-unissued-color:var(--nd-amber)}
+/* 흐름: 입금·입고·받음 = 초록 "+", 출금·출고·사용·반환 = 빨강 "−" */
+#appView .pill.in{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .pill.out{background:var(--nd-red-soft)!important;color:var(--nd-red)!important}
+#appView .pbr .pbr-amt.in,#appView #view-payments .stat .v.pos,#appView .stat .v.pos,#appView .scr-hero .big.pos{color:var(--nd-green)!important}
+#appView .pbr .pbr-amt.out,#appView #view-payments .stat .v.neg{color:var(--nd-red)!important}
+#appView .material-record-kind.in,#appView .material-record-kind.work{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .material-record-kind.out{background:var(--nd-red-soft)!important;color:var(--nd-red)!important}
+#appView .material-record-qty.in{color:var(--nd-green)!important}
+#appView .material-record-qty.out{color:var(--nd-red)!important}
+#appView #dashChart .cbar.in{background:var(--nd-green-fill)!important}
+#appView #dashChart .cbar.sale{background:var(--nd-blue)!important}
+#appView #view-dash .card-head .legend>span:nth-child(2)>i{background:var(--nd-green-fill)!important}
+#appView #view-dash .card-head .legend>span:nth-child(1)>i{background:var(--nd-blue)!important}
+/* 문제: 품절·부족(재고 상태)·미수·연체·오류 = 진한 빨강 꽉 찬 꼬리표 + "!" */
+#appView #view-stock :is(.stock-option-table,#stockOverview) .pill.out,#appView .pill.nd-bad{background:var(--nd-bad)!important;color:#fff!important;font-weight:700!important}
+#appView #view-stock :is(.stock-option-table,#stockOverview) .pill.out::before,#appView .pill.nd-bad::before{content:'! '}
+/* 주의: 주문 대비 부족·부분납품 = 앰버 꼬리표 */
+#appView .pill.attention,#appView .pill.st-partial{background:var(--nd-amber-soft)!important;color:var(--nd-amber)!important}
+/* 견적 상태: 작성중·취소 = 회색, 발송 = 파랑, 수주 = 초록, 납품 = 초록 꽉 참 */
+#appView .pill.st-draft,#appView .pill.st-lost{background:var(--nd-fill)!important;color:var(--nd-mute)!important}
+#appView .pill.st-sent{background:var(--nd-blue-soft)!important;color:var(--nd-blue)!important}
+#appView .pill.st-won{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .pill.st-done{background:var(--nd-green-fill)!important;color:#fff!important}
+/* 이익·조정 = 청록 */
+#appView #view-sales #slMargin.pos,#appView .nd-profit{color:var(--nd-teal)!important}
+#appView .pill.adj{background:var(--nd-teal-soft)!important;color:var(--nd-teal)!important}
+/* ── 폰 · 재고: 목록 → 상세 (A 섹션 카드형) ── */
+#appView #view-stock .nd-st-bar,#appView #view-stock .nd-st-act{display:none}
+@media screen and (max-width:780px){
+ /* 목록: 요약은 한 줄 4칸, 품목 목록은 상자 스크롤 없이 */
+ #appView #view-stock>.stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;padding:0!important}
+ #appView #view-stock>.stats>.stat{min-height:0!important;padding:10px 8px!important;border:0!important;border-right:1px solid var(--nd-line-2)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+ #appView #view-stock>.stats>.stat:last-child{border-right:0!important}
+ #appView #view-stock>.stats>.stat .k{font:500 10.5px/14px var(--sans)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView #view-stock>.stats>.stat .v{font:700 15px/20px var(--sans)!important;margin-top:2px!important}
+ #appView #view-stock #stockItems{max-height:none!important;height:auto!important;overflow:visible!important}
+ #appView #view-stock:not(.nd-st-open)>.cols>.card:nth-child(2)>*:not(.stock-add){display:none!important}
+ #appView #view-stock:not(.nd-st-open)>.cols>.card:nth-child(2){padding:0!important;margin:0!important;background:none!important;min-height:0!important}
+ /* 상세 */
+ #appView #view-stock.nd-st-open>:is(.page-head,.nd-chips-m,.stats),#appView #view-stock.nd-st-open>.cols>.card:nth-child(1){display:none!important}
+ #appView #view-stock.nd-st-open>.cols>.card:nth-child(2){padding:0 0 0!important;overflow:visible!important}
+ #appView #view-stock.nd-st-open .nd-st-bar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:12px 16px;background:var(--nd-surface);border-bottom:1px solid var(--nd-line);border-radius:16px 16px 0 0}
+ #appView #view-stock .nd-st-back{flex:none;height:32px;padding:0;border:0;background:none;color:var(--nd-ink-2);font:500 14px/1 var(--sans)}
+ #appView #view-stock .nd-st-title{min-width:0;margin-left:auto;font:700 14px/20px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView #view-stock.nd-st-open #stockOverview{padding:14px 16px 0!important}
+ #appView #view-stock.nd-st-open .stock-overview-heading h3{font:700 17px/24px var(--sans)!important}
+ /* 옵션 표: 한 줄에 한 옵션 (카드 나열 대신) */
+ #appView #view-stock .stock-option-scroll{overflow:visible!important;margin:8px 0 0!important}
+ #appView #view-stock .stock-option-table{display:table!important;width:100%!important;table-layout:auto!important;border-collapse:collapse!important}
+ #appView #view-stock .stock-option-table thead{display:table-header-group!important}
+ #appView #view-stock .stock-option-table tbody{display:table-row-group!important}
+ #appView #view-stock .stock-option-table tr{display:table-row!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important}
+ #appView #view-stock .stock-option-table :is(th,td){display:table-cell!important;padding:0 4px!important;height:44px;border:0!important;border-bottom:1px solid var(--nd-line-2)!important;font:500 13px/1.2 var(--sans)!important;text-align:right!important;white-space:nowrap;vertical-align:middle}
+ #appView #view-stock .stock-option-table th{height:32px;font:600 10.5px/1.2 var(--sans)!important;color:var(--nd-ink-3)!important;background:none!important}
+ #appView #view-stock .stock-option-table td::before{display:none!important;content:none!important}
+ #appView #view-stock .stock-option-table :is(th,td):nth-child(1),#appView #view-stock .stock-option-table :is(th,td):nth-child(2){text-align:left!important;font-weight:700!important}
+ #appView #view-stock .stock-option-table td:nth-child(1){color:var(--nd-ink-2)!important;font-weight:600!important}
+ #appView #view-stock .stock-option-table :is(th,td):nth-child(3){width:14px;padding:0!important;text-align:center!important}
+ #appView #view-stock .stock-option-table th:nth-child(3){font-size:0!important}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill{display:inline-block!important;width:8px;height:8px;padding:0!important;border-radius:50%!important;font-size:0!important;vertical-align:middle}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill::before{content:none!important}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill.attention{background:var(--nd-amber-fill)!important}
+ #appView #view-stock .stock-option-table td:nth-child(6){font-weight:700!important}
+ #appView #view-stock .stock-option-table td.neg{color:var(--nd-red)!important}
+ #appView #view-stock .stock-option-table td:last-child input{width:52px!important;min-width:0!important;height:34px!important;min-height:0!important;padding:0 4px!important;text-align:center!important;border-radius:8px!important;font-size:14px!important}
+ #appView #view-stock .stock-min-actions{position:static!important;margin:12px 0 0!important;padding:0!important;background:none!important;border:0!important}
+ #appView #view-stock .stock-min-actions>button{width:100%!important;height:44px!important;border-radius:12px!important}
+ #appView #view-stock.nd-st-open .stock-history-title{padding:16px 16px 4px!important;margin:16px 0 0!important;border-top:8px solid var(--nd-page)!important}
+ #appView #view-stock.nd-st-open>.cols>.card:nth-child(2)>.tbl-wrap{padding:0 16px 8px!important}
+ /* 아래 고정: [입고][출고][조정] */
+ #appView #view-stock.nd-st-open .nd-st-act{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:sticky;bottom:0;z-index:6;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ #appView #view-stock .nd-st-act>button{height:48px;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-surface);color:var(--nd-ink);font:600 15px/1 var(--sans)}
+ #appView #view-stock .nd-st-act>button.p{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+ /* 입력 창: 아래에서 올라오는 시트 */
+ #appView #view-stock.nd-st-sheet>.cols>.card:nth-child(2)::before{content:'';position:fixed;inset:0;background:rgba(15,20,30,.38);z-index:60}
+ #appView #view-stock.nd-st-sheet .stock-add{position:fixed!important;left:0;right:0;bottom:0;z-index:61;max-height:90vh;max-height:90dvh;overflow-y:auto;margin:0!important;padding:10px 16px 0!important;background:var(--nd-surface)!important;border-radius:20px 20px 0 0!important;box-shadow:0 -10px 30px rgba(15,20,35,.18)!important}
+ #appView #view-stock.nd-st-sheet .stock-add::before{content:'';display:block;width:36px;height:4px;border-radius:2px;background:var(--nd-line);margin:0 auto 12px}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main>#view-stock>.cols{display:block!important;grid-template-columns:none!important}
+ #appView .shell .main>#view-stock>.cols>.card{width:auto!important;max-width:none!important}
+ #appView #view-stock.nd-st-open:not(.nd-st-sheet) .stock-add{display:none!important}
+ #appView #view-stock:not(.nd-st-open):not(.nd-st-sheet)>.cols>.card:nth-child(2){display:none!important}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main #view-stock .stock-option-scroll::before{content:none!important;display:none!important}
+ #appView .shell .main #view-stock #stockItems>.stock-item{padding-left:16px!important;padding-right:16px!important;margin:0!important;width:100%!important;box-sizing:border-box}
+ #appView .shell .main #view-stock>.cols>.card:nth-child(1){padding:0!important}
+ /* 입력 창 버튼: [입력 닫기][변경 내용 확인] 한 줄, 창 아래에 고정 */
+ #appView #view-stock.nd-st-sheet .stock-add{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;column-gap:8px!important}
+ #appView #view-stock.nd-st-sheet .stock-add>*{grid-column:1/-1}
+ #appView #view-stock.nd-st-sheet .stock-add>:is(#ivCancelBtn,#ivAddBtn){grid-column:auto!important;position:sticky;bottom:0;z-index:2;height:48px!important;min-height:48px!important;margin:8px 0 calc(10px + env(safe-area-inset-bottom,0px))!important;border-radius:12px!important;box-shadow:0 0 0 8px var(--nd-surface),0 -9px 0 0 var(--nd-surface)!important;font:600 15px/1 var(--sans)!important;white-space:nowrap}
+ #appView #view-stock.nd-st-sheet .stock-add>#ivCancelBtn{min-width:96px;padding:0 14px!important;border:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important}
+ #appView #view-stock.nd-st-sheet .stock-add>#ivAddBtn{width:100%!important}
+}
+@media screen and (max-width:780px){html body #appView .shell .main #view-stock #stockItems{margin:0!important;width:auto!important}}
+@media screen and (max-width:780px){
+ /* 매출 집계: 지표 묶음·결과를 흰 카드로 */
+ #appView .shell .main #view-sales .sl-metrics,#appView .shell .main #view-sales #slBody>.card{margin:0 0 12px!important;border:0!important;border-radius:16px!important;background:var(--nd-surface)!important;box-shadow:none!important;overflow:hidden}
+ #appView .shell .main #view-sales .sl-metrics{padding:4px 16px!important}
+ #appView .shell .main #view-sales .sl-hero{padding:4px 4px 12px!important}
+ /* 공급자 정보: 명함·사업자등록증 카드도 흰 카드 */
+ #appView .shell .main #view-settings>.card.nd-assets{background:var(--nd-surface)!important;padding:16px!important}
+ /* 업체 제공 자재: 목록 = 흰 카드, 상세 = 흰 카드 하나 */
+ #appView #view-materials:not(.nd-mm-open) .material-owners{background:var(--nd-surface)!important;border-radius:16px!important;overflow:hidden}
+ #appView #view-materials .material-owner:last-child{border-bottom:0!important}
+ #appView #view-materials.nd-mm-open .material-detail{background:var(--nd-surface)!important;border-radius:16px!important;overflow:clip}
+ #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{border-radius:16px 16px 0 0}
+ #appView #view-materials.nd-mm-open .material-history-wrap{border-top-color:var(--nd-page)!important}
+ #appView #view-materials>.copy-note{margin:16px 4px!important}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main #view-sales .sl-metrics>*{border-left:0!important;padding-left:0!important}
+ #appView .nd-docs-photos .nd-photo-grid{grid-template-columns:minmax(0,1fr)!important}
+ #appView .nd-docs-photos .nd-photo-shot{max-height:200px}
+}
+@media screen and (min-width:781px) and (max-width:1023px){#appView .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head{margin-left:0!important;margin-right:0!important}}

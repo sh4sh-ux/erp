@@ -8461,7 +8461,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 }
 @media screen and (max-width:780px){
  #appView .shell .main>#view-materials::after{order:99}
- #appView #view-materials .material-master{margin:0 -16px!important}
+ #appView #view-materials .material-master{margin:0!important}
  #appView #view-materials.nd-mm-open .material-stepper>input{flex:none!important;width:44px!important;min-width:0!important;padding:0!important;text-align:center}
  #appView #view-materials.nd-mm-open .material-stepper>button{width:40px!important;min-width:0!important}
  #appView #view-materials.nd-mm-open .material-record-side{flex-direction:row!important}
@@ -8508,6 +8508,198 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView .shell .main .view .list-head{background:var(--nd-surface)!important}
 }
 @media screen and (max-width:1023px){#appView .shell .main :is(#view-companies,#view-items,#view-quotes)>.cols>.card>.list-head{background:var(--nd-surface)!important}}
+/* ════════ 폰 디자인 = A. 섹션 카드형 (≤780px) ════════
+   바탕은 회색(--nd-page), 내용 덩어리는 흰 카드(--nd-surface, 모서리 16, 좌우 12px), 카드 안 입력 칸은 연한 회색(--nd-fill) 무테.
+   바깥 테두리 상자는 없앤다. 입력은 한 줄에 칸 하나, 저장 버튼은 아래 고정. 새 화면도 이 규칙을 쓴다. */
+@media screen and (max-width:780px){
+ #appView .shell{padding:0!important;background:var(--nd-page)!important}
+ #appView .shell>.main{border:0!important;border-radius:0!important;background:var(--nd-page)!important;box-shadow:none!important}
+ #appView .shell .main>.view{background:var(--nd-page)!important;padding-left:0!important;padding-right:0!important}
+ #appView .shell .main>.view>.page-head{background:var(--nd-page)!important;border-bottom:0!important;margin-left:0!important;margin-right:0!important}
+ #appView .shell .main>.view>.nd-chips-m{background:var(--nd-page)!important;border-bottom:0!important;padding:0 16px!important;margin:0 0 4px!important}
+ /* 카드 */
+ #appView .shell .main>.view>.card,#appView .shell .main>.view>.cols>.card,#appView .shell .main>.view>.ops-summary,#appView .shell .main>.view>.stats{margin:0 12px 12px!important;border:0!important;border-radius:16px!important;background:var(--nd-surface)!important;box-shadow:none!important;overflow:hidden}
+ #appView .shell .main>.view .card .card{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;margin:0!important}
+ /* 카드 안 입력: 연한 회색 무테, 한 줄에 하나 */
+ #appView .shell .main .view .card :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,.date-control){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+ #appView .shell .main .view .card .date-control>input{background:transparent!important;border:0!important}
+ #appView .shell .main .view .card :is(input,select,textarea):focus{border-color:var(--nd-blue)!important;box-shadow:0 0 0 3px var(--nd-blue-soft)!important;background-color:var(--nd-surface)!important}
+}
+/* ── 폰 · 입금·출금 입력 ── */
+@media screen and (max-width:780px){
+ #appView #view-payments #payEntry>summary{padding:16px!important;font:700 15px/20px var(--sans)!important;color:var(--nd-ink)!important;border:0!important}
+ #appView #view-payments .pay-add{display:flex!important;flex-direction:column;gap:12px!important;padding:4px 16px 0!important;border:0!important;background:none!important}
+ #appView #view-payments .pay-add>.pf{width:100%!important;max-width:none!important;margin:0!important;grid-column:auto!important}
+ #appView #view-payments .pay-add>.pf>label{font:600 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important;margin:0 0 6px!important;display:block}
+ #appView #view-payments .pay-add>.pf :is(select,input,.date-control){width:100%!important;height:46px!important;min-height:46px!important;border-radius:12px!important;font-size:16px!important}
+ #appView #view-payments .pay-add>.pf-amt>input{font:800 22px/1 var(--sans)!important;letter-spacing:-.4px;text-align:right}
+ #appView #view-payments .pay-add>.pf-amt{order:-1}
+ #appView #view-payments .pay-add>.pf-kind{order:-2}
+ #appView #view-payments .pay-add>.pf-btn{order:99;position:sticky;bottom:0;z-index:5;display:flex!important;flex-direction:row!important;gap:8px!important;margin:4px -16px 0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ #appView #view-payments .pay-add>.pf-btn>#payClose{flex:none!important;width:auto!important;min-width:96px;padding:0 14px!important;white-space:nowrap;height:48px!important;margin:0!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important;font:600 15px/1 var(--sans)!important}
+ #appView #view-payments .pay-add>.pf-btn>#payAddBtn{flex:1!important;width:auto!important;height:48px!important;margin:0!important;border-radius:12px!important;font:600 15px/1 var(--sans)!important}
+ #appView #view-payments .ops-results{padding:12px 16px!important;margin:0!important;border-top:8px solid var(--nd-page)!important}
+}
+/* ── 돈 색 규칙: 입금·출금 화면은 입금 = 파랑, 출금 = 빨강. 대시보드 '매출·입금'은 매출 = 파랑, 입금 = 초록(막대·범례 점·범례 글자·짚어 보기 글자 모두). ── */
+#appView #view-dash .card-head .legend>span:nth-child(1){color:var(--nd-blue)!important;font-weight:600}
+#appView #view-dash .card-head .legend>span:nth-child(2){color:var(--nd-green)!important;font-weight:600}
+#appView #view-dash .card-head>.nd-chd .s{color:var(--nd-blue);font-weight:600}
+#appView #view-dash .card-head>.nd-chd .i{color:var(--nd-green);font-weight:600}
+@media screen and (max-width:780px){
+ /* 보기 좌우 여백(16px)을 없앤 대신, 그 여백을 상쇄하던 음수 여백도 없앤다 */
+ html body #appView .shell .main>.view.view>.cols.cols{margin-left:0!important;margin-right:0!important;width:auto!important}
+ #appView .shell .main>.view>.cols>.card{margin-left:12px!important;margin-right:12px!important;width:auto!important;max-width:none!important}
+ #appView .shell .main>.view>.cols>.card>:is(.list-head,.nd-chips,.list){margin-left:0!important;margin-right:0!important;width:auto!important}
+}
+@media screen and (max-width:780px){html body #appView .shell .main>:is(#view-items,#view-quotes,#view-companies)>.cols{margin-left:0!important;margin-right:0!important}}
+@media screen and (max-width:780px){
+ /* 여백 한 가지 규칙: 화면 좌우 12px, 카드는 그 안을 꽉 채움, 머리·칩 줄만 화면 끝까지(안쪽 16px) */
+ #appView .shell .main>.view{padding-left:12px!important;padding-right:12px!important}
+ #appView .shell .main>.view>.page-head{margin-left:-12px!important;margin-right:-12px!important}
+ #appView .shell .main>.view>.nd-chips-m{margin-left:-12px!important;margin-right:-12px!important}
+ #appView .shell .main>.view>.card,#appView .shell .main>.view>.cols>.card,#appView .shell .main>.view>.ops-summary,#appView .shell .main>.view>.stats{margin-left:0!important;margin-right:0!important}
+ html body #appView .shell .main>:is(#view-items,#view-quotes,#view-companies)>.cols{margin-left:0!important;margin-right:0!important}
+ /* 카드 밖 글자 블록은 카드 안 글자와 같은 선(16px)에 */
+ #appView .shell .main>.view>:not(.card):not(.cols):not(.page-head):not(.nd-chips-m):not(.stats):not(.ops-summary):not(#materialContent):not(.copy-note){padding-left:4px;padding-right:4px}
+}
+/* ════════ 색 정의 (의미별 · 앱 전체) ════════
+   파랑 = 매출·핵심·버튼·선택 / 초록 = 입금·완료·정상(숫자 "+") / 앰버 = 주의·부족·예정·부분(꼬리표)
+   빨강 = 출금·출고·지출(숫자 "−", 바탕 없음) / 진한 빨강 꽉 찬 꼬리표 + "!" = 미수·연체·품절·오류
+   청록 = 이익·분석·조정 / 회색 = 비교·미설정·비활성. 글자는 진한 값, 막대·점·꼬리표 바탕은 -fill·-soft. */
+:root{
+ --nd-green:#0B7A3B;--nd-green-fill:#12A150;--nd-green-soft:rgba(18,161,80,.10);
+ --nd-red:#D92D20;--nd-red-fill:#E5483C;--nd-red-soft:rgba(217,45,32,.08);
+ --nd-bad:#B42318;
+ --nd-amber:#B45309;--nd-amber-fill:#E8A317;--nd-amber-soft:rgba(232,163,23,.15);
+ --nd-teal:#0E7490;--nd-teal-fill:#0891B2;--nd-teal-soft:rgba(8,145,178,.10);
+ --nd-mute:#64748B;--nd-mute-fill:#94A3B8;
+}
+html[data-theme="dark"]{
+ --nd-green:#34C97D;--nd-green-fill:#34C97D;--nd-green-soft:rgba(52,201,125,.14);
+ --nd-red:#FF6B6B;--nd-red-fill:#FF6B6B;--nd-red-soft:rgba(255,107,107,.14);
+ --nd-bad:#B42318;
+ --nd-amber:#F5B83D;--nd-amber-fill:#F5B83D;--nd-amber-soft:rgba(245,184,61,.15);
+ --nd-teal:#22B8CF;--nd-teal-fill:#22B8CF;--nd-teal-soft:rgba(34,184,207,.14);
+ --nd-mute:#8A94A6;--nd-mute-fill:#8A94A6;
+}
+:root,html[data-theme]{--ok:var(--nd-green);--ok-ink:var(--nd-green);--ok-soft:var(--nd-green-soft);--danger:var(--nd-red);--danger-soft:var(--nd-red-soft);--warn-c:var(--nd-amber);--warn-ink:var(--nd-amber);--warn-soft:var(--nd-amber-soft);--tax-unissued-color:var(--nd-amber)}
+/* 흐름: 입금·입고·받음 = 초록 "+", 출금·출고·사용·반환 = 빨강 "−" */
+#appView .pill.in{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .pill.out{background:var(--nd-red-soft)!important;color:var(--nd-red)!important}
+#appView .pbr .pbr-amt.in,#appView #view-payments .stat .v.pos,#appView .stat .v.pos,#appView .scr-hero .big.pos{color:var(--nd-green)!important}
+#appView .pbr .pbr-amt.out,#appView #view-payments .stat .v.neg{color:var(--nd-red)!important}
+#appView .material-record-kind.in,#appView .material-record-kind.work{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .material-record-kind.out{background:var(--nd-red-soft)!important;color:var(--nd-red)!important}
+#appView .material-record-qty.in{color:var(--nd-green)!important}
+#appView .material-record-qty.out{color:var(--nd-red)!important}
+#appView #dashChart .cbar.in{background:var(--nd-green-fill)!important}
+#appView #dashChart .cbar.sale{background:var(--nd-blue)!important}
+#appView #view-dash .card-head .legend>span:nth-child(2)>i{background:var(--nd-green-fill)!important}
+#appView #view-dash .card-head .legend>span:nth-child(1)>i{background:var(--nd-blue)!important}
+/* 문제: 품절·부족(재고 상태)·미수·연체·오류 = 진한 빨강 꽉 찬 꼬리표 + "!" */
+#appView #view-stock :is(.stock-option-table,#stockOverview) .pill.out,#appView .pill.nd-bad{background:var(--nd-bad)!important;color:#fff!important;font-weight:700!important}
+#appView #view-stock :is(.stock-option-table,#stockOverview) .pill.out::before,#appView .pill.nd-bad::before{content:'! '}
+/* 주의: 주문 대비 부족·부분납품 = 앰버 꼬리표 */
+#appView .pill.attention,#appView .pill.st-partial{background:var(--nd-amber-soft)!important;color:var(--nd-amber)!important}
+/* 견적 상태: 작성중·취소 = 회색, 발송 = 파랑, 수주 = 초록, 납품 = 초록 꽉 참 */
+#appView .pill.st-draft,#appView .pill.st-lost{background:var(--nd-fill)!important;color:var(--nd-mute)!important}
+#appView .pill.st-sent{background:var(--nd-blue-soft)!important;color:var(--nd-blue)!important}
+#appView .pill.st-won{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
+#appView .pill.st-done{background:var(--nd-green-fill)!important;color:#fff!important}
+/* 이익·조정 = 청록 */
+#appView #view-sales #slMargin.pos,#appView .nd-profit{color:var(--nd-teal)!important}
+#appView .pill.adj{background:var(--nd-teal-soft)!important;color:var(--nd-teal)!important}
+/* ── 폰 · 재고: 목록 → 상세 (A 섹션 카드형) ── */
+#appView #view-stock .nd-st-bar,#appView #view-stock .nd-st-act{display:none}
+@media screen and (max-width:780px){
+ /* 목록: 요약은 한 줄 4칸, 품목 목록은 상자 스크롤 없이 */
+ #appView #view-stock>.stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;padding:0!important}
+ #appView #view-stock>.stats>.stat{min-height:0!important;padding:10px 8px!important;border:0!important;border-right:1px solid var(--nd-line-2)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+ #appView #view-stock>.stats>.stat:last-child{border-right:0!important}
+ #appView #view-stock>.stats>.stat .k{font:500 10.5px/14px var(--sans)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView #view-stock>.stats>.stat .v{font:700 15px/20px var(--sans)!important;margin-top:2px!important}
+ #appView #view-stock #stockItems{max-height:none!important;height:auto!important;overflow:visible!important}
+ #appView #view-stock:not(.nd-st-open)>.cols>.card:nth-child(2)>*:not(.stock-add){display:none!important}
+ #appView #view-stock:not(.nd-st-open)>.cols>.card:nth-child(2){padding:0!important;margin:0!important;background:none!important;min-height:0!important}
+ /* 상세 */
+ #appView #view-stock.nd-st-open>:is(.page-head,.nd-chips-m,.stats),#appView #view-stock.nd-st-open>.cols>.card:nth-child(1){display:none!important}
+ #appView #view-stock.nd-st-open>.cols>.card:nth-child(2){padding:0 0 0!important;overflow:visible!important}
+ #appView #view-stock.nd-st-open .nd-st-bar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:12px 16px;background:var(--nd-surface);border-bottom:1px solid var(--nd-line);border-radius:16px 16px 0 0}
+ #appView #view-stock .nd-st-back{flex:none;height:32px;padding:0;border:0;background:none;color:var(--nd-ink-2);font:500 14px/1 var(--sans)}
+ #appView #view-stock .nd-st-title{min-width:0;margin-left:auto;font:700 14px/20px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView #view-stock.nd-st-open #stockOverview{padding:14px 16px 0!important}
+ #appView #view-stock.nd-st-open .stock-overview-heading h3{font:700 17px/24px var(--sans)!important}
+ /* 옵션 표: 한 줄에 한 옵션 (카드 나열 대신) */
+ #appView #view-stock .stock-option-scroll{overflow:visible!important;margin:8px 0 0!important}
+ #appView #view-stock .stock-option-table{display:table!important;width:100%!important;table-layout:auto!important;border-collapse:collapse!important}
+ #appView #view-stock .stock-option-table thead{display:table-header-group!important}
+ #appView #view-stock .stock-option-table tbody{display:table-row-group!important}
+ #appView #view-stock .stock-option-table tr{display:table-row!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important}
+ #appView #view-stock .stock-option-table :is(th,td){display:table-cell!important;padding:0 4px!important;height:44px;border:0!important;border-bottom:1px solid var(--nd-line-2)!important;font:500 13px/1.2 var(--sans)!important;text-align:right!important;white-space:nowrap;vertical-align:middle}
+ #appView #view-stock .stock-option-table th{height:32px;font:600 10.5px/1.2 var(--sans)!important;color:var(--nd-ink-3)!important;background:none!important}
+ #appView #view-stock .stock-option-table td::before{display:none!important;content:none!important}
+ #appView #view-stock .stock-option-table :is(th,td):nth-child(1),#appView #view-stock .stock-option-table :is(th,td):nth-child(2){text-align:left!important;font-weight:700!important}
+ #appView #view-stock .stock-option-table td:nth-child(1){color:var(--nd-ink-2)!important;font-weight:600!important}
+ #appView #view-stock .stock-option-table :is(th,td):nth-child(3){width:14px;padding:0!important;text-align:center!important}
+ #appView #view-stock .stock-option-table th:nth-child(3){font-size:0!important}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill{display:inline-block!important;width:8px;height:8px;padding:0!important;border-radius:50%!important;font-size:0!important;vertical-align:middle}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill::before{content:none!important}
+ #appView #view-stock .stock-option-table td:nth-child(3) .pill.attention{background:var(--nd-amber-fill)!important}
+ #appView #view-stock .stock-option-table td:nth-child(6){font-weight:700!important}
+ #appView #view-stock .stock-option-table td.neg{color:var(--nd-red)!important}
+ #appView #view-stock .stock-option-table td:last-child input{width:52px!important;min-width:0!important;height:34px!important;min-height:0!important;padding:0 4px!important;text-align:center!important;border-radius:8px!important;font-size:14px!important}
+ #appView #view-stock .stock-min-actions{position:static!important;margin:12px 0 0!important;padding:0!important;background:none!important;border:0!important}
+ #appView #view-stock .stock-min-actions>button{width:100%!important;height:44px!important;border-radius:12px!important}
+ #appView #view-stock.nd-st-open .stock-history-title{padding:16px 16px 4px!important;margin:16px 0 0!important;border-top:8px solid var(--nd-page)!important}
+ #appView #view-stock.nd-st-open>.cols>.card:nth-child(2)>.tbl-wrap{padding:0 16px 8px!important}
+ /* 아래 고정: [입고][출고][조정] */
+ #appView #view-stock.nd-st-open .nd-st-act{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:sticky;bottom:0;z-index:6;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ #appView #view-stock .nd-st-act>button{height:48px;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-surface);color:var(--nd-ink);font:600 15px/1 var(--sans)}
+ #appView #view-stock .nd-st-act>button.p{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+ /* 입력 창: 아래에서 올라오는 시트 */
+ #appView #view-stock.nd-st-sheet>.cols>.card:nth-child(2)::before{content:'';position:fixed;inset:0;background:rgba(15,20,30,.38);z-index:60}
+ #appView #view-stock.nd-st-sheet .stock-add{position:fixed!important;left:0;right:0;bottom:0;z-index:61;max-height:90vh;max-height:90dvh;overflow-y:auto;margin:0!important;padding:10px 16px 0!important;background:var(--nd-surface)!important;border-radius:20px 20px 0 0!important;box-shadow:0 -10px 30px rgba(15,20,35,.18)!important}
+ #appView #view-stock.nd-st-sheet .stock-add::before{content:'';display:block;width:36px;height:4px;border-radius:2px;background:var(--nd-line);margin:0 auto 12px}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main>#view-stock>.cols{display:block!important;grid-template-columns:none!important}
+ #appView .shell .main>#view-stock>.cols>.card{width:auto!important;max-width:none!important}
+ #appView #view-stock.nd-st-open:not(.nd-st-sheet) .stock-add{display:none!important}
+ #appView #view-stock:not(.nd-st-open):not(.nd-st-sheet)>.cols>.card:nth-child(2){display:none!important}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main #view-stock .stock-option-scroll::before{content:none!important;display:none!important}
+ #appView .shell .main #view-stock #stockItems>.stock-item{padding-left:16px!important;padding-right:16px!important;margin:0!important;width:100%!important;box-sizing:border-box}
+ #appView .shell .main #view-stock>.cols>.card:nth-child(1){padding:0!important}
+ /* 입력 창 버튼: [입력 닫기][변경 내용 확인] 한 줄, 창 아래에 고정 */
+ #appView #view-stock.nd-st-sheet .stock-add{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;column-gap:8px!important}
+ #appView #view-stock.nd-st-sheet .stock-add>*{grid-column:1/-1}
+ #appView #view-stock.nd-st-sheet .stock-add>:is(#ivCancelBtn,#ivAddBtn){grid-column:auto!important;position:sticky;bottom:0;z-index:2;height:48px!important;min-height:48px!important;margin:8px 0 calc(10px + env(safe-area-inset-bottom,0px))!important;border-radius:12px!important;box-shadow:0 0 0 8px var(--nd-surface),0 -9px 0 0 var(--nd-surface)!important;font:600 15px/1 var(--sans)!important;white-space:nowrap}
+ #appView #view-stock.nd-st-sheet .stock-add>#ivCancelBtn{min-width:96px;padding:0 14px!important;border:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important}
+ #appView #view-stock.nd-st-sheet .stock-add>#ivAddBtn{width:100%!important}
+}
+@media screen and (max-width:780px){html body #appView .shell .main #view-stock #stockItems{margin:0!important;width:auto!important}}
+@media screen and (max-width:780px){
+ /* 매출 집계: 지표 묶음·결과를 흰 카드로 */
+ #appView .shell .main #view-sales .sl-metrics,#appView .shell .main #view-sales #slBody>.card{margin:0 0 12px!important;border:0!important;border-radius:16px!important;background:var(--nd-surface)!important;box-shadow:none!important;overflow:hidden}
+ #appView .shell .main #view-sales .sl-metrics{padding:4px 16px!important}
+ #appView .shell .main #view-sales .sl-hero{padding:4px 4px 12px!important}
+ /* 공급자 정보: 명함·사업자등록증 카드도 흰 카드 */
+ #appView .shell .main #view-settings>.card.nd-assets{background:var(--nd-surface)!important;padding:16px!important}
+ /* 업체 제공 자재: 목록 = 흰 카드, 상세 = 흰 카드 하나 */
+ #appView #view-materials:not(.nd-mm-open) .material-owners{background:var(--nd-surface)!important;border-radius:16px!important;overflow:hidden}
+ #appView #view-materials .material-owner:last-child{border-bottom:0!important}
+ #appView #view-materials.nd-mm-open .material-detail{background:var(--nd-surface)!important;border-radius:16px!important;overflow:clip}
+ #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{border-radius:16px 16px 0 0}
+ #appView #view-materials.nd-mm-open .material-history-wrap{border-top-color:var(--nd-page)!important}
+ #appView #view-materials>.copy-note{margin:16px 4px!important}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main #view-sales .sl-metrics>*{border-left:0!important;padding-left:0!important}
+ #appView .nd-docs-photos .nd-photo-grid{grid-template-columns:minmax(0,1fr)!important}
+ #appView .nd-docs-photos .nd-photo-shot{max-height:200px}
+}
+@media screen and (min-width:781px) and (max-width:1023px){#appView .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head{margin-left:0!important;margin-right:0!important}}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8994,7 +9186,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    const cr=chart.getBoundingClientRect(),gr=g.getBoundingClientRect(),bars=g.querySelector('.cbars')?.getBoundingClientRect()||gr;
    cur.style.left=(gr.left-cr.left+gr.width/2)+'px';cur.style.top=(bars.top-cr.top)+'px';cur.style.height=bars.height+'px';cur.hidden=false;
    const label=g.querySelector('.clabel')?.textContent.trim()||'';const v=k=>(g.querySelector('.cbar.'+k)?.dataset.v||'').replace(/^\S+\s*/,'');
-   note.innerHTML='';const b=document.createElement('b');b.textContent=label;note.append(b,` · 매출 ${v('sale')} · 입금 ${v('in')}`);
+   note.innerHTML='';const b=document.createElement('b');b.textContent=label;const sp=(c,t)=>{const x=document.createElement('span');x.className=c;x.textContent=t;return x;};note.append(b,' · ',sp('s','매출 '+v('sale')),' · ',sp('i','입금 '+v('in')));
    note.hidden=false;legend.hidden=true;chart.classList.add('nd-chov');};
   const hide=()=>{last?.classList.remove('nd-con');last=null;cur.hidden=true;note.hidden=true;legend.hidden=false;chart.classList.remove('nd-chov');};
   chart.addEventListener('pointermove',show);chart.addEventListener('pointerdown',show);
@@ -9046,13 +9238,43 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    if(mmVoid&&!card.hidden&&actions&&MM_PHONE.matches){if(!vb){vb=document.createElement('button');vb.type='button';vb.className='btn ghost nd-mm-void';vb.textContent='기록 취소';actions.prepend(vb);}if(vb.dataset.id!==mmVoid)vb.dataset.id=mmVoid;}
    else if(vb)vb.remove();}
  }
+ /* 색 정의에 맞춘 꼬리표 이름: 재고 '조정' = 청록, '부분납품' = 앰버, 대시보드 '예상 이익' = 청록. (원래 화면은 in/out만 구분) */
+ function colorTags(){
+  document.querySelectorAll('#appView .pill:not(.adj)').forEach(p=>{const t=p.textContent.trim();if(t==='조정'||t==='재고 조정')p.classList.add('adj');});
+  document.querySelectorAll('#appView .pill.st-sent:not(.st-partial)').forEach(p=>{if(p.textContent.trim()==='부분납품')p.classList.add('st-partial');});
+  document.querySelectorAll('#appView #view-dash .k').forEach(k=>{if(/예상 (이익|마진)/.test(k.textContent)){const v=k.nextElementSibling;if(v&&!v.classList.contains('nd-profit'))v.classList.add('nd-profit');}});
+ }
+ /* 재고 — 폰(≤780px): 목록 → 상세. 상세 = [‹ 재고] 품목명 · 옵션 표(한 줄에 한 옵션) · 최근 입출고, 아래 [입고][출고][조정] 고정.
+    입력 폼(원래 '재고 입력' 카드)은 아래에서 올라오는 창. 원래 버튼·폼을 그대로 쓰고 위치·모양만 바꾼다. */
+ const ST_PHONE=matchMedia('(max-width:780px)');let stSheet=false;
+ function stockMobile(){
+  const view=document.getElementById('view-stock');if(!view)return;const cards=view.querySelectorAll(':scope>.cols>.card');const detail=cards[1];if(!detail)return;
+  if(!view.dataset.ndSt){view.dataset.ndSt='1';
+   const setOpen=v=>{view.classList.toggle('nd-st-open',v);view.classList.toggle('mobile-record-open',v);};
+   // 품목 줄은 원래 화면이 눌린 즉시 다시 그리므로(눌린 요소가 사라짐) 캡처 단계에서 먼저 잡는다.
+   view.addEventListener('click',e=>{if(!ST_PHONE.matches)return;if(e.target.closest('#stockItems>.stock-item')){stSheet=false;setOpen(true);requestAnimationFrame(()=>{view.scrollTop=0;stockMobile();});}},true);
+   view.addEventListener('click',e=>{if(!ST_PHONE.matches)return;
+    if(e.target.closest('.nd-st-back')){stSheet=false;setOpen(false);requestAnimationFrame(stockMobile);return;}
+    const a=e.target.closest('.nd-st-act [data-go]');if(a){stSheet=true;document.getElementById(a.dataset.go)?.click();requestAnimationFrame(stockMobile);}});
+   ST_PHONE.addEventListener('change',()=>setOpen(false));}
+  let bar=detail.querySelector(':scope>.nd-st-bar');
+  if(!bar){bar=document.createElement('div');bar.className='nd-st-bar';bar.innerHTML='<button type="button" class="nd-st-back">‹ 재고</button><b class="nd-st-title"></b>';detail.prepend(bar);}
+  const sel=view.querySelector('#stockItems>.stock-item.selected>span:first-child,#stockItems>.stock-item.selected');
+  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');if(tt.textContent!==name)tt.textContent=name;
+  let act=detail.querySelector(':scope>.nd-st-act');
+  if(!act){act=document.createElement('div');act.className='nd-st-act';act.innerHTML='<button type="button" data-go="stockRegister" class="p">입고</button><button type="button" data-go="stockOutbound">출고</button><button type="button" data-go="stockAdjust">조정</button>';detail.append(act);}
+  // 입력 창은 아래 바의 [입고][출고][조정]으로 열었을 때만 시트로 띄운다(품목을 고르면 원래 화면이 폼을 자동으로 펴기 때문).
+  const add=detail.querySelector(':scope>.stock-add');const formOn=!!(add&&!add.hidden&&getComputedStyle(add).display!=='none'||add&&view.classList.contains('nd-st-sheet')&&!add.hidden);
+  if(!add||add.hidden)stSheet=false;const open=ST_PHONE.matches&&stSheet&&!!add&&!add.hidden;
+  if(view.classList.contains('nd-st-sheet')!==open)view.classList.toggle('nd-st-sheet',open);
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
