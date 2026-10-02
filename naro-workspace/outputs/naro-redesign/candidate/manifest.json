@@ -2,10 +2,6 @@
   "mode": "FEATURE_CANDIDATE_NOT_DEPLOYED",
   "files": [
     {
-      "path": "__harness.html",
-      "sha256": "df4c398bc87f9aee4a1e15b2655a56b270ba003b7662c798958d30779c2a8b50"
-    },
-    {
       "path": "about.css",
       "sha256": "39d591299308b1b504547c3a361b286150cb30decf72c62debee7668e3dfc059"
     },
@@ -254,7 +250,7 @@
       "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
     }
   ],
-  "aggregate": "3e6a1dc5509ffd1e519dd336a992f2d4aa45f12694c73f95fc3f3294bdee3e40",
+  "aggregate": "2f0e32a52a1563d0b40d8f50f9e6d0f5ba20b62887ca0dffa792b8dc871c58cd",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
