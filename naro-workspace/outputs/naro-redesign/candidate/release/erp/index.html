@@ -7642,8 +7642,7 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
 }
 /* Narrow desktop: quote secondary actions become 40px icon buttons so the bar stays one line. */
 @media screen and (min-width:1024px) and (max-width:1439px){
- #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost{width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;justify-content:center;gap:0}
- #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost>svg{width:17px;height:17px}
+ /* Only 공유·이메일 stay in the bar (rest in ⋯), so they keep their labels at every desktop width. */
 }
 
 /* ---------- 8. 업체 제공 자재 — stacked bar (validated blue ramp; 보유 = strongest) ---------- */
@@ -8161,15 +8160,6 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  /* 품목 상세 (phone): same 16px gutter as 거래처 — inputs touched the screen edge. */
  #appView #view-items #itForm{padding-left:16px!important;padding-right:16px!important}
 }
-@media screen and (min-width:1024px) and (max-width:1199px){
- /* Quote bar with 5 secondaries (이메일 beside 공유): a narrower save button keeps one row. */
- #appView #qtForm .form-actions>#qtSaveBtn{min-width:112px!important;width:112px!important;flex:0 0 112px!important}
-}
-@media screen and (min-width:1024px) and (max-width:1099px){
- #appView #qtForm .form-actions{gap:4px!important}
- #appView #qtForm .form-actions>#qtSaveBtn{min-width:96px!important;width:96px!important;flex:0 0 96px!important}
- #appView #qtForm .form-actions>#fq_doc{max-width:96px!important;min-width:0!important;flex:0 1 96px!important}
-}
 @media screen{
  #appView .nd-photo-view{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:56px 24px 32px;background:rgba(10,12,16,.82);cursor:zoom-out}
  #appView .nd-photo-view>img{max-width:min(960px,100%);max-height:calc(100vh - 140px);object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.4);cursor:default}
@@ -8179,6 +8169,13 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 @media screen{
  /* The left 백업·가져오기 fold is empty once its card moves to the right panel: no line, no gap. */
  #appView #view-settings .workspace-left>.settings-utils:not(:has(.settings-util-card)){display:none!important;margin:0!important;padding:0!important;border:0!important}
+}
+@media screen and (min-width:1024px) and (max-width:1199px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost{width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;justify-content:center;gap:0}
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>.btn.ghost>svg{width:17px;height:17px}
+}
+@media screen and (min-width:1024px) and (max-width:1099px){
+ #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>#qtSaveBtn{min-width:128px!important;width:128px!important;flex:0 0 128px!important}
 }
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
@@ -8295,7 +8292,8 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
     menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
    // 이메일 sits next to 공유 in the bar; only 복사 joins 삭제 inside ⋯.
-   if(menu.closest('#qtForm')){const b=document.getElementById('qtCopyBtn');if(b&&b.parentElement!==pop)pop.prepend(b);
+   // Quote bar: [견적서 ▾] [공유] [이메일] … [⋯ 인쇄·이미지·복사·삭제] [저장].
+   if(menu.closest('#qtForm')){for(const id of ['qtCopyBtn','qtImgBtn','qtPrintBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==pop)pop.prepend(b);}
     const mail=document.getElementById('qtMailBtn'),share=document.getElementById('qtShareBtn');if(mail&&share&&mail.previousElementSibling!==share)share.after(mail);}
    menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
    if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
