@@ -1,0 +1,23 @@
+    // ── NARO Biz 회원 승인제 (여기부터) ─────────────────────────────
+    // 기존 규칙은 그대로 두고, 'match /databases/{database}/documents {' 바로 아래 줄에 이 블록만 붙여 넣는다.
+    // access/{uid} = { email, status: 'pending' | 'approved' | 'rejected', requestedAt, decidedAt }
+    match /access/{uid} {
+      function naroAdmin() {
+        return request.auth != null
+          && request.auth.token.email == 'onlysh4sh@gmail.com'
+          && request.auth.token.email_verified == true;
+      }
+      allow get: if naroAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow list: if naroAdmin();
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['email', 'status', 'requestedAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.requestedAt is timestamp;
+      allow update: if naroAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+        && request.resource.data.status in ['pending', 'approved', 'rejected'];
+      allow delete: if naroAdmin();
+    }
+    // ── NARO Biz 회원 승인제 (여기까지) ─────────────────────────────

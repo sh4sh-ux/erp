@@ -32,8 +32,14 @@ test('저장된 상태를 그대로 따른다',async()=>{
  for(const s of ['approved','rejected','pending']){const {access}=fake({routes:[{status:200,body:doc(s)}]});assert.equal((await access.check()).status,s);}
  const {access}=fake({routes:[{status:200,body:doc('bogus')}]});assert.equal((await access.check()).status,'pending');
 });
-test('규칙 거부·네트워크 오류는 들여보내지 않는다',async()=>{
- await assert.rejects(fake({routes:[{status:403,body:{error:{message:'Missing or insufficient permissions.',status:'PERMISSION_DENIED'}}}]}).access.check(),{code:'ACCESS_CHECK_FAILED'});
+test('승인 규칙을 아직 안 붙였으면(본인 문서 읽기 거부) 지금처럼 들어가고, 관리자 화면은 설정 전이라고 알린다',async()=>{
+ const denied={status:403,body:{error:{message:'Missing or insufficient permissions.',status:'PERMISSION_DENIED'}}};
+ const res=await fake({routes:[denied]}).access.check();assert.equal(res.status,'approved');assert.equal(res.setup,false);
+ await assert.rejects(fake({email:ADMIN_EMAIL,routes:[denied]}).access.list(),{code:'ACCESS_NOT_SET_UP'});
+});
+test('규칙이 있는데 요청 저장이 막히거나 네트워크 오류면 들여보내지 않는다',async()=>{
+ await assert.rejects(fake({routes:[{status:404,body:{error:{message:'Document not found.',status:'NOT_FOUND'}}},{status:403,body:{error:{status:'PERMISSION_DENIED'}}}]}).access.check(),{code:'ACCESS_CHECK_FAILED'});
+ await assert.rejects(fake({routes:[{status:500,body:{}}]}).access.check(),{code:'ACCESS_CHECK_FAILED'});
  await assert.rejects(fake({routes:[new TypeError('fetch failed')]}).access.check(),{code:'NETWORK_ERROR'});
  await assert.rejects(fake({verified:false}).access.check(),{code:'EMAIL_NOT_VERIFIED'});
 });
