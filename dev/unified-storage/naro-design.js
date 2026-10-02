@@ -859,7 +859,19 @@
  }
  let saveStateQueued=false;const saveStateSoon=()=>{if(saveStateQueued)return;saveStateQueued=true;requestAnimationFrame(()=>{saveStateQueued=false;try{saveState();}catch{}});};
  for(const ev of ['input','change','click'])document.addEventListener(ev,saveStateSoon,true);
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 폰: 목록 화면인지 상세 화면인지(data-nd-phone="list|detail") — 목록이면 흰 바탕. 바뀔 때만 쓴다.
+ function phoneListState(){
+  const shown=el=>!!el&&getComputedStyle(el).display!=='none';
+  const st={
+   quotes:v=>!document.getElementById('qtCols')?.classList.contains('detail-open'),
+   companies:v=>!v.classList.contains('mobile-record-open'),
+   items:v=>!shown(v.querySelector(':scope>.cols>.card:nth-child(2)')),
+   payments:()=>true,
+   stock:v=>!v.classList.contains('nd-st-open'),
+   materials:v=>!v.classList.contains('nd-mm-open')};
+  for(const [k,fn] of Object.entries(st)){const v=document.getElementById('view-'+k);if(!v)continue;const want=fn(v)?'list':'detail';if(v.dataset.ndPhone!==want)v.dataset.ndPhone=want;}
+ }
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();phoneListState();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

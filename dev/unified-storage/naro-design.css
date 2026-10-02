@@ -1584,11 +1584,11 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
 @media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-companies>.cols{overflow:visible!important}}
 /* 폰 견적서·거래처 목록(목록 안에서 스크롤): 아래 바와 목록 사이 회색 틈 없이 — 바닥 여백 = 아래 바 높이, 카드 아래 여백 0 */
 @media screen and (max-width:780px){
- html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-companies):not(.mobile-record-open):not(.hidden)::after{height:calc(69px + env(safe-area-inset-bottom,0px))!important}
- html body #appView[data-layout-system] .shell .main :is(#view-quotes:not(.mobile-record-open)>#qtCols,#view-companies:not(.mobile-record-open)>.cols)>.card:first-child{margin-bottom:0!important}
- html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{height:100%!important}
- html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{display:flex!important;flex-direction:column}
- html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
+ /* 견적서 상세가 열리면 #qtCols에 .detail-open이 붙는다 — 목록 전용 규칙은 그때 빠져야 한다(목록이 계속 보이면 상세가 아래로 밀려 '안 열리는' 것처럼 보였다). */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes:has(>#qtCols:not(.detail-open)),#view-companies:not(.mobile-record-open)):not(.hidden)::after{height:calc(69px + env(safe-area-inset-bottom,0px))!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes>#qtCols:not(.detail-open),#view-companies:not(.mobile-record-open)>.cols)>.card:first-child{margin-bottom:0!important}
+ html body #appView[data-layout-system] .shell .main #view-quotes>#qtCols:not(.detail-open)>.quote-list-card{height:100%!important;display:flex!important;flex-direction:column}
+ html body #appView[data-layout-system] .shell .main #view-quotes>#qtCols:not(.detail-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
 }
 /* 바로가기 — 누를 수 있는 숫자(›) · 목록 창 · 안내 줄 · 해야 할 칸 */
 #appView [data-nd-go]{cursor:pointer;border-radius:6px;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;transition:background .12s,text-decoration-color .12s}
@@ -1669,3 +1669,15 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
 /* 저장 버튼: 바뀐 내용이 없으면 회색 '저장됨' */
 html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved{background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important}
 html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{background:var(--nd-fill)!important;color:var(--nd-ink-2)!important}
+
+/* 폰 목록 화면은 전체 흰 바탕(머리 줄까지) — 회색 바탕은 카드가 놓이는 상세·입력 화면에만. 상태는 phoneListState()가 data-nd-phone으로 단다. */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"]{background:var(--nd-surface)!important}
+ html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"]>.page-head{background:var(--nd-surface)!important}
+}
+/* 폰 재고 '전체 현황' 표: 칸이 좁아 품목명이 한 글자씩 꺾이던 것 → 한 줄로, 표만 옆으로 밀어 본다 */
+@media screen and (max-width:780px){
+ html body #appView .shell .main #view-stock .stock-option-scroll{overflow-x:auto!important;-webkit-overflow-scrolling:touch;margin-right:-16px;padding-right:16px}
+ html body #appView .shell .main #view-stock .stock-option-scroll>table{width:max-content!important;min-width:100%!important;table-layout:auto!important}
+ html body #appView .shell .main #view-stock .stock-option-scroll :is(th,td){white-space:nowrap!important;word-break:keep-all!important}
+}
