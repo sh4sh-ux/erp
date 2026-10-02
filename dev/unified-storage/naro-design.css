@@ -935,3 +935,10 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView .nd-mail-box{width:100%;max-height:92vh;border-radius:16px 16px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px))}
  #appView .nd-mail-act>button{flex:1 1 0;height:46px}
 }
+@media screen and (max-width:780px){
+ /* 견적서 상세 (phone): 16px gutter like 거래처/품목 — the text touched the card edge and the full-bleed
+    save bar (margin 0 -16px) overflowed by 32px, so the screen could be dragged sideways. */
+ #appView #qtForm{padding-left:16px!important;padding-right:16px!important}
+ /* Vertical scrollers never scroll sideways (an element 1px too wide must not let the page drift). */
+ #appView .shell .main>.view{overflow-x:hidden!important}
+}
