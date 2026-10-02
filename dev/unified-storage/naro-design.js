@@ -207,7 +207,9 @@
  /* Address search opens /postcode.html in its own window: the app page's CSP (no third-party script) stays as is,
     and the widget never runs next to business data. The window posts the address back (same origin only). */
  let addrWin=null,addrDone=null;
- addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='NARO_POSTCODE'||!addrWin||e.source!==addrWin)return;const done=addrDone;addrWin=addrDone=null;done?.(String(e.data.address||'').slice(0,200));});
+ addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='NARO_POSTCODE'||!addrWin||e.source!==addrWin)return;const done=addrDone;addrWin=addrDone=null;done?.(String(e.data.address||'').slice(0,200),String(e.data.building||'').slice(0,100));});
+ // A new address replaces a building-only detail; anything the user typed (호수 등) stays.
+ function fillDetail(el,building){const cur=el.value.trim();if(building&&(!cur||cur===el.dataset.ndBuilding)){el.value=building+' ';el.dataset.ndBuilding=building;el.dispatchEvent(new Event('input',{bubbles:true}));}el.focus();try{el.setSelectionRange(el.value.length,el.value.length);}catch{}}
  function addressWindow(btn,done){
   const w=Math.min(520,screen.availWidth||520),h=Math.min(680,screen.availHeight||680);
   addrWin=window.open(new URL('/postcode.html?theme='+(document.documentElement.dataset.theme==='dark'?'dark':'light'),location.href).href,'naro-postcode',`popup=yes,width=${w},height=${h},left=${Math.max(0,((screen.availWidth||w)-w)/2)},top=${Math.max(0,((screen.availHeight||h)-h)/2)}`);
@@ -216,7 +218,7 @@
   addrWin.focus();}
  // 거래처 주소 검색 uses the same window (the app binds #coAddressSearch to this global on each render).
  window.openCompanyAddressSearch=function(){const address=document.getElementById('f_address'),detail=document.getElementById('f_address_detail'),btn=document.getElementById('coAddressSearch');
-  addressWindow(btn,v=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}detail?.isConnected&&detail.focus();});};
+  addressWindow(btn,(v,b)=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}if(detail?.isConnected){fillDetail(detail,b);}});};
  function supplierAddress(){
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
@@ -224,7 +226,7 @@
   input.placeholder='[주소 검색]으로 찾거나 직접 입력';
   // 상세 주소 gets its own box like 거래처; on save it joins the base address (the record keeps one address field).
   const detail=document.createElement('input');detail.id='nd_address_detail';detail.type='text';detail.autocomplete='address-line2';detail.placeholder='상세 주소 (동·층·호수)';detail.setAttribute('aria-label','상세 주소');detail.className='nd-addr-detail';wrap.after(detail);
-  b.onclick=()=>addressWindow(b,v=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';detail.focus();});
+  b.onclick=()=>addressWindow(b,(v,bn)=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';fillDetail(detail,bn);});
   document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 

@@ -7,7 +7,9 @@
  const fail=()=>{box.hidden=true;msg.hidden=false;};
  const send=data=>{
   const address=data.userSelectedType==='J'?(data.jibunAddress||data.address):(data.roadAddress||data.address);
-  try{window.opener&&window.opener.postMessage({type:'NARO_POSTCODE',address,zonecode:data.zonecode||''},location.origin);}catch{}
+  // Building name (e.g. 미사테스타타워) starts the detail line; the user only adds 동·층·호.
+  const building=String(data.buildingName||'').trim();
+  try{window.opener&&window.opener.postMessage({type:'NARO_POSTCODE',address,building,zonecode:data.zonecode||''},location.origin);}catch{}
   window.close();
  };
  const sources=['https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js','https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'];

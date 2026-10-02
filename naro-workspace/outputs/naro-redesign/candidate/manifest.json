@@ -2,6 +2,10 @@
   "mode": "FEATURE_CANDIDATE_NOT_DEPLOYED",
   "files": [
     {
+      "path": "__harness.html",
+      "sha256": "df4c398bc87f9aee4a1e15b2655a56b270ba003b7662c798958d30779c2a8b50"
+    },
+    {
       "path": "about.css",
       "sha256": "39d591299308b1b504547c3a361b286150cb30decf72c62debee7668e3dfc059"
     },
@@ -103,7 +107,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "210f85415418c73a8a9a0c3333956f3e315c63e0c798942d00fec06584da3802"
+      "sha256": "7076b7b668ba0e33d38a5bc60043b91e6826b5385faa376544e5f7217a6bbd59"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -215,7 +219,7 @@
     },
     {
       "path": "postcode.js",
-      "sha256": "813ec477c460f569d5d2bd9a670b58768167c9c2d6c3ef442d1911189df1b25a"
+      "sha256": "19e629d8f139f6d7248d0b46ca6ca10907e2db1963a8f849b9ba2bada1277919"
     },
     {
       "path": "privacy.html",
@@ -250,7 +254,7 @@
       "sha256": "83b73f61d8c8c695da5380362e34385b1db0567d096aefbc88d35f093faf3ea1"
     }
   ],
-  "aggregate": "5b40291590132010fed651707e221e81196fa6b57cedf5d281c39be066754a6f",
+  "aggregate": "3e6a1dc5509ffd1e519dd336a992f2d4aa45f12694c73f95fc3f3294bdee3e40",
   "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
