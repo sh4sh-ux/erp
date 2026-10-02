@@ -2,7 +2,8 @@
 // [Gmail로 보내기] (sent from the user's own Gmail by the top page — no server, no cost) or
 // [메일 앱으로] (phone share sheet / desktop mail app with the image saved for attaching).
 const MSG={
- BAD_RECIPIENT:'받는 사람 메일 주소를 확인해 주세요.',
+ BAD_RECIPIENT:'받는 사람 메일 주소 형식을 확인해 주세요. (예: name@company.co.kr — Gmail이 아니어도 돼요)',
+ NO_RECIPIENT:'받는 사람 메일 주소를 입력해 주세요. 네이버·회사 메일 등 어떤 주소든 보낼 수 있어요.',
  BAD_MESSAGE:'메일 내용을 만들지 못했어요. 첨부 이미지를 다시 만든 뒤 시도해 주세요.',
  CANCELLED:'Gmail 연결이 취소됐어요. (아직 테스트 사용자로 등록되지 않은 계정이면 연결할 수 없어요.)',
  POPUP_BLOCKED:'팝업이 막혔어요. 주소창 오른쪽에서 팝업을 허용한 뒤 다시 눌러 주세요.',
@@ -39,7 +40,7 @@ export function installMailUI({port,say}){
   const hd=el('div','nd-mail-hd');hd.append(el('b',null,'견적서 이메일'));const x=el('button','nd-mail-x','×');x.type='button';x.setAttribute('aria-label','닫기');hd.append(x);
   const from=el('div','nd-mail-from');
   const field=(label,node)=>{const f=el('label','nd-mail-f');f.append(el('span',null,label),node);return f;};
-  const toIn=el('input');toIn.type='email';toIn.multiple=true;toIn.value=to;toIn.placeholder='거래처 메일 주소';toIn.autocomplete='email';
+  const toIn=el('input');toIn.type='email';toIn.multiple=true;toIn.value=to;toIn.placeholder='거래처 메일 주소 (Gmail이 아니어도 돼요)';toIn.autocomplete='email';
   const subIn=el('input');subIn.value=subject;
   const bodyIn=el('textarea');bodyIn.value=body;bodyIn.rows=9;
   const att=el('div','nd-mail-att');att.textContent='첨부 준비 중…';
@@ -63,7 +64,7 @@ export function installMailUI({port,say}){
   let busy=false;
   send.onclick=async()=>{
    if(busy)return;msg.textContent='';msg.classList.remove('ok');
-   if(!toIn.value.trim()){msg.textContent=MSG.BAD_RECIPIENT;toIn.focus();return;}
+   if(!toIn.value.trim()){msg.textContent=MSG.NO_RECIPIENT;toIn.focus();return;}
    busy=true;send.disabled=app.disabled=true;send.textContent='보내는 중…';
    const bytes=part?new Uint8Array(await part.blob.arrayBuffer()):null;
    const r=await ask('MAIL_SEND',{to:toIn.value,subject:subIn.value,body:bodyIn.value,filename:part?.fname||'',bytes});

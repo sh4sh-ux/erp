@@ -25,7 +25,7 @@ await bundleAuth({stdin:{contents:"export {initializeApp} from 'firebase/app'; e
 for(const name of ['style.css','office-polish-v2.png','naro-symbol.png','naro-wordmark.png'])await copyFile(resolve(onboarding,name),resolve(release,name));
 await copyFile(resolve(onboarding,'office-silver-v3.png'),resolve(release,'office-polish-v2.png'));
 await copyFile(resolve(onboarding,'office-silver-v3.jpg'),resolve(release,'office-polish-v2.jpg'));
-const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png">')
+const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png"><link rel="apple-touch-icon" href="./erp/icons/icon-180.png"><meta name="apple-mobile-web-app-title" content="NARO Biz">')
  // Same theme preference as /erp/ ('naroTheme': light | dark | system), applied before first paint.
  // External file: the page CSP allows 'self' scripts only (no inline).
  .replace('</head>','<script src="./theme.js"></script></head>');
@@ -143,6 +143,9 @@ const erp=resolve(root,'outputs/privacy-safe-companies-pilot/source/app');
 for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name))await copyFile(resolve(erp,name),resolve(release,'erp',name));
 await mkdir(resolve(release,'erp/icons'),{recursive:true});
 for(const name of await readdir(resolve(erp,'icons')))await copyFile(resolve(erp,'icons',name),resolve(release,'erp/icons',name));
+// 홈 화면 아이콘 = NARO 심볼 (legacy 파란 ERP 아이콘을 같은 경로에 덮어씀 — 파일 수 그대로).
+for(const name of await readdir(resolve(here,'naro-icons')))await copyFile(resolve(here,'naro-icons',name),resolve(release,'erp/icons',name));
+await writeFile(resolve(release,'erp/manifest.webmanifest'),(await readFile(resolve(release,'erp/manifest.webmanifest'),'utf8')).replace('"ERP · 업무 관리"','"NARO Biz · 업무 관리"').replace('"short_name": "ERP"','"short_name": "NARO Biz"').replace('"#0A84FF"','"#2F5BFF"'));
 let html=await readFile(resolve(erp,'index.html'),'utf8');
 html=html.replace('<title>ERP · 업무 관리</title>','<title>NARO Biz · 업무 관리</title>').replace('href="favicon.png"','href="../naro-symbol.png"');
 // Personal-cloud rail branding only; keep the legacy production source untouched.

@@ -91,19 +91,19 @@
     },
     {
       "path": "erp/icons/icon-180.png",
-      "sha256": "7ff987b7c7a9224842704d55808ac59d2fc5c5b4e53431fb8de5cf0fb6f37a09"
+      "sha256": "535329e6e0218c9febba872a289b903142497e22a16390bf79b0642fbc84c005"
     },
     {
       "path": "erp/icons/icon-192.png",
-      "sha256": "19f1f4a4f063bd2bd804f2ca2608789bfb5d56ab541355699345ab176877526c"
+      "sha256": "42637c3790ea69bb5e82b59169267c9802542da2682e97bab0f24aa54b4db7a4"
     },
     {
       "path": "erp/icons/icon-512.png",
-      "sha256": "9e1cb8d4c5c0bf381b117fcea97d574b7deb4af4a5f1f981849f824c05b3670d"
+      "sha256": "7fa9e7894edbd25db7da78cb7aee59db4e4434711e4e493147a565f16c3db217"
     },
     {
       "path": "erp/index.html",
-      "sha256": "b1fa3740e81b91fc5325a55612728fd0b52efa0d850d17be0b509c48f18af173"
+      "sha256": "f88114e3a237359dceb8c56362c80e05733d7ea62dc6830db221b1c3a2458ec4"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -119,11 +119,11 @@
     },
     {
       "path": "erp/mail-ui.mjs",
-      "sha256": "f81880c10562eeda133b6c2b6974bfa95b9a310704b4b36c3413eebaa746e5db"
+      "sha256": "e46972e35f883d52dbfa0df0d964590873356ff118ab690b2493f60b28e8be91"
     },
     {
       "path": "erp/manifest.webmanifest",
-      "sha256": "0a531d229d3f6c7cc94bebf288a49b15e14b0c9c02fb8ccd805cb38ec1b92971"
+      "sha256": "36b46187a20eb0bdf6a59f91087ced888a621f0f3cf929a1c4f2ec7449c02694"
     },
     {
       "path": "erp/mobile-workspace.css",
@@ -191,7 +191,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "1afd87b2cba09a8705498078c411620f87c5ff058daf20c82e198c1a1188ae4b"
+      "sha256": "1e69dbbc632e5e769926c6dbdf2448326661cc1175d54883b130b53271179547"
     },
     {
       "path": "merge-import.mjs",
@@ -258,8 +258,8 @@
       "sha256": "43f0ffd0bb3037205639e39de84bad9ce59237cd3d766bf7e1365981c1c17d77"
     }
   ],
-  "aggregate": "f1c9fd2e04e76abb3c23c9825af17fc08b78664635739cf04451b4438e70b14f",
-  "previousPublicAggregate": "f7d7d7da708dbaf9e79cd511fed64cfb91a2314b1a68995ae7595a0049a9665f",
+  "aggregate": "b58cd041ea7472460f309e0f3ab45b265de7e466059ebe012076fd75c6a5915a",
+  "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
 }

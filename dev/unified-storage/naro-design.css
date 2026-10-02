@@ -338,6 +338,7 @@ html[data-theme="dark"] :is(#printArea,.pv-sheet,.p-wrap){color-scheme:light;--i
  #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions{bottom:0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;gap:8px!important}
  #appView .shell .main :is(#coForm,#itForm,#qtForm)>.form-actions>.btn.save{height:48px;min-height:48px;border-radius:12px;font-size:16px}
  #appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger>summary{width:48px;height:48px;border-radius:12px}
+ #appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger>summary{display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important}
  #appView .shell .main #view-quotes .quote-form-actions{display:grid!important;grid-template-columns:48px minmax(0,1fr);align-items:start}
  #appView .shell .main #view-quotes .quote-form-actions>.btn.save{grid-column:2;grid-row:1}
  #appView .shell .main #view-quotes .quote-form-actions>.qp-more{grid-column:1;grid-row:1;padding:0;border-radius:12px;background:var(--nd-surface)}
@@ -1038,3 +1039,45 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 @media screen{
  #appView .shell .main .view :is(.li-sub,.li-date,.li-meta):not(.cat):not([class*="cat"]){color:var(--nd-ink-3)!important}
 }
+/* ── 선택 버튼 규칙 (one rule for every choice control): 선택됨 = 진한 채움 + 흰 글자, 나머지 = 테두리만.
+   목록 칩(전체·작성중…) · 기간 칩(전체·이번 달…) · 구분(입고·출고) 모두 같다. ── */
+#appView .nd-kind{display:flex;height:42px;padding:0;border-radius:0;background:transparent;gap:6px}
+#appView .nd-kind>button{flex:1;height:42px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13.5px/1 var(--sans);box-shadow:none;cursor:pointer}
+#appView .nd-kind>button:hover{color:var(--nd-ink)}
+#appView .nd-kind>button.on{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame);box-shadow:none}
+#appView .nd-period{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;width:100%;flex-basis:100%}
+#appView .nd-period>button{flex:none;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12px/1 var(--sans);white-space:nowrap;cursor:pointer}
+#appView .nd-period>button:hover{color:var(--nd-ink)}
+#appView .nd-period>button.on{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame)}
+@media screen and (max-width:780px){#appView .nd-period>button{height:30px;padding:0 12px;border-radius:15px;font-size:13px}}
+/* 합계 열: 구분선 대신 옅은 바탕 열로 묶어 한눈에 */
+#appView .nd-sz-table .sum{width:84px;border-left:0!important;background:var(--nd-blue-soft)}
+#appView .nd-sz-table th.sum{color:var(--nd-blue-ink,var(--nd-blue));font-weight:700;border-radius:10px 10px 0 0;border-bottom-color:transparent}
+#appView .nd-sz-table tr:last-child .sum{border-radius:0 0 10px 10px}
+#appView .nd-sz-table tr.after .sum{border-top-color:transparent;font-size:15px}
+#appView .nd-sz-table tr.qty .sum{font:700 17px/1 var(--sans)}
+#appView .nd-sz-table tr.qty .sum small{margin-left:1px;font:600 12px/1 var(--sans);color:var(--nd-blue)}
+/* 모바일 견적서 하단: [⋯][공유][이메일][저장] 한 줄. ⋯ 안의 버튼은 바 위로 2열로 뜬다. */
+@media screen and (max-width:820px){
+ #appView .shell .main #view-quotes .quote-form-actions{display:grid!important;grid-template-columns:48px auto auto minmax(0,1fr)!important;align-items:center;position:sticky}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more,#appView .shell .main #view-quotes .quote-form-actions>.qp-more[open]{grid-column:1!important;grid-row:1!important;position:static;padding:0!important;width:48px;height:48px;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-surface)}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary{width:100%!important;height:100%!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;margin:0!important;list-style:none;text-align:center;border:0!important;background:transparent!important}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary::-webkit-details-marker{display:none}
+ #appView .shell .main #view-quotes .quote-form-actions>.qp-more>summary::after{display:none!important}
+ #appView .shell .main #view-quotes .quote-form-actions>:is(#qtShareBtn,#qtMailBtn){grid-row:1;height:48px!important;min-height:48px!important;margin:0!important;padding:0 12px!important;border-radius:12px!important;display:inline-flex!important;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font:600 14px/1 var(--sans)!important;width:auto!important}
+ #appView .shell .main #view-quotes .quote-form-actions>:is(#qtShareBtn,#qtMailBtn) svg{width:17px;height:17px;flex:none}
+ #appView .shell .main #view-quotes .quote-form-actions>.btn.save,#appView .shell .main #view-quotes .quote-form-actions:has(>.qp-more[open])>.btn.save{grid-column:4!important;grid-row:1!important;margin:0!important}
+ #appView .shell .main #view-quotes .qp-more>.nd-qpop{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:absolute;left:16px;right:16px;bottom:calc(100% + 8px);padding:12px;border:1px solid var(--nd-line);border-radius:16px;background:var(--nd-surface);box-shadow:0 12px 32px rgba(15,20,35,.16);z-index:30}
+ #appView .shell .main #view-quotes .qp-more>.nd-qpop>*{width:100%!important;margin:0!important;height:46px!important;min-height:46px!important;box-sizing:border-box;border-radius:10px!important;display:flex!important;align-items:center;justify-content:center;gap:6px;font:600 14px/1 var(--sans)!important}
+ #appView .shell .main #view-quotes .qp-more>.nd-qpop>select{grid-column:1/-1;justify-content:flex-start;padding:0 36px 0 14px!important}
+ #appView .shell .main #view-quotes .qp-more>.nd-qpop svg{width:17px;height:17px;flex:none}
+ #appView .shell .main #view-quotes .qp-more>.nd-qpop>#qtDelBtn{grid-column:auto!important}
+}
+#appView .nd-period>.nd-period-l{flex-basis:100%;margin:0 0 2px;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
+#appView .nd-period>.nd-period-custom{flex:none;height:28px!important;min-height:0!important;padding:0 11px!important;border-radius:14px!important;border:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important;font:600 12px/1 var(--sans)!important;box-shadow:none!important}
+#appView .nd-period:not(:has(>[data-p].on))>.nd-period-custom[aria-pressed="true"]{background:var(--nd-ink)!important;border-color:var(--nd-ink)!important;color:var(--nd-frame)!important}
+@media screen and (max-width:780px){#appView .nd-period>.nd-period-custom{height:30px!important;padding:0 12px!important;border-radius:15px!important;font-size:13px!important}}
+@media screen and (min-width:821px){#appView .nd-period>.nd-period-custom{display:none!important}}
+/* 견적서: 기간 칩이 '전체 기간' 버튼과 '검색 기간' 줄을 대신한다 */
+#appView #view-quotes #qtAllDates,#appView #view-quotes .quote-period-row{display:none!important}
+@media screen and (max-width:820px){#appView .nd-period>.nd-period-l{font-weight:600}}

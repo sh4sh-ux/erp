@@ -118,7 +118,17 @@
     const mail=document.getElementById('qtMailBtn'),share=document.getElementById('qtShareBtn');if(mail&&share&&mail.previousElementSibling!==share)share.after(mail);}
    menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
    if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
-    pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}}
+    pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}
+  // Phone quote bar: [⋯] [공유] [이메일] [저장]. The rest (문서 종류·복사·인쇄·이미지·삭제) opens above the bar in 2 columns.
+  for(const more of document.querySelectorAll('#appView #qtForm .quote-form-actions>.qp-more')){
+   const bar=more.parentElement,save=bar.querySelector(':scope>.btn.save');
+   for(const id of ['qtShareBtn','qtMailBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==bar)save?save.before(b):bar.append(b);}
+   let pop=more.querySelector(':scope>.nd-qpop');if(!pop){pop=document.createElement('div');pop.className='nd-qpop';more.append(pop);}
+   for(const c of [...more.children])if(c!==pop&&c.tagName!=='SUMMARY')pop.append(c);
+   if(!more.dataset.ndBound){more.dataset.ndBound='1';more.querySelector('summary')?.setAttribute('aria-label','더보기');
+    document.addEventListener('click',e=>{if(more.open&&!more.contains(e.target))more.open=false;});
+    pop.addEventListener('click',e=>{if(e.target.closest('button'))more.open=false;});}}
+ }
 
  /* 업체 제공 자재: received = 보유 + 사용 + 반환·불량 for the selected material, as one stacked bar (blue ramp).
     Reads the same ledger the screen already shows; draws only. */
@@ -411,13 +421,55 @@
   try{new ResizeObserver(fit).observe(wrap);}catch{}fit();
   update();
  }
+ /* 기간 칩 — one period control for every filter (견적서 · 입금출금 · 매출): [전체][이번 달][지난 달][올해].
+    Each chip sets the screen's own date inputs and fires their change event, so each screen filters as before;
+    the date inputs stay below for a custom range. The chip matching the current range is highlighted. */
+ function periodPresets(){
+  const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const today=new Date(),y=today.getFullYear(),m=today.getMonth();
+  const ranges={month:[ymd(new Date(y,m,1)),ymd(today)],prev:[ymd(new Date(y,m-1,1)),ymd(new Date(y,m,0))],year:[ymd(new Date(y,0,1)),ymd(today)]};
+  const ym=d=>d.slice(0,7);
+  const earliest=()=>{const ds=(db.quotes||[]).map(q=>q.date).filter(Boolean).sort();return ds[0]||ymd(new Date(y-5,0,1));};
+  const fire=id=>{const el=document.getElementById(id);el&&el.dispatchEvent(new Event('change',{bubbles:true}));};
+  const setv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  const screens=[
+   {host:'#view-sales .filter-bar',before:'#slFrom',
+    now(){const f=document.getElementById('slFrom')?.value,t=document.getElementById('slTo')?.value;return {f,t,all:f===earliest()&&t===ranges.month[1]};},
+    apply(k){const [f,t]=k==='all'?[earliest(),ymd(today)]:ranges[k];setv('slFrom',f);setv('slTo',t);fire('slFrom');}},
+   {host:'#view-quotes .quote-filters',before:'.quote-period-row',
+    now(){const f=document.getElementById('qtFrom')?.value||'',t=document.getElementById('qtTo')?.value||'';return {f,t,all:!f&&!t};},
+    apply(k){if(k==='all'){document.getElementById('qtAllDates')?.click();return;}const [f,t]=ranges[k];setv('qtFrom',f);setv('qtTo',t);fire('qtFrom');fire('qtTo');}},
+   {host:'#payPeriod',hostUp:true,before:null,
+    now(){const p=document.getElementById('payPeriod')?.value,mo=document.getElementById('payMonth')?.value,f=document.getElementById('payFrom')?.value,t=document.getElementById('payTo')?.value;
+     return p==='all'?{all:true}:p==='month'?{f:mo+'-01',t:mo===ym(ranges.month[0])?ranges.month[1]:mo===ym(ranges.prev[0])?ranges.prev[1]:'',month:mo}:{f,t};},
+    apply(k){if(k==='all'){setv('payPeriod','all');fire('payPeriod');return;}
+     if(k==='year'){setv('payPeriod','range');setv('payFrom',ranges.year[0]);setv('payTo',ranges.year[1]);fire('payPeriod');return;}
+     setv('payPeriod','month');setv('payMonth',ym(ranges[k][0]));fire('payPeriod');}}
+  ];
+  for(const sc of screens){
+   let host=document.querySelector(sc.host);if(!host)continue;
+   if(sc.hostUp)host=host.closest('label')?.parentElement;if(!host)continue;
+   let row=host.querySelector(':scope>.nd-period');
+   if(!row){row=document.createElement('div');row.className='nd-period';row.setAttribute('role','group');row.setAttribute('aria-label','기간');
+    row.innerHTML='<span class="nd-period-l">기간</span>'+[['all','전체'],['month','이번 달'],['prev','지난 달'],['year','올해']].map(([k,l])=>`<button type="button" data-p="${k}">${l}</button>`).join('');
+    row.addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;sc.apply(b.dataset.p);requestAnimationFrame(()=>periodPresets());});
+    const ref=sc.hostUp?document.getElementById('payPeriod').closest('label'):(sc.before?host.querySelector(sc.before):null);
+    const anchorEl=ref&&ref.parentElement===host?ref:ref?.closest(`${sc.host}>*`)||null;
+    anchorEl?anchorEl.before(row):host.prepend(row);}
+   if(sc.hostUp){const lb=document.getElementById('payPeriod')?.closest('label'),tn=lb&&[...lb.childNodes].find(c=>c.nodeType===3&&c.textContent.trim());if(tn&&tn.textContent.trim()!=='직접 지정')tn.textContent='직접 지정';}
+   if(sc.host.includes('quote')){const rg=host.querySelector('.naro-period-selector>button:not(#qtAllDates)');if(rg&&rg.parentElement!==row){rg.classList.add('nd-period-custom');rg.textContent='직접 선택';row.append(rg);}}
+   const c=sc.now();let on='';
+   if(c.all)on='all';else for(const k of ['month','prev','year'])if(c.f===ranges[k][0]&&(c.t===ranges[k][1]||(k==='month'&&c.month===ym(ranges.month[0]))))on=k;
+   row.querySelectorAll('button').forEach(b=>{const v=b.dataset.p===on;if(b.classList.contains('on')!==v)b.classList.toggle('on',v);if(b.getAttribute('aria-pressed')!==String(v))b.setAttribute('aria-pressed',String(v));});
+  }
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
