@@ -162,6 +162,14 @@ if(business)await copyFile(resolve(here,'business-workspace.mjs'),resolve(releas
 // Reuse sanitized v1.186 renderers, not the original private-data artifact.
 const erp=resolve(root,'outputs/privacy-safe-companies-pilot/source/app');
 for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name))await copyFile(resolve(erp,name),resolve(release,'erp',name));
+// 폰 견적서 품목 카드: 품번은 품명 뒤에 얇은 회색 글자로(같은 굵기로 붙어 있어 품명처럼 보였다).
+{
+ const qpPath=resolve(release,'erp/quote-presentation.js');let qp=await readFile(qpPath,'utf8');
+ const from="const name = item ? `${item.name || ''} ${item.code || ''}` : line.name || '품목 선택';\n        edit.append(el('strong', '', name), el('span', 'qp-muted', '편집 ›'));";
+ const to="const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');\n        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));\n        edit.append(title, el('span', 'qp-muted', '편집 ›'));";
+ if(!qp.includes(from))throw Error('QP_CARD_NAME_BOUNDARY');
+ await writeFile(qpPath,qp.replace(from,to));
+}
 await mkdir(resolve(release,'erp/icons'),{recursive:true});
 for(const name of await readdir(resolve(erp,'icons')))await copyFile(resolve(erp,'icons',name),resolve(release,'erp/icons',name));
 // 홈 화면 아이콘 = NARO 심볼 (legacy 파란 ERP 아이콘을 같은 경로에 덮어씀 — 파일 수 그대로).

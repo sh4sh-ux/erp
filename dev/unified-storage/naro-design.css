@@ -1686,3 +1686,5 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
  html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"] :is(#qtCols,.cols)>.card:first-child{border-top:0!important}
  html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"] .nd-chips-m{background:var(--nd-surface)!important}
 }
+/* 폰 견적서 품목 카드: 품번 = 얇은 회색 */
+#appView .qp-card-edit .qp-code{font:400 13px/1 var(--sans);color:var(--nd-ink-3);letter-spacing:0;margin-left:2px}

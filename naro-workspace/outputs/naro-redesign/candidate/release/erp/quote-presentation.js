@@ -156,8 +156,9 @@
       rows[n].forEach(({ line, index, item }) => {
         const card = el('article', 'qp-card');
         const edit = button('', () => openEdit(line), 'qp-card-edit'); edit.dataset.qpEdit = line.id;
-        const name = item ? `${item.name || ''} ${item.code || ''}` : line.name || '품목 선택';
-        edit.append(el('strong', '', name), el('span', 'qp-muted', '편집 ›'));
+        const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');
+        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));
+        edit.append(title, el('span', 'qp-muted', '편집 ›'));
         card.append(edit, el('p', 'qp-muted', [line.color, line.spec].filter(Boolean).join(' · ')));
         const bottom = el('div', 'qp-card-bottom');
         if (!n) bottom.append(stepper(index, line.qty));
