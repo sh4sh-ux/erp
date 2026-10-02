@@ -8125,6 +8125,42 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 @media screen and (max-width:780px){
  #appView #ivHist .stock-record-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px;width:auto;margin-left:auto;font:500 12px/16px var(--sans);color:var(--nd-ink-3)}
 }
+@media screen{
+ /* 명함·사업자등록증: photo cards. The legacy link section stays in the DOM (values kept) but hidden. */
+ #appView #view-settings .sup-sec.sup-docs,#appView #view-settings .panel-b-index button.nd-legacy{display:none!important}
+ #appView .nd-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:16px}
+ #appView .nd-photo{display:flex;flex-direction:column;gap:6px;min-width:0}
+ #appView .nd-photo-shot{position:relative;aspect-ratio:9/5.4;width:100%;padding:0;border:1.5px dashed var(--nd-line);border-radius:12px;background:var(--nd-fill);color:var(--nd-ink-3);cursor:pointer;overflow:hidden;display:grid;place-items:center}
+ #appView .nd-photo.has .nd-photo-shot{border:1px solid var(--nd-line);background:var(--nd-surface);cursor:zoom-in}
+ #appView .nd-photo-shot:hover{border-color:var(--nd-blue-line,var(--nd-blue));color:var(--nd-blue)}
+ #appView .nd-photo-shot:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+ #appView .nd-photo-shot>img{width:100%;height:100%;object-fit:contain;display:block}
+ #appView .nd-photo-shot>img[hidden],#appView .nd-photo-empty[hidden]{display:none!important}
+ #appView .nd-photo-empty{display:flex;flex-direction:column;align-items:center;gap:6px;font:600 13px/1 var(--sans)}
+ #appView .nd-photo-empty>svg{width:22px;height:22px}
+ #appView .nd-photo-empty>b{font-weight:600}
+ #appView .nd-photo-name{margin-top:4px;font:600 13.5px/18px var(--sans);color:var(--nd-ink)}
+ #appView .nd-photo-state{font:400 12px/16px var(--sans);color:var(--nd-ink-3);min-height:16px}
+ #appView .nd-photo.has .nd-photo-state{color:var(--nd-green)}
+ #appView .nd-photo-act{display:flex;gap:6px;margin-top:2px}
+ #appView .nd-photo-act>button{height:34px;padding:0 12px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
+ #appView .nd-photo-act>button[hidden]{display:none}
+ #appView .nd-photo:not(.has) .nd-photo-up{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+ #appView .nd-photo-act>button:disabled{opacity:.5}
+ /* 품목 이미지 row in the item form */
+ #appView .nd-photo-itembox{margin:20px 0 4px;padding-top:18px;border-top:1px solid var(--nd-line)}
+ #appView .nd-photo-ttl{font:600 13px/18px var(--sans);color:var(--nd-ink);margin-bottom:10px}
+ #appView .nd-photo-item{max-width:240px}
+ #appView .nd-photo-item>.nd-photo-name{display:none}
+}
+@media screen and (max-width:780px){
+ #appView .nd-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ #appView .nd-photo-act>button{height:40px;flex:1 1 0;padding:0 8px}
+}
+@media screen and (max-width:780px){
+ /* 품목 상세 (phone): same 16px gutter as 거래처 — inputs touched the screen edge. */
+ #appView #view-items #itForm{padding-left:16px!important;padding-right:16px!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8381,9 +8417,11 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    left.addEventListener('click',e=>{const b=e.target.closest('.panel-b-index button');if(!b)return;
     left.querySelectorAll('.panel-b-index button').forEach(n=>n.classList.toggle('on',n===b));
     if(!b.dataset.ndSec)body.querySelectorAll(':scope>.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));},true);}
-  const targets=[[body.querySelector('.nd-assets'),'개인 클라우드 이미지'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
+  const targets=[[body.querySelector('.nd-assets'),'명함·사업자등록증'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
   if(extra.childElementCount!==targets.length){extra.replaceChildren(...targets.map(([t,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.ndSec='1';
    b.onclick=()=>{view.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));t.classList.add('panel-b-selected');t.scrollIntoView({block:'start',behavior:'smooth'});};return b;}));}
+  // 명함·사업자등록증 are photos now; the old link fields stay in the form (values kept) but out of sight.
+  for(const b of left.querySelectorAll('.panel-b-index:not(.nd-index-x) button'))if(/이미지 링크/.test(b.textContent))b.classList.add('nd-legacy');
   const q=left.querySelector('.panel-b-search'),sync=()=>extra.querySelectorAll('button').forEach(b=>b.hidden=!!q?.value.trim()&&!b.textContent.includes(q.value.trim()));
   if(q&&!q.dataset.ndX){q.dataset.ndX='1';q.addEventListener('input',sync);}sync();}
  function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}

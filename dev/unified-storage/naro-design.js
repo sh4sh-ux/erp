@@ -254,9 +254,11 @@
    left.addEventListener('click',e=>{const b=e.target.closest('.panel-b-index button');if(!b)return;
     left.querySelectorAll('.panel-b-index button').forEach(n=>n.classList.toggle('on',n===b));
     if(!b.dataset.ndSec)body.querySelectorAll(':scope>.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));},true);}
-  const targets=[[body.querySelector('.nd-assets'),'개인 클라우드 이미지'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
+  const targets=[[body.querySelector('.nd-assets'),'명함·사업자등록증'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
   if(extra.childElementCount!==targets.length){extra.replaceChildren(...targets.map(([t,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.ndSec='1';
    b.onclick=()=>{view.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));t.classList.add('panel-b-selected');t.scrollIntoView({block:'start',behavior:'smooth'});};return b;}));}
+  // 명함·사업자등록증 are photos now; the old link fields stay in the form (values kept) but out of sight.
+  for(const b of left.querySelectorAll('.panel-b-index:not(.nd-index-x) button'))if(/이미지 링크/.test(b.textContent))b.classList.add('nd-legacy');
   const q=left.querySelector('.panel-b-search'),sync=()=>extra.querySelectorAll('button').forEach(b=>b.hidden=!!q?.value.trim()&&!b.textContent.includes(q.value.trim()));
   if(q&&!q.dataset.ndX){q.dataset.ndX='1';q.addEventListener('input',sync);}sync();}
  function watchSettings(){const view=document.getElementById('view-settings');if(!view||view.dataset.ndWatch)return;view.dataset.ndWatch='1';new MutationObserver(settingsPolish).observe(view,{childList:true});settingsPolish();}

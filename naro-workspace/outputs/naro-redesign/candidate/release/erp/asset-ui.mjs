@@ -10,40 +10,71 @@ async function normalize(file){
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob||blob.size>1048576)throw Error('변환 이미지가 1MB를 초과합니다. 더 작은 이미지를 선택해 주세요.');return new Uint8Array(await blob.arrayBuffer());
  }finally{bitmap.close();}
 }
+// Photo cards: 명함 · 사업자등록증 in 공급자 정보, 품목 이미지 in the item form. Same normalize → ASSET_UPLOAD →
+// settings.assets path flow as before (files are added, never deleted); only the UI changed.
 export function installAssets({db,request,save,notify}){
- const panel=document.createElement('section');panel.className='card';panel.style.cssText='padding:20px;margin:12px 0;max-width:100%;overflow-wrap:anywhere';
- const title=document.createElement('h3');title.textContent='개인 클라우드 이미지';
- const note=document.createElement('p');note.textContent='명함·사업자등록증·품목 이미지를 연결한 개인 클라우드에 저장합니다. 공개 공유 링크는 만들지 않습니다. PNG/JPEG/WebP · 원본 8MB 이하 · 긴 변 1,600px PNG로 변환(최종 1MB 이하).';
- const kind=document.createElement('select');kind.setAttribute('aria-label','이미지 종류');for(const [value,label] of [['card','명함'],['registration','사업자등록증'],['product','품목 이미지']])kind.add(new Option(label,value));
- const item=document.createElement('select');item.setAttribute('aria-label','이미지 품목');item.hidden=true;item.style.maxWidth='100%';
- const refreshItems=()=>{const selected=item.value;item.replaceChildren(new Option('품목을 선택하세요',''));for(const row of db.items)item.add(new Option(row.name,row.id));item.value=selected;};
- const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.hidden=true;
- const upload=document.createElement('button');upload.type='button';upload.textContent='이미지 선택·저장';
- const view=document.createElement('button');view.type='button';view.textContent='저장된 이미지 보기';
- const preview=document.createElement('img');preview.alt='개인 클라우드에 저장된 이미지';preview.hidden=true;preview.style.cssText='max-width:100%;max-height:320px;object-fit:contain;margin-top:12px';
- const message=document.createElement('p');message.setAttribute('role','status');
- const key=()=>{if(kind.value==='product'){if(!item.value||!db.items.some(row=>row.id===item.value))throw Error('품목을 먼저 선택해 주세요.');return 'product:'+item.value;}return kind.value;};
- kind.onchange=()=>{item.hidden=kind.value!=='product';refreshItems();preview.hidden=true;preview.removeAttribute('src');message.textContent='';};item.onfocus=refreshItems;item.onchange=()=>{preview.hidden=true;preview.removeAttribute('src');};
- let busy=false;
- upload.onclick=()=>{if(!busy)input.click();};
- input.onchange=async()=>{
-  const file=input.files?.[0];input.value='';if(!file||busy)return;busy=true;upload.disabled=view.disabled=kind.disabled=item.disabled=true;
-  let uploaded=false;
+ let busy=false,queue=Promise.resolve();const urls=new Map();
+ // The storage channel takes one request at a time: queue them.
+ const call=(type,body)=>{const run=queue.then(()=>request(type,body));queue=run.catch(()=>{});return run;};
+ const say=t=>{try{notify(t);}catch{}};
+ async function read(path){
+  if(urls.has(path))return urls.get(path);
+  const {bytes}=await call('ASSET_READ',{path});const url=URL.createObjectURL(new Blob([bytes],{type:'image/png'}));urls.set(path,url);return url;
+ }
+ async function attach(target,kind,file,onState){
+  if(busy)throw Error('다른 사진을 저장하고 있습니다. 잠시 후 다시 시도해 주세요.');busy=true;let uploaded=false;
   try{
-   const target=key(),bytes=await normalize(file);
-   if(!confirm('선택한 이미지를 현재 연결한 개인 클라우드에 저장할까요? 파일을 새로 저장하고 기존 이미지 파일은 삭제하지 않습니다.'))return;
-   message.textContent='이미지를 저장하고 다시 확인하고 있습니다…';
-   const result=await request('ASSET_UPLOAD',{kind:kind.value,bytes});uploaded=true;
-   await save('settings',{...db.settings,assets:{...db.settings.assets,[target]:result.path}});
-   message.textContent='이미지 저장·다시 읽기·자료 연결 완료';notify(message.textContent);
-  }catch(error){message.textContent=(uploaded?'이미지 파일은 저장되었으나 자료 연결은 완료하지 못했습니다. ':'')+error.message;}
-  finally{busy=false;upload.disabled=view.disabled=kind.disabled=item.disabled=false;}
- };
- view.onclick=async()=>{
-  if(busy)return;busy=true;upload.disabled=view.disabled=true;
-  try{const path=db.settings.assets?.[key()];if(!path)throw Error('등록된 이미지가 없습니다.');message.textContent='개인 클라우드에서 읽는 중…';const {bytes}=await request('ASSET_READ',{path});const reader=new FileReader();reader.onload=()=>{preview.src=reader.result;preview.hidden=false;};reader.readAsDataURL(new Blob([bytes],{type:'image/png'}));message.textContent='저장된 이미지 확인 완료';}
-  catch(error){message.textContent=error.message;}
-  finally{busy=false;upload.disabled=view.disabled=false;}
- };
- panel.append(title,note,kind,item,upload,view,input,message,preview);document.getElementById('view-settings').append(panel);
+   onState('정리하는 중…');const bytes=await normalize(file);
+   onState('저장하는 중…');const result=await call('ASSET_UPLOAD',{kind,bytes});uploaded=true;
+   await save('settings',{...db.settings,assets:{...(db.settings.assets||{}),[target]:result.path}});
+   urls.set(result.path,URL.createObjectURL(new Blob([bytes],{type:'image/png'})));
+   return result.path;
+  }catch(e){throw Error((uploaded?'사진은 저장됐지만 연결하지 못했습니다. ':'')+e.message);}
+  finally{busy=false;}
+ }
+ function picker(onFile){const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.hidden=true;input.onchange=()=>{const f=input.files?.[0];input.value='';if(f)onFile(f);};return input;}
+ function open(url,label){const w=window.open('','_blank');if(w){w.document.title=label;const img=w.document.createElement('img');img.src=url;img.alt=label;img.style.cssText='max-width:100%;display:block;margin:auto';w.document.body.style.cssText='margin:0;background:#111;min-height:100vh;display:flex;align-items:center';w.document.body.append(img);}}
+ // One card: preview (or empty drop-target), name, state line, [사진 첨부|바꾸기] [크게 보기].
+ function card(label,target,kind,hint){
+  const el=document.createElement('div');el.className='nd-photo';
+  const shot=document.createElement('button');shot.type='button';shot.className='nd-photo-shot';shot.setAttribute('aria-label',label+' 사진 첨부');
+  const img=document.createElement('img');img.alt=label;img.hidden=true;
+  const plus=document.createElement('span');plus.className='nd-photo-empty';plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><b>사진 첨부</b>';
+  shot.append(img,plus);
+  const name=document.createElement('div');name.className='nd-photo-name';name.textContent=label;
+  const state=document.createElement('div');state.className='nd-photo-state';state.setAttribute('role','status');
+  const act=document.createElement('div');act.className='nd-photo-act';
+  const up=document.createElement('button');up.type='button';up.className='nd-photo-up';
+  const big=document.createElement('button');big.type='button';big.className='nd-photo-big';big.textContent='크게 보기';
+  act.append(up,big);
+  const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>state.textContent=t);await show(path);state.textContent='저장 완료';say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){state.textContent=e.message;}});
+  el.append(shot,name,state,act,input);
+  let current='';
+  async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
+   if(!current){emptyText();return;}
+   state.textContent='불러오는 중…';try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;state.textContent='등록됨';}catch{state.textContent='사진을 불러오지 못했습니다 — 잠시 후 다시 시도합니다';setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
+  const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}state.textContent=ok?'등록 안 됨':(hint||'등록 안 됨');};
+  show('');
+  const choose=()=>{let t;try{t=target();}catch(e){state.textContent=e.message;return;}if(t&&!busy)input.click();};
+  shot.onclick=()=>{current&&!img.hidden?open(img.src,label):choose();};up.onclick=choose;big.onclick=()=>{if(!img.hidden)open(img.src,label);};
+  return {el,refresh:()=>{let t='';try{t=target();}catch{}const path=t?db.settings.assets?.[t]:'';if((path||'')!==current)show(path);else if(!current&&!/중…/.test(state.textContent))emptyText();}};
+ }
+ // 공급자 정보: one section, two cards.
+ const panel=document.createElement('section');panel.className='card nd-assets nd-docs-photos';
+ const title=document.createElement('h3');title.textContent='명함·사업자등록증';
+ const note=document.createElement('p');note.textContent='명함 보내기·사업자등록증 보내기에 쓰는 사진이에요. 연결된 클라우드에만 저장되고 공개 링크는 만들지 않아요. PNG·JPEG·WebP, 8MB 이하(자동으로 줄여서 저장).';
+ const grid=document.createElement('div');grid.className='nd-photo-grid';
+ const cards=[card('명함',()=>'card','card'),card('사업자등록증',()=>'registration','registration')];
+ grid.append(...cards.map(c=>c.el));panel.append(title,note,grid);document.getElementById('view-settings').append(panel);
+ // 품목: a photo row inside the item form for a saved item.
+ const itemCard=card('품목 이미지',()=>{const id=typeof itSel==='string'?itSel:'';if(!id||id==='__new__'||!db.items.some(r=>r.id===id))throw Error('품목을 먼저 저장한 뒤 사진을 첨부할 수 있어요.');return 'product:'+id;},'product','품목을 저장한 뒤 첨부할 수 있어요');
+ itemCard.el.classList.add('nd-photo-item');
+ const placeItem=()=>{const form=document.getElementById('itForm');if(!form||form.classList.contains('hidden'))return;
+  // Last block of the form body (inside its padding), after 옵션 및 가격 · 메모.
+  const fields=[...form.querySelectorAll('.field')].filter(f=>!f.closest('.nd-photo-itembox')),body=fields.at(-1)?.parentElement||form;
+  if(!body.contains(itemCard.el)){const box=itemCard.el.closest('.nd-photo-itembox')||Object.assign(document.createElement('div'),{className:'nd-photo-itembox',innerHTML:'<div class="nd-photo-ttl">품목 이미지</div>'});box.append(itemCard.el);const fa=body.querySelector(':scope>.form-actions');fa?fa.before(box):body.append(box);}
+  itemCard.refresh();};
+ const tick=()=>{cards.forEach(c=>c.refresh());placeItem();};
+ new MutationObserver(()=>requestAnimationFrame(tick)).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
+ tick();
 }
