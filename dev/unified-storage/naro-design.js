@@ -882,6 +882,7 @@
  }
  // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
  function itemsMobile(){
+  const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='‹ 거래처')cb.textContent='‹ 거래처';
   const v=document.getElementById('view-items');if(!v||typeof itSel==='undefined')return;
   const open=!!itSel;if(v.classList.contains('nd-it-open')!==open)v.classList.toggle('nd-it-open',open);
   const card=v.querySelector(':scope>.cols>.card:nth-child(2)');if(!card)return;

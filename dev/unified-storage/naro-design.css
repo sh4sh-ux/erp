@@ -1731,3 +1731,28 @@ html body #appView .nd-photo-item{max-width:none!important;width:100%}
 html body #appView .nd-photo-item>.nd-photo-name{display:flex!important;justify-content:space-between!important}
 html body #appView .nd-photo-item>.nd-photo-name>span{display:inline!important}
 html body #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:right!important}
+/* 폰 거래처 상세: 머리 줄(거래처 23곳)을 숨기고 카드 맨 위 '‹ 거래처'(견적서 '‹ 견적서'·품목 '‹ 품목'과 같은 자리·글자) */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-companies.mobile-record-open>.page-head{display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-companies.mobile-record-open>.cols>.card:nth-child(2){margin-top:0!important}
+ html body #appView #view-companies.mobile-record-open #coBackToList{display:inline-flex!important;align-items:center;height:44px;min-height:0;width:auto;margin:0 0 4px;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 14px/1 var(--sans);cursor:pointer}
+}
+/* 폰 거래처 상세: 금액 묶음은 오른쪽 한 줄로(받을 금액·금액·미납품), 거래 내역은 표 대신 두 줄 목록
+   (1줄 날짜·구분 … 금액 / 2줄 내용) — 칸이 좁아 내용·금액이 잘리던 것 */
+@media screen and (max-width:780px){
+ html body #appView #view-companies .scr-hero{padding:4px 0 0!important;margin-bottom:8px!important;text-align:right}
+ html body #appView #view-companies .scr-hero>.sub{margin-top:6px!important;text-align:right}
+ html body #appView #view-companies .stats{margin-top:12px!important}
+ html body #appView #view-companies .tbl-wrap{padding:0!important;margin:0!important;overflow:visible!important}
+ html body #appView #view-companies .tbl-wrap>.tbl{display:block;width:100%;min-width:0!important}
+ html body #appView #view-companies .tbl-wrap>.tbl>thead{display:none}
+ html body #appView #view-companies .tbl-wrap>.tbl>tbody{display:block}
+ html body #appView #view-companies .tbl-wrap>.tbl tr{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:4px;padding:12px 0;border-bottom:1px solid var(--nd-line)}
+ html body #appView #view-companies .tbl-wrap>.tbl tr:last-child{border-bottom:0}
+ html body #appView #view-companies .tbl-wrap>.tbl td{display:block;padding:0!important;border:0!important;min-width:0;font-size:14px;line-height:20px}
+ html body #appView #view-companies .tbl-wrap>.tbl td:nth-child(1){grid-column:1;grid-row:1;color:var(--nd-ink)}
+ html body #appView #view-companies .tbl-wrap>.tbl td:nth-child(2){grid-column:2;grid-row:1}
+ html body #appView #view-companies .tbl-wrap>.tbl td:nth-child(4){grid-column:4;grid-row:1;text-align:right;font-weight:600;white-space:nowrap}
+ html body #appView #view-companies .tbl-wrap>.tbl td:nth-child(3){grid-column:1/-1;grid-row:2;font-size:13px;line-height:18px;color:var(--nd-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ html body #appView #view-companies .tbl-wrap>.tbl td[colspan]{grid-column:1/-1;grid-row:1;text-align:center;color:var(--nd-ink-3)}
+}
