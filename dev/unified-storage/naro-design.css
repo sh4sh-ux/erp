@@ -1627,3 +1627,45 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
  #appView .nd-jmp-b{height:42px}
  #appView [data-nd-go]:hover{background:none}
 }
+/* ── 왼쪽 목록 줄 높이 규칙(모든 탭 공통) ──────────────────────────────
+   A 한 줄(이름만 · 목차 항목) / B 두 줄(이름 + 설명 1줄) / C 세 줄 이상(이름 · 번호 · 날짜 · 꼬리표).
+   PC: A 64 · B 88 · C 88 이상(= 견적서) · 폰: A 56 · B 72 · C 88 이상. 글자는 줄 안에서 세로 가운데. */
+@media screen and (min-width:781px){
+ html body #appView .shell .main :is(.panel-b-index,.workspace-record-index)>button:not(.pbr){min-height:64px!important;box-sizing:border-box;display:flex!important;flex-direction:column;justify-content:center;align-items:stretch}
+ html body #appView .shell .main :is(#coList .list-item,#stockItems>.stock-item,.material-owner,#view-payments .pbr){min-height:88px!important;box-sizing:border-box}
+ html body #appView .shell .main :is(#qtList,#itList) .list-item{min-height:88px!important;box-sizing:border-box}
+ html body #appView .shell .main :is(.material-owner,#view-payments .pbr){display:flex!important;flex-direction:column;justify-content:center;align-items:stretch}
+}
+@media screen and (max-width:780px){
+ html body #appView .shell .main :is(.panel-b-index,.workspace-record-index)>button:not(.pbr){min-height:56px!important;box-sizing:border-box}
+ html body #appView .shell .main :is(#coList .list-item,#stockItems>.stock-item,.material-owner,#view-payments .pbr){min-height:72px!important;box-sizing:border-box}
+ html body #appView .shell .main :is(#qtList,#itList) .list-item{min-height:88px!important;box-sizing:border-box}
+ html body #appView .shell .main :is(.material-owner,#view-payments .pbr){display:flex!important;flex-direction:column;justify-content:center;align-items:stretch}
+}
+/* 레일: 메뉴 간격을 여유 있게(36px · 사이 2px). 창 높이 940px 이하는 예전 32px(900px 창에 한 화면), 더 낮으면 메뉴만 스크롤. */
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system="b"] .shell .rail-nav{gap:2px!important}
+ html body #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding:12px 12px 4px!important}
+ html body #appView[data-layout-system="b"] .shell .rail-nav .nav-sec:first-child{padding-top:6px!important}
+ html body #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:36px!important;min-height:36px!important;flex:0 0 36px!important}
+}
+@media screen and (min-width:1024px) and (max-height:940px){
+ html body #appView[data-layout-system="b"] .shell .rail-nav{gap:2px!important}
+ html body #appView[data-layout-system="b"] .shell .rail-nav .nav-sec{padding:8px 12px 3px!important}
+ html body #appView[data-layout-system="b"] .shell .rail-nav :is(.nav-item,.nd-nav-act){height:32px!important;min-height:32px!important;flex:0 0 32px!important}
+}
+/* 입금·출금 '거래처별 집계'는 PC에서 보통 표(거래처 | 건수 | 입금 | 출금 | 차액) — 글자 왼쪽 · 숫자 오른쪽(표 규칙). 폰만 카드형. */
+@media screen and (min-width:781px){
+ html body #appView .shell .main #payByCo{display:table!important;width:100%;border-collapse:collapse;table-layout:auto}
+ html body #appView .shell .main #payByCo thead{display:table-header-group!important}
+ html body #appView .shell .main #payByCo tbody{display:table-row-group!important}
+ html body #appView .shell .main #payByCo tr{display:table-row!important;padding:0!important;border:0!important;grid-template-areas:none!important}
+ html body #appView .shell .main #payByCo :is(td,th){display:table-cell!important;padding:12px 16px!important;border-bottom:1px solid var(--nd-line-2)!important;white-space:nowrap;vertical-align:middle}
+ html body #appView .shell .main #payByCo :is(td,th):not(:first-child){text-align:right!important}
+ html body #appView .shell .main #payByCo td::before{content:none!important;display:none!important}
+ html body #appView .shell .main #payByCo td:nth-child(n+2){justify-content:normal!important}
+ html body #appView .shell .main #payByCo td:nth-child(2){font-size:inherit!important;color:inherit!important}
+}
+/* 저장 버튼: 바뀐 내용이 없으면 회색 '저장됨' */
+html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved{background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important}
+html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{background:var(--nd-fill)!important;color:var(--nd-ink-2)!important}

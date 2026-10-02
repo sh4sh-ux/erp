@@ -844,7 +844,22 @@
  }
  document.addEventListener('click',e=>{try{if(jClick(e)){e.preventDefault();e.stopImmediatePropagation();}}catch(err){}},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go]')){e.preventDefault();jClick(e);}},true);
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 저장 버튼 상태: 저장된 그대로면 회색 '저장됨', 고치기 시작하면 파란 '저장'. 새로 만드는 중('등록')은 그대로.
+ // 회색이어도 누를 수는 있다(재고 반영을 다시 하려고 견적을 다시 저장하는 경우 등).
+ const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')]];
+ function saveState(){
+  for(const [id,clean] of SAVE_STATE){
+   const b=document.getElementById(id);if(!b||b.children.length)continue;
+   const t=b.textContent.trim();if(t!=='저장'&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
+   let saved=false;try{saved=clean();}catch{}
+   if(b.classList.contains('nd-saved')!==saved)b.classList.toggle('nd-saved',saved);
+   const label=saved?'저장됨':'저장';if(t!==label)b.textContent=label;
+   const aria=saved?'저장됨 — 바뀐 내용 없음':'저장';if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);
+  }
+ }
+ let saveStateQueued=false;const saveStateSoon=()=>{if(saveStateQueued)return;saveStateQueued=true;requestAnimationFrame(()=>{saveStateQueued=false;try{saveState();}catch{}});};
+ for(const ev of ['input','change','click'])document.addEventListener(ev,saveStateSoon,true);
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
