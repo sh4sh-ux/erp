@@ -1414,3 +1414,18 @@ html[data-theme="dark"]{
  #appView .nd-docs-photos .nd-photo-shot{max-height:200px}
 }
 @media screen and (min-width:781px) and (max-width:1023px){#appView .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head{margin-left:0!important;margin-right:0!important}}
+/* ── 표 규칙 (앱 전체 표): 글자 열(품명·품목코드·색상·규격·거래처·메모·날짜·상태)은 왼쪽, 숫자 열(.num 수량·단가·금액·세액·마진)은 오른쪽.
+   표 위 제목과 첫 열 글자는 같은 세로선(--nd-tx, tableAlign). 인쇄 견적서(#printArea)는 별도. ── */
+#appView .view table.tbl :is(th,td):not(.num):not([style*="text-align:right"]):not(:has(input,button)){text-align:left!important}
+#appView .view table.tbl :is(th,td).num,#appView .view table.tbl th[style*="text-align:right"]{text-align:right!important}
+#appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):first-child{padding-left:var(--nd-tx)!important}
+#appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):last-child{padding-right:var(--nd-tx)!important}
+/* ── 구분 버튼도 색 정의를 따른다: 고른 버튼이 그 뜻의 색으로 채워짐 (입고·입금·받음 = 초록, 출고·출금·사용·반환 = 빨강, 조정 = 청록, 불량·분실 = 진한 빨강) ── */
+#appView .nd-kind>button.on:is([data-v="입고"],[data-v="수금"],[data-v="입금"],[data-v="받음"]){background:var(--nd-green-fill)!important;border-color:var(--nd-green-fill)!important;color:#fff!important}
+#appView .nd-kind>button.on:is([data-v="출고"],[data-v="지급"],[data-v="출금"],[data-v="작업 완료"],[data-v="반환"]){background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
+#appView .nd-kind>button.on:is([data-v="조정"],[data-v="재고 조정"]){background:var(--nd-teal-fill)!important;border-color:var(--nd-teal-fill)!important;color:#fff!important}
+#appView .nd-kind>button.on:is([data-v="불량/분실"]){background:var(--nd-bad)!important;border-color:var(--nd-bad)!important;color:#fff!important}
+#appView #view-payments .nd-pay-kind{margin-top:0}
+/* 재고 입력 합계·변경 후 수치도 고른 구분의 색 */
+#appView .stock-add:has(.nd-kind>button.on[data-v="입고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-green)!important}
+#appView .stock-add:has(.nd-kind>button.on[data-v="출고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-red)!important}

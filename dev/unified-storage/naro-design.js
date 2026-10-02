@@ -362,6 +362,7 @@
   const area=document.getElementById('stockQuickEntry'),grid=area?.querySelector(':scope>.stock-size-grid');
   // 입고/출고 as a segmented control over the original select.
   const kindSel=document.getElementById('ivKind');
+  if(kindSel&&kindSel.dataset.ndSeg)kindSel.nextElementSibling?.querySelectorAll?.('button').forEach(b=>{const on=b.dataset.v===kindSel.value;if(b.classList.contains('on')!==on)b.classList.toggle('on',on);});
   if(kindSel&&!kindSel.dataset.ndSeg){kindSel.dataset.ndSeg='1';const seg=document.createElement('div');seg.className='nd-kind';seg.setAttribute('role','radiogroup');seg.setAttribute('aria-label','입출고 구분');
    const sync=()=>seg.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===kindSel.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));});
    for(const o of kindSel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(kindSel.value!==o.value){kindSel.value=o.value;kindSel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
@@ -566,17 +567,44 @@
   if(!add||add.hidden)stSheet=false;const open=ST_PHONE.matches&&stSheet&&!!add&&!add.hidden;
   if(view.classList.contains('nd-st-sheet')!==open)view.classList.toggle('nd-st-sheet',open);
  }
+ /* 표 규칙: 표 위 제목(상호·섹션 제목)과 첫 열 글자가 같은 세로선, 마지막 열(금액)도 같은 여백. 표마다 구조가 달라
+    제목과 표의 실제 위치를 재서 첫·마지막 칸 여백(--nd-tx)만 맞춘다. 같은 값이면 다시 쓰지 않는다(무한 반복 방지). */
+ function tableAlign(){
+  for(const t of document.querySelectorAll('#appView .view table.tbl')){
+   if(!t.getClientRects().length)continue;
+   const box=t.closest('.card,.workspace-right,#stockOverview,section');if(!box)continue;
+   let head=null;for(const h of box.querySelectorAll('h3')){if(!h.getClientRects().length)continue;if(h.compareDocumentPosition(t)&Node.DOCUMENT_POSITION_FOLLOWING)head=h;else break;}
+   if(!head)continue;
+   // 제목이 표 왼쪽 끝과 같은 선이면 제목을 첫 열 글자 위치로 들이고, 제목이 안쪽에 있으면 첫·마지막 칸 여백을 제목에 맞춘다.
+   const cell=t.querySelector('thead th,tbody td');const pad=cell?Math.round(parseFloat(getComputedStyle(cell).paddingLeft)):0;
+   const base=Math.round(head.getBoundingClientRect().left-(parseFloat(head.style.paddingLeft)||0)-t.getBoundingClientRect().left);
+   const hp=base>=-1&&base<4&&pad>0?pad+'px':'';if(head.style.paddingLeft!==hp)head.style.paddingLeft=hp;
+   const v=base>=4&&base<=40?base+'px':'';if(t.style.getPropertyValue('--nd-tx')!==v){if(v)t.style.setProperty('--nd-tx',v);else t.style.removeProperty('--nd-tx');}
+  }
+ }
+ /* 입금·출금 입력의 '거래 유형'도 구분 버튼으로 (재고 입출고와 같은 모양·색). 원래 select를 바꾸고 change를 보낸다. */
+ function payKindChips(){
+  const sel=document.getElementById('payKind');if(!sel)return;
+  // 원래 화면이 코드로 값을 바꿔도(입금/출금 기록 추가 버튼) 칩이 따라가게 매번 맞춘다.
+  if(sel.dataset.ndSeg){sel.nextElementSibling?.querySelectorAll?.('button').forEach(b=>{const on=b.dataset.v===sel.value;if(b.classList.contains('on')!==on)b.classList.toggle('on',on);});return;}sel.dataset.ndSeg='1';
+  const seg=document.createElement('div');seg.className='nd-kind nd-pay-kind';seg.setAttribute('role','radiogroup');seg.setAttribute('aria-label','거래 유형');
+  const sync=()=>seg.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===sel.value;if(b.classList.contains('on')!==on)b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));});
+  for(const o of sel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=({'수금':'입금','지급':'출금'})[o.textContent.trim()]||o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(sel.value!==o.value){sel.value=o.value;sel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
+  sel.classList.add('nd-kind-src');sel.after(seg);sel.addEventListener('change',sync);sync();
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();
  document.readyState==='complete'?darkAuto():addEventListener('load',darkAuto,{once:true});
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
+ addEventListener('resize',()=>{try{tableAlign();}catch{}});
 })();
+
