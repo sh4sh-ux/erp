@@ -875,3 +875,18 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  /* 품목 상세 (phone): same 16px gutter as 거래처 — inputs touched the screen edge. */
  #appView #view-items #itForm{padding-left:16px!important;padding-right:16px!important}
 }
+@media screen and (min-width:1024px) and (max-width:1199px){
+ /* Quote bar with 5 secondaries (이메일 beside 공유): a narrower save button keeps one row. */
+ #appView #qtForm .form-actions>#qtSaveBtn{min-width:112px!important;width:112px!important;flex:0 0 112px!important}
+}
+@media screen and (min-width:1024px) and (max-width:1099px){
+ #appView #qtForm .form-actions{gap:4px!important}
+ #appView #qtForm .form-actions>#qtSaveBtn{min-width:96px!important;width:96px!important;flex:0 0 96px!important}
+ #appView #qtForm .form-actions>#fq_doc{max-width:96px!important;min-width:0!important;flex:0 1 96px!important}
+}
+@media screen{
+ #appView .nd-photo-view{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:56px 24px 32px;background:rgba(10,12,16,.82);cursor:zoom-out}
+ #appView .nd-photo-view>img{max-width:min(960px,100%);max-height:calc(100vh - 140px);object-fit:contain;border-radius:10px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.4);cursor:default}
+ #appView .nd-photo-view-cap{color:#fff;font:600 14px/20px var(--sans)}
+ #appView .nd-photo-view-x{position:absolute;top:14px;right:16px;width:40px;height:40px;border:0;border-radius:20px;background:rgba(255,255,255,.14);color:#fff;font:400 26px/1 var(--sans);cursor:pointer}
+}

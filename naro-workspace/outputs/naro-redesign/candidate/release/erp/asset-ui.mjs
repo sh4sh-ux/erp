@@ -19,7 +19,7 @@ export function installAssets({db,request,save,notify}){
  const say=t=>{try{notify(t);}catch{}};
  async function read(path){
   if(urls.has(path))return urls.get(path);
-  const {bytes}=await call('ASSET_READ',{path});const url=URL.createObjectURL(new Blob([bytes],{type:'image/png'}));urls.set(path,url);return url;
+  const {bytes}=await call('ASSET_READ',{path});const url=await dataUrl(bytes);urls.set(path,url);return url;
  }
  async function attach(target,kind,file,onState){
   if(busy)throw Error('다른 사진을 저장하고 있습니다. 잠시 후 다시 시도해 주세요.');busy=true;let uploaded=false;
@@ -27,13 +27,20 @@ export function installAssets({db,request,save,notify}){
    onState('정리하는 중…');const bytes=await normalize(file);
    onState('저장하는 중…');const result=await call('ASSET_UPLOAD',{kind,bytes});uploaded=true;
    await save('settings',{...db.settings,assets:{...(db.settings.assets||{}),[target]:result.path}});
-   urls.set(result.path,URL.createObjectURL(new Blob([bytes],{type:'image/png'})));
+   urls.set(result.path,await dataUrl(bytes));
    return result.path;
   }catch(e){throw Error((uploaded?'사진은 저장됐지만 연결하지 못했습니다. ':'')+e.message);}
   finally{busy=false;}
  }
+ // The page CSP allows img-src 'self' data: only — blob: URLs render as broken images.
+ const dataUrl=bytes=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(Error('사진을 읽을 수 없습니다.'));r.readAsDataURL(new Blob([bytes],{type:'image/png'}));});
  function picker(onFile){const input=document.createElement('input');input.type='file';input.accept='image/png,image/jpeg,image/webp';input.hidden=true;input.onchange=()=>{const f=input.files?.[0];input.value='';if(f)onFile(f);};return input;}
- function open(url,label){const w=window.open('','_blank');if(w){w.document.title=label;const img=w.document.createElement('img');img.src=url;img.alt=label;img.style.cssText='max-width:100%;display:block;margin:auto';w.document.body.style.cssText='margin:0;background:#111;min-height:100vh;display:flex;align-items:center';w.document.body.append(img);}}
+ function open(url,label){
+  const ov=document.createElement('div');ov.className='nd-photo-view';ov.setAttribute('role','dialog');ov.setAttribute('aria-label',label);
+  const img=document.createElement('img');img.src=url;img.alt=label;const x=document.createElement('button');x.type='button';x.className='nd-photo-view-x';x.setAttribute('aria-label','닫기');x.textContent='×';
+  const cap=document.createElement('div');cap.className='nd-photo-view-cap';cap.textContent=label;
+  ov.append(img,cap,x);const close=()=>{ov.remove();removeEventListener('keydown',esc,true);};const esc=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};
+  ov.onclick=e=>{if(e.target!==img)close();};addEventListener('keydown',esc,true);(document.getElementById('appView')||document.body).append(ov);x.focus();}
  // One card: preview (or empty drop-target), name, state line, [사진 첨부|바꾸기] [크게 보기].
  function card(label,target,kind,hint){
   const el=document.createElement('div');el.className='nd-photo';

@@ -112,7 +112,9 @@
   for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
    let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
     menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
-   if(menu.closest('#qtForm'))for(const id of ['qtMailBtn','qtCopyBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==pop)pop.prepend(b);}
+   // 이메일 sits next to 공유 in the bar; only 복사 joins 삭제 inside ⋯.
+   if(menu.closest('#qtForm')){const b=document.getElementById('qtCopyBtn');if(b&&b.parentElement!==pop)pop.prepend(b);
+    const mail=document.getElementById('qtMailBtn'),share=document.getElementById('qtShareBtn');if(mail&&share&&mail.previousElementSibling!==share)share.after(mail);}
    menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
    if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
     pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}}
