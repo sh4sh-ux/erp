@@ -88,52 +88,18 @@ export function installAssets({db,request,save,notify}){
   const fields=[...form.querySelectorAll('.field')].filter(f=>!f.closest('.nd-photo-itembox')),body=fields.at(-1)?.parentElement||form;
   if(!body.contains(itemCard.el)){const box=itemCard.el.closest('.nd-photo-itembox')||Object.assign(document.createElement('div'),{className:'nd-photo-itembox',innerHTML:'<div class="nd-photo-ttl">품목 이미지</div>'});box.append(itemCard.el);const fa=body.querySelector(':scope>.form-actions');fa?fa.before(box):body.append(box);}
   itemCard.refresh();};
- // 견적서 출력: 사진이 등록된 품목이 있을 때만 '품목 사진' 쪽을 덧붙인다 (인쇄·이미지·공유·이메일·복사 공통).
- // 사진이 없으면 원래 견적서와 똑같다.
- const photoItems=q=>{const seen=new Map();
-  for(const l of (q?.lines||[])){if(!(l.name||'').trim()||!l.item_id)continue;const path=db.settings?.assets?.['product:'+l.item_id];if(!path)continue;
-   const it=db.items.find(i=>i.id===l.item_id);const e=seen.get(l.item_id)||{path,name:(it?.name||l.name||'').trim(),code:(it?.code||'').trim(),colors:new Set()};
-   if((l.color||'').trim())e.colors.add(l.color.trim());seen.set(l.item_id,e);}
-  return [...seen.values()];};
- async function loadPhotos(q){const list=photoItems(q);const out=[];
-  for(const e of list){try{out.push({...e,url:await read(e.path)});}catch{}}return out;}
- const caption=e=>[e.name+(e.code?` [${e.code}]`:''),[...e.colors].join('·')].filter(Boolean);
- const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ // 견적서 출력(시안 A): 사진이 등록된 품목은 품명 칸에 작은 사진 — 인쇄·이미지·공유·이메일·복사 공통.
+ // 그리는 쪽(build.mjs가 drawQuoteCanvas·printQuote에 넣은 몇 줄)은 동기라, 여기서 사진을 미리 읽어 두고 naroQuotePhoto로 건넨다.
+ const thumbs=new Map();
+ const pathOf=id=>id?db.settings?.assets?.['product:'+id]||'':'';
+ window.naroQuotePhoto=(l,prev)=>{const id=l?.item_id,path=pathOf(id),t=id&&thumbs.get(id);if(!path||!t||t.path!==path)return null;
+  return {first:!(prev&&prev.item_id===id&&pathOf(prev.item_id)),img:t.img,url:t.url};};
+ async function preload(q){
+  for(const id of new Set((q?.lines||[]).map(l=>l.item_id).filter(Boolean))){const path=pathOf(id);if(!path||thumbs.get(id)?.path===path)continue;
+   try{const url=await read(path);const img=new Image();img.src=url;await img.decode();thumbs.set(id,{path,url,img});}catch{}}}
  const origPrint=window.printQuote,origParts=window.quoteImageParts;
- if(typeof origPrint==='function')window.printQuote=async(q,docType)=>{
-  let photos=[];try{photos=await loadPhotos(q);}catch{}
-  if(!photos.length)return origPrint(q,docType);
-  const inject=()=>{const pa=document.getElementById('printArea');if(!pa||pa.querySelector('.nd-pphotos'))return;
-   const page=document.createElement('div');page.className='p-wrap nd-pphotos';
-   page.innerHTML='<div class="p-eyebrow">ITEM PHOTOS</div><div class="nd-pp-title">품목 사진</div><div class="nd-pp-grid">'+photos.map(e=>{const [n,c]=caption(e);return `<figure><div class="nd-pp-img"><img src="${e.url}" alt=""></div><figcaption><b>${esc(n)}</b>${c?`<span>${esc(c)}</span>`:''}</figcaption></figure>`;}).join('')+'</div>';
-   pa.append(page);};
-  const p=window.print,op=window.openPrintPreview;
-  window.print=(...a)=>{inject();return p.apply(window,a);};window.openPrintPreview=(...a)=>{inject();return op(...a);};
-  try{return origPrint(q,docType);}finally{window.print=p;window.openPrintPreview=op;}
- };
- if(typeof origParts==='function')window.quoteImageParts=async(q,docType)=>{
-  let photos=[];try{photos=await loadPhotos(q);}catch{}
-  if(!photos.length)return origParts(q,docType);
-  const title=DOC_TYPES[docType]?docType:'견적서';const base=drawQuoteCanvas(q,title);
-  const SC=2,PW=794,MX=53,CW=688,GAP=12,COLS=4,CARD=(CW-GAP*(COLS-1))/COLS,IMG=CARD,CAPH=46;
-  const rows=Math.ceil(photos.length/COLS),secH=60+28+rows*(IMG+CAPH+GAP)+48;
-  const c=document.createElement('canvas');c.width=base.width;c.height=base.height+secH*SC;
-  const x=c.getContext('2d');x.drawImage(base,0,0);x.scale(SC,SC);const top=base.height/SC;
-  x.fillStyle='#fff';x.fillRect(0,top,PW,secH);x.fillStyle='#ECEDEF';x.fillRect(MX,top,CW,1);
-  const F=(w,px)=>`${w} ${px}px ${typeof QIMG_FONT==='string'?QIMG_FONT:'sans-serif'}`;
-  x.fillStyle='#8A8F98';x.font=F(700,11);x.fillText('ITEM PHOTOS',MX,top+44);
-  x.fillStyle='#111';x.font=F(800,20);x.fillText('품목 사진',MX,top+72);
-  const fit=(t,w)=>{if(x.measureText(t).width<=w)return t;while(t&&x.measureText(t+'…').width>w)t=t.slice(0,-1);return t+'…';};
-  for(let i=0;i<photos.length;i++){const e=photos[i],cx=MX+(i%COLS)*(CARD+GAP),cy=top+88+Math.floor(i/COLS)*(IMG+CAPH+GAP);
-   x.fillStyle='#F4F5F7';x.beginPath();x.roundRect(cx,cy,CARD,IMG,12);x.fill();
-   try{const im=new Image();im.src=e.url;await im.decode();const r=Math.min((IMG-16)/im.width,(IMG-16)/im.height),w=im.width*r,h=im.height*r;
-    x.save();x.beginPath();x.roundRect(cx,cy,CARD,IMG,12);x.clip();x.drawImage(im,cx+(CARD-w)/2,cy+(IMG-h)/2,w,h);x.restore();}catch{}
-   const [n,col]=caption(e);x.textAlign='left';x.fillStyle='#111';x.font=F(700,12.5);x.fillText(fit(n,CARD),cx,cy+IMG+20);
-   if(col){x.fillStyle='#8A8F98';x.font=F(400,11.5);x.fillText(fit(col,CARD),cx,cy+IMG+37);}}
-  const blob=await new Promise(res=>c.toBlob(res,'image/png'));if(!blob)return null;
-  const safe=v=>String(v||'').replace(/[\\/:*?"<>|]/g,'_');
-  return {blob,fname:`${title}_${safe(q.no)}_${safe(coName(q.company_id))}.png`};
- };
+ if(typeof origPrint==='function')window.printQuote=async(q,docType)=>{try{await preload(q);}catch{}return origPrint(q,docType);};
+ if(typeof origParts==='function')window.quoteImageParts=async(q,docType)=>{try{await preload(q);}catch{}return origParts(q,docType);};
  const tick=()=>{cards.forEach(c=>c.refresh());placeItem();};
  new MutationObserver(()=>requestAnimationFrame(tick)).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
  tick();

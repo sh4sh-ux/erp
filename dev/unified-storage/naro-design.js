@@ -485,13 +485,19 @@
   chart.addEventListener('pointermove',show);chart.addEventListener('pointerdown',show);
   chart.addEventListener('pointerleave',hide);chart.addEventListener('pointercancel',hide);chart.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')hide();});
  }
+ /* 레일 아이콘: 매출 집계 = 막대 그래프, 받을 금액 = 지갑 (달력·시계는 뜻과 안 맞아서). 레일·모바일 더보기 공통. */
+ function navIcons(){
+  const icons={sales:'<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M8 17v-4"/><path d="M13 17V9"/><path d="M18 17V5"/>',
+   ar:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'};
+  for(const [v,d] of Object.entries(icons))document.querySelectorAll(`#appView [data-view="${v}"] svg:not([data-nd-icon])`).forEach(svg=>{svg.innerHTML=d;svg.setAttribute('data-nd-icon',v);});
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

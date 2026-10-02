@@ -5272,11 +5272,11 @@ function printQuote(q,docType){
   const fmtb=v=>Number(v)?fmt(v):"";                     // 0은 빈칸으로
   const t=quoteTotals({lines});
   const colgroup=`<colgroup><col><col style="width:46px"><col style="width:112px"><col style="width:58px"><col style="width:88px"><col style="width:100px"><col style="width:82px"></colgroup>`;
-  const rows=lines.map(l=>{
+  const rows=lines.map((l,li)=>{const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
     return `
-    <tr>
-      <td>${escapeHtml(l.name)}</td>
+    <tr${ph&&nx&&!nx.first?' class="nd-pq-grp"':''}>
+      <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:'<i></i>'}<span>${escapeHtml(l.name)}</span></div>`:escapeHtml(l.name)}</td>
       <td>${escapeHtml(l.color||"")}</td>
       <td class="ctr">${escapeHtml(l.spec||"")}</td>
       <td class="ctr">${fmtb(l.qty)}</td>
@@ -5439,11 +5439,11 @@ function drawQuoteCanvas(q,docType){
 
   mc.font=F(400,12.5);
   const rowInfo=lines.map(l=>{
-    const nameLs=qimgWrap(mc,l.name,COLS[0]-22);
+    const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const nameLs=qimgWrap(mc,l.name,COLS[0]-22-(ph?46:0));
     const colorLs=qimgWrap(mc,l.color||"",COLS[1]-16);
     const specLs=qimgWrap(mc,l.spec||"",COLS[2]-16);
     const n=Math.max(nameLs.length,colorLs.length,specLs.length);
-    return { nameLs, colorLs, specLs, h:Math.max(42,n*18+24) };
+    return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?54:42,n*18+24) };
   });
   const tableH=30+rowInfo.reduce((h,r)=>h+r.h,0);
 
@@ -5524,15 +5524,15 @@ function drawQuoteCanvas(q,docType){
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const supply=(Number(l.qty)||0)*(Number(l.price)||0);
-    const baseY=ty+12+13;
+    const baseY=ty+12+13+(r.ph&&r.ph.first?6:0);
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
-    r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
+    if(r.ph){if(r.ph.first&&r.ph.img){const S=38,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,8);ctx.fill();qimgRR(ctx,ix,iy,S,S,8);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}ctx.textAlign="left";r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11+46,baseY+j*18));}else r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));
     r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
     r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
     [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>cell(v,i+3,baseY));
     ty+=r.h;
     ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();
+    if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}
   });
 
   // 하단 블록 (합계·비고·푸터 — 페이지 하단 고정)
@@ -8377,16 +8377,12 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .card-head>.nd-chd b{font-weight:700;color:var(--nd-ink)}
 #appView .card-head>.nd-chd[hidden],#appView .card-head>.legend[hidden]{display:none!important}
 #appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}
-/* 견적서 인쇄: 품목 사진 쪽 (사진이 있는 품목이 있을 때만 붙는다). 인쇄 블록이라 색은 직접 지정. */
-#printArea .nd-pphotos{min-height:0!important;margin-top:32px;padding-top:24px;border-top:1px solid #ECEDEF;break-before:page;page-break-before:always}
-#printArea .nd-pp-title{font-size:20px;font-weight:800;color:#111;margin:0 0 16px}
-#printArea .nd-pp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-#printArea .nd-pp-grid figure{margin:0;break-inside:avoid}
-#printArea .nd-pp-img{aspect-ratio:1;border-radius:12px;background:#F4F5F7;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#printArea .nd-pp-img img{max-width:calc(100% - 16px);max-height:calc(100% - 16px);object-fit:contain}
-#printArea .nd-pp-grid figcaption{margin-top:7px;display:flex;flex-direction:column;gap:2px;min-width:0}
-#printArea .nd-pp-grid figcaption b{font-size:12.5px;font-weight:700;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#printArea .nd-pp-grid figcaption span{font-size:11.5px;color:#8A8F98}
+/* 견적서 인쇄: 품명 칸 작은 사진 (사진 있는 품목만). 인쇄 블록이라 색은 직접 지정. */
+#printArea .nd-pq{display:flex;align-items:center;gap:8px;min-width:0}
+#printArea .nd-pq>span{min-width:0;overflow-wrap:anywhere}
+#printArea .nd-pq>img{flex:none;width:38px;height:38px;box-sizing:border-box;padding:2px;border-radius:8px;background:#F4F5F7;object-fit:contain}
+#printArea .nd-pq>i{flex:none;width:38px}
+#printArea tr.nd-pq-grp>td{border-bottom-color:transparent!important}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8874,13 +8870,19 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
   chart.addEventListener('pointermove',show);chart.addEventListener('pointerdown',show);
   chart.addEventListener('pointerleave',hide);chart.addEventListener('pointercancel',hide);chart.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')hide();});
  }
+ /* 레일 아이콘: 매출 집계 = 막대 그래프, 받을 금액 = 지갑 (달력·시계는 뜻과 안 맞아서). 레일·모바일 더보기 공통. */
+ function navIcons(){
+  const icons={sales:'<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M8 17v-4"/><path d="M13 17V9"/><path d="M18 17V5"/>',
+   ar:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'};
+  for(const [v,d] of Object.entries(icons))document.querySelectorAll(`#appView [data-view="${v}"] svg:not([data-nd-icon])`).forEach(svg=>{svg.innerHTML=d;svg.setAttribute('data-nd-icon',v);});
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

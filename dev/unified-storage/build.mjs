@@ -154,6 +154,24 @@ if(!railMark.test(html))throw Error('RAIL_BRAND_BOUNDARY_CHANGED');
 html=html.replace(railMark,'<span class="rail-mark"><img src="../naro-symbol.png" width="36" height="32" alt="" aria-hidden="true"></span>');
 html=html.replace('</head>','<style id="personal-rail-brand">#appView .shell .rail-logo>.rail-mark{background:transparent;box-shadow:none;}#appView .shell .rail-logo>.rail-mark>img{display:block;width:36px;height:32px;object-fit:contain;mix-blend-mode:multiply;}</style></head>');
 html=html.replace(/<meta http-equiv="Content-Security-Policy"[^>]+>/,'');
+// 견적서 품목 사진(시안 A): 사진이 등록된 품목은 품명 칸 왼쪽에 작은 사진. 같은 품목이 이어진 줄은 첫 줄에만 사진,
+// 나머지는 같은 폭만큼 들여쓰고 묶음 안 구분선을 뺀다. 사진은 asset-ui.mjs가 미리 읽어 window.naroQuotePhoto(l,prev)로 준다.
+// 사진이 없으면(또는 함수가 없으면) 원래 견적서와 한 글자도 다르지 않다.
+const patchFn=(name,edits)=>{const start=html.indexOf('function '+name+'(');if(start<0)throw Error('QUOTE_PHOTO_BOUNDARY '+name);
+ const end=html.indexOf('\n}\n',start);if(end<0)throw Error('QUOTE_PHOTO_BOUNDARY '+name);let body=html.slice(start,end);
+ for(const [from,to] of edits){if(body.split(from).length!==2)throw Error('QUOTE_PHOTO_BOUNDARY '+name+': '+from.slice(0,40));body=body.replace(from,to);}
+ html=html.slice(0,start)+body+html.slice(end);};
+patchFn('drawQuoteCanvas',[
+ ['const nameLs=qimgWrap(mc,l.name,COLS[0]-22);','const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const nameLs=qimgWrap(mc,l.name,COLS[0]-22-(ph?46:0));'],
+ ['return { nameLs, colorLs, specLs, h:Math.max(42,n*18+24) };','return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?54:42,n*18+24) };'],
+ ['const baseY=ty+12+13;','const baseY=ty+12+13+(r.ph&&r.ph.first?6:0);'],
+ ['r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));','if(r.ph){if(r.ph.first&&r.ph.img){const S=38,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,8);ctx.fill();qimgRR(ctx,ix,iy,S,S,8);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}ctx.textAlign="left";r.nameLs.forEach((ln,j)=>ctx.fillText(ln,colX[0]+11+46,baseY+j*18));}else r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));'],
+ ['ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();','if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}'],
+]);
+patchFn('printQuote',[
+ ['const rows=lines.map(l=>{','const rows=lines.map((l,li)=>{const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);'],
+ ['<tr>\n      <td>${escapeHtml(l.name)}</td>','<tr${ph&&nx&&!nx.first?\' class="nd-pq-grp"\':\'\'}>\n      <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:\'<i></i>\'}<span>${escapeHtml(l.name)}</span></div>`:escapeHtml(l.name)}</td>'],
+]);
 // Personal B layout replaces only the isolated inventory presentation, not its
 // native renderer, controls or calculations. Legacy /erp/ remains untouched.
 if(business){
