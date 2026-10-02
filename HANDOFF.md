@@ -32,3 +32,13 @@ Place `dev/` at `<root>/work/erp-login-shell-v186-release/dev` and `naro-workspa
   - 왼쪽 패널 규칙: every list screen's header band holds [검색 · 늘어남][필터][＋] (36px, 14px above/below); below the 144 line only an optional 44px chip band and the scrolling list. Header controls proxy to each screen's own inputs/buttons; filter blocks move into a popover (handlers intact); ＋ with several kinds opens a menu (입금/출금 · 입고/출고/재고 조정).
   - 주소 검색 (공급자·거래처): `/postcode.html` window with its own CSP loads the Kakao/Daum widget and posts the address back (same origin). `/erp/` keeps its no-third-party-script CSP. Hosting config gains a `/postcode.html` header block (general-public-readiness + naro-redesign candidate).
 - `dev/personal-cloud-onboarding/style.css` — "NARO design system v2" block at the end: legible type (inputs 16px), shared tokens, dark theme; the brand photo panel keeps dark ink in every theme.
+
+## 디자인 공통 규칙 (모든 화면 — 새 화면도 이 규칙을 따른다)
+naro-design.css 맨 아래 블록이 기준이다. 화면별로 따로 정하지 말 것.
+- **선택된 목록 줄**: 연한 파랑 배경(`--nd-blue-soft`) + 줄 안쪽 왼쪽 3px 파란 바 + 모서리 없음. 이름만 파랑(`--nd-blue-ink`), 금액은 기본 글자색.
+  적용: 견적서·거래처·품목(.list-item.on) · 업체 제공 자재(.material-owner.active) · 재고(.stock-item.selected) · 입금출금·매출·받을 금액·설정(.panel-b-index / .workspace-record-index button.on).
+- **목록 줄(기록형)**: 여백 16/28px · 이름 14px/600 · 금액 13.5px/700 기본색 · 보조줄 12px/400 `--nd-ink-3`. 한 줄짜리 목차 줄: 14px.
+- **섹션 이동 강조(설정)**: 구분선 아래 10–12px에서 시작해 다음 구분선 12px 전에 끝나는 연한 파랑 상자(구분선을 덮지 않음).
+- **모바일**: 상세 폼은 좌우 16px 여백. 세로 스크롤 영역은 가로로 스크롤되지 않는다(.view overflow-x hidden).
+- **알림**: 성공 안내는 3초 뒤 사라지고, 오류·진행·버튼 있는 안내는 남는다.
+- 검증(매 배포 전): 운영과 같은 CSP를 적용한 테스트 서버, 1440·1280·390 / 라이트·다크, 선택 줄·목록 줄 측정, 가만히 둘 때 DOM 변화 0, 가로 넘침 0.

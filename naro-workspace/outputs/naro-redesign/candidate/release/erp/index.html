@@ -8295,6 +8295,35 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView .shell .main .nd-sz-table :is(th,td){padding-left:3px!important;padding-right:3px!important}
  #appView .shell .main .nd-sz-table .k{padding-left:2px!important}
 }
+@media screen{
+ /* ===== 선택된 목록 줄 — one rule for every list (견적서·거래처·품목·업체 제공 자재·재고·입금출금·매출·받을 금액·설정) =====
+    soft blue background · 3px blue bar on the left (inside the row) · no radius · only the name turns blue (amounts stay ink). */
+ #appView .shell .main :is(
+   :is(#qtList,#coList,#itList) .list-item.on,
+   .material-owner.active,
+   #stockItems>.stock-item.selected,
+   :is(.panel-b-index,.workspace-record-index) button.on
+ ){background:var(--nd-blue-soft)!important;box-shadow:inset 3px 0 0 var(--nd-blue)!important;border-radius:0!important;outline:none!important}
+ #appView .shell .main :is(.panel-b-index,.workspace-record-index) button.on:not(.pbr),
+ #appView .shell .main :is(#qtList,#coList,#itList) .list-item.on :is(.li-name,.li-nm),
+ #appView .shell .main .material-owner.active .material-owner-line>span,
+ #appView .shell .main #stockItems>.stock-item.selected>span:first-child,
+ #appView .shell .main :is(.panel-b-index,.workspace-record-index) button.on .pbr-name{color:var(--nd-blue-ink,var(--nd-blue))!important;font-weight:600}
+ #appView .shell .main :is(.panel-b-index,.workspace-record-index) button.on:not(.pbr) :is(b,strong,.num){color:var(--nd-ink)!important}
+}
+@media screen{
+ /* ===== 목록 줄 공통 규칙 — record rows (견적서·거래처·품목·업체 제공 자재·재고) share one anatomy =====
+    padding 16/28 · name 14/600 ink · amount 13.5/700 ink · meta 12/400 grey. One-line index rows: 14/500. */
+ #appView[data-layout-system="b"] .shell .main :is(.material-owner,#stockItems>.stock-item){padding-top:16px!important;padding-bottom:16px!important}
+ #appView .shell .main :is(.material-owner .material-owner-line>span,#stockItems>.stock-item>span:first-child){font-size:14px!important;font-weight:600!important}
+ #appView .shell .main .material-owner:not(.active) .material-owner-line>span,#appView .shell .main #stockItems>.stock-item:not(.selected)>span:first-child{color:var(--nd-ink)!important}
+ #appView .shell .main :is(.material-owner .material-owner-line>b,#stockItems>.stock-item>b){font-size:13.5px!important;font-weight:700!important;color:var(--nd-ink)!important}
+ #appView .shell .main :is(.material-owner-meta,#stockItems>.stock-item small,#stockItems>.stock-item .stock-item-meta){font-size:12px!important;font-weight:400!important;color:var(--nd-ink-3)!important}
+ #appView[data-layout-system="b"] .shell .main :is(.panel-b-index,.workspace-record-index) button:not(.pbr){font-size:14px!important}
+}
+@media screen{
+ #appView .shell .main .view :is(.li-sub,.li-date,.li-meta):not(.cat):not([class*="cat"]){color:var(--nd-ink-3)!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
