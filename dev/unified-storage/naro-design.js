@@ -341,13 +341,83 @@
 
  /* Detail-header eyebrow = the rail group of the screen (one vocabulary everywhere). */
  const EYEBROW={quotes:'업무',materials:'업무',payments:'업무',stock:'업무',companies:'기준정보',items:'기준정보',sales:'분석',ar:'분석',settings:'설정'};
+ /* 재고 사이즈별 입력: one spreadsheet-style row (phone: list with − +). Writes the same stockQuickValues the
+    original review step reads, so 변경 내용 확인 · stock math · saving are unchanged. */
+ function stockMatrix(){
+  const area=document.getElementById('stockQuickEntry'),grid=area?.querySelector(':scope>.stock-size-grid');
+  // 입고/출고 as a segmented control over the original select.
+  const kindSel=document.getElementById('ivKind');
+  if(kindSel&&!kindSel.dataset.ndSeg){kindSel.dataset.ndSeg='1';const seg=document.createElement('div');seg.className='nd-kind';seg.setAttribute('role','radiogroup');seg.setAttribute('aria-label','입출고 구분');
+   const sync=()=>seg.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===kindSel.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));});
+   for(const o of kindSel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(kindSel.value!==o.value){kindSel.value=o.value;kindSel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
+   kindSel.classList.add('nd-kind-src');kindSel.after(seg);kindSel.addEventListener('change',sync);sync();}
+  if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;const ab=document.getElementById('ivAddBtn');if(ab?.dataset.ndLabel&&ab.textContent!==ab.dataset.ndLabel)ab.textContent=ab.dataset.ndLabel;return;}
+  const item=db.items.find(i=>i.id===document.getElementById('ivItem')?.value),color=document.getElementById('ivColor')?.value||'';
+  const specs=[...grid.querySelectorAll('input[data-stock-size]')].map(i=>i.getAttribute('aria-label').replace(/ 수량$/,''));
+  const key=[item?.id,color,specs.join(',')].join('|');
+  document.getElementById('stockQuickToggle')?.classList.add('nd-retired');grid.classList.add('nd-retired');
+  if(area.dataset.ndKey===key&&area.querySelector('.nd-sz'))return;
+  area.dataset.ndKey=key;area.querySelector('.nd-sz')?.remove();
+  const cur=currentStocks(),now=s=>cur[stockKeyOf({item_id:item?.id,color,spec:s})]||0;
+  const val=s=>{const v=String(stockQuickValues[s]??'').replace(/,/g,'').trim();return /^\d+(\.\d+)?$/.test(v)?Number(v):0;};
+  const out=()=>kindSel?.value==='출고';
+  const n=v=>(typeof fmt==='function'?fmt(v):String(v));
+  const wrap=document.createElement('div');wrap.className='nd-sz';
+  const bar=document.createElement('div');bar.className='nd-sz-bar';bar.innerHTML='<b>사이즈별 수량</b><button type="button" data-a="same">모두 같은 수량</button><button type="button" data-a="clear">지우기</button>';
+  // Desktop table
+  const t=document.createElement('table');t.className='nd-sz-table';
+  t.innerHTML=`<thead><tr><th class="k"></th>${specs.map(s=>`<th>${escapeHtml(s)}</th>`).join('')}<th class="sum">합계</th></tr></thead><tbody>
+   <tr class="now"><td class="k">현재</td>${specs.map(s=>`<td>${n(now(s))}</td>`).join('')}<td class="sum" data-now></td></tr>
+   <tr class="qty"><td class="k" data-kind></td>${specs.map((s,i)=>`<td><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} 수량" placeholder="0" value="${escapeAttr(stockQuickValues[s]??'')}"></td>`).join('')}<td class="sum" data-total></td></tr>
+   <tr class="after"><td class="k">변경 후</td>${specs.map((s,i)=>`<td data-after="${i}"></td>`).join('')}<td class="sum" data-aftersum></td></tr></tbody>`;
+  // Phone list
+  const list=document.createElement('div');list.className='nd-sz-list';
+  list.innerHTML=specs.map((s,i)=>`<div class="nd-sz-row"><span class="sz">${escapeHtml(s)}</span><span class="cur">현재 ${n(now(s))} → <b data-after="${i}"></b></span><span class="step"><button type="button" data-step="-1" data-i="${i}" aria-label="${escapeAttr(s)} 1 빼기">−</button><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} 수량" placeholder="0" value="${escapeAttr(stockQuickValues[s]??'')}"><button type="button" data-step="1" data-i="${i}" aria-label="${escapeAttr(s)} 1 더하기">+</button></span></div>`).join('')+'<div class="nd-sz-total"><span>합계</span><b data-total></b></div>';
+  wrap.append(bar,t,list);
+  const tip=document.createElement('p');tip.className='nd-sz-tip';tip.innerHTML='<b>빠르게 입력</b> Enter·Tab 다음 사이즈 · ↑↓ 1씩 · 엑셀에서 한 줄 복사 후 붙여넣으면 사이즈별로 채워져요';wrap.append(tip);
+  grid.before(wrap);
+  const addBtn=document.getElementById('ivAddBtn');if(addBtn&&!addBtn.dataset.ndLabel)addBtn.dataset.ndLabel=addBtn.textContent;
+  const set=(el,text,cls)=>{if(el.textContent!==text)el.textContent=text;if(cls!==undefined&&el.className!==cls)el.className=cls;};
+  function update(){
+   const sign=out()?-1:1;let total=0,nowSum=0,afterSum=0;
+   specs.forEach((s,i)=>{const q=val(s),a=now(s)+sign*q;total+=q;nowSum+=now(s);afterSum+=a;
+    wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,n(a),a<0?'neg':q?'chg':''));
+    wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(inp=>{const v=String(stockQuickValues[s]??'');if(inp.value!==v&&document.activeElement!==inp)inp.value=v;});});
+   wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,out()?'출고':'입고'));
+   wrap.querySelectorAll('[data-total]').forEach(el=>set(el,total?n(total)+'개':'0'));
+   wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,n(afterSum)));
+   if(addBtn){const label=addBtn.dataset.ndLabel+(total&&!wrap.classList.contains('compact')&&!matchMedia('(max-width:780px)').matches?` · ${n(total)}개`:'');if(addBtn.textContent!==label)addBtn.textContent=label;}
+  }
+  const put=(i,v)=>{if(i<0||i>=specs.length)return;stockQuickValues[specs[i]]=v===''||v==null?'':String(v);};
+  wrap.addEventListener('input',e=>{const inp=e.target.closest('input[data-i]');if(!inp)return;const clean=inp.value.replace(/[^\d.]/g,'');if(clean!==inp.value)inp.value=clean;put(+inp.dataset.i,clean);update();});
+  wrap.addEventListener('focusin',e=>{const inp=e.target.closest('input[data-i]');if(inp)requestAnimationFrame(()=>inp.select());});
+  wrap.addEventListener('keydown',e=>{const inp=e.target.closest('input[data-i]');if(!inp||e.isComposing)return;const i=+inp.dataset.i,box=inp.closest('table,.nd-sz-list');
+   if(e.key==='Enter'){e.preventDefault();const next=box.querySelector(`input[data-i="${i+1}"]`);(next||document.getElementById('ivMemo'))?.focus();}
+   else if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();const v=Math.max(0,val(specs[i])+(e.key==='ArrowUp'?1:-1));put(i,v||'');inp.value=String(stockQuickValues[specs[i]]);update();inp.select();}});
+  wrap.addEventListener('paste',e=>{const inp=e.target.closest('input[data-i]');if(!inp)return;const text=(e.clipboardData||window.clipboardData)?.getData('text')||'';
+   const cells=text.trim().split(/[\t\n\r,;]+|\s{2,}|\s/).map(x=>x.replace(/,/g,'').trim());if(cells.length<2)return;e.preventDefault();
+   const start=+inp.dataset.i;cells.forEach((c,k)=>put(start+k,/^\d+(\.\d+)?$/.test(c)?c:''));update();
+   wrap.querySelectorAll('input[data-i]').forEach(x=>x.value=String(stockQuickValues[specs[+x.dataset.i]]??''));typeof toast==='function'&&toast(`${Math.min(cells.length,specs.length-start)}개 사이즈에 붙여넣었어요`);});
+  wrap.addEventListener('click',e=>{const st=e.target.closest('[data-step]');if(st){const i=+st.dataset.i;put(i,Math.max(0,val(specs[i])+ +st.dataset.step)||'');update();wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(x=>x.value=String(stockQuickValues[specs[i]]??''));return;}
+   const a=e.target.closest('[data-a]')?.dataset.a;if(!a)return;
+   if(a==='clear'){specs.forEach((s,i)=>put(i,''));wrap.querySelectorAll('input[data-i]').forEach(x=>x.value='');update();return;}
+   const focused=document.activeElement?.closest?.('.nd-sz input[data-i]');const base=focused?val(specs[+focused.dataset.i]):(specs.map(val).find(v=>v>0)||0);
+   if(!base){typeof toast==='function'&&toast('한 칸에 수량을 넣은 뒤 누르면 모든 사이즈에 같은 수량이 들어가요');wrap.querySelector('input[data-i]')?.focus();return;}
+   specs.forEach((s,i)=>put(i,base));wrap.querySelectorAll('input[data-i]').forEach(x=>x.value=String(base));update();});
+  if(kindSel&&!kindSel.dataset.ndSz){kindSel.dataset.ndSz='1';kindSel.addEventListener('change',()=>{const w=document.querySelector('#stockQuickEntry .nd-sz');w&&w.dispatchEvent(new Event('nd-update'));});}
+  wrap.addEventListener('nd-update',update);
+  // Too narrow for one row of comfortable cells (≥56px each) → the list layout with − + (same inputs, same state).
+  const fit=()=>{const c=wrap.clientWidth>0&&wrap.clientWidth<specs.length*56+156;if(wrap.classList.contains('compact')!==c)wrap.classList.toggle('compact',c);};
+  try{new ResizeObserver(fit).observe(wrap);}catch{}fit();
+  update();
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

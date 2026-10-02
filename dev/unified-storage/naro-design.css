@@ -942,3 +942,70 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  /* Vertical scrollers never scroll sideways (an element 1px too wide must not let the page drift). */
  #appView .shell .main>.view{overflow-x:hidden!important}
 }
+@media screen{
+ /* 재고 입력: 입고/출고 segmented + size matrix */
+ #appView .nd-kind-src{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important}
+ #appView .nd-kind{display:flex;height:42px;padding:3px;border-radius:10px;background:var(--nd-fill);gap:2px}
+ #appView .nd-kind>button{flex:1;border:0;border-radius:8px;background:transparent;color:var(--nd-ink-3);font:600 13.5px/1 var(--sans);cursor:pointer}
+ #appView .nd-kind>button.on{background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+ #appView #stockQuickEntry .nd-retired{display:none!important}
+ #appView .nd-sz{grid-column:1/-1;display:flex;flex-direction:column;gap:10px;min-width:0}
+ #appView .nd-sz-bar{display:flex;align-items:center;gap:8px}
+ #appView .nd-sz-bar>b{margin-right:auto;font:600 13px/18px var(--sans);color:var(--nd-ink)}
+ #appView .nd-sz-bar>button{height:32px;padding:0 12px;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
+ #appView .nd-sz-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+ #appView .nd-sz-table :is(th,td){text-align:center;padding:0;height:38px;font:500 13px/18px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink)}
+ #appView .nd-sz-table th{color:var(--nd-ink-2);font-weight:600;border-bottom:1px solid var(--nd-line)}
+ #appView .nd-sz-table .k{width:64px;text-align:left;padding-left:2px;color:var(--nd-ink-3);font-weight:500}
+ #appView .nd-sz-table tr.qty .k{color:var(--nd-ink);font-weight:600}
+ #appView .nd-sz-table tr.now td{color:var(--nd-ink-3)}
+ #appView .nd-sz-table tr.qty td{padding:6px 3px}
+ #appView .nd-sz-table input{width:100%;height:40px;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink);text-align:center;font:600 15px/1 var(--sans);font-variant-numeric:tabular-nums;padding:0 2px;outline:none}
+ #appView .nd-sz-table input::placeholder{color:var(--nd-ink-4,#C3C6CE);font-weight:400}
+ #appView .nd-sz input:focus{border-color:var(--nd-blue);box-shadow:0 0 0 3px var(--nd-blue-soft)}
+ #appView .nd-sz-table tr.after td{font-weight:700;border-top:1px solid var(--nd-line-2)}
+ #appView .nd-sz :is(td,b).chg{color:var(--nd-blue)}
+ #appView .nd-sz :is(td,b).neg{color:var(--nd-red)}
+ #appView .nd-sz-table .sum{width:76px;border-left:1px solid var(--nd-line)}
+ #appView .nd-sz-table tr.qty .sum{font:700 15px/1 var(--sans);color:var(--nd-blue)}
+ #appView .nd-sz-tip{margin:0;padding:9px 12px;border-radius:10px;background:var(--nd-fill);font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+ #appView .nd-sz-tip>b{color:var(--nd-ink);margin-right:6px}
+ #appView .nd-sz-list{display:none}
+}
+@media screen and (max-width:780px){
+ #appView .nd-sz-table,#appView .nd-sz-tip{display:none}
+ #appView .nd-sz-list{display:block}
+ #appView .nd-sz-row{display:flex;align-items:center;gap:10px;min-height:58px;border-bottom:1px solid var(--nd-line-2)}
+ #appView .nd-sz-row .sz{width:44px;flex:none;font:700 15px/1 var(--sans);color:var(--nd-ink)}
+ #appView .nd-sz-row .cur{flex:1;min-width:0;white-space:nowrap;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sz-row .cur>b{font-weight:700;color:var(--nd-ink)}
+ #appView .nd-sz-row .step{display:flex;gap:6px;flex:none}
+ #appView .nd-sz-row .step>button{width:40px;height:40px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:500 18px/1 var(--sans);cursor:pointer}
+ #appView .nd-sz-row .step>input{width:58px;height:40px;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);text-align:center;font:600 16px/1 var(--sans);outline:none}
+ #appView .nd-sz-total{display:flex;justify-content:space-between;align-items:center;padding:12px 2px 0;font:600 13px/1 var(--sans);color:var(--nd-ink)}
+ #appView .nd-sz-total>b{font:700 17px/1 var(--sans);color:var(--nd-blue)}
+}
+@media screen{
+ #appView .nd-sz-table .k{width:72px;white-space:nowrap}
+ #appView .nd-sz input::placeholder{color:var(--nd-ink-3)!important;opacity:.45!important;font-weight:400}
+}
+@media screen{
+ #appView .shell .main .nd-sz-table input{width:100%!important;min-width:0!important;max-width:none!important;padding:0 2px!important;height:40px!important;text-align:center!important}
+}
+@media screen{
+ #appView .nd-sz.compact :is(.nd-sz-table,.nd-sz-tip){display:none}
+ #appView .nd-sz.compact .nd-sz-list{display:block}
+ #appView .nd-sz.compact .nd-sz-row{display:flex;align-items:center;gap:10px;min-height:54px;border-bottom:1px solid var(--nd-line-2)}
+ #appView .nd-sz.compact .nd-sz-row .sz{width:44px;flex:none;font:700 14.5px/1 var(--sans);color:var(--nd-ink)}
+ #appView .nd-sz.compact .nd-sz-row .cur{flex:1;min-width:0;white-space:nowrap;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sz.compact .nd-sz-row .cur>b{font-weight:700;color:var(--nd-ink)}
+ #appView .nd-sz.compact .nd-sz-row .step{display:flex;gap:6px;flex:none}
+ #appView .nd-sz.compact .nd-sz-row .step>button{width:36px;height:36px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink-2);font:500 17px/1 var(--sans);cursor:pointer}
+ #appView .nd-sz.compact .nd-sz-row .step>input{width:60px;height:36px;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink);text-align:center;font:600 15px/1 var(--sans);outline:none}
+ #appView .nd-sz.compact .nd-sz-total{display:flex;justify-content:space-between;align-items:center;padding:12px 2px 0;font:600 13px/1 var(--sans);color:var(--nd-ink)}
+ #appView .nd-sz.compact .nd-sz-total>b{font:700 17px/1 var(--sans);color:var(--nd-blue)}
+}
+@media screen{
+ #appView .shell .main .nd-sz-table :is(th,td){padding-left:3px!important;padding-right:3px!important}
+ #appView .shell .main .nd-sz-table .k{padding-left:2px!important}
+}
