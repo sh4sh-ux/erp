@@ -7167,7 +7167,12 @@ deleteQuote=singleTableWrite('quotes',deleteQuote);
  #appView[data-layout-system="b"] .main :is(#view-companies,#view-items,#view-quotes) .list-head{position:sticky;top:0;z-index:3;background:var(--panel-left)}
  #appView[data-layout-system="b"] .main :is(#coForm,#itForm,#qtForm)>.form-actions{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:5;background:var(--panel-surface);padding:12px;border-top:1px solid var(--panel-line)}
 }
-</style><script>/* Personal NARO presentation only: move original nodes, keep IDs/listeners.
+</style><script>/* 왼쪽 목차를 누르면 오른쪽 패널에서 그 묶음을 보여 주는 공통 규칙: 화면보다 짧으면 패널 가운데, 길면 제목이 패널 맨 위(16px)에. */
+window.naroReveal=function(el){if(!el)return;let sc=el.parentElement;while(sc&&!(sc.scrollHeight>sc.clientHeight+2&&/auto|scroll/.test(getComputedStyle(sc).overflowY)))sc=sc.parentElement;
+ if(!sc){el.scrollIntoView({block:'center',behavior:'smooth'});return;}
+ const sr=sc.getBoundingClientRect(),er=el.getBoundingClientRect(),top=er.top-sr.top+sc.scrollTop,room=sc.clientHeight;
+ const target=er.height<=room-32?top-(room-er.height)/2:top-16;sc.scrollTo({top:Math.max(0,Math.min(target,sc.scrollHeight-room)),behavior:'smooth'});};
+/* Personal NARO presentation only: move original nodes, keep IDs/listeners.
    No repository access, network, persisted state, or cloned form controls. */
 (() => {
  const app=document.getElementById('appView');if(!app)return;
@@ -7214,7 +7219,7 @@ deleteQuote=singleTableWrite('quotes',deleteQuote);
      if(id==='payments')paymentRow(button,row);
      else button.textContent=id==='sales'?row.querySelector('h3')?.textContent: id==='settings'?row.querySelector('h3')?.textContent:[...row.querySelectorAll('td')].slice(0,4).map(c=>c.textContent.trim()).filter(Boolean).join(' · ');
      if(!button.textContent)return;button.hidden=!button.textContent.includes(query);
-     button.onclick=()=>{source.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));row.classList.add('panel-b-selected');list.querySelectorAll('button').forEach(n=>n.classList.toggle('on',n===button));row.scrollIntoView({block:'nearest',behavior:'smooth'});};list.append(button);
+     button.onclick=()=>{source.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));row.classList.add('panel-b-selected');list.querySelectorAll('button').forEach(n=>n.classList.toggle('on',n===button));naroReveal(row);};list.append(button);
     });
    };
    const observer=new MutationObserver(refresh);observer.observe(source,{childList:true,subtree:true});refresh();
@@ -8567,7 +8572,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    빨강 = 출금·출고·지출(숫자 "−", 바탕 없음) / 진한 빨강 꽉 찬 꼬리표 + "!" = 미수·연체·품절·오류
    청록 = 이익·분석·조정 / 회색 = 비교·미설정·비활성. 글자는 진한 값, 막대·점·꼬리표 바탕은 -fill·-soft. */
 :root{
- --nd-green:#0B7A3B;--nd-green-fill:#12A150;--nd-green-soft:rgba(18,161,80,.10);
+ --nd-green:#1DAD53;--nd-green-fill:#1DAD53;--nd-green-soft:rgba(29,173,83,.10);
  --nd-red:#D92D20;--nd-red-fill:#E5483C;--nd-red-soft:rgba(217,45,32,.08);
  --nd-bad:#B42318;
  --nd-amber:#B45309;--nd-amber-fill:#E8A317;--nd-amber-soft:rgba(232,163,23,.15);
@@ -8976,7 +8981,7 @@ html[data-theme="dark"]{
     if(!b.dataset.ndSec)body.querySelectorAll(':scope>.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));},true);}
   const targets=[[body.querySelector('.nd-assets'),'명함·사업자등록증'],[body.querySelector('.nd-backup'),'백업·가져오기']].filter(([t])=>t);
   if(extra.childElementCount!==targets.length){extra.replaceChildren(...targets.map(([t,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.ndSec='1';
-   b.onclick=()=>{view.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));t.classList.add('panel-b-selected');t.scrollIntoView({block:'start',behavior:'smooth'});};return b;}));}
+   b.onclick=()=>{view.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));t.classList.add('panel-b-selected');(window.naroReveal||(x=>x.scrollIntoView({block:'start',behavior:'smooth'})))(t);};return b;}));}
   // 명함·사업자등록증 are photos now; the old link fields stay in the form (values kept) but out of sight.
   for(const b of left.querySelectorAll('.panel-b-index:not(.nd-index-x) button'))if(/이미지 링크/.test(b.textContent))b.classList.add('nd-legacy');
   const q=left.querySelector('.panel-b-search'),sync=()=>extra.querySelectorAll('button').forEach(b=>b.hidden=!!q?.value.trim()&&!b.textContent.includes(q.value.trim()));

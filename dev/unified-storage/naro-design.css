@@ -1281,7 +1281,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    빨강 = 출금·출고·지출(숫자 "−", 바탕 없음) / 진한 빨강 꽉 찬 꼬리표 + "!" = 미수·연체·품절·오류
    청록 = 이익·분석·조정 / 회색 = 비교·미설정·비활성. 글자는 진한 값, 막대·점·꼬리표 바탕은 -fill·-soft. */
 :root{
- --nd-green:#0B7A3B;--nd-green-fill:#12A150;--nd-green-soft:rgba(18,161,80,.10);
+ --nd-green:#1DAD53;--nd-green-fill:#1DAD53;--nd-green-soft:rgba(29,173,83,.10);
  --nd-red:#D92D20;--nd-red-fill:#E5483C;--nd-red-soft:rgba(217,45,32,.08);
  --nd-bad:#B42318;
  --nd-amber:#B45309;--nd-amber-fill:#E8A317;--nd-amber-soft:rgba(232,163,23,.15);

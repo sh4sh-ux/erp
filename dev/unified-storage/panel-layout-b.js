@@ -1,3 +1,8 @@
+/* 왼쪽 목차를 누르면 오른쪽 패널에서 그 묶음을 보여 주는 공통 규칙: 화면보다 짧으면 패널 가운데, 길면 제목이 패널 맨 위(16px)에. */
+window.naroReveal=function(el){if(!el)return;let sc=el.parentElement;while(sc&&!(sc.scrollHeight>sc.clientHeight+2&&/auto|scroll/.test(getComputedStyle(sc).overflowY)))sc=sc.parentElement;
+ if(!sc){el.scrollIntoView({block:'center',behavior:'smooth'});return;}
+ const sr=sc.getBoundingClientRect(),er=el.getBoundingClientRect(),top=er.top-sr.top+sc.scrollTop,room=sc.clientHeight;
+ const target=er.height<=room-32?top-(room-er.height)/2:top-16;sc.scrollTo({top:Math.max(0,Math.min(target,sc.scrollHeight-room)),behavior:'smooth'});};
 /* Personal NARO presentation only: move original nodes, keep IDs/listeners.
    No repository access, network, persisted state, or cloned form controls. */
 (() => {
@@ -45,7 +50,7 @@
      if(id==='payments')paymentRow(button,row);
      else button.textContent=id==='sales'?row.querySelector('h3')?.textContent: id==='settings'?row.querySelector('h3')?.textContent:[...row.querySelectorAll('td')].slice(0,4).map(c=>c.textContent.trim()).filter(Boolean).join(' · ');
      if(!button.textContent)return;button.hidden=!button.textContent.includes(query);
-     button.onclick=()=>{source.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));row.classList.add('panel-b-selected');list.querySelectorAll('button').forEach(n=>n.classList.toggle('on',n===button));row.scrollIntoView({block:'nearest',behavior:'smooth'});};list.append(button);
+     button.onclick=()=>{source.querySelectorAll('.panel-b-selected').forEach(n=>n.classList.remove('panel-b-selected'));row.classList.add('panel-b-selected');list.querySelectorAll('button').forEach(n=>n.classList.toggle('on',n===button));naroReveal(row);};list.append(button);
     });
    };
    const observer=new MutationObserver(refresh);observer.observe(source,{childList:true,subtree:true});refresh();
