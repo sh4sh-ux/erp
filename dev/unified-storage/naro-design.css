@@ -1688,3 +1688,19 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
 }
 /* 폰 견적서 품목 카드: 품번 = 얇은 회색 */
 #appView .qp-card-edit .qp-code{font:400 13px/1 var(--sans);color:var(--nd-ink-3);letter-spacing:0;margin-left:2px}
+/* 폰 업체 제공 자재 상세: 글자 크기를 견적서 상세 기준(제목 19 · 섹션 14 · 본문 14 · 보조 12)에 맞춤 */
+@media screen and (max-width:780px){
+ html body #appView #view-materials.nd-mm-open .material-detail-head h3{font:700 19px/26px var(--sans)!important;letter-spacing:-.3px}
+ html body #appView #view-materials.nd-mm-open .nd-mm-asof{font-size:12px!important}
+ html body #appView #view-materials.nd-mm-open .material-type-tab{height:30px;font:600 12.5px/1 var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-balance-hero>span{font:600 12px/16px var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-balance-hero strong{font:800 32px/1 var(--sans)!important;letter-spacing:-.6px}
+ html body #appView #view-materials.nd-mm-open .nd-mat-hd{font-size:12px!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend>span{font-size:12px!important}
+ html body #appView #view-materials.nd-mm-open .nd-mat-legend b{font:700 17px/22px var(--sans)!important;letter-spacing:-.2px}
+ html body #appView #view-materials.nd-mm-open .material-history-wrap>.material-section-head h3{font:700 14px/20px var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-record-name{font:600 14px/20px var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open :is(.material-record-meta,.material-record-date){font-size:12px!important}
+ html body #appView #view-materials.nd-mm-open .material-record-qty{font:700 14px/20px var(--sans)!important}
+ html body #appView #view-materials.nd-mm-open .material-record{padding:12px 16px!important}
+}
