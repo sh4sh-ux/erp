@@ -634,13 +634,32 @@
  document.addEventListener('mousedown',e=>{if(ndPop&&!ndPop.contains(e.target)&&!e.target.closest('.nd-ip'))ndClosePick();});
  addEventListener('scroll',e=>{if(ndPop&&!e.composedPath().includes(ndPop))ndClosePick();},true);
  addEventListener('resize',ndClosePick);
+ /* 견적서(폰) 품목 탭: '옵션별 한번에'는 품목을 넣는 기능이라 '+ 품목 추가' 옆에 한 줄로. */
+ function quoteAddRow(){
+  const size=document.getElementById('fq_sizeBtn'),prod=document.querySelector('#qtForm .qp-products');if(!size||!prod)return;
+  const add=prod.querySelector(':scope>.qp-add, :scope>.nd-addrow>.qp-add');if(!add)return;
+  let row=prod.querySelector(':scope>.nd-addrow');if(!row){row=document.createElement('div');row.className='nd-addrow';add.before(row);}
+  if(add.parentElement!==row)row.append(add);if(size.parentElement!==row)row.append(size);
+ }
+ /* 재고 부족 알림: 줄마다 [품명 코드 …… 부족 N] / [색상 · 규격 …… 필요 · 보유] 두 줄로. 원래 문장에서 값만 읽어 다시 그린다. */
+ function shortageTidy(){
+  for(const box of document.querySelectorAll('#appView .shortbox:not([data-nd])')){
+   box.dataset.nd='1';const rows=[...box.querySelectorAll(':scope>.row')];
+   const hd=box.querySelector(':scope>.hd');if(hd){hd.innerHTML=`<b>재고 부족 ${rows.length}건</b><span>수주하려면 아래 자재를 확보해야 해요</span>`;}
+   for(const r of rows){const label=r.querySelector('.nm')?.textContent||'',v=r.querySelector('.v')?.textContent||'';
+    const parts=label.split(' · '),m=/^(.*?)\s*\[([^\]]+)\]\s*$/.exec(parts[0]||'');const name=m?m[1]:parts[0],code=m?m[2]:'',opt=parts.slice(1).join(' · ');
+    const n=/필요\s*([-\d,]+)\s*·\s*보유\s*([-\d,]+)\s*·\s*부족\s*([-\d,]+)/.exec(v);if(!n)continue;
+    const e=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    r.classList.add('nd-sr');r.innerHTML=`<div class="a"><b>${e(name)}</b>${code?`<span class="cd">${e(code)}</span>`:''}</div><div class="lack">부족 ${e(n[3])}</div><div class="o">${e(opt)}</div><div class="nh">필요 ${e(n[1])} · 보유 ${e(n[2])}</div>`;}
+  }
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

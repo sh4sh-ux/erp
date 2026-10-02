@@ -25,11 +25,13 @@ await bundleAuth({stdin:{contents:"export {initializeApp} from 'firebase/app'; e
 for(const name of ['style.css','office-polish-v2.png','naro-symbol.png','naro-wordmark.png'])await copyFile(resolve(onboarding,name),resolve(release,name));
 await copyFile(resolve(onboarding,'office-silver-v3.png'),resolve(release,'office-polish-v2.png'));
 await copyFile(resolve(onboarding,'office-silver-v3.jpg'),resolve(release,'office-polish-v2.jpg'));
-const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png"><link rel="apple-touch-icon" href="./erp/icons/icon-180.png"><meta name="apple-mobile-web-app-title" content="NARO Biz">')
+const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).replaceAll('Next-generation Apps<br>for Real Operations','Next-generation Apps for Real Operation').replace('<title>NARO · 시작하기</title>','<title>NARO Biz · 로그인</title><link rel="icon" type="image/png" href="./naro-symbol.png"><link rel="apple-touch-icon" href="./erp/icons/icon-180.png"><meta name="apple-mobile-web-app-title" content="NARO Biz"><link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#FFFFFF">')
  // Same theme preference as /erp/ ('naroTheme': light | dark | system), applied before first paint.
  // External file: the page CSP allows 'self' scripts only (no inline).
  .replace('</head>','<script src="./theme.js"></script></head>');
 await writeFile(resolve(release,'index.html'),onboardingHtml);
+// 안드로이드 '설치하기' 아이콘·이름 = 첫 화면의 앱 정보 파일. (사이트 보안 설정에 manifest-src 'self' 필요)
+await writeFile(resolve(release,'manifest.webmanifest'),JSON.stringify({name:'NARO Biz',short_name:'NARO Biz',start_url:'./',scope:'./',display:'minimal-ui',background_color:'#FFFFFF',theme_color:'#FFFFFF',icons:[{src:'erp/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any'},{src:'erp/icons/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any'}]},null,2)+'\n');
 await copyFile(resolve(onboarding,'theme.js'),resolve(release,'theme.js'));
 await copyFile(resolve(onboarding,'google-backend.mjs'),resolve(release,'google-backend.mjs'));
 await copyFile(resolve(onboarding,'company-contract.mjs'),resolve(release,'company-contract.mjs'));

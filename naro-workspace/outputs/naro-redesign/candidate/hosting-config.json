@@ -14,13 +14,13 @@
       {
         "glob": "/",
         "headers": {
-          "Content-Security-Policy": "default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self'; frame-src 'self' https://accounts.google.com/gsi/; connect-src https://accounts.google.com/gsi/ https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; worker-src 'none'"
+          "Content-Security-Policy": "default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self'; manifest-src 'self'; frame-src 'self' https://accounts.google.com/gsi/; connect-src https://accounts.google.com/gsi/ https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; worker-src 'none'"
         }
       },
       {
         "glob": "/index.html",
         "headers": {
-          "Content-Security-Policy": "default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self'; frame-src 'self' https://accounts.google.com/gsi/; connect-src https://accounts.google.com/gsi/ https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; worker-src 'none'"
+          "Content-Security-Policy": "default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; img-src 'self'; manifest-src 'self'; frame-src 'self' https://accounts.google.com/gsi/; connect-src https://accounts.google.com/gsi/ https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; worker-src 'none'"
         }
       },
       {

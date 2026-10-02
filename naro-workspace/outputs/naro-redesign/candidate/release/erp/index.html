@@ -8729,6 +8729,30 @@ html[data-theme="dark"]{
 .ip-pop .ip-opt>.pr{grid-column:3;justify-self:end;text-align:right}
 .ip-pop .ip-opt[data-id="__free__"]>.nm{grid-column:1/-1}
 @media screen and (max-width:520px){.ip-pop .ip-opt{grid-template-columns:minmax(0,1fr) minmax(0,max-content) 76px;column-gap:8px}.ip-pop .ip-opt>.cd{max-width:110px}}
+/* 견적서(폰): [+ 품목 추가][⊞ 옵션별 한번에] 한 줄 */
+#appView #qtForm .nd-addrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+#appView #qtForm .nd-addrow>*{margin:0!important;width:100%!important;min-height:44px}
+#appView #qtForm .nd-addrow>#fq_sizeBtn{padding:0 8px!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;color:var(--nd-blue)!important;font:600 14px/1 var(--sans)!important}
+/* 재고 부족 알림: 앰버(주의) 상자, 줄마다 두 줄 — 품명·코드 / 부족(오른쪽), 색상·규격 / 필요·보유(오른쪽) */
+#appView .shortbox[data-nd]{border:1px solid color-mix(in srgb,var(--nd-amber-fill) 45%,transparent)!important;background:var(--nd-amber-soft)!important;border-radius:14px!important;padding:14px 16px!important}
+#appView .shortbox[data-nd]>.hd{display:flex;flex-direction:column;gap:2px;margin:0 0 6px!important;color:var(--nd-ink)!important}
+#appView .shortbox[data-nd]>.hd>b{font:700 14.5px/20px var(--sans);color:var(--nd-amber)}
+#appView .shortbox[data-nd]>.hd>b::before{content:'⚠ '}
+#appView .shortbox[data-nd]>.hd>span{font:400 12px/16px var(--sans);color:var(--nd-ink-2)}
+#appView .shortbox .row.nd-sr{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;padding:10px 0!important;border-top:1px solid color-mix(in srgb,var(--nd-amber-fill) 25%,transparent)}
+#appView .shortbox .row.nd-sr>.a{min-width:0;display:flex;align-items:center;gap:6px;font:600 13.5px/20px var(--sans);color:var(--nd-ink)}
+#appView .shortbox .row.nd-sr>.a>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+#appView .shortbox .row.nd-sr>.a>.cd{flex:none;padding:0 6px;border-radius:5px;background:var(--nd-surface);color:var(--nd-ink-3);font:600 11px/18px var(--sans)}
+#appView .shortbox .row.nd-sr>.lack{text-align:right;font:700 14px/20px var(--sans);color:var(--nd-amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+#appView .shortbox .row.nd-sr>.o{font:400 12px/16px var(--sans);color:var(--nd-ink-3)}
+#appView .shortbox .row.nd-sr>.nh{text-align:right;font:400 12px/16px var(--sans);color:var(--nd-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+#appView .shortbox[data-nd]>.ft{margin-top:6px!important;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--nd-amber-fill) 25%,transparent);font:400 11.5px/17px var(--sans)!important;color:var(--nd-ink-3)!important}
+html body #appView .shortbox[data-nd]>.hd{text-align:left!important;align-items:flex-start!important}
+html body #appView .shortbox .row.nd-sr{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;flex-direction:initial!important;text-align:left!important}
+html body #appView .shortbox .row.nd-sr>*{width:auto!important;margin:0!important;display:block}
+html body #appView .shortbox .row.nd-sr>.a{display:flex!important}
+html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!important;justify-self:end}
+#appView #qtForm .nd-addrow>*{font:600 14px/1 var(--sans)!important;color:var(--nd-blue)!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9365,13 +9389,32 @@ html[data-theme="dark"]{
  document.addEventListener('mousedown',e=>{if(ndPop&&!ndPop.contains(e.target)&&!e.target.closest('.nd-ip'))ndClosePick();});
  addEventListener('scroll',e=>{if(ndPop&&!e.composedPath().includes(ndPop))ndClosePick();},true);
  addEventListener('resize',ndClosePick);
+ /* 견적서(폰) 품목 탭: '옵션별 한번에'는 품목을 넣는 기능이라 '+ 품목 추가' 옆에 한 줄로. */
+ function quoteAddRow(){
+  const size=document.getElementById('fq_sizeBtn'),prod=document.querySelector('#qtForm .qp-products');if(!size||!prod)return;
+  const add=prod.querySelector(':scope>.qp-add, :scope>.nd-addrow>.qp-add');if(!add)return;
+  let row=prod.querySelector(':scope>.nd-addrow');if(!row){row=document.createElement('div');row.className='nd-addrow';add.before(row);}
+  if(add.parentElement!==row)row.append(add);if(size.parentElement!==row)row.append(size);
+ }
+ /* 재고 부족 알림: 줄마다 [품명 코드 …… 부족 N] / [색상 · 규격 …… 필요 · 보유] 두 줄로. 원래 문장에서 값만 읽어 다시 그린다. */
+ function shortageTidy(){
+  for(const box of document.querySelectorAll('#appView .shortbox:not([data-nd])')){
+   box.dataset.nd='1';const rows=[...box.querySelectorAll(':scope>.row')];
+   const hd=box.querySelector(':scope>.hd');if(hd){hd.innerHTML=`<b>재고 부족 ${rows.length}건</b><span>수주하려면 아래 자재를 확보해야 해요</span>`;}
+   for(const r of rows){const label=r.querySelector('.nm')?.textContent||'',v=r.querySelector('.v')?.textContent||'';
+    const parts=label.split(' · '),m=/^(.*?)\s*\[([^\]]+)\]\s*$/.exec(parts[0]||'');const name=m?m[1]:parts[0],code=m?m[2]:'',opt=parts.slice(1).join(' · ');
+    const n=/필요\s*([-\d,]+)\s*·\s*보유\s*([-\d,]+)\s*·\s*부족\s*([-\d,]+)/.exec(v);if(!n)continue;
+    const e=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    r.classList.add('nd-sr');r.innerHTML=`<div class="a"><b>${e(name)}</b>${code?`<span class="cd">${e(code)}</span>`:''}</div><div class="lack">부족 ${e(n[3])}</div><div class="o">${e(opt)}</div><div class="nh">필요 ${e(n[1])} · 보유 ${e(n[2])}</div>`;}
+  }
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
