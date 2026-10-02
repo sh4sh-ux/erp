@@ -592,13 +592,55 @@
   for(const o of sel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=({'수금':'입금','지급':'출금'})[o.textContent.trim()]||o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(sel.value!==o.value){sel.value=o.value;sel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
   sel.classList.add('nd-kind-src');sel.after(seg);sel.addEventListener('change',sync);sync();
  }
+ /* 품목 고르기 = 견적서 품목 검색과 같은 창 (검색 · 품명 · 코드 꼬리표 · 판매 단가, 가나다순).
+    거래처 약정 단가의 '제품', 재고 입력의 '품목'에 쓴다. 원래 select는 숨겨 두고 값만 바꿔 change를 보낸다(저장 규칙은 그대로). */
+ let ndPop=null;
+ const ndClosePick=()=>{if(ndPop){ndPop.remove();ndPop=null;}document.querySelectorAll('.ip-btn.nd-ip.on').forEach(b=>b.classList.remove('on'));};
+ function itemPickers(){
+  const sels=document.querySelectorAll('#appView select[data-rule="item_id"],#appView select#ivItem');
+  for(const sel of sels){
+   let btn=sel.nextElementSibling?.classList?.contains('nd-ip')?sel.nextElementSibling:null;
+   if(!btn){btn=document.createElement('button');btn.type='button';btn.className='ip-btn nd-ip';sel.after(btn);sel.classList.add('nd-ip-src');
+    btn.addEventListener('click',()=>openPick(sel,btn));}
+   const it=(db.items||[]).find(i=>i.id===sel.value);
+   const html=it?`${typeof isWork==='function'&&isWork(it)?'<span class="pill work">작업</span> ':''}${escapeHtml(it.name)}${it.code?`<span class="cd">${escapeHtml(it.code)}</span>`:''}`:`<span class="ph">${escapeHtml(sel.options[sel.selectedIndex]?.textContent||'품목 선택')} — 품명·코드 검색</span>`;
+   if(btn.dataset.html!==html){btn.dataset.html=html;btn.innerHTML=html;}
+   if(btn.disabled!==sel.disabled)btn.disabled=sel.disabled;
+  }
+ }
+ function openPick(sel,btn){
+  ndClosePick();if(typeof closeItemPicker==='function')closeItemPicker();btn.classList.add('on');
+  const allowed=new Set([...sel.options].map(o=>o.value).filter(Boolean));
+  const items=(db.items||[]).filter(i=>allowed.has(i.id)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')||(a.code||'').localeCompare(b.code||'','ko'));
+  const r=btn.getBoundingClientRect(),pop=document.createElement('div');pop.className='ip-pop nd-ip-pop';
+  pop.innerHTML='<input type="text" placeholder="품명·코드 검색" autocomplete="off"><div class="ip-list"></div>';
+  (document.getElementById('appView')||document.body).append(pop);ndPop=pop;
+  const w=Math.max(300,Math.min(r.width,520));pop.style.width=w+'px';pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  const below=innerHeight-r.bottom,above=below<240&&r.top>below;if(above)pop.style.bottom=(innerHeight-r.top+6)+'px';else pop.style.top=(r.bottom+6)+'px';
+  pop.style.maxHeight=Math.max(0,(above?r.top:below)-14)+'px';
+  const input=pop.querySelector('input'),list=pop.querySelector('.ip-list');let hi=0,shown=[];
+  const price=i=>{try{return typeof itemSell==='function'?itemSell(i):i.sell_price;}catch{return i.sell_price;}};
+  const pick=id=>{if(sel.value!==id){sel.value=id;sel.dispatchEvent(new Event('change',{bubbles:true}));sel.dispatchEvent(new Event('input',{bubbles:true}));}ndClosePick();itemPickers();btn.focus();};
+  const draw=()=>{const q=input.value.trim().toLowerCase();shown=items.filter(i=>!q||(i.name||'').toLowerCase().includes(q)||(i.code||'').toLowerCase().includes(q));hi=Math.min(hi,Math.max(0,shown.length-1));
+   list.innerHTML=shown.length?shown.map((i,n)=>{const tag=typeof isWork==='function'&&isWork(i)?'[작업] ':'';const p=price(i);return `<div class="ip-opt ${n===hi?'hi':''}" data-id="${escapeAttr(i.id)}"><span class="nm">${tag}${escapeHtml(i.name)}</span>${i.code?`<span class="cd">${escapeHtml(i.code)}</span>`:''}<span class="pr">${p?fmt(p):''}</span></div>`;}).join(''):`<div class="ip-empty">"${escapeHtml(input.value)}"에 맞는 품목이 없습니다</div>`;
+   list.querySelectorAll('.ip-opt').forEach(o=>o.onmousedown=ev=>{ev.preventDefault();pick(o.dataset.id);});};
+  draw();input.oninput=()=>{hi=0;draw();};
+  input.onkeydown=ev=>{if(ev.key==='ArrowDown'){ev.preventDefault();hi=Math.min(hi+1,shown.length-1);draw();list.querySelector('.hi')?.scrollIntoView({block:'nearest'});}
+   else if(ev.key==='ArrowUp'){ev.preventDefault();hi=Math.max(hi-1,0);draw();list.querySelector('.hi')?.scrollIntoView({block:'nearest'});}
+   else if(ev.key==='Enter'){ev.preventDefault();if(shown[hi])pick(shown[hi].id);}
+   else if(ev.key==='Escape'){ev.preventDefault();ndClosePick();btn.focus();}};
+  setTimeout(()=>input.focus(),0);
+ }
+ document.addEventListener('mousedown',e=>{if(ndPop&&!ndPop.contains(e.target)&&!e.target.closest('.nd-ip'))ndClosePick();});
+ addEventListener('scroll',e=>{if(ndPop&&!e.composedPath().includes(ndPop))ndClosePick();},true);
+ addEventListener('resize',ndClosePick);
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

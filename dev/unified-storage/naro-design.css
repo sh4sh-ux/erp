@@ -1429,3 +1429,12 @@ html[data-theme="dark"]{
 /* 재고 입력 합계·변경 후 수치도 고른 구분의 색 */
 #appView .stock-add:has(.nd-kind>button.on[data-v="입고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-green)!important}
 #appView .stock-add:has(.nd-kind>button.on[data-v="출고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-red)!important}
+/* ── 품목 고르기 창 (견적서 품목 검색 · 약정 단가 제품 · 재고 품목 공통): 품명 | 코드 | 단가 세 칸, 코드는 왼쪽·단가는 오른쪽 세로선 ── */
+#appView select.nd-ip-src{display:none!important}
+#appView .ip-btn.nd-ip{width:100%;min-height:44px;text-align:left}
+.ip-pop .ip-opt{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,max-content) 84px;column-gap:12px;align-items:center}
+.ip-pop .ip-opt>.nm{grid-column:1}
+.ip-pop .ip-opt>.cd{grid-column:2;justify-self:end;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ip-pop .ip-opt>.pr{grid-column:3;justify-self:end;text-align:right}
+.ip-pop .ip-opt[data-id="__free__"]>.nm{grid-column:1/-1}
+@media screen and (max-width:520px){.ip-pop .ip-opt{grid-template-columns:minmax(0,1fr) minmax(0,max-content) 76px;column-gap:8px}.ip-pop .ip-opt>.cd{max-width:110px}}

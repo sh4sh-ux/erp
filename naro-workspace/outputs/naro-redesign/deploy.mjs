@@ -13,7 +13,7 @@ import {homedir} from 'node:os';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const here=dirname(fileURLToPath(import.meta.url)),dir=resolve(here,'candidate');
-const PIN={files:64,aggregate:'d155540ab407bafe36fea9ba499fefb03995d1d7c301f80768efba599d54b831',
+const PIN={files:64,aggregate:'6c0d2544e5178e7d5554c5a9ace623e834f4b833bc782ad594fa14f7b6cc1999',
  auth:{'google-oauth.mjs':'2c1375a6bf250fd57ed1a9ae3debddac8d717277b6f5b67f61c113f66e3b609e','dropbox-oauth.mjs':'1e5054416f1453fceff71d4b2539245df1203bc36a014beb1a4b0ec74281f95c'}};
 const endpoint='https://firebasehosting.googleapis.com/v1beta1/',site='https://naro-biz.web.app/';
 const out=resolve(process.env.NARO_DEPLOY_LOG_DIR||here,'deploy-log');
