@@ -1462,3 +1462,25 @@ html body #appView .shortbox .row.nd-sr>*{width:auto!important;margin:0!importan
 html body #appView .shortbox .row.nd-sr>.a{display:flex!important}
 html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!important;justify-self:end}
 #appView #qtForm .nd-addrow>*{font:600 14px/1 var(--sans)!important;color:var(--nd-blue)!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important}
+/* ── 폰: 목록(왼쪽 패널 역할)은 모서리 없는 화면 끝까지 펼친 줄 목록, 둥근 카드는 상세·입력(오른쪽 패널 역할)에만.
+   선택 표시(파란 바·바탕)도 목록에서는 쓰지 않는다 — 누르면 바로 상세로 가므로(견적서와 같게). ── */
+@media screen and (max-width:780px){
+ html body #appView .shell .main>:is(#view-quotes,#view-companies,#view-items)>.cols>.card:first-child,
+ html body #appView .shell .main>#view-stock:not(.nd-st-open)>.cols>.card:nth-child(1),
+ html body #appView #view-materials:not(.nd-mm-open) .material-owners{margin-left:-12px!important;margin-right:-12px!important;border-radius:0!important;border:0!important;border-top:1px solid var(--nd-line)!important;border-bottom:1px solid var(--nd-line)!important;box-shadow:none!important;overflow:visible!important}
+ html body #appView .shell .main>:is(#view-quotes,#view-companies,#view-items)>.cols>.card:first-child>:is(.list-head,.nd-chips){border-radius:0!important}
+ html body #appView .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active){background:transparent!important;box-shadow:none!important}
+ html body #appView .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active) :is(.li-name,.li-nm,span,b){color:var(--nd-ink)!important}
+ html body #appView .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active) :is(.li-sub,.li-date,.li-meta,.material-owner-meta,small){color:var(--nd-ink-3)!important}
+ html body #appView .shell .main .view :is(.list-item,.stock-item,.material-owner){border-radius:0!important}
+}
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active),
+ html body #appView .shell .main #view-materials:not(.nd-mm-open) .material-owner.active,
+ html body #appView .shell .main #view-stock:not(.nd-st-open) #stockItems>.stock-item.selected{background:transparent!important;box-shadow:none!important;border-left:0!important}
+ html body #appView[data-layout-system] .shell .main .view :is(.list-item.on,.stock-item.selected,.material-owner.active)::before{display:none!important}
+ html body #appView[data-layout-system] .shell .main .view :is(.stock-item.selected,.material-owner.active) :is(span,b){color:var(--nd-ink)!important}
+ html body #appView[data-layout-system] .shell .main .view :is(.stock-item.selected,.material-owner.active) :is(small,.material-owner-meta,.stock-item-meta){color:var(--nd-ink-3)!important}
+}
+@media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-stock:not(.nd-st-open) #stockItems>.stock-item.selected>span:first-child{color:var(--nd-ink)!important}}
+@media screen and (max-width:780px){html body #appView[data-layout-system] .shell .main #view-materials .material-owner{border-bottom:1px solid var(--nd-line-2)!important}html body #appView[data-layout-system] .shell .main #view-materials .material-owner:last-child{border-bottom:0!important}}
