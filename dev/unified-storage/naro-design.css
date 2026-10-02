@@ -1681,3 +1681,8 @@ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn).nd-saved:hover{b
  html body #appView .shell .main #view-stock .stock-option-scroll>table{width:max-content!important;min-width:100%!important;table-layout:auto!important}
  html body #appView .shell .main #view-stock .stock-option-scroll :is(th,td){white-space:nowrap!important;word-break:keep-all!important}
 }
+/* 폰 목록 화면: 제목 아래 구분선 없음(목록 카드 위 선), 칩 줄도 흰 바탕 */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"] :is(#qtCols,.cols)>.card:first-child{border-top:0!important}
+ html body #appView[data-layout-system] .shell .main>.view[data-nd-phone="list"] .nd-chips-m{background:var(--nd-surface)!important}
+}
