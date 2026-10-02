@@ -9008,6 +9008,20 @@ html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-d
  html body #appView #view-materials.nd-mm-open .material-stepper>input{width:48px!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-left:1px solid var(--nd-line-2)!important;border-right:1px solid var(--nd-line-2)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font:700 16px/1 var(--sans)!important;color:var(--nd-ink)!important;font-variant-numeric:tabular-nums}
  html body #appView #view-materials.nd-mm-open .material-stepper>input:focus{background:var(--nd-fill)!important;outline:none}
 }
+/* 폰 품목 목록 ↔ 상세: 상세에서는 목록·머리 줄을 숨기고 카드 맨 위 '‹ 품목' 줄 */
+#appView #view-items .nd-it-bar{display:none}
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.page-head,
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols>.card:first-child{display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols>.card:nth-child(2){margin-top:0!important}
+ html body #appView #view-items.nd-it-open .nd-it-bar{display:flex;align-items:center;margin:0;padding:16px 16px 0}
+ html body #appView #view-items .nd-it-back{height:44px;padding:0;border:0;background:none;color:var(--nd-ink);font:400 14px/1 var(--sans);cursor:pointer;flex:none}
+}
+/* 품목 이미지: 공급자 정보(명함)와 같은 모양 — 칸 너비 가득, 아래 '이름 · 상태' 줄, 같은 너비 버튼 */
+html body #appView .nd-photo-item{max-width:none!important;width:100%}
+html body #appView .nd-photo-item>.nd-photo-name{display:flex!important;justify-content:space-between!important}
+html body #appView .nd-photo-item>.nd-photo-name>span{display:inline!important}
+html body #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:right!important}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9890,7 +9904,19 @@ html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-d
   const label=document.querySelector('#view-materials .material-balance-hero>span');
   if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
+ function itemsMobile(){
+  const v=document.getElementById('view-items');if(!v||typeof itSel==='undefined')return;
+  const open=!!itSel;if(v.classList.contains('nd-it-open')!==open)v.classList.toggle('nd-it-open',open);
+  const card=v.querySelector(':scope>.cols>.card:nth-child(2)');if(!card)return;
+  let bar=card.querySelector(':scope>.nd-it-bar');
+  if(!bar){bar=document.createElement('div');bar.className='nd-it-bar';bar.innerHTML='<button type="button" class="nd-it-back">‹ 품목</button>';card.prepend(bar);
+   bar.querySelector('.nd-it-back').onclick=()=>{
+    if(typeof masterHasUnsavedChanges==='function'&&masterHasUnsavedChanges('items')&&!confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동할까요?'))return;
+    itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
+   };}
+ }
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

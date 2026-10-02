@@ -880,7 +880,19 @@
   const label=document.querySelector('#view-materials .material-balance-hero>span');
   if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
+ function itemsMobile(){
+  const v=document.getElementById('view-items');if(!v||typeof itSel==='undefined')return;
+  const open=!!itSel;if(v.classList.contains('nd-it-open')!==open)v.classList.toggle('nd-it-open',open);
+  const card=v.querySelector(':scope>.cols>.card:nth-child(2)');if(!card)return;
+  let bar=card.querySelector(':scope>.nd-it-bar');
+  if(!bar){bar=document.createElement('div');bar.className='nd-it-bar';bar.innerHTML='<button type="button" class="nd-it-back">‹ 품목</button>';card.prepend(bar);
+   bar.querySelector('.nd-it-back').onclick=()=>{
+    if(typeof masterHasUnsavedChanges==='function'&&masterHasUnsavedChanges('items')&&!confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동할까요?'))return;
+    itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
+   };}
+ }
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

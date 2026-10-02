@@ -1717,3 +1717,17 @@ html body #appView #view-materials:is(.nd-mm-open,:not(.nd-mm-open)) .material-d
  html body #appView #view-materials.nd-mm-open .material-stepper>input{width:48px!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-left:1px solid var(--nd-line-2)!important;border-right:1px solid var(--nd-line-2)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font:700 16px/1 var(--sans)!important;color:var(--nd-ink)!important;font-variant-numeric:tabular-nums}
  html body #appView #view-materials.nd-mm-open .material-stepper>input:focus{background:var(--nd-fill)!important;outline:none}
 }
+/* 폰 품목 목록 ↔ 상세: 상세에서는 목록·머리 줄을 숨기고 카드 맨 위 '‹ 품목' 줄 */
+#appView #view-items .nd-it-bar{display:none}
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.page-head,
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols>.card:first-child{display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols>.card:nth-child(2){margin-top:0!important}
+ html body #appView #view-items.nd-it-open .nd-it-bar{display:flex;align-items:center;margin:0;padding:16px 16px 0}
+ html body #appView #view-items .nd-it-back{height:44px;padding:0;border:0;background:none;color:var(--nd-ink);font:400 14px/1 var(--sans);cursor:pointer;flex:none}
+}
+/* 품목 이미지: 공급자 정보(명함)와 같은 모양 — 칸 너비 가득, 아래 '이름 · 상태' 줄, 같은 너비 버튼 */
+html body #appView .nd-photo-item{max-width:none!important;width:100%}
+html body #appView .nd-photo-item>.nd-photo-name{display:flex!important;justify-content:space-between!important}
+html body #appView .nd-photo-item>.nd-photo-name>span{display:inline!important}
+html body #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:right!important}

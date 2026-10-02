@@ -85,6 +85,8 @@ export function installAssets({db,request,save,notify}){
  grid.append(...cards.map(c=>c.el));panel.append(title,note,grid);document.getElementById('view-settings').append(panel);
  // 품목: a photo row inside the item form for a saved item.
  const itemCard=card('품목 이미지',()=>{const id=typeof itSel==='string'?itSel:'';if(!id||id==='__new__'||!db.items.some(r=>r.id===id))throw Error('품목을 먼저 저장한 뒤 사진을 첨부할 수 있어요.');return 'product:'+id;},'product','품목을 저장한 뒤 첨부할 수 있어요');
+ // 칸 제목이 이미 '품목 이미지'라 아래 줄 이름은 '사진'(공급자 정보: 제목 '명함·사업자등록증' · 줄 '명함'과 같은 짜임).
+ itemCard.el.querySelector('.nd-photo-name>span').textContent='사진';
  itemCard.el.classList.add('nd-photo-item');
  const placeItem=()=>{const form=document.getElementById('itForm');if(!form||form.classList.contains('hidden'))return;
   // Last block of the form body (inside its padding), after 옵션 및 가격 · 메모.
