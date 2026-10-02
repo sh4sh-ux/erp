@@ -186,7 +186,8 @@
   {key:'backup',label:'전체 백업',sub:'JSON · 다시 불러오기용 (모든 자료)',json:true,app:true,run(){if(typeof exportBackup!=='function')return false;exportBackup();return true;}}];
  let exportDialog=null;
  function openExport(){
-  if(exportDialog){exportDialog.showModal();return;}
+  // 열 때마다 다시 그린다 — 닫은 사이 저장한 내용(거래처 이름 등)이 미리보기·파일에 바로 반영되게.
+  if(exportDialog){exportDialog._draw?.();exportDialog.showModal();return;}
   const d=document.createElement('dialog');d.className='nd-export';d.setAttribute('aria-labelledby','ndExportTitle');
   const state={key:'quotes',period:'all',from:'',to:'',opts:{}};
   const range=()=>state.period==='custom'?[state.from,state.to]:PERIODS[state.period][1]();
@@ -209,9 +210,11 @@
    d.querySelectorAll('[data-o]').forEach(el=>el.onchange=()=>{state.opts[el.dataset.o]=el.checked;draw();});
    d.querySelector('.nd-ex-go').onclick=()=>{
     if(set.run){if(!set.run(r)&&typeof window.toast==='function')window.toast('이 자료는 지금 내보낼 수 없습니다.');return;}
-    if(!count)return;const csv=rows.map(row=>row.map(cell).join(','));
+    // 내려받는 순간의 최신 자료로 다시 만든다(미리보기를 그린 뒤 바뀌었을 수 있음).
+    const now=set.rows(state.opts,range());if(now.length<2)return;const csv=now.map(row=>row.map(cell).join(','));
     if(typeof downloadCsv==='function')downloadCsv(csv,fname);else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=fname;a.click();}};
   };
+  d._draw=draw;
   const fileName=(set,r)=>set.json?`erp_백업_${today()}.json`:set.key==='ar'?`미수금_${today()}.csv`:set.key==='sales'?`매출집계_${r[0]||'전체'}_${r[1]||today()}.csv`:`NARO_${set.label.replace('·','')}_${set.period?(r[0]?`${r[0]}_${r[1]}`:`전체_${today()}`):today()}.csv`;
   d.addEventListener('click',e=>{if(e.target===d)d.close();});
   document.body.append(d);exportDialog=d;draw();d.showModal();
@@ -881,10 +884,12 @@
   if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
  }
  // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
+ const IT_PHONE=matchMedia('(max-width:780px)');IT_PHONE.addEventListener('change',()=>itemsMobile());
  function itemsMobile(){
   const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='‹ 거래처')cb.textContent='‹ 거래처';
   const v=document.getElementById('view-items');if(!v||typeof itSel==='undefined')return;
-  const open=!!itSel;if(v.classList.contains('nd-it-open')!==open)v.classList.toggle('nd-it-open',open);
+  // mobile-record-open: 거래처·재고·자재와 같은 폰 상세 규칙(하단 메뉴 숨김 + 저장 영역 하단 고정)을 그대로 쓴다.
+  const open=!!itSel&&IT_PHONE.matches;if(v.classList.contains('nd-it-open')!==open){v.classList.toggle('nd-it-open',open);v.classList.toggle('mobile-record-open',open);}
   const card=v.querySelector(':scope>.cols>.card:nth-child(2)');if(!card)return;
   let bar=card.querySelector(':scope>.nd-it-bar');
   if(!bar){bar=document.createElement('div');bar.className='nd-it-bar';bar.innerHTML='<button type="button" class="nd-it-back">‹ 품목</button>';card.prepend(bar);

@@ -15,10 +15,10 @@ test('관리자는 요청 없이 승인',async()=>{
  const {access,calls}=fake({email:ADMIN_EMAIL.toUpperCase()});
  assert.equal((await access.check()).status,'approved');assert.equal(access.isAdmin(),true);assert.equal(calls.length,0);
 });
-test('Firestore를 켜기 전(데이터베이스 없음·API 꺼짐)에는 지금처럼 들어간다',async()=>{
+test('엄격 모드: 데이터베이스 없음·API 꺼짐이면 들여보내지 않는다',async()=>{
  for(const r of [{status:404,body:{error:{message:'The database (default) does not exist for project naro-biz',status:'NOT_FOUND'}}},
   {status:403,body:{error:{message:'Cloud Firestore API has not been used in project 1 before or it is disabled.',status:'PERMISSION_DENIED'}}}]){
-  const {access}=fake({routes:[r]});const res=await access.check();assert.equal(res.status,'approved');assert.equal(res.setup,false);
+  const {access}=fake({routes:[r]});await assert.rejects(access.check(),{code:'ACCESS_CHECK_FAILED'});
  }
 });
 test('처음 들어온 계정은 승인 대기 요청을 남긴다(본인 uid · pending · 로그인 이메일)',async()=>{
@@ -32,9 +32,9 @@ test('저장된 상태를 그대로 따른다',async()=>{
  for(const s of ['approved','rejected','pending']){const {access}=fake({routes:[{status:200,body:doc(s)}]});assert.equal((await access.check()).status,s);}
  const {access}=fake({routes:[{status:200,body:doc('bogus')}]});assert.equal((await access.check()).status,'pending');
 });
-test('승인 규칙을 아직 안 붙였으면(본인 문서 읽기 거부) 지금처럼 들어가고, 관리자 화면은 설정 전이라고 알린다',async()=>{
+test('엄격 모드: 본인 승인 정보 읽기가 거부(403)되면 들여보내지 않고, 관리자 화면은 설정 전이라고 알린다',async()=>{
  const denied={status:403,body:{error:{message:'Missing or insufficient permissions.',status:'PERMISSION_DENIED'}}};
- const res=await fake({routes:[denied]}).access.check();assert.equal(res.status,'approved');assert.equal(res.setup,false);
+ await assert.rejects(fake({routes:[denied]}).access.check(),{code:'ACCESS_CHECK_FAILED'});
  await assert.rejects(fake({email:ADMIN_EMAIL,routes:[denied]}).access.list(),{code:'ACCESS_NOT_SET_UP'});
 });
 test('규칙이 있는데 요청 저장이 막히거나 네트워크 오류면 들여보내지 않는다',async()=>{

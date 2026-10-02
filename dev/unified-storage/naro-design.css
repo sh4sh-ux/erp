@@ -1765,3 +1765,11 @@ html body #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:righ
 /* 품목 편집 시트(폰): 금액은 단가보다 한 단계 크게 */
 dialog.qp-sheet .qp-edit-amount{align-items:center;font-size:15px!important;font-weight:600}
 dialog.qp-sheet .qp-edit-amount>.amt{font:700 20px/26px var(--sans)!important;letter-spacing:-.2px}
+/* 폰 품목 상세의 저장 영역 하단 고정 — 거래처와 같은 짜임: 화면은 고정, 상세 카드가 스크롤 상자, 저장 줄은 그 안에서 sticky bottom:0 */
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open{overflow:hidden!important}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols{height:100%!important;min-height:0}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open>.cols>.card:nth-child(2){display:block!important;height:100%!important;max-height:100%;overflow-x:hidden!important;overflow-y:auto!important;padding-bottom:0!important}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open #itForm{padding-bottom:0!important}
+ html body #appView[data-layout-system] .shell .main #view-items.nd-it-open #itForm>.form-actions{bottom:0!important}
+}

@@ -1,7 +1,7 @@
 // 사용자 승인 (관리자만): 왼쪽 메뉴 '설정' 묶음에 한 줄 + 창 하나. 목록·결정은 위 페이지가
 // Firestore에 묻는다(access-control.mjs). 이 창은 저장소 작업과 따로 움직인다.
 const MSG={
- ACCESS_NOT_SET_UP:'승인 기능이 아직 켜지지 않았어요. Firebase Firestore 규칙에 승인 블록을 더하면 여기서 승인할 수 있어요. 그 전까지는 가입한 누구나 사용할 수 있어요.',
+ ACCESS_NOT_SET_UP:'승인 기능이 아직 켜지지 않았어요. Firebase Firestore 규칙에 승인 블록을 더하면 여기서 승인할 수 있어요. 그 전까지는 관리자 계정 말고는 아무도 들어올 수 없어요.',
  ACCESS_DENIED:'관리자 계정만 승인할 수 있어요.',
  NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',
  SESSION_EXPIRED:'로그인이 만료됐어요. 다시 로그인해 주세요.',
