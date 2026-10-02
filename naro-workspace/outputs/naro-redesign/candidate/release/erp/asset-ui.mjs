@@ -50,19 +50,20 @@ export function installAssets({db,request,save,notify}){
   shot.append(img,plus);
   const name=document.createElement('div');name.className='nd-photo-name';name.textContent=label;
   const state=document.createElement('div');state.className='nd-photo-state';state.setAttribute('role','status');
+  const setState=t=>{if(state.textContent!==t)state.textContent=t;};
   const act=document.createElement('div');act.className='nd-photo-act';
   const up=document.createElement('button');up.type='button';up.className='nd-photo-up';
   const big=document.createElement('button');big.type='button';big.className='nd-photo-big';big.textContent='크게 보기';
   act.append(up,big);
-  const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>state.textContent=t);await show(path);state.textContent='저장 완료';say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){state.textContent=e.message;}});
+  const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>setState(t));await show(path);setState('저장 완료');say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){setState(e.message);}});
   el.append(shot,name,state,act,input);
   let current='';
   async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
    if(!current){emptyText();return;}
-   state.textContent='불러오는 중…';try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;state.textContent='등록됨';}catch{state.textContent='사진을 불러오지 못했습니다 — 잠시 후 다시 시도합니다';setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
-  const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}state.textContent=ok?'등록 안 됨':(hint||'등록 안 됨');};
+   setState('불러오는 중…');try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;setState('등록됨');}catch{setState('사진을 불러오지 못했습니다 — 잠시 후 다시 시도합니다');setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
+  const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}setState(ok?'등록 안 됨':(hint||'등록 안 됨'));};
   show('');
-  const choose=()=>{let t;try{t=target();}catch(e){state.textContent=e.message;return;}if(t&&!busy)input.click();};
+  const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(t&&!busy)input.click();};
   shot.onclick=()=>{current&&!img.hidden?open(img.src,label):choose();};up.onclick=choose;big.onclick=()=>{if(!img.hidden)open(img.src,label);};
   return {el,refresh:()=>{let t='';try{t=target();}catch{}const path=t?db.settings.assets?.[t]:'';if((path||'')!==current)show(path);else if(!current&&!/중…/.test(state.textContent))emptyText();}};
  }
