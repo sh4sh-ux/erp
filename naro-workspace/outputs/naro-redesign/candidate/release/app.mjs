@@ -1,3 +1,4 @@
+import {createAccess,setActiveAccess} from './access-control.mjs';
 import {Onboarding,message,tables} from './core.mjs';
 import {GoogleDriveProvider,DropboxProvider,onboardingReadProvider} from './storage.mjs';
 import {openWorkspace,closeWorkspace,prepareWorkspace} from './workspace.mjs';
@@ -29,7 +30,7 @@ const bind=(id,fn)=>{const el=document.getElementById(id);if(el)el.onclick=fn;};
 function render(state){
  if(state.screen==='login'){closeWorkspace();chooseStorage=false;}
  document.body.dataset.screen=state.screen;
- document.title=document.querySelector('iframe[title="NARO 업무 공간"]')?'NARO Biz · 업무 관리':'NARO Biz · '+({login:'로그인',signup:'회원가입',verify:'이메일 인증',storage:'저장소 연결',connecting:'연결 중',preparing:'불러오는 중',ready:'준비 완료',reset:'비밀번호 재설정','reset-sent':'비밀번호 재설정'}[state.screen]||'업무 관리');
+ document.title=document.querySelector('iframe[title="NARO 업무 공간"]')?'NARO Biz · 업무 관리':'NARO Biz · '+({login:'로그인',signup:'회원가입',verify:'이메일 인증',pending:'승인 대기',rejected:'승인 안 됨',storage:'저장소 연결',connecting:'연결 중',preparing:'불러오는 중',ready:'준비 완료',reset:'비밀번호 재설정','reset-sent':'비밀번호 재설정'}[state.screen]||'업무 관리');
  if(previousScreen!==state.screen){
   if(phaseStarted){const now=performance.now(),key={connecting:'authCheckMs',preparing:'oauthMs',ready:'storagePhaseMs'}[state.screen];if(key)document.documentElement.dataset[key]=String(Math.round(now-phaseStarted));phaseStarted=now;if(state.screen==='ready')document.documentElement.dataset.connectionTotalMs=String(Math.round(now-connectStarted));}
   previousScreen=state.screen;view.replaceChildren();
@@ -87,6 +88,14 @@ function render(state){
   }else if(screen==='workspace'){
    view.innerHTML=heading('나의 NARO','빈 업무 공간이 준비되었습니다.')+
     `<ul class="data-summary">${tables.map((k,i)=>`<li>${labels[i]}<strong>${state.db[k].length}</strong></li>`).join('')}</ul>`+button('logout','로그아웃','secondary');
+  }else if(screen==='pending'||screen==='rejected'){
+   const a=state.access||{},no=screen==='rejected',safe=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+   const day=a.requestedAt&&!isNaN(new Date(a.requestedAt))?new Date(a.requestedAt).toLocaleDateString('ko-KR'):'';
+   view.innerHTML='<div class="access-badge'+(no?' no':'')+'">'+svg(no?'<circle cx="12" cy="12" r="9"/><path d="M8.8 8.8l6.4 6.4M15.2 8.8l-6.4 6.4"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')+'</div>'+
+    heading(no?'사용 승인이<br>되지 않았어요.':'승인을<br>기다리고 있어요.',no?'이 계정은 아직 사용할 수 없어요.<br>관리자에게 문의해 주세요.':'관리자가 가입을 확인하고 있어요.<br>승인되면 바로 사용할 수 있어요.')+
+    '<dl class="access-info"><dt>가입 이메일</dt><dd>'+safe(a.email||auth.email())+'</dd>'+(day?'<dt>신청일</dt><dd>'+day+'</dd>':'')+'<dt>상태</dt><dd><span class="access-state'+(no?' no':'')+'">'+(no?'승인 안 됨':'승인 대기')+'</span></dd></dl>'+
+    button('recheck','승인 확인하기')+'<div class="support-link">'+button('logout','로그아웃','text-button')+'</div>';
+   bind('recheck',()=>flow.recheck());
   }else if(screen==='reset'){
    view.innerHTML=heading('비밀번호를<br>다시 설정하세요.','가입한 이메일로 재설정 안내를 보내드립니다.')+
     `<form class="form">${email()}<button class="primary" type="submit">재설정 메일 보내기</button></form><div class="support-link">${button('back','로그인으로 돌아가기','text-button')}</div>`;
@@ -106,10 +115,11 @@ function render(state){
  view.setAttribute('aria-busy',String(state.busy));
  view.querySelectorAll('button,input').forEach(el=>el.disabled=state.busy||el.hasAttribute('data-visual-disabled')||(el.id==='connect'&&!selectedProvider));
  view.querySelectorAll('[data-provider]').forEach(el=>{if(blockedProviders[el.dataset.provider]){el.disabled=true;el.title=blockedProviders[el.dataset.provider];}});
- notice.textContent=state.error?message(state.error):state.busy&&['login','signup','verify','reset'].includes(state.screen)?'처리 중입니다…':'';
+ notice.textContent=state.error?message(state.error):state.busy&&['login','signup','verify','reset','pending','rejected'].includes(state.screen)?'처리 중입니다…':'';
  notice.setAttribute('role',state.error?'alert':'status');
 }
-const flow=new Onboarding({auth,providerFactory:(kind,uid,signal)=>(()=>{const backend=cloud(kind,uid,signal);return onboardingReadProvider(new (kind==='drive'?GoogleDriveProvider:DropboxProvider)(backend,{signal}),(repository,timing)=>recordRead(repository,backend,timing),{businessWrite:true,extendedWrite:true,initializeNew:true});})(),onChange:render});
+const access=createAccess({auth});setActiveAccess(access);
+const flow=new Onboarding({auth,access,providerFactory:(kind,uid,signal)=>(()=>{const backend=cloud(kind,uid,signal);return onboardingReadProvider(new (kind==='drive'?GoogleDriveProvider:DropboxProvider)(backend,{signal}),(repository,timing)=>recordRead(repository,backend,timing),{businessWrite:true,extendedWrite:true,initializeNew:true});})(),onChange:render});
 render(flow.state);
 const restoreStarted=performance.now();
 await flow.restore();

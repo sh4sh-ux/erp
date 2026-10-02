@@ -4,6 +4,7 @@ export const folders = Object.freeze(['NARO Biz','NARO Biz/Data','NARO Biz/Image
 export const emptyData = () => ({...Object.fromEntries(tables.map(k => [k, []])), settings:{schema:3}});
 export const fault = code => Object.assign(new Error(code), {code});
 const codes = new Set(['QUOTA_LIMIT','NETWORK_ERROR','RECONNECT_REQUIRED','CANCELLED','STORAGE_CONFLICT','STORAGE_INVALID','WRITE_BLOCKED','OAUTH_SETUP_REQUIRED','EMAIL_NOT_VERIFIED','PASSWORD_MISMATCH','BUSY','SESSION_EXPIRED','auth/invalid-credential','auth/invalid-email','auth/weak-password','auth/email-already-in-use','auth/too-many-requests','auth/quota-exceeded','auth/network-request-failed','PREPARING']);
+for(const code of ['ACCESS_PENDING','ACCESS_REJECTED','ACCESS_CHECK_FAILED'])codes.add(code);
 for(const code of ['DRIVE_ACCOUNT_MISMATCH','DRIVE_ACCOUNT_UNVERIFIED','DRIVE_ACCOUNT_CHANGED'])codes.add(code);
 export function safeCode(error) { return codes.has(error?.code) ? error.code : 'UNAVAILABLE'; }
 export function message(error) {
@@ -22,6 +23,9 @@ export function message(error) {
  if(code === 'DRIVE_ACCOUNT_UNVERIFIED') return 'Google 계정을 확인할 수 없어 파일을 열지 않았습니다. 다시 연결해 주세요.';
  if(code === 'DRIVE_ACCOUNT_CHANGED') return '다른 창에서 연결 계정이 변경되어 작업을 중단했습니다. 다시 연결해 주세요.';
  if(code === 'OAUTH_SETUP_REQUIRED') return '저장소 연결 설정 승인 후 사용할 수 있습니다.';
+ if(code === 'ACCESS_PENDING') return '아직 승인 전이에요. 승인되면 다시 눌러 주세요.';
+ if(code === 'ACCESS_REJECTED') return '이 계정은 사용 승인이 되지 않았어요.';
+ if(code === 'ACCESS_CHECK_FAILED') return '승인 상태를 확인하지 못했어요. 잠시 후 다시 눌러 주세요.';
  if(code === 'PREPARING') return '연결을 준비하고 있습니다. 잠시 후 다시 눌러 주세요.';
  return '지금은 작업을 완료할 수 없습니다. 잠시 후 다시 시도해 주세요.';
 }
@@ -76,9 +80,10 @@ export async function bootstrap(provider, {signal}={}) {
 }
 
 export class Onboarding {
- #generation=0; #auth; #factory; #provider=null; #abort=null; #user=null; #busy=false; #preserveAuth=false;
+ #generation=0; #auth; #access; #factory; #provider=null; #abort=null; #user=null; #busy=false; #preserveAuth=false;
  state={screen:'login',busy:false,ready:false,db:null,error:null,provider:null};
- constructor({auth,providerFactory,onChange=()=>{}}) {this.#auth=auth;this.#factory=providerFactory;this.onChange=onChange;}
+ // access: 회원 승인제(없으면 모두 승인). 이메일 인증 뒤 승인된 계정만 저장소 연결 화면으로.
+ constructor({auth,access={check:async()=>({status:'approved'})},providerFactory,onChange=()=>{}}) {this.#auth=auth;this.#access=access;this.#factory=providerFactory;this.onChange=onChange;}
  #emit(patch) {this.state={...this.state,...patch};this.onChange(this.state);}
  #current(g) {if(g!==this.#generation)throw fault('CANCELLED');}
  async #run(screen, work) {
@@ -86,19 +91,33 @@ export class Onboarding {
   this.#busy=true; const g=this.#generation;
   this.#emit({busy:true,error:null});
   try {await work(g);return true;}
-  catch(e) {if(g===this.#generation)this.#emit({screen,error:safeCode(e),ready:false,db:null});return false;}
+  catch(e) {if(g===this.#generation){const code=safeCode(e);this.#emit({screen:['ACCESS_PENDING','ACCESS_REJECTED'].includes(code)?this.state.screen:screen,error:code,ready:false,db:null});}return false;}
   finally {if(g===this.#generation){this.#busy=false;this.#emit({busy:false});}
    else if(!this.#preserveAuth){try{await this.#auth.logout();}catch{/* Disposed controller stays permanently closed. */}}}
  }
+ // 승인 확인 실패(네트워크 등)도 승인 대기 화면에서 [다시 확인]으로 이어 간다 — 로그인 화면에 갇히지 않게.
+ async #admit(g) {
+  let result;
+  try{result=await this.#access.check();}
+  catch(e){this.#current(g);this.#emit({screen:'pending',access:null,error:safeCode(e)});return null;}
+  this.#current(g);
+  this.#emit({screen:result.status==='approved'?'storage':result.status==='rejected'?'rejected':'pending',access:result});
+  return result;
+ }
+ async recheck() {return this.#run(this.state.screen==='rejected'?'rejected':'pending',async g=>{
+  if(!this.#user?.emailVerified)throw fault('SESSION_EXPIRED');
+  const result=await this.#admit(g);
+  if(result&&result.status!=='approved')throw fault(result.status==='rejected'?'ACCESS_REJECTED':'ACCESS_PENDING');
+ });}
  show(screen) {if(!this.#busy && !this.#user && ['login','signup','reset'].includes(screen))this.#emit({screen,error:null});}
- async restore() {if(!this.#auth.restore)return;return this.#run('login',async g=>{const user=await this.#auth.restore();this.#current(g);this.#user=user;if(user)this.#emit({screen:user.emailVerified?'storage':'verify'});});}
+ async restore() {if(!this.#auth.restore)return;return this.#run('login',async g=>{const user=await this.#auth.restore();this.#current(g);this.#user=user;if(user){if(user.emailVerified)await this.#admit(g);else this.#emit({screen:'verify'});}});}
  sessionChanged(user) {if(this.#user&&this.#user.uid!==user?.uid){this.#preserveAuth=true;this.#generation++;this.#abort?.abort();const p=this.#provider;this.#provider=null;this.#user=null;this.#busy=false;this.#emit({screen:'login',busy:false,ready:false,db:null,provider:null,error:'SESSION_EXPIRED'});Promise.resolve(p?.disconnect()).catch(()=>{});}}
  async authenticate(mode,email,password,confirmation,options={}) {
   if(this.#user)return false;
   return this.#run(mode,async g=>{
    if(mode==='signup' && password!==confirmation)throw fault('PASSWORD_MISMATCH');
    const user=await this.#auth[mode](email,password,options); this.#current(g);this.#user=user;
-   this.#emit({screen:user.emailVerified?'storage':'verify'});
+   if(user.emailVerified)await this.#admit(g);else this.#emit({screen:'verify'});
    if(mode==='signup') {
     // Account already exists even if mail delivery fails: keep verification recovery screen.
     try{await this.#auth.sendVerification();this.#current(g);}
@@ -109,7 +128,7 @@ export class Onboarding {
  async verify() {return this.#run('verify',async g=>{
   const user=await this.#auth.reload();this.#current(g);
   if(!user?.emailVerified)throw fault('EMAIL_NOT_VERIFIED');
-  this.#user=user;this.#emit({screen:'storage'});
+  this.#user=user;await this.#admit(g);
  });}
  async resend() {return this.#run('verify',async()=>{await this.#auth.sendVerification();});}
  async reset(email) {return this.#run('reset',async g=>{
@@ -120,6 +139,8 @@ export class Onboarding {
   if(!['drive','dropbox'].includes(kind))throw fault('OAUTH_SETUP_REQUIRED');
   const current=await this.#auth.reload();this.#current(g);
   if(!current?.emailVerified || current.uid!==this.#user.uid)throw fault('SESSION_EXPIRED');
+  const access=await this.#access.check();this.#current(g);
+  if(access.status!=='approved'){this.#emit({screen:access.status==='rejected'?'rejected':'pending',access});throw fault(access.status==='rejected'?'ACCESS_REJECTED':'ACCESS_PENDING');}
   this.#abort=new AbortController();
   const provider=this.#factory(kind,this.#user.uid,this.#abort.signal);this.#provider=provider;
   try{

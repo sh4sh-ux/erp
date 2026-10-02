@@ -1,0 +1,31 @@
+rules_version = '2';
+// NARO Biz 회원 승인제. Firebase 콘솔 → Firestore Database → 규칙 탭에 그대로 붙여 넣고 [게시].
+// access/{uid} = { email, status: 'pending' | 'approved' | 'rejected', requestedAt, decidedAt }
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function admin() {
+      return signedIn() && request.auth.token.email == 'onlysh4sh@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    match /access/{uid} {
+      // 본인 상태 확인 · 관리자 목록
+      allow get: if admin() || (signedIn() && request.auth.uid == uid);
+      allow list: if admin();
+      // 처음 들어온 사람: 본인 문서를 '승인 대기'로만 만들 수 있다
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['email', 'status', 'requestedAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.requestedAt is timestamp;
+      // 승인 · 거절 · 승인 취소는 관리자만
+      allow update: if admin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+        && request.resource.data.status in ['pending', 'approved', 'rejected'];
+      allow delete: if admin();
+    }
+    // 그 밖의 모든 문서는 아무도 읽고 쓸 수 없다
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,5 +1,6 @@
 import {createMergeImport} from './merge-import.mjs';
 import {createGmailSender} from './gmail-send.mjs';
+import {activeAccess} from './access-control.mjs';
 let gmail=null;
 // Only fixed diagnostic labels cross into the UI; never forward provider messages.
 export function safeStorageFailure(error){
@@ -59,6 +60,17 @@ export function openWorkspace(data,logout,repository){
     if(m.type==='MAIL_SEND'){gmail.send({to:m.to,subject:m.subject,body:m.body,filename:m.filename,bytes:m.bytes instanceof Uint8Array?m.bytes:null}).then(r=>reply({type:'MAIL_DONE',...r}),fail);return;}
     return;
    }
+   // 사용자 승인(관리자만): 저장소 작업과 따로. 관리자가 아니면 목록도 결정도 하지 않는다(서버 규칙도 같은 것을 막는다).
+   if(typeof m?.type==='string'&&m.type.startsWith('ACCESS_')){
+    const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
+    const codes=['ACCESS_DENIED','ACCESS_NOT_SET_UP','NETWORK_ERROR','SESSION_EXPIRED','QUOTA_LIMIT','VALIDATION'];
+    const fail=e=>reply({type:'ACCESS_ERROR',code:codes.includes(e?.code)?e.code:'ACCESS_CHECK_FAILED'});
+    const access=activeAccess();
+    if(!access?.isAdmin()){fail({code:'ACCESS_DENIED'});return;}
+    if(m.type==='ACCESS_LIST'){access.list().then(users=>reply({type:'ACCESS_USERS',users}),fail);return;}
+    if(m.type==='ACCESS_DECIDE'){access.decide(m.uid,m.status).then(user=>reply({type:'ACCESS_DONE',user}),fail);return;}
+    return;
+   }
    // 사진 요청은 버리지 않는다: 저장·가져오기 중이면 바로 BUSY로 답해 화면이 기다리며 멈추지 않게 한다.
    if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&(busy||importer.active())){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,code:'BUSY'});return;}
    if(importer.active())return;
@@ -84,7 +96,7 @@ export function openWorkspace(data,logout,repository){
    finally{busy=false;}
   };
   const provider=repository.identities()[0]?.provider;
-  target.contentWindow.postMessage({type:'NARO_READ_SNAPSHOT',data,provider},location.origin,[channel.port2]);
+  target.contentWindow.postMessage({type:'NARO_READ_SNAPSHOT',data,provider,admin:activeAccess()?.isAdmin()===true},location.origin,[channel.port2]);
  };
  ready=e=>{if(e.origin===location.origin&&e.source===target.contentWindow&&e.data?.type==='NARO_READ_READY')deliver();};
  window.addEventListener('message',ready);

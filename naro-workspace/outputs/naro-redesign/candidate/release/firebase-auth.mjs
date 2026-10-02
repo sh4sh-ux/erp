@@ -8,6 +8,9 @@ export function createFirebaseAuth(sdk,app,preferenceStorage=()=>globalThis.loca
  const preferenceKey=()=>auth.currentUser?.uid?'naro.provider.v1:'+auth.currentUser.uid:null;
  return {
   currentIdentity(){return identity(auth.currentUser);},
+  // 회원 승인제(access-control.mjs)만 쓴다: 로그인 이메일과 Firestore 요청용 ID 토큰.
+  email(){return auth.currentUser?.email||'';},
+  async idToken(){return auth.currentUser?auth.currentUser.getIdToken():null;},
   preferredProvider(){try{const key=preferenceKey(),value=key?preferenceStorage()?.getItem(key):null;return ['drive','dropbox'].includes(value)?value:null;}catch{return null;}},
   rememberProvider(kind){if(!['drive','dropbox'].includes(kind))return;try{const key=preferenceKey();if(key)preferenceStorage()?.setItem(key,kind);}catch{/* Preference failure never blocks sign-in. */}},
   async signup(email,password){await sdk.setPersistence?.(auth,sdk.inMemoryPersistence);const result=await sdk.createUserWithEmailAndPassword(auth,email,password);return identity(result.user);},

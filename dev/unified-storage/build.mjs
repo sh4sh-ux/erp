@@ -138,7 +138,26 @@ if(business){
  const ready="view.innerHTML=heading('업무 화면을<br>열고 있습니다.','저장공간 확인이 완료되었습니다.');";
  if(app.includes(ready))app=app.replace(ready,"view.innerHTML=heading('업무 화면을<br>열고 있습니다.','저장공간 확인이 완료되었습니다.')+'<div class=\"progress\" role=\"progressbar\" aria-label=\"화면 여는 중\" data-step=\"3\"></div>';");
 }
+// 회원 승인제: 이메일 인증 → 승인 대기(관리자 승인) → 저장소 연결. 관리자 화면은 업무 화면 안(access-ui.mjs).
+{
+ const anchors=["const flow=new Onboarding({auth,","  }else if(screen==='reset'){","verify:'이메일 인증',","['login','signup','verify','reset'].includes(state.screen)?'처리 중입니다…'"];
+ for(const a of anchors)if(!app.includes(a))throw Error('ACCESS_UI_BOUNDARY_CHANGED '+a);
+ app="import {createAccess,setActiveAccess} from './access-control.mjs';\n"+app;
+ app=app.replace("const flow=new Onboarding({auth,","const access=createAccess({auth});setActiveAccess(access);\nconst flow=new Onboarding({auth,access,");
+ app=app.replace("verify:'이메일 인증',","verify:'이메일 인증',pending:'승인 대기',rejected:'승인 안 됨',");
+ app=app.replace("['login','signup','verify','reset'].includes(state.screen)?'처리 중입니다…'","['login','signup','verify','reset','pending','rejected'].includes(state.screen)?'처리 중입니다…'");
+ app=app.replace("  }else if(screen==='reset'){",`  }else if(screen==='pending'||screen==='rejected'){
+   const a=state.access||{},no=screen==='rejected',safe=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+   const day=a.requestedAt&&!isNaN(new Date(a.requestedAt))?new Date(a.requestedAt).toLocaleDateString('ko-KR'):'';
+   view.innerHTML='<div class="access-badge'+(no?' no':'')+'">'+svg(no?'<circle cx="12" cy="12" r="9"/><path d="M8.8 8.8l6.4 6.4M15.2 8.8l-6.4 6.4"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')+'</div>'+
+    heading(no?'사용 승인이<br>되지 않았어요.':'승인을<br>기다리고 있어요.',no?'이 계정은 아직 사용할 수 없어요.<br>관리자에게 문의해 주세요.':'관리자가 가입을 확인하고 있어요.<br>승인되면 바로 사용할 수 있어요.')+
+    '<dl class="access-info"><dt>가입 이메일</dt><dd>'+safe(a.email||auth.email())+'</dd>'+(day?'<dt>신청일</dt><dd>'+day+'</dd>':'')+'<dt>상태</dt><dd><span class="access-state'+(no?' no':'')+'">'+(no?'승인 안 됨':'승인 대기')+'</span></dd></dl>'+
+    button('recheck','승인 확인하기')+'<div class="support-link">'+button('logout','로그아웃','text-button')+'</div>';
+   bind('recheck',()=>flow.recheck());
+  }else if(screen==='reset'){`);
+}
 await writeFile(resolve(release,'app.mjs'),app);
+await copyFile(resolve(here,'access-control.mjs'),resolve(release,'access-control.mjs'));
 if(business)await copyFile(resolve(here,'business-workspace.mjs'),resolve(release,'workspace.mjs'));
 // Reuse sanitized v1.186 renderers, not the original private-data artifact.
 const erp=resolve(root,'outputs/privacy-safe-companies-pilot/source/app');
@@ -246,6 +265,7 @@ if(business){
  await copyFile(resolve(here,'tabular-import.mjs'),resolve(release,'erp/tabular-import.mjs'));
  await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
+ await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
 }
 if(extended){
  await copyFile(resolve(here,'vendor/jszip-3.10.1.min.js'),resolve(release,'erp/jszip.min.js'));

@@ -10,8 +10,12 @@
       "sha256": "03c62c30dc4608eda380fe446a5c0a46b0a7857f4e73bbf6c8b7f237bd52d3f7"
     },
     {
+      "path": "access-control.mjs",
+      "sha256": "8d0c464141b0eb5ddd43f85c14058ec54343ae62518483ebb62af8471499c281"
+    },
+    {
       "path": "app.mjs",
-      "sha256": "0d84f3dbbb54ffdd926eec872da4694b25d9c21f7f2e941a1d44df9f32899c35"
+      "sha256": "072f090284f8804f7947e50362c726403dfc67e1ad9a6ce60ca2e19ec8a791e5"
     },
     {
       "path": "asset-store.mjs",
@@ -35,7 +39,7 @@
     },
     {
       "path": "core.mjs",
-      "sha256": "b93d1a69a535e86e352e5f94eb112d8cd8337ae5dbf9e72f86f4f71e5b8f44bf"
+      "sha256": "ba7b90d31b7959782be3a3a302a9c4ace229c412d9c4e4ce9dd24c3c4a2bb67b"
     },
     {
       "path": "design-master.png",
@@ -78,12 +82,16 @@
       "sha256": "566c953c6090b1218ca6217dd7359d45dde46581968586dc607d59a78af6a9c4"
     },
     {
+      "path": "erp/access-ui.mjs",
+      "sha256": "a612eaa77a74c2c60e877fc28e3c9155a8aa98bc26cf93d3c054b7c4b0385660"
+    },
+    {
       "path": "erp/asset-ui.mjs",
       "sha256": "5a926d1abc0234faa0e8da7249c0e506766073907039e5b50f1f917f5a14732a"
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "7a292cbf2d65e634303f31d0e25c6f4da6098bed76948bd47ce0a36bf1aec93c"
+      "sha256": "c4e915397da890e9c70a46c97f2acb03bf606709c81199c72357201ed783deb9"
     },
     {
       "path": "erp/favicon.png",
@@ -103,7 +111,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "4c7bb058556d10a4b0c8baf9d80a11f6f50dfcc70a24a8d52222e0a0e58767c5"
+      "sha256": "3a8569e71b71d17802312cee101fbecc28fe3b1cb5f47ed952b10f862aa508ef"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -175,7 +183,7 @@
     },
     {
       "path": "firebase-auth.mjs",
-      "sha256": "ab6a9cb9736d4579eba9c057660e0120eafe2c32931b49b7de05f669676a444e"
+      "sha256": "6a493a48fcb46f080644d690b382dc10f25643bfa6f9836367283a7146707803"
     },
     {
       "path": "gmail-send.mjs",
@@ -191,7 +199,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "3adbbb31ccc522bafbd70b21c4780cb2d0cb6a421921f8eee3667943185f7013"
+      "sha256": "e188e3b5f53cfe637ef430e5264703028a1070fead77f19a5f6a2c5609ba3e75"
     },
     {
       "path": "manifest.webmanifest",
@@ -251,7 +259,7 @@
     },
     {
       "path": "style.css",
-      "sha256": "3e33d3e9aafc4e357cd982cdf0b79165deb62eb5b3c6c28562a7bb397dfe8f43"
+      "sha256": "9a879d007c45c1e5a9f3b8068c655ccb2d05fae81ca82c310e40dc38ccbd49cb"
     },
     {
       "path": "theme.js",
@@ -259,10 +267,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "fdf0d74bdb2c4de7bb5d4a374d21f794ee180b1cac08492771e164b7a78afcf6"
+      "sha256": "dcefbcfcaa0b9662c09ca706ffed1345a77214b24d33bba4b011c8c5479cb902"
     }
   ],
-  "aggregate": "e5e7b76c3cd5a0f6b7f9d96afcf25cfd1f5d323e192d316f004532c91cbf7b24",
+  "aggregate": "6c1b71d990c250e6d3aa7adf292cb9e6704849eaa0a924c8129134380fd15e51",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

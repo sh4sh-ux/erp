@@ -172,3 +172,17 @@ body[data-screen="storage"] .connect-note+.remember{justify-content:center;margi
 .reconnect-links .text-button{padding:6px 2px;font-size:13px;color:var(--o-ink-2)}
 @media(max-width:1099px){.primary.connect-hero{height:56px}}
 .primary.connect-hero:focus-visible{outline:2px solid color-mix(in srgb,var(--o-link) 45%,transparent);outline-offset:3px}
+/* 회원 승인제: 승인 대기 · 승인 안 됨 */
+.access-badge{width:52px;height:52px;border-radius:16px;background:rgba(255,149,0,.12);color:#FF9500;display:grid;place-items:center;margin:0 0 22px}
+.access-badge.no{background:rgba(217,45,32,.1);color:#D92D20}
+.access-badge svg{width:26px;height:26px}
+.access-info{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0 0 22px;padding:14px 16px;border-radius:12px;background:var(--o-soft);font-size:14px;line-height:20px}
+.access-info dt{color:var(--o-ink-3)}
+.access-info dd{margin:0;text-align:right;font-weight:600;color:var(--o-ink);overflow-wrap:anywhere}
+.access-state{display:inline-flex;align-items:center;gap:6px;color:#E08600}
+.access-state:before{content:'';width:7px;height:7px;border-radius:50%;background:#FF9500}
+.access-state.no{color:#D92D20}.access-state.no:before{background:#D92D20}
+html[data-theme="dark"] .access-badge{color:#FF9F0A}
+html[data-theme="dark"] .access-state{color:#FF9F0A}
+html[data-theme="dark"] .access-badge.no,html[data-theme="dark"] .access-state.no{color:#FF6B6B}
+html[data-theme="dark"] .access-state.no:before{background:#FF6B6B}
