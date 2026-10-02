@@ -615,7 +615,7 @@
   const r=btn.getBoundingClientRect(),pop=document.createElement('div');pop.className='ip-pop nd-ip-pop';
   pop.innerHTML='<input type="text" placeholder="품명·코드 검색" autocomplete="off"><div class="ip-list"></div>';
   (document.getElementById('appView')||document.body).append(pop);ndPop=pop;
-  const w=Math.max(300,Math.min(r.width,520));pop.style.width=w+'px';pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  const w=Math.min(Math.max(300,r.width),innerWidth-16);/* 칸과 같은 너비(좁은 칸만 300 이상) */pop.style.width=w+'px';pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
   const below=innerHeight-r.bottom,above=below<240&&r.top>below;if(above)pop.style.bottom=(innerHeight-r.top+6)+'px';else pop.style.top=(r.bottom+6)+'px';
   pop.style.maxHeight=Math.max(0,(above?r.top:below)-14)+'px';
   const input=pop.querySelector('input'),list=pop.querySelector('.ip-list');let hi=0,shown=[];
