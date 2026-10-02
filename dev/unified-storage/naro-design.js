@@ -484,7 +484,7 @@
    const cr=chart.getBoundingClientRect(),gr=g.getBoundingClientRect(),bars=g.querySelector('.cbars')?.getBoundingClientRect()||gr;
    cur.style.left=(gr.left-cr.left+gr.width/2)+'px';cur.style.top=(bars.top-cr.top)+'px';cur.style.height=bars.height+'px';cur.hidden=false;
    const label=g.querySelector('.clabel')?.textContent.trim()||'';const v=k=>(g.querySelector('.cbar.'+k)?.dataset.v||'').replace(/^\S+\s*/,'');
-   note.innerHTML='';const b=document.createElement('b');b.textContent=label;note.append(b,` · 매출 ${v('sale')} · 입금 ${v('in')}`);
+   note.innerHTML='';const b=document.createElement('b');b.textContent=label;const sp=(c,t)=>{const x=document.createElement('span');x.className=c;x.textContent=t;return x;};note.append(b,' · ',sp('s','매출 '+v('sale')),' · ',sp('i','입금 '+v('in')));
    note.hidden=false;legend.hidden=true;chart.classList.add('nd-chov');};
   const hide=()=>{last?.classList.remove('nd-con');last=null;cur.hidden=true;note.hidden=true;legend.hidden=false;chart.classList.remove('nd-chov');};
   chart.addEventListener('pointermove',show);chart.addEventListener('pointerdown',show);

@@ -1175,7 +1175,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 }
 @media screen and (max-width:780px){
  #appView .shell .main>#view-materials::after{order:99}
- #appView #view-materials .material-master{margin:0 -16px!important}
+ #appView #view-materials .material-master{margin:0!important}
  #appView #view-materials.nd-mm-open .material-stepper>input{flex:none!important;width:44px!important;min-width:0!important;padding:0!important;text-align:center}
  #appView #view-materials.nd-mm-open .material-stepper>button{width:40px!important;min-width:0!important}
  #appView #view-materials.nd-mm-open .material-record-side{flex-direction:row!important}
@@ -1222,3 +1222,57 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView .shell .main .view .list-head{background:var(--nd-surface)!important}
 }
 @media screen and (max-width:1023px){#appView .shell .main :is(#view-companies,#view-items,#view-quotes)>.cols>.card>.list-head{background:var(--nd-surface)!important}}
+/* ════════ 폰 디자인 = A. 섹션 카드형 (≤780px) ════════
+   바탕은 회색(--nd-page), 내용 덩어리는 흰 카드(--nd-surface, 모서리 16, 좌우 12px), 카드 안 입력 칸은 연한 회색(--nd-fill) 무테.
+   바깥 테두리 상자는 없앤다. 입력은 한 줄에 칸 하나, 저장 버튼은 아래 고정. 새 화면도 이 규칙을 쓴다. */
+@media screen and (max-width:780px){
+ #appView .shell{padding:0!important;background:var(--nd-page)!important}
+ #appView .shell>.main{border:0!important;border-radius:0!important;background:var(--nd-page)!important;box-shadow:none!important}
+ #appView .shell .main>.view{background:var(--nd-page)!important;padding-left:0!important;padding-right:0!important}
+ #appView .shell .main>.view>.page-head{background:var(--nd-page)!important;border-bottom:0!important;margin-left:0!important;margin-right:0!important}
+ #appView .shell .main>.view>.nd-chips-m{background:var(--nd-page)!important;border-bottom:0!important;padding:0 16px!important;margin:0 0 4px!important}
+ /* 카드 */
+ #appView .shell .main>.view>.card,#appView .shell .main>.view>.cols>.card,#appView .shell .main>.view>.ops-summary,#appView .shell .main>.view>.stats{margin:0 12px 12px!important;border:0!important;border-radius:16px!important;background:var(--nd-surface)!important;box-shadow:none!important;overflow:hidden}
+ #appView .shell .main>.view .card .card{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;margin:0!important}
+ /* 카드 안 입력: 연한 회색 무테, 한 줄에 하나 */
+ #appView .shell .main .view .card :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea,.date-control){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+ #appView .shell .main .view .card .date-control>input{background:transparent!important;border:0!important}
+ #appView .shell .main .view .card :is(input,select,textarea):focus{border-color:var(--nd-blue)!important;box-shadow:0 0 0 3px var(--nd-blue-soft)!important;background-color:var(--nd-surface)!important}
+}
+/* ── 폰 · 입금·출금 입력 ── */
+@media screen and (max-width:780px){
+ #appView #view-payments #payEntry>summary{padding:16px!important;font:700 15px/20px var(--sans)!important;color:var(--nd-ink)!important;border:0!important}
+ #appView #view-payments .pay-add{display:flex!important;flex-direction:column;gap:12px!important;padding:4px 16px 0!important;border:0!important;background:none!important}
+ #appView #view-payments .pay-add>.pf{width:100%!important;max-width:none!important;margin:0!important;grid-column:auto!important}
+ #appView #view-payments .pay-add>.pf>label{font:600 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important;margin:0 0 6px!important;display:block}
+ #appView #view-payments .pay-add>.pf :is(select,input,.date-control){width:100%!important;height:46px!important;min-height:46px!important;border-radius:12px!important;font-size:16px!important}
+ #appView #view-payments .pay-add>.pf-amt>input{font:800 22px/1 var(--sans)!important;letter-spacing:-.4px;text-align:right}
+ #appView #view-payments .pay-add>.pf-amt{order:-1}
+ #appView #view-payments .pay-add>.pf-kind{order:-2}
+ #appView #view-payments .pay-add>.pf-btn{order:99;position:sticky;bottom:0;z-index:5;display:flex!important;flex-direction:row!important;gap:8px!important;margin:4px -16px 0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ #appView #view-payments .pay-add>.pf-btn>#payClose{flex:none!important;width:auto!important;min-width:96px;padding:0 14px!important;white-space:nowrap;height:48px!important;margin:0!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important;font:600 15px/1 var(--sans)!important}
+ #appView #view-payments .pay-add>.pf-btn>#payAddBtn{flex:1!important;width:auto!important;height:48px!important;margin:0!important;border-radius:12px!important;font:600 15px/1 var(--sans)!important}
+ #appView #view-payments .ops-results{padding:12px 16px!important;margin:0!important;border-top:8px solid var(--nd-page)!important}
+}
+/* ── 돈 색 규칙: 입금·출금 화면은 입금 = 파랑, 출금 = 빨강. 대시보드 '매출·입금'은 매출 = 파랑, 입금 = 초록(막대·범례 점·범례 글자·짚어 보기 글자 모두). ── */
+#appView #view-dash .card-head .legend>span:nth-child(1){color:var(--nd-blue)!important;font-weight:600}
+#appView #view-dash .card-head .legend>span:nth-child(2){color:var(--nd-green)!important;font-weight:600}
+#appView #view-dash .card-head>.nd-chd .s{color:var(--nd-blue);font-weight:600}
+#appView #view-dash .card-head>.nd-chd .i{color:var(--nd-green);font-weight:600}
+@media screen and (max-width:780px){
+ /* 보기 좌우 여백(16px)을 없앤 대신, 그 여백을 상쇄하던 음수 여백도 없앤다 */
+ html body #appView .shell .main>.view.view>.cols.cols{margin-left:0!important;margin-right:0!important;width:auto!important}
+ #appView .shell .main>.view>.cols>.card{margin-left:12px!important;margin-right:12px!important;width:auto!important;max-width:none!important}
+ #appView .shell .main>.view>.cols>.card>:is(.list-head,.nd-chips,.list){margin-left:0!important;margin-right:0!important;width:auto!important}
+}
+@media screen and (max-width:780px){html body #appView .shell .main>:is(#view-items,#view-quotes,#view-companies)>.cols{margin-left:0!important;margin-right:0!important}}
+@media screen and (max-width:780px){
+ /* 여백 한 가지 규칙: 화면 좌우 12px, 카드는 그 안을 꽉 채움, 머리·칩 줄만 화면 끝까지(안쪽 16px) */
+ #appView .shell .main>.view{padding-left:12px!important;padding-right:12px!important}
+ #appView .shell .main>.view>.page-head{margin-left:-12px!important;margin-right:-12px!important}
+ #appView .shell .main>.view>.nd-chips-m{margin-left:-12px!important;margin-right:-12px!important}
+ #appView .shell .main>.view>.card,#appView .shell .main>.view>.cols>.card,#appView .shell .main>.view>.ops-summary,#appView .shell .main>.view>.stats{margin-left:0!important;margin-right:0!important}
+ html body #appView .shell .main>:is(#view-items,#view-quotes,#view-companies)>.cols{margin-left:0!important;margin-right:0!important}
+ /* 카드 밖 글자 블록은 카드 안 글자와 같은 선(16px)에 */
+ #appView .shell .main>.view>:not(.card):not(.cols):not(.page-head):not(.nd-chips-m):not(.stats):not(.ops-summary):not(#materialContent):not(.copy-note){padding-left:4px;padding-right:4px}
+}
