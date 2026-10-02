@@ -59,6 +59,8 @@ export function openWorkspace(data,logout,repository){
     if(m.type==='MAIL_SEND'){gmail.send({to:m.to,subject:m.subject,body:m.body,filename:m.filename,bytes:m.bytes instanceof Uint8Array?m.bytes:null}).then(r=>reply({type:'MAIL_DONE',...r}),fail);return;}
     return;
    }
+   // 사진 요청은 버리지 않는다: 저장·가져오기 중이면 바로 BUSY로 답해 화면이 기다리며 멈추지 않게 한다.
+   if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&(busy||importer.active())){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,code:'BUSY'});return;}
    if(importer.active())return;
    if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&!busy){
     busy=true;

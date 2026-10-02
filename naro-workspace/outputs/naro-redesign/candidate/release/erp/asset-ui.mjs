@@ -15,7 +15,8 @@ async function normalize(file,maxSide=1600){
 export function installAssets({db,request,save,notify}){
  let busy=false,queue=Promise.resolve();const urls=new Map();
  // The storage channel takes one request at a time: queue them.
- const call=(type,body)=>{const run=queue.then(()=>request(type,body));queue=run.catch(()=>{});return run;};
+ // 응답이 오지 않는 요청이 줄을 영원히 막지 않도록 45초 뒤 실패로 정리한다.
+ const call=(type,body)=>{const run=queue.then(()=>Promise.race([request(type,body),new Promise((_,rej)=>setTimeout(()=>rej(Error('응답이 늦어 중단했어요. 다시 눌러 주세요.')),45000))]));queue=run.catch(()=>{});return run;};
  const say=t=>{try{notify(t);}catch{}};
  async function read(path){
   if(urls.has(path))return urls.get(path);
@@ -48,7 +49,7 @@ export function installAssets({db,request,save,notify}){
   const img=document.createElement('img');img.alt=label;img.hidden=true;
   const plus=document.createElement('span');plus.className='nd-photo-empty';plus.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><b>사진 첨부</b>';
   shot.append(img,plus);
-  const name=document.createElement('div');name.className='nd-photo-name';name.textContent=label;
+  const name=document.createElement('div');name.className='nd-photo-name';const nameT=document.createElement('span');nameT.textContent=label;name.append(nameT);
   const state=document.createElement('div');state.className='nd-photo-state';state.setAttribute('role','status');
   const setState=t=>{if(state.textContent!==t)state.textContent=t;};
   const act=document.createElement('div');act.className='nd-photo-act';
@@ -57,14 +58,16 @@ export function installAssets({db,request,save,notify}){
   const del=document.createElement('button');del.type='button';del.className='nd-photo-del';del.textContent='삭제';
   act.append(up,big,del);
   const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>setState(t));await show(path);setState('저장 완료');say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){setState(e.message);}});
-  el.append(shot,name,state,act,input);
-  let current='';
+  name.append(state);el.append(shot,name,act,input);
+  let current='';const tries={};
   async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;del.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
    if(!current){emptyText();return;}
-   setState('불러오는 중…');try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;setState('등록됨');}catch{setState('사진을 불러오지 못했습니다 — 잠시 후 다시 시도합니다');setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
+   setState('불러오는 중…');try{const url=await read(current);if(current!==path)return;img.src=url;img.hidden=false;plus.hidden=true;setState('등록됨');}catch{setState('사진을 불러오지 못했어요');if((tries[path]=(tries[path]||0)+1)<3)setTimeout(()=>{if(current===path)current='\u0000retry';},4000);}}
   const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}setState(ok?'등록 안 됨':(hint||'등록 안 됨'));};
   show('');
-  const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(t&&!busy)input.click();};
+  // 누를 때마다 반드시 눈에 보이는 반응: 파일 창을 열거나, 왜 못 여는지 상태 줄과 알림에 알린다.
+  const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);el.classList.add('warn');say(e.message);return;}el.classList.remove('warn');
+   if(busy){const m='다른 사진을 저장하고 있어요. 잠시 후 다시 눌러 주세요.';setState(m);say(m);return;}if(t)input.click();};
   shot.onclick=()=>{current&&!img.hidden?open(img.src,label):choose();};up.onclick=choose;big.onclick=()=>{if(!img.hidden)open(img.src,label);};
   del.onclick=async()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(!current||busy)return;
    if(!confirm(label+' 사진을 지울까요?\n(클라우드의 원본 파일은 남겨 두고, 이 화면에서만 연결을 끊어요.)'))return;

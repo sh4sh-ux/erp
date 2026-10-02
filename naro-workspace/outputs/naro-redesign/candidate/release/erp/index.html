@@ -8383,6 +8383,116 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #printArea .nd-pq>img{flex:none;width:38px;height:38px;box-sizing:border-box;padding:2px;border-radius:8px;background:#F4F5F7;object-fit:contain}
 #printArea .nd-pq>i{flex:none;width:38px}
 #printArea tr.nd-pq-grp>td{border-bottom-color:transparent!important}
+/* ── 업체 제공 자재: 자재 칩·기록 창 버튼 순서 (PC·폰 공통) ── */
+#appView #view-materials .material-type-tabs{display:flex;flex-wrap:wrap;gap:6px}
+#appView #view-materials .material-type-tab{height:30px!important;min-height:0!important;padding:0 12px!important;border-radius:15px!important;border:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;color:var(--nd-ink-2)!important;font:600 13px/1 var(--sans)!important;box-shadow:none!important}
+#appView #view-materials .material-type-tab.active{background:var(--nd-ink)!important;border-color:var(--nd-ink)!important;color:var(--nd-frame)!important}
+#appView #view-materials .nd-mm-kindsrc{display:none!important}
+#appView #view-materials .nd-mm-kind{margin:0 0 14px}
+#appView #view-materials .nd-mm-kind>button{height:40px}
+#appView #view-materials .nd-mm-bar,#appView #view-materials .nd-mm-asof{display:none}
+/* ── 폰: 목록 → 상세 ── */
+@media screen and (max-width:780px){
+ #appView .shell .main>#view-materials{display:flex!important;flex-direction:column}
+ #appView .shell .main>#view-materials>#materialContent{order:2}
+ #appView .shell .main>#view-materials>.copy-note{order:3;display:flex;gap:8px;margin:16px!important;padding:0!important;border:0!important;background:none!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
+ #appView .shell .main>#view-materials>.copy-note::before{content:'i';flex:none;width:15px;height:15px;margin-top:1px;border:1.5px solid currentColor;border-radius:50%;display:grid;place-items:center;font:700 10px/1 var(--sans);box-sizing:border-box}
+ #appView #view-materials .material-master{display:block!important;border:0!important;background:none!important;box-shadow:none!important;padding:0!important;margin:0!important}
+ #appView #view-materials .material-owners{border:0!important;padding:0!important;margin:0!important;background:none!important;width:auto!important}
+ #appView #view-materials .material-owner-list{margin:0!important;padding:0!important;gap:0!important}
+ #appView #view-materials .material-owner{width:100%!important;margin:0!important;padding:16px!important;border-left:0!important;border-right:0!important;border-top:0!important;box-shadow:none!important;background:transparent!important}
+ #appView #view-materials:not(.nd-mm-open) .material-owner.active .material-owner-line>span{color:var(--nd-ink)!important}
+ /* 목록 상태: 상세는 숨기고(기록 창만 예외) */
+ #appView #view-materials:not(.nd-mm-open) .material-detail>*:not(.material-detail-form){display:none!important}
+ #appView #view-materials:not(.nd-mm-open) .material-detail{padding:0!important;border:0!important;min-height:0!important}
+ /* 상세 상태 */
+ #appView #view-materials.nd-mm-open>.page-head,#appView #view-materials.nd-mm-open>.copy-note,#appView #view-materials.nd-mm-open .material-owners{display:none!important}
+ #appView #view-materials.nd-mm-open .material-detail{display:flex!important;flex-direction:column;padding:0!important;border:0!important;min-height:100%}
+ #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{order:0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;padding:10px 16px;background:var(--nd-surface);border-bottom:1px solid var(--nd-line)}
+ #appView #view-materials .nd-mm-back{height:36px;padding:0;border:0;background:none;color:var(--nd-ink-2);font:500 14px/1 var(--sans);cursor:pointer}
+ #appView #view-materials .nd-mm-more{position:relative}
+ #appView #view-materials .nd-mm-more>summary{list-style:none;width:36px;height:36px;box-sizing:border-box;border:1px solid var(--nd-line);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--nd-ink-2);cursor:pointer}
+ #appView #view-materials .nd-mm-more>summary::-webkit-details-marker{display:none}
+ #appView #view-materials .nd-mm-more>summary::before{content:'';width:16px;height:16px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat}
+ #appView #view-materials .nd-mm-pop{position:absolute;right:0;top:calc(100% + 6px);width:250px;padding:14px;border:1px solid var(--nd-line);border-radius:14px;background:var(--nd-surface);box-shadow:0 12px 32px rgba(15,20,35,.16);z-index:20}
+ #appView #view-materials .nd-mm-pop>.material-statement-controls{display:flex!important;flex-direction:column;align-items:stretch!important;gap:10px!important;margin:0!important;width:auto!important}
+ #appView #view-materials .nd-mm-pop>.material-statement-controls>*{width:100%!important;margin:0!important}
+ #appView #view-materials .nd-mm-pop #mm_statement{height:42px}
+ #appView #view-materials.nd-mm-open .material-detail-head{order:1;display:block!important;padding:18px 16px 0!important;margin:0!important;border:0!important;background:none!important}
+ #appView #view-materials.nd-mm-open .material-detail-head .material-eyebrow{display:none!important}
+ #appView #view-materials.nd-mm-open .material-detail-head h3{font:700 19px/26px var(--sans)!important;margin:0!important}
+ #appView #view-materials.nd-mm-open .nd-mm-asof{display:block;margin-top:4px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView #view-materials.nd-mm-open .material-type-tabs{order:2;margin:14px 16px 0!important;padding:0!important;border:0!important}
+ #appView #view-materials.nd-mm-open .material-balance-hero{order:3;margin:16px 16px 0!important;padding:0!important;border:0!important;background:none!important}
+ #appView #view-materials.nd-mm-open .material-balance-hero strong{font:800 40px/1 var(--sans)!important;letter-spacing:-.5px}
+ #appView #view-materials.nd-mm-open .nd-mat{order:4;margin:14px 16px 18px!important}
+ #appView #view-materials.nd-mm-open .material-summary{display:none!important}
+ #appView #view-materials.nd-mm-open .material-detail-form{order:5}
+ #appView #view-materials.nd-mm-open .material-history-wrap{order:6;flex:1;margin:0!important;padding:12px 0 16px!important;border-top:8px solid var(--nd-fill)!important}
+ #appView #view-materials.nd-mm-open .material-history-wrap>.material-section-head{padding:0 16px!important;margin:0 0 4px!important;border:0!important}
+ #appView #view-materials.nd-mm-open .material-record{padding:12px 16px!important;margin:0!important;border-radius:0!important;cursor:pointer}
+ #appView #view-materials.nd-mm-open .material-record:active{background:var(--nd-fill)}
+ #appView #view-materials.nd-mm-open .material-record-actions{display:none!important}
+ #appView #view-materials.nd-mm-open .material-record-side{display:flex!important;align-items:center;gap:8px}
+ #appView #view-materials.nd-mm-open .material-record-side::after{content:'›';color:var(--nd-ink-4,#C3C6CE);font:400 18px/1 var(--sans)}
+ /* 아래 고정 바: [− N +][N개 사용 기록][+] */
+ #appView #view-materials.nd-mm-open .material-quick{order:9;position:sticky;bottom:0;z-index:6;display:flex!important;align-items:center;gap:8px;margin:0!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface)!important;border:0!important;border-top:1px solid var(--nd-line)!important;border-radius:0!important}
+ #appView #view-materials.nd-mm-open .material-quick-label{display:none!important}
+ #appView #view-materials.nd-mm-open .material-stepper{flex:none;height:48px;margin:0!important}
+ #appView #view-materials.nd-mm-open .material-stepper>*{height:48px!important}
+ #appView #view-materials.nd-mm-open #mm_quick_save{flex:1;height:48px!important;min-height:48px!important;margin:0!important;border-radius:12px!important;font-size:15px!important}
+ #appView #view-materials.nd-mm-open #mm_detail{flex:none;width:48px!important;min-width:0!important;height:48px!important;padding:0!important;margin:0!important;border-radius:12px!important;font-size:0!important;display:flex!important;align-items:center;justify-content:center}
+ #appView #view-materials.nd-mm-open #mm_detail::before{content:'+';font:600 22px/1 var(--sans);color:var(--nd-ink-2)}
+ /* 기록 창: 아래에서 올라오는 시트 */
+ #appView #view-materials .material-detail-form:has(#materialEntryCard:not([hidden]))::before{content:'';position:fixed;inset:0;background:rgba(15,20,30,.38);z-index:60}
+ #appView #view-materials #materialEntryCard:not([hidden]){position:fixed!important;left:0;right:0;bottom:0;z-index:61;max-height:88vh;max-height:88dvh;overflow-y:auto;margin:0!important;padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface)!important;border-radius:20px 20px 0 0!important;box-shadow:0 -10px 30px rgba(15,20,35,.18)!important}
+ #appView #view-materials #materialEntryCard::before{content:'';display:block;width:36px;height:4px;border-radius:2px;background:var(--nd-line);margin:0 auto 12px}
+ #appView #view-materials #materialEntryCard .material-section-head{border:0!important;padding:0!important;margin:0 0 12px!important}
+ #appView #view-materials #materialEntryCard .material-section-head h3{font:700 16px/22px var(--sans)!important}
+ #appView #view-materials .material-form-actions{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom,0px));margin:16px -16px calc(-16px - env(safe-area-inset-bottom,0px))!important;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ #appView #view-materials .material-form-actions>#mm_edit_cancel{flex:none;width:88px;height:48px!important}
+ #appView #view-materials .material-form-actions>#mm_save{flex:1!important;min-width:0!important;height:48px!important}
+ #appView #view-materials .material-form-actions>.nd-mm-void{order:0;flex:none;height:48px!important;padding:0 12px;color:var(--nd-red)!important}
+}
+@media screen and (max-width:780px){
+ #appView .shell .main>#view-materials::after{order:99}
+ #appView #view-materials .material-master{margin:0 -16px!important}
+ #appView #view-materials.nd-mm-open .material-stepper>input{flex:none!important;width:44px!important;min-width:0!important;padding:0!important;text-align:center}
+ #appView #view-materials.nd-mm-open .material-stepper>button{width:40px!important;min-width:0!important}
+ #appView #view-materials.nd-mm-open .material-record-side{flex-direction:row!important}
+ #appView #view-materials.nd-mm-open .material-record-main{min-width:0}
+}
+@media screen and (max-width:780px){
+ #appView #view-materials .material-master{width:auto!important;max-width:none!important;border-radius:0!important;overflow:visible!important}
+ #appView #view-materials.nd-mm-open>#materialContent{flex:1;display:flex;flex-direction:column}
+ #appView #view-materials.nd-mm-open .material-master{flex:1;display:flex!important;flex-direction:column}
+ #appView #view-materials.nd-mm-open .material-detail{flex:1}
+ #appView #view-materials.nd-mm-open #mm_quick_save{white-space:nowrap;padding:0 10px!important;width:auto!important;max-width:none!important}
+ #appView #view-materials .material-form-actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:8px!important;align-items:center}
+ #appView #view-materials .material-form-actions>*{width:auto!important;margin:0!important}
+ #appView #view-materials .material-form-actions>.nd-mm-void{flex:none!important;width:auto!important}
+}
+/* 사진 칸 규칙: [이름 ……… 상태] 한 줄, 그 아래 버튼은 사진 폭에 맞춰 같은 너비로 나눈다. */
+@media screen{
+ #appView .nd-photo-name{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:6px}
+ #appView .nd-photo-name>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #appView .nd-photo-name>.nd-photo-state{flex:none;min-height:0;text-align:right}
+ #appView .nd-photo.warn .nd-photo-state{color:var(--nd-red)!important;white-space:normal;flex:1 1 auto}
+ #appView .nd-photo-act{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;margin-top:4px;width:100%}
+ #appView .nd-photo-act>button{width:100%;min-width:0;height:36px;padding:0 6px;overflow:hidden;text-overflow:ellipsis}
+ #appView .nd-photo-act>.nd-photo-del{color:var(--nd-red)}
+ #appView .nd-photo-item>.nd-photo-name{display:flex!important;justify-content:flex-start}
+ #appView .nd-photo-item>.nd-photo-name>span{display:none}
+ #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:left}
+}
+@media screen and (max-width:780px){#appView .nd-photo-act>button{height:40px}}
+/* 하단 버튼 규칙: ⋯ 안이 하나뿐이면 밖으로 — 삭제는 빨간 글자 테두리 버튼, 저장 바로 왼쪽 */
+#appView :is(#coForm,#itForm) .form-actions>.panel-b-danger.nd-solo-menu{flex:none!important;width:auto!important;height:auto!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;position:static!important}
+#appView :is(#coForm,#itForm) .form-actions>.panel-b-danger.nd-solo-menu>summary{display:none!important}
+#appView :is(#coForm,#itForm) .form-actions>.panel-b-danger.nd-solo-menu>.nd-pop{display:block!important;position:static!important;inset:auto!important;transform:none!important;width:auto!important;min-width:0!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important}
+#appView :is(#coForm,#itForm) .form-actions>.panel-b-danger.nd-solo-menu>.nd-pop>:is(button,.btn){width:auto!important;min-width:72px;height:40px!important;min-height:40px!important;margin:0!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;color:var(--nd-red)!important;font:600 14px/1 var(--sans)!important;box-shadow:none!important;display:inline-flex!important;align-items:center;justify-content:center}
+@media screen and (max-width:1023px){#appView .shell .main :is(#coForm,#itForm)>.form-actions>.panel-b-danger.nd-solo-menu>.nd-pop>:is(button,.btn){height:48px!important;min-height:48px!important;border-radius:12px!important;min-width:76px}}
+@media screen and (max-width:1023px){#appView .shell .main :is(#coForm,#itForm)>.form-actions>:is(#coDelBtn,#itDelBtn){flex:none!important;width:auto!important;min-width:76px;height:48px!important;min-height:48px!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:12px!important;background:var(--nd-surface)!important;color:var(--nd-red)!important;font:600 15px/1 var(--sans)!important;box-shadow:none!important}}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -8502,8 +8612,13 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    if(menu.closest('#qtForm')){for(const id of ['qtCopyBtn','qtImgBtn','qtPrintBtn']){const b=document.getElementById(id);if(b&&b.parentElement!==pop)pop.prepend(b);}
     const mail=document.getElementById('qtMailBtn'),share=document.getElementById('qtShareBtn');if(mail&&share&&mail.previousElementSibling!==share)share.after(mail);}
    menu.querySelectorAll(':scope>.btn').forEach(b=>pop.append(b));
-   if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.contains(e.target))menu.open=false;});
-    pop.addEventListener('click',e=>{if(e.target.closest('button'))menu.open=false;});}}
+   // 하단 버튼 규칙: ⋯ 안에 넣을 것이 하나뿐이면(거래처·품목의 삭제) ⋯ 대신 그 버튼을 바로 보인다.
+   // 버튼을 옮기면 패널 레이아웃이 다시 넣어 서로 되돌리므로, 옮기지 않고 메뉴를 펼친 채 ⋯만 숨긴다.
+   if(!menu.closest('#qtForm')){const single=pop.querySelectorAll(':scope>button,:scope>.btn').length===1;
+    if(menu.classList.contains('nd-solo-menu')!==single)menu.classList.toggle('nd-solo-menu',single);
+    if(single&&!menu.open)menu.open=true;}
+   if(!menu.dataset.ndBound){menu.dataset.ndBound='1';document.addEventListener('click',e=>{if(menu.open&&!menu.classList.contains('nd-solo-menu')&&!menu.contains(e.target))menu.open=false;});
+    pop.addEventListener('click',e=>{if(e.target.closest('button')&&!menu.classList.contains('nd-solo-menu'))menu.open=false;});}}
   // Phone quote bar: [⋯] [공유] [이메일] [저장]. The rest (문서 종류·복사·인쇄·이미지·삭제) opens above the bar in 2 columns.
   for(const more of document.querySelectorAll('#appView #qtForm .quote-form-actions>.qp-more')){
    const bar=more.parentElement,save=bar.querySelector(':scope>.btn.save');
@@ -8530,7 +8645,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    +`<div class="nd-mat-bar" role="img" aria-label="${segs.map(([l,v])=>`${l} ${n(v)}개`).join(', ')}">${segs.filter(([,v])=>v>0).map(([l,v,k])=>`<i class="${k}" style="flex-grow:${v}" title="${l} ${n(v)}개"></i>`).join('')}</div>`
    +`<div class="nd-mat-legend">${segs.map(([l,v,k])=>`<span><i class="${k}"></i>${l}<b>${n(v)}</b></span>`).join('')}</div>`;
   const summary=root.querySelector('.material-summary');summary?summary.before(card):hero.after(card);}
- function watchMaterials(){const root=document.getElementById('materialContent');if(!root||root.dataset.ndWatch)return;root.dataset.ndWatch='1';new MutationObserver(materialGraph).observe(root,{childList:true});materialGraph();}
+ function watchMaterials(){const root=document.getElementById('materialContent');if(!root||root.dataset.ndWatch)return;root.dataset.ndWatch='1';new MutationObserver(()=>{materialGraph();materialsMobile();}).observe(root,{childList:true});materialGraph();}
 
  /* 데이터 내보내기: one place for every export (rail · 자료). CSV = UTF-8 with BOM (Excel opens Korean as-is),
     header row in Korean, plain numbers. Reads db only; sales/receivables/backup reuse the app's own exporters. */
@@ -8876,13 +8991,53 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
    ar:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'};
   for(const [v,d] of Object.entries(icons))document.querySelectorAll(`#appView [data-view="${v}"] svg:not([data-nd-icon])`).forEach(svg=>{svg.innerHTML=d;svg.setAttribute('data-nd-icon',v);});
  }
+ /* 업체 제공 자재 — 폰(≤780px): 목록 → 상세 두 단계. 상세는 [‹ 업체 제공 자재][⋯ 기준일·재고내역서] · 업체명 · 자재 칩 · 남은 수량 ·
+    그래프 · 기록, 아래에 [− N +][N개 사용 기록][+] 고정. [+]·기록 줄은 아래에서 올라오는 기록 창(원래 상세 입력 폼)을 연다.
+    원래 화면의 버튼·폼을 그대로 쓰고 위치·모양만 바꾼다. PC는 그대로(자재 칩 모양·폼 버튼 순서만 공통). */
+ const MM_PHONE=matchMedia('(max-width:780px)');let mmVoid=null;
+ function materialsMobile(){
+  const view=document.getElementById('view-materials'),root=document.getElementById('materialContent');if(!view||!root)return;
+  if(!view.dataset.ndMm){view.dataset.ndMm='1';
+   const setOpen=v=>{view.classList.toggle('nd-mm-open',v);view.classList.toggle('mobile-record-open',v);};
+   view.addEventListener('click',e=>{if(!MM_PHONE.matches)return;
+    if(e.target.closest('.material-owner')){setOpen(true);requestAnimationFrame(()=>{view.scrollTop=0;});return;}
+    if(e.target.closest('.nd-mm-back')){setOpen(false);return;}
+    const vb=e.target.closest('.nd-mm-void');if(vb){const id=vb.dataset.id;mmVoid=null;view.querySelector(`[data-mm-void="${CSS.escape(id)}"]`)?.click();return;}
+    const rec=e.target.closest('.material-record');if(rec&&!e.target.closest('button,a,input,select')){const ed=rec.querySelector('[data-mm-edit]');if(ed){mmVoid=ed.dataset.mmEdit;ed.click();requestAnimationFrame(materialsMobile);}}});
+   MM_PHONE.addEventListener('change',()=>setOpen(false));}
+  const detail=root.querySelector('.material-detail'),head=detail?.querySelector('.material-detail-head'),ctl=detail?.querySelector('.material-statement-controls');
+  if(!detail||!head)return;
+  if(MM_PHONE.matches){
+   let bar=detail.querySelector(':scope>.nd-mm-bar');
+   if(!bar){bar=document.createElement('div');bar.className='nd-mm-bar';
+    bar.innerHTML='<button type="button" class="nd-mm-back">‹ 업체 제공 자재</button><details class="nd-mm-more"><summary aria-label="더보기"></summary><div class="nd-mm-pop"></div></details>';
+    detail.prepend(bar);const more=bar.querySelector('details');document.addEventListener('click',e=>{if(more.open&&!more.contains(e.target))more.open=false;});}
+   const pop=bar.querySelector('.nd-mm-pop');if(ctl&&ctl.parentElement!==pop)pop.append(ctl);
+   const dIn=pop.querySelector('input[type="date"]');let asof=head.querySelector('.nd-mm-asof');
+   if(!asof){asof=document.createElement('div');asof.className='nd-mm-asof';head.querySelector('h3')?.after(asof);}
+   const v=dIn?.value||'';const t=new Date();const td=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+   const txt=v?`${v===td?'오늘(':''}${+v.slice(5,7)}월 ${+v.slice(8,10)}일${v===td?')':''} 기준`:'';if(asof.textContent!==txt)asof.textContent=txt;
+  }else{const pop=detail.querySelector('.nd-mm-pop');if(ctl&&pop&&ctl.parentElement===pop)head.append(ctl);}
+  // 기록 창: 구분을 칩으로 (원래 select를 바꾸고 change를 보낸다)
+  const kind=document.getElementById('mm_kind'),card=document.getElementById('materialEntryCard');
+  if(kind&&card){const field=kind.closest('.field');let chips=card.querySelector('.nd-mm-kind');
+   if(!chips){chips=document.createElement('div');chips.className='nd-kind nd-mm-kind';chips.setAttribute('role','group');chips.setAttribute('aria-label','기록 구분');
+    chips.innerHTML=[...kind.options].map(o=>`<button type="button" data-v="${o.value.replace(/"/g,'&quot;')}">${o.value==='작업 완료'?'사용':o.textContent.replace('/','·')}</button>`).join('');
+    chips.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=document.getElementById('mm_kind');if(k.value!==b.dataset.v){k.value=b.dataset.v;k.dispatchEvent(new Event('change',{bubbles:true}));k.dispatchEvent(new Event('input',{bubbles:true}));}requestAnimationFrame(materialsMobile);});
+    (field?.closest('.grid2')||field)?.before(chips);field?.classList.add('nd-mm-kindsrc');}
+   chips.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===kind.value;if(b.classList.contains('on')!==on)b.classList.toggle('on',on);});
+   const actions=card.querySelector('.material-form-actions');let vb=actions?.querySelector('.nd-mm-void');
+   if(card.hidden){mmVoid=null;}
+   if(mmVoid&&!card.hidden&&actions&&MM_PHONE.matches){if(!vb){vb=document.createElement('button');vb.type='button';vb.className='btn ghost nd-mm-void';vb.textContent='기록 취소';actions.prepend(vb);}if(vb.dataset.id!==mmVoid)vb.dataset.id=mmVoid;}
+   else if(vb)vb.remove();}
+ }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
  function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
  let v5Queued=false;
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

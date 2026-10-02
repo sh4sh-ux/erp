@@ -79,11 +79,11 @@
     },
     {
       "path": "erp/asset-ui.mjs",
-      "sha256": "1c07483f4321398ad4c06bae0077cac3da88bd7bbeaa6b91ecbdc1149c76cab0"
+      "sha256": "fee0bf943b5a745749ed27ed3fca61a464c14468e474c6caea2ed195e7616e11"
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "13691f04d5916e563f31714b2e5806df026cb9fe1564c957bca9033aa2e89b39"
+      "sha256": "7a292cbf2d65e634303f31d0e25c6f4da6098bed76948bd47ce0a36bf1aec93c"
     },
     {
       "path": "erp/favicon.png",
@@ -103,7 +103,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "561e37d681ca6553bc9db50d4a9e3f361efc20340e79ad935c00d365ed42c638"
+      "sha256": "12fde7f419a21ef84056c791f619b1acf95bbca5b19f2dd2ff39f4a1d7d5e9df"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -255,10 +255,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "43f0ffd0bb3037205639e39de84bad9ce59237cd3d766bf7e1365981c1c17d77"
+      "sha256": "fdf0d74bdb2c4de7bb5d4a374d21f794ee180b1cac08492771e164b7a78afcf6"
     }
   ],
-  "aggregate": "07da4b5d595fa82cd319ecdcc95249bd2f1d0064268ff72f9034233c94fea530",
+  "aggregate": "c7b226440831668d99b5401317b252cbe533accfe6287375abdae810c445cd7b",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

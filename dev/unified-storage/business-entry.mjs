@@ -105,7 +105,9 @@ export function start(bridge,build){
    };
    bridge.bindReadUI();bridge.bindBusinessUI();bridge.switchView('dash');
    if(build.extendedWrite){
-    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,...details});});
+    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,...details});
+     // 답이 끝내 오지 않아도 화면 전체가 잠긴 채 남지 않게(사진 요청은 읽기·추가 전용이라 다시 시도해도 안전).
+     setTimeout(()=>{if(pending?.requestId===requestId){pending=null;reject(Error('응답이 늦어 중단했어요. 다시 눌러 주세요.'));}},40000);});
     installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>{status.hidden=false;status.textContent=text;}});
     mail=installMailUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});
     // 명함·사업자등록증 보내기: the image saved under 공급자 정보 → 개인 클라우드 이미지 (settings.assets).
