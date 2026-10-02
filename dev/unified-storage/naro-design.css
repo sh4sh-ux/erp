@@ -891,3 +891,17 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 @media screen and (min-width:1024px) and (max-width:1099px){
  #appView[data-layout-system="b"] .shell .main #qtForm .form-actions>#qtSaveBtn{min-width:128px!important;width:128px!important;flex:0 0 128px!important}
 }
+@media screen{
+ /* Section jump highlight on the moved cards (명함·사업자등록증, 백업·가져오기) — same soft box as the form sections. */
+ #appView #view-settings .workspace-right :is(section.card.nd-assets,.nd-backup).panel-b-selected{background:var(--nd-blue-soft)!important;border-radius:12px!important;box-shadow:0 0 0 12px var(--nd-blue-soft)!important;border-top-color:transparent!important}
+}
+@media screen{
+ /* Settings section highlight: a soft box drawn *below* each section's divider (12px air on every side),
+    never over the line. Replaces the background + 12px spread used elsewhere. */
+ #appView #view-settings .workspace-right :is(.sup-sec,section.card.nd-assets,.nd-backup).panel-b-selected{background:none!important;box-shadow:none!important;border-radius:0!important;position:relative;isolation:isolate}
+ #appView #view-settings .workspace-right :is(section.card.nd-assets,.nd-backup).panel-b-selected{border-top-color:var(--nd-line)!important}
+ #appView #view-settings .workspace-right :is(.sup-sec,section.card.nd-assets,.nd-backup).panel-b-selected::before{content:'';position:absolute;left:-12px;right:-12px;bottom:-12px;top:-12px;z-index:-1;border-radius:12px;background:var(--nd-blue-soft);pointer-events:none}
+ #appView #view-settings .workspace-right .sup-sec+.sup-sec.panel-b-selected::before{top:10px!important}
+ #appView #view-settings .workspace-right section.card.nd-assets.panel-b-selected::before{top:8px!important;bottom:-8px!important}
+ #appView #view-settings .workspace-right .nd-backup.panel-b-selected::before{top:12px!important}
+}
