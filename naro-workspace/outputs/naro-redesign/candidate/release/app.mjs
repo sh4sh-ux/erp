@@ -116,7 +116,7 @@ function render(state){
  view.querySelectorAll('button,input').forEach(el=>el.disabled=state.busy||el.hasAttribute('data-visual-disabled')||(el.id==='connect'&&!selectedProvider));
  view.querySelectorAll('[data-provider]').forEach(el=>{if(blockedProviders[el.dataset.provider]){el.disabled=true;el.title=blockedProviders[el.dataset.provider];}});
  notice.textContent=state.error?message(state.error):state.busy&&['login','signup','verify','reset','pending','rejected'].includes(state.screen)?'처리 중입니다…':'';
- notice.setAttribute('role',state.error?'alert':'status');
+ notice.setAttribute('role',state.error?'alert':'status');notice.classList.toggle('wait',state.error==='ACCESS_PENDING');
 }
 const access=createAccess({auth});setActiveAccess(access);
 const flow=new Onboarding({auth,access,providerFactory:(kind,uid,signal)=>(()=>{const backend=cloud(kind,uid,signal);return onboardingReadProvider(new (kind==='drive'?GoogleDriveProvider:DropboxProvider)(backend,{signal}),(repository,timing)=>recordRead(repository,backend,timing),{businessWrite:true,extendedWrite:true,initializeNew:true});})(),onChange:render});

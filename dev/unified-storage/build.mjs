@@ -64,6 +64,9 @@ app=app.replace("import {GoogleDriveProvider,DropboxProvider} from './providers.
 app=app.replace("bind('start',()=>render({...flow.state,screen:'workspace'}));","bind('start',()=>openWorkspace(flow.state.db,()=>flow.logout()));");
 app=app.replace("new (kind==='drive'?GoogleDriveProvider:DropboxProvider)(cloud(kind,uid,signal),{signal})","(()=>{const backend=cloud(kind,uid,signal);return onboardingReadProvider(new GoogleDriveProvider(backend,{signal}),repository=>recordRead(repository,backend));})()");
 app=app.replace("function render(state){","function render(state){\n if(state.screen==='login')closeWorkspace();");
+// 승인 전 안내(ACCESS_PENDING)는 오류가 아니라 기다림 — 빨강 대신 '승인 대기'와 같은 Dutch Pay 주황(style.css #notice.wait).
+if(!app.includes("notice.setAttribute('role',state.error?'alert':'status');"))throw Error('notice patch anchor');
+app=app.replace("notice.setAttribute('role',state.error?'alert':'status');","notice.setAttribute('role',state.error?'alert':'status');notice.classList.toggle('wait',state.error==='ACCESS_PENDING');");
 if(companies||business){
  app=app.replace('let priorIdentity=null;','let priorIdentity=null,activeRepository=null;');
  app=app.replace('async function recordRead(repository,backend){','async function recordRead(repository,backend){activeRepository=repository;');

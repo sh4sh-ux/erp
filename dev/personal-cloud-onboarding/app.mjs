@@ -92,6 +92,8 @@ function render(state){
  view.querySelectorAll('[data-provider]').forEach(el=>{if(blockedProviders[el.dataset.provider]){el.disabled=true;el.title=blockedProviders[el.dataset.provider];}});
  notice.textContent=state.error?message(state.error):state.busy&&['login','signup','verify','reset'].includes(state.screen)?'처리 중입니다…':'';
  notice.setAttribute('role',state.error?'alert':'status');
+ // 승인 전 안내는 오류가 아니라 기다림 — '승인 대기' 표시와 같은 주황(Dutch Pay --txn-amber).
+ notice.classList.toggle('wait',state.error==='ACCESS_PENDING');
 }
 const flow=new Onboarding({auth,providerFactory:(kind,uid,signal)=>new (kind==='drive'?GoogleDriveProvider:DropboxProvider)(cloud(kind,uid,signal),{signal}),onChange:render});
 if(preview){

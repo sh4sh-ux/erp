@@ -9053,9 +9053,9 @@ html body #appView .nd-photo-item>.nd-photo-name>.nd-photo-state{text-align:righ
 #appView #qtList .li-right>.tax-unissued{order:-1}
 /* 시트 '닫기': 열 때 자동으로 잡힌 초점 테두리(파란 상자)는 터치 기기에서 감춘다 — 키보드 쓰는 PC에서만 보인다 */
 @media (hover:none){html body .naro-sheet-close:is(:focus,:focus-visible),html body dialog.qp-sheet button:is(:focus,:focus-visible){outline:none!important}}
-/* 품목 편집 시트(폰): 금액은 단가보다 한 단계 크게 */
-dialog.qp-sheet .qp-edit-amount{align-items:center;font-size:15px!important;font-weight:600}
-dialog.qp-sheet .qp-edit-amount>.amt{font:700 20px/26px var(--sans)!important;letter-spacing:-.2px}
+/* 품목 편집 시트(폰): 금액 숫자는 단가 칸 숫자와 같은 16px, 굵기만 700 */
+dialog.qp-sheet .qp-edit-amount{align-items:center}
+dialog.qp-sheet .qp-edit-amount>.amt{font:700 16px/22px var(--sans)!important;letter-spacing:0}
 /* 폰 품목 상세의 저장 영역 하단 고정 — 거래처와 같은 짜임: 화면은 고정, 상세 카드가 스크롤 상자, 저장 줄은 그 안에서 sticky bottom:0 */
 @media screen and (max-width:780px){
  html body #appView[data-layout-system] .shell .main #view-items.nd-it-open{overflow:hidden!important}
