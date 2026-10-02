@@ -8881,6 +8881,43 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
  html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{display:flex!important;flex-direction:column}
  html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
 }
+/* 바로가기 — 누를 수 있는 숫자(›) · 목록 창 · 안내 줄 · 해야 할 칸 */
+#appView [data-nd-go]{cursor:pointer;border-radius:6px;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;transition:background .12s,text-decoration-color .12s}
+#appView [data-nd-go]::after{content:'›';display:inline-block;margin-left:3px;font-weight:500;opacity:.5}
+#appView [data-nd-go]:hover{background:var(--nd-fill);text-decoration-color:currentColor}
+#appView [data-nd-go]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+#appView td[data-nd-go]{border-radius:0}
+#appView .nd-jmp{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,16,.45)}
+#appView .nd-jmp-box{width:min(600px,100%);max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;padding:22px 24px 18px;border-radius:16px;background:var(--nd-raised);color:var(--nd-ink);box-shadow:var(--nd-pop);font-family:var(--sans)}
+#appView .nd-jmp-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+#appView .nd-jmp-hd b{font:700 18px/24px var(--sans);letter-spacing:-.3px}
+#appView .nd-jmp-sub{margin-top:3px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+#appView .nd-jmp-x{flex:none;width:32px;height:32px;border:0;border-radius:16px;background:var(--nd-fill);color:var(--nd-ink-2);font:400 20px/1 var(--sans);cursor:pointer}
+#appView .nd-jmp-li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--nd-line-2)}
+#appView .nd-jmp-m .n{font:600 14.5px/20px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#appView .nd-jmp-m .d{font:400 12px/17px var(--sans);color:var(--nd-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#appView .nd-jmp-tag{display:inline-block;padding:1px 7px;border-radius:6px;background:var(--nd-green-soft,rgba(29,173,83,.1));color:var(--nd-green);font:600 11px/17px var(--sans);vertical-align:1px}
+#appView .nd-jmp-amt{font:700 14.5px var(--sans);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView .nd-jmp-amt[data-tone="red"]{color:var(--nd-red)}#appView .nd-jmp-amt[data-tone="amber"]{color:var(--nd-amber-ink,var(--nd-amber))}
+#appView .nd-jmp-acts{display:flex;gap:6px;justify-content:flex-end}
+#appView .nd-jmp-b{height:36px;padding:0 13px;border-radius:10px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans);white-space:nowrap;cursor:pointer}
+#appView .nd-jmp-b.p{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+#appView .nd-jmp-b:disabled{opacity:.5;cursor:default}
+#appView .nd-jmp-done{font:600 12.5px/36px var(--sans);color:var(--nd-green);white-space:nowrap}
+#appView .nd-jmp-empty{padding:30px 0;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3);border-top:1px solid var(--nd-line-2)}
+#appView .nd-jmp-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+#appView .nd-jbanner{display:block;margin:0 0 14px;padding:10px 14px;border-radius:10px;background:var(--nd-blue-soft,rgba(37,99,235,.08));color:var(--nd-blue-ink,var(--nd-blue));font:500 13px/19px var(--sans)}
+#appView .nd-jbanner::before{content:'ⓘ ';font-weight:600}
+#appView .nd-jbanner b{font-weight:700}
+#appView .nd-jfocus{border-color:var(--nd-blue)!important;box-shadow:0 0 0 4px rgba(37,99,235,.16)!important}
+@media screen and (max-width:780px){
+ #appView .nd-jmp{align-items:flex-end;padding:0}
+ #appView .nd-jmp-box{width:100%;max-height:88vh;border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+ #appView .nd-jmp-li{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
+ #appView .nd-jmp-acts{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+ #appView .nd-jmp-b{height:42px}
+ #appView [data-nd-go]:hover{background:none}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9574,7 +9611,160 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
   let r;try{r=SAVE_CHECKS[b.id]();}catch{return;}
   if(!r)return;e.preventDefault();e.stopImmediatePropagation();
   if(r.msg&&typeof window.toast==='function')window.toast(r.msg);const f=document.getElementById(r.focus);f?.focus();f?.select?.();},true);
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ /* ── 바로가기: 할 일이 있는 숫자는 누르면 그 일을 하는 칸까지 ──────────────────────────
+    계산서 미발행 → 목록(오늘 발행·열기) / 받을 금액 → 입금 입력(거래처·견적·남은 금액 채움) / 재고 부족 → 입고(부족 수량 채움)
+    미납품 잔액 → 납품 기록 / 회신 대기 견적 → 견적서 '발송'만. 앱의 계산·저장 함수는 그대로 쓰고, 화면 이동과 칸 채우기만 한다. */
+ const jWon=n=>(typeof won==='function'?won(n):(Math.round(n)||0).toLocaleString('ko-KR')+'원');
+ const jEsc=t=>typeof escapeHtml==='function'?escapeHtml(String(t??'')):String(t??'');
+ const jMd=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?`${+m[2]}월 ${+m[3]}일`:'';};
+ const jWait=ms=>new Promise(r=>setTimeout(r,ms));
+ const jPhone=()=>matchMedia('(max-width:780px)').matches;
+ function jSheet({title,sub,rows,empty,note}){
+  document.querySelector('#appView .nd-jmp')?.remove();
+  const ov=document.createElement('div');ov.className='nd-jmp';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label',title);
+  const box=document.createElement('div');box.className='nd-jmp-box';ov.append(box);
+  box.innerHTML=`<div class="nd-jmp-hd"><div><b>${jEsc(title)}</b>${sub?`<div class="nd-jmp-sub">${jEsc(sub)}</div>`:''}</div><button type="button" class="nd-jmp-x" aria-label="닫기">×</button></div><div class="nd-jmp-list"></div>${note?`<p class="nd-jmp-note">${jEsc(note)}</p>`:''}`;
+  const list=box.querySelector('.nd-jmp-list');
+  if(!rows.length)list.innerHTML=`<div class="nd-jmp-empty">${jEsc(empty||'처리할 항목이 없어요.')}</div>`;
+  for(const r of rows){
+   const li=document.createElement('div');li.className='nd-jmp-li';
+   li.innerHTML=`<div class="nd-jmp-m"><div class="n">${jEsc(r.name)}${r.tag?` <span class="nd-jmp-tag">${jEsc(r.tag)}</span>`:''}</div><div class="d">${jEsc(r.meta||'')}</div></div><div class="nd-jmp-amt"${r.tone?` data-tone="${r.tone}"`:''}>${jEsc(r.amt||'')}</div><div class="nd-jmp-acts"></div>`;
+   const acts=li.querySelector('.nd-jmp-acts');
+   for(const a of r.actions||[]){const b=document.createElement('button');b.type='button';b.className='nd-jmp-b'+(a.primary?' p':'');b.textContent=a.label;b.onclick=async()=>{if(a.keep){acts.querySelectorAll('button').forEach(x=>x.disabled=true);const done=await a.fn(li);if(done){acts.innerHTML=`<span class="nd-jmp-done">${jEsc(done)}</span>`;}else acts.querySelectorAll('button').forEach(x=>x.disabled=false);return;}close();a.fn();};acts.append(b);}
+   list.append(li);
+  }
+  const esc=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};
+  function close(){ov.remove();removeEventListener('keydown',esc,true);}
+  ov.onclick=e=>{if(e.target===ov)close();};box.querySelector('.nd-jmp-x').onclick=close;addEventListener('keydown',esc,true);
+  (document.getElementById('appView')||document.body).append(ov);
+  return {close};
+ }
+ function jBanner(host,html,before){if(!host&&!before)return;document.querySelectorAll('#appView .nd-jbanner').forEach(x=>x.remove());const b=document.createElement('div');b.className='nd-jbanner';b.setAttribute('role','status');b.innerHTML=html;if(before)before.before(b);else host.prepend(b);}
+ function jFocus(el){if(!el)return;el.classList.add('nd-jfocus');const off=()=>{el.classList.remove('nd-jfocus');el.removeEventListener('input',off);};el.addEventListener('input',off);requestAnimationFrame(()=>{el.scrollIntoView({block:'center',behavior:'smooth'});el.focus({preventScroll:true});});}
+ function jOpenQuote(id){
+  document.querySelectorAll('#appView .nd-jbanner').forEach(x=>x.remove());
+  if(typeof currentView!=='undefined'&&currentView==='quotes'&&qtSel!==id&&!guardQtLeave())return false;
+  qtSel=id;qtEditing=null;qtBaseline='';switchView('quotes');renderQtList();renderQtDetail();scrollToDetail('qtForm');return true;
+ }
+ /* ① 계산서 미발행 */
+ function jTaxQuotes(cid){return db.quotes.filter(q=>QT_COMMITTED.includes(q.status)&&needsTax(q)&&(!cid||q.company_id===cid)).sort((a,b)=>(a.delivered_at||'').localeCompare(b.delivered_at||''));}
+ async function jTaxOpen(id){
+  if(!jOpenQuote(id))return;await jWait(120);
+  const q=db.quotes.find(x=>x.id===id);
+  const tab=document.getElementById('qp-tab-basic');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();
+  await jWait(60);
+  jBanner(null,`<b>계산서 발행일</b>을 넣고 저장하세요 · ${jEsc(coName(q.company_id))} ${jEsc(jWon(deliveredAmount(q)))}`,document.getElementById('fq_tax')?.closest('.field'));
+  jFocus(document.getElementById('fq_tax'));
+ }
+ async function jTaxToday(id){
+  if(qtSel===id&&qtHasUnsavedChanges()){jTaxOpen(id);return '';}
+  const day=localDate(),next=db.quotes.map(x=>x.id===id?{...x,tax_at:day}:x);
+  if(!await saveTable('quotes',next))return '';
+  db.quotes=next;try{renderers[currentView]?.();}catch{}
+  return `✓ ${jMd(day)} 발행`;
+ }
+ function jTaxList(cid){
+  const qs=jTaxQuotes(cid);
+  if(qs.length===1&&cid){jTaxOpen(qs[0].id);return;}
+  const total=qs.reduce((s,q)=>s+deliveredAmount(q),0);
+  jSheet({title:`계산서 미발행 ${qs.length}건`,sub:`${jWon(total)} · 납품일 오래된 순`+(cid?` · ${coName(cid)}`:''),empty:'계산서를 모두 발행했어요.',
+   note:qs.length?'[오늘 발행]은 계산서 발행일을 오늘로 바로 저장해요. 날짜를 바꾸려면 [열기].':'',
+   rows:qs.map(q=>{const amt=deliveredAmount(q),d=daysSince(q.delivered_at);return {name:coName(q.company_id),tag:quotePaid(q.id)>=amt?'입금 완료':'',meta:`${q.no||''}${q.delivered_at?` · ${jMd(q.delivered_at)} 납품`:''}${d?` · ${d}일째`:''}`,amt:jWon(amt),
+    actions:[{label:'열기',fn:()=>jTaxOpen(q.id)},{label:'오늘 발행',primary:true,keep:true,fn:()=>jTaxToday(q.id)}]};})});
+ }
+ /* ② 받을 금액 → 입금 */
+ async function jPayFor(cid){
+  document.querySelectorAll('#appView .nd-jbanner').forEach(x=>x.remove());
+  const r=arData().find(x=>x.cid===cid);if(!r||r.open<=0)return;
+  const qs=openQuotesOf(cid).slice().reverse(),q=qs[0];
+  if(!switchView('payments')&&typeof currentView!=='undefined'&&currentView!=='payments')return;
+  await jWait(80);
+  const entry=document.getElementById('payEntry');if(entry)entry.open=true;
+  const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}));};
+  set('payKind','수금');set('payCo',cid);
+  const amt=document.getElementById('payAmt');if(amt)amt.value='';
+  if(q)set('payQuote',q.id);
+  const n=Math.min(r.open,q?quoteBalance(q):r.open);if(amt)amt.value=n.toLocaleString('ko-KR');
+  await jWait(60);
+  jBanner(entry?.querySelector('.pay-add')||entry,`받을 금액 <b>${jEsc(jWon(r.open))}</b> 입금을 기록합니다 · ${jEsc(coName(cid))}${q?` · ${jEsc(q.no||'')}`:''} · 금액이 다르면 고쳐서 저장하세요`);
+  jFocus(amt);
+ }
+ function jPayList(){
+  const rows=arData().filter(r=>r.open>0).sort((a,b)=>b.open-a.open);
+  if(rows.length===1){jPayFor(rows[0].cid);return;}
+  jSheet({title:`받을 금액 ${rows.length}곳`,sub:`${jWon(rows.reduce((s,r)=>s+r.open,0))} · 많은 순`,empty:'받을 금액이 남은 거래처가 없어요.',
+   rows:rows.map(r=>({name:coName(r.cid),meta:`납품 ${jWon(r.delivered)} · 입금 ${jWon(r.paid)}${r.lastPay?` · 최근 입금 ${jMd(r.lastPay)}`:''}`,amt:jWon(r.open),tone:'red',actions:[{label:'입금 입력',primary:true,fn:()=>jPayFor(r.cid)}]}))});
+ }
+ /* ③ 재고 부족 → 입고 */
+ function jShortGroups(){
+  const g={};for(const [k,v] of Object.entries(currentStocks())){if(v>0)continue;const [item_id,color,spec]=k.split('|');const key=item_id+'|'+color;(g[key]||(g[key]={item_id,color,sizes:[]})).sizes.push({spec,lack:Math.max(0,-v)});}
+  return Object.values(g).map(x=>({...x,item:db.items.find(i=>i.id===x.item_id),total:x.sizes.reduce((s,z)=>s+z.lack,0)})).filter(x=>x.item).sort((a,b)=>b.total-a.total);
+ }
+ async function jStockFor(gr){
+  document.querySelectorAll('#appView .nd-jbanner').forEach(x=>x.remove());
+  if(!switchView('stock')&&typeof currentView!=='undefined'&&currentView!=='stock')return;
+  await jWait(100);
+  const row=document.querySelector(`#view-stock [data-stock-id="${CSS.escape(gr.item_id)}"]`);row?.click();await jWait(200);
+  if(jPhone())document.querySelector('#view-stock [data-go="stockRegister"]')?.click();else document.getElementById('stockRegister')?.click();
+  await jWait(200);
+  const set=(id,v)=>{const el=document.getElementById(id);if(!el||el.value===v)return;el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}));};
+  set('ivKind','입고');set('ivItem',gr.item_id);await jWait(80);set('ivColor',gr.color);await jWait(120);
+  let first=null;
+  for(const z of gr.sizes){if(!z.lack)continue;const lab=z.spec+' 수량';
+   try{stockQuickValues[z.spec]=String(z.lack);}catch{}
+   const all=[...document.querySelectorAll('#view-stock .stock-add input')].filter(i=>i.getAttribute('aria-label')===lab);
+   for(const inp of all){inp.value=String(z.lack);inp.dispatchEvent(new Event('input',{bubbles:true}));if(!inp.matches('[data-stock-size]')){inp.classList.add('nd-jfocus');if(inp.getClientRects().length)first=first||inp;}}}
+  const add=document.querySelector('#view-stock .stock-add');
+  jBanner(add,gr.total?`<b>부족한 수량</b>을 미리 넣었어요 · 실제 입고 수량으로 고친 뒤 [변경 내용 확인]을 눌러 주세요`:`<b>${jEsc(gr.item.name)} · ${jEsc(gr.color)}</b> 입고 수량을 넣어 주세요`);
+  (first||document.querySelector('#view-stock .stock-add input:not([type=hidden])'))?.scrollIntoView({block:'center',behavior:'smooth'});first?.focus({preventScroll:true});
+ }
+ function jShortList(){
+  const gs=jShortGroups();
+  jSheet({title:`재고 부족 ${gs.length}품목`,sub:'재고 0개 이하인 옵션 · 부족 많은 순',empty:'부족한 품목이 없어요.',
+   rows:gs.map(x=>({name:`${x.item.name}${x.item.code?` [${x.item.code}]`:''} · ${x.color||'색상 없음'}`,meta:x.sizes.map(z=>`${z.spec||'기본'} ${z.lack?z.lack+' 부족':'품절'}`).join(' · '),amt:x.total?`${x.total}개`:'품절',tone:'amber',actions:[{label:'입고 입력',primary:true,fn:()=>jStockFor(x)}]}))});
+ }
+ /* ④ 미납품 → 납품 기록  ⑤ 회신 대기 → 견적서 '발송' */
+ function jPendingQuotes(cid){return db.quotes.filter(q=>QT_COMMITTED.includes(q.status)&&quoteOrderedQty(q)>quoteDeliveredQty(q)&&(!cid||q.company_id===cid)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));}
+ function jBasicTab(){const tab=document.getElementById('qp-tab-basic');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();}
+ async function jDeliverOpen(id){if(!jOpenQuote(id))return;await jWait(150);jBasicTab();await jWait(60);const b=document.getElementById('fd_open');if(b&&b.getClientRects().length)b.click();await jWait(120);const f=document.getElementById('fq_delivery_form');jBanner(f,'<b>남은 수량 전체 입력</b>을 누르거나 수량을 넣고 [납품 기록 추가] 뒤 견적서를 저장하세요');jFocus(document.getElementById('fd_fill_all'));}
+ function jPendingList(cid){
+  const qs=jPendingQuotes(cid);if(qs.length===1&&cid){jDeliverOpen(qs[0].id);return;}
+  jSheet({title:`미납품 ${qs.length}건`,sub:'수주했지만 아직 다 납품하지 않은 견적 · 오래된 순',empty:'남은 납품이 없어요.',
+   rows:qs.map(q=>({name:coName(q.company_id),meta:`${q.no||''} · ${jMd(q.date)} · 남은 ${quoteOrderedQty(q)-quoteDeliveredQty(q)}개`,amt:jWon(quoteAmount(q)-deliveredAmount(q)),actions:[{label:'납품 기록',primary:true,fn:()=>jDeliverOpen(q.id)}]}))});
+ }
+ function jSentQuotes(){if(switchView('quotes')===false)return;const s=document.getElementById('qtStatus');if(s&&s.value!=='발송'){s.value='발송';s.dispatchEvent(new Event('change',{bubbles:true}));}}
+ /* 누를 수 있는 숫자 표시(›) — 렌더 때마다 다시 붙인다. 바뀔 때만 속성을 쓴다. */
+ function jMark(el,go,cid){if(!el)return;const has=el.dataset.ndGo||'';if(go){if(has!==go)el.dataset.ndGo=go;if((cid||'')!==(el.dataset.ndCid||'')){if(cid)el.dataset.ndCid=cid;else delete el.dataset.ndCid;}if(!el.hasAttribute('tabindex'))el.tabIndex=0;if(el.getAttribute('role')!=='button')el.setAttribute('role','button');}else if(has){delete el.dataset.ndGo;delete el.dataset.ndCid;el.removeAttribute('tabindex');el.removeAttribute('role');}}
+ const jPos=el=>{const t=(el?.textContent||'').replace(/[^\d-]/g,'');return !!t&&!t.startsWith('-')&&Number(t)>0;};
+ function jumpMarks(){
+  if(typeof arData!=='function')return;
+  const ar=document.getElementById('view-ar');
+  if(ar&&!ar.classList.contains('hidden')){
+   jMark(document.getElementById('arUntaxed'),jPos(document.getElementById('arUntaxed'))&&'tax');
+   jMark(document.getElementById('arOpen'),jPos(document.getElementById('arOpen'))&&'pay');
+   jMark(document.getElementById('arPending'),jPos(document.getElementById('arPending'))&&'pending');
+   const tbl=document.getElementById('arTbl'),view=document.getElementById('arView');
+   if(tbl&&(!view||view.value!=='quote')){const rows=arRows(),trs=[...tbl.querySelectorAll('tbody>tr')];rows.forEach((r,i)=>{const tds=trs[i]?.children;if(!tds||tds.length<7)return;jMark(tds[4],r.open>0&&'pay',r.cid);jMark(tds[5],r.pending>0&&'pending',r.cid);jMark(tds[6],r.untaxed>0&&'tax',r.cid);});}
+  }
+  document.querySelectorAll('#view-dash .mo-sub>div').forEach(d=>{const k=d.querySelector('.k'),v=d.querySelector('.v');if(k&&v&&/미수금|받을 금액/.test(k.textContent))jMark(v,jPos(v)&&'pay');});
+  const co=document.getElementById('view-companies');
+  if(co&&!co.classList.contains('hidden')&&typeof coSel!=='undefined'&&coSel){co.querySelectorAll('.scr-hero').forEach(h=>{const l=h.querySelector('.lbl'),v=h.querySelector('.big');if(l&&v&&/미수금|받을 금액/.test(l.textContent))jMark(v,jPos(v)&&'pay',coSel);const t=h.querySelector('.sub b.tax-unissued');if(t)jMark(t,'tax',coSel);});}
+ }
+ const jRoute={tax:cid=>jTaxList(cid),pay:cid=>cid?jPayFor(cid):jPayList(),pending:cid=>jPendingList(cid)};
+ const jTodo={'계산서 미발행':()=>jTaxList(),'재고 부족':()=>jShortList(),'회신 대기 견적':()=>jSentQuotes()};
+ function jClick(e){
+  const app=document.getElementById('appView');if(!app||!app.contains(e.target))return false;
+  const go=e.target.closest?.('[data-nd-go]');
+  if(go){jRoute[go.dataset.ndGo]?.(go.dataset.ndCid||'');return true;}
+  const tile=e.target.closest?.('#view-dash .todo-tile'),label=tile?.querySelector('.tl')?.textContent.trim();
+  if(tile&&jTodo[label]){jTodo[label]();return true;}
+  const sug=e.target.closest?.('#view-dash .sug .sbtn')?.closest('.sug'),cat=sug?.querySelector('.scat')?.textContent.trim();
+  if(sug&&jTodo[cat]){jTodo[cat]();return true;}
+  return false;
+ }
+ document.addEventListener('click',e=>{try{if(jClick(e)){e.preventDefault();e.stopImmediatePropagation();}}catch(err){}},true);
+ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go]')){e.preventDefault();jClick(e);}},true);
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

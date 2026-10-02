@@ -1590,3 +1590,40 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
  html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open)>#qtCols>.quote-list-card{display:flex!important;flex-direction:column}
  html body #appView[data-layout-system] .shell .main #view-quotes:not(.mobile-record-open) #qtList{flex:1 1 auto!important;min-height:0!important;max-height:none!important;height:auto!important}
 }
+/* 바로가기 — 누를 수 있는 숫자(›) · 목록 창 · 안내 줄 · 해야 할 칸 */
+#appView [data-nd-go]{cursor:pointer;border-radius:6px;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;transition:background .12s,text-decoration-color .12s}
+#appView [data-nd-go]::after{content:'›';display:inline-block;margin-left:3px;font-weight:500;opacity:.5}
+#appView [data-nd-go]:hover{background:var(--nd-fill);text-decoration-color:currentColor}
+#appView [data-nd-go]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+#appView td[data-nd-go]{border-radius:0}
+#appView .nd-jmp{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,16,.45)}
+#appView .nd-jmp-box{width:min(600px,100%);max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;padding:22px 24px 18px;border-radius:16px;background:var(--nd-raised);color:var(--nd-ink);box-shadow:var(--nd-pop);font-family:var(--sans)}
+#appView .nd-jmp-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+#appView .nd-jmp-hd b{font:700 18px/24px var(--sans);letter-spacing:-.3px}
+#appView .nd-jmp-sub{margin-top:3px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+#appView .nd-jmp-x{flex:none;width:32px;height:32px;border:0;border-radius:16px;background:var(--nd-fill);color:var(--nd-ink-2);font:400 20px/1 var(--sans);cursor:pointer}
+#appView .nd-jmp-li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--nd-line-2)}
+#appView .nd-jmp-m .n{font:600 14.5px/20px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#appView .nd-jmp-m .d{font:400 12px/17px var(--sans);color:var(--nd-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#appView .nd-jmp-tag{display:inline-block;padding:1px 7px;border-radius:6px;background:var(--nd-green-soft,rgba(29,173,83,.1));color:var(--nd-green);font:600 11px/17px var(--sans);vertical-align:1px}
+#appView .nd-jmp-amt{font:700 14.5px var(--sans);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView .nd-jmp-amt[data-tone="red"]{color:var(--nd-red)}#appView .nd-jmp-amt[data-tone="amber"]{color:var(--nd-amber-ink,var(--nd-amber))}
+#appView .nd-jmp-acts{display:flex;gap:6px;justify-content:flex-end}
+#appView .nd-jmp-b{height:36px;padding:0 13px;border-radius:10px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans);white-space:nowrap;cursor:pointer}
+#appView .nd-jmp-b.p{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+#appView .nd-jmp-b:disabled{opacity:.5;cursor:default}
+#appView .nd-jmp-done{font:600 12.5px/36px var(--sans);color:var(--nd-green);white-space:nowrap}
+#appView .nd-jmp-empty{padding:30px 0;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3);border-top:1px solid var(--nd-line-2)}
+#appView .nd-jmp-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+#appView .nd-jbanner{display:block;margin:0 0 14px;padding:10px 14px;border-radius:10px;background:var(--nd-blue-soft,rgba(37,99,235,.08));color:var(--nd-blue-ink,var(--nd-blue));font:500 13px/19px var(--sans)}
+#appView .nd-jbanner::before{content:'ⓘ ';font-weight:600}
+#appView .nd-jbanner b{font-weight:700}
+#appView .nd-jfocus{border-color:var(--nd-blue)!important;box-shadow:0 0 0 4px rgba(37,99,235,.16)!important}
+@media screen and (max-width:780px){
+ #appView .nd-jmp{align-items:flex-end;padding:0}
+ #appView .nd-jmp-box{width:100%;max-height:88vh;border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+ #appView .nd-jmp-li{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
+ #appView .nd-jmp-acts{grid-column:1/-1;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+ #appView .nd-jmp-b{height:42px}
+ #appView [data-nd-go]:hover{background:none}
+}
