@@ -1529,6 +1529,7 @@ html body #appView .shortbox .row.nd-sr>:is(.lack,.nh){text-align:right!importan
 }
 /* 사용자 승인 (관리자만) — rail 한 줄 + 창. 메일 창과 같은 틀(PC 가운데 · 폰 아래에서). */
 #appView .nd-acc-nav>.nd-acc-cnt{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--nd-amber);color:#fff;display:grid;place-items:center;font:700 11px/1 var(--sans);font-style:normal}
+#appView .nd-acc-nav>.nd-acc-cnt[hidden]{display:none}
 #appView .nd-acc{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,12,16,.45)}
 #appView .nd-acc-box{width:min(640px,100%);max-height:calc(100vh - 48px);overflow:auto;display:flex;flex-direction:column;border-radius:16px;background:var(--nd-raised);color:var(--nd-ink);box-shadow:var(--nd-pop);font-family:var(--sans)}
 #appView .nd-acc-loading{padding:40px 24px;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3)}
