@@ -903,6 +903,17 @@
   // 거래처별 차액: 받은 쪽이 많으면 +를 붙여 목록 금액(+입금 · −출금)과 같은 읽기 방식
   v.querySelectorAll('#payByCo tbody tr>td:nth-child(5)').forEach(td=>{const t=td.textContent.trim();if(/^[1-9][\d,]*$/.test(t))td.textContent='+'+t;else if(/^-[\d,]+$/.test(t))td.textContent='−'+t.slice(1);});
  }
+ // 글자 기호(+ ＋ ‹)는 글꼴마다 높이·크기가 달라(맥에서 처짐) 버튼 글자와 어긋난다 → 기호를 떼고 CSS로 그린 아이콘을 붙인다(nd-gi-plus / nd-gi-back).
+ function glyphTidy(){
+  const root=document.getElementById('appView');if(!root)return;
+  for(const b of root.querySelectorAll('button,a,.btn')){
+   const t=b.firstChild;if(!t||t.nodeType!==3)continue;
+   const m=/^\s*([+＋‹])\s*/.exec(t.nodeValue);if(!m||!t.nodeValue.slice(m[0].length).trim())continue;
+   t.nodeValue=t.nodeValue.slice(m[0].length);
+   const kind=m[1]==='‹'?'nd-gi-back':'nd-gi-plus';if(!b.classList.contains(kind))b.classList.add(kind);
+   const d=getComputedStyle(b).display;const f=/^inline/.test(d)?'nd-gi-i':'nd-gi-f';if(!b.classList.contains(f))b.classList.add(f);
+  }
+ }
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -925,19 +936,19 @@
  document.addEventListener('keydown',ev=>{if(ev.key!=='Enter'&&ev.key!==' ')return;const tr=ev.target.closest?.('#payTbl tbody tr[data-nd-pay]');if(tr&&ev.target===tr){ev.preventDefault();openPaySheet(tr.dataset.ndPay);}});
  const IT_PHONE=matchMedia('(max-width:780px)');IT_PHONE.addEventListener('change',()=>itemsMobile());
  function itemsMobile(){
-  const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='‹ 거래처')cb.textContent='‹ 거래처';
+  const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='거래처'){cb.textContent='거래처';cb.classList.add('nd-gi-back','nd-gi-i');}
   const v=document.getElementById('view-items');if(!v||typeof itSel==='undefined')return;
   // mobile-record-open: 거래처·재고·자재와 같은 폰 상세 규칙(하단 메뉴 숨김 + 저장 영역 하단 고정)을 그대로 쓴다.
   const open=!!itSel&&IT_PHONE.matches;if(v.classList.contains('nd-it-open')!==open){v.classList.toggle('nd-it-open',open);v.classList.toggle('mobile-record-open',open);}
   const card=v.querySelector(':scope>.cols>.card:nth-child(2)');if(!card)return;
   let bar=card.querySelector(':scope>.nd-it-bar');
-  if(!bar){bar=document.createElement('div');bar.className='nd-it-bar';bar.innerHTML='<button type="button" class="nd-it-back">‹ 품목</button>';card.prepend(bar);
+  if(!bar){bar=document.createElement('div');bar.className='nd-it-bar';bar.innerHTML='<button type="button" class="nd-it-back nd-gi-back nd-gi-i">품목</button>';card.prepend(bar);
    bar.querySelector('.nd-it-back').onclick=()=>{
     if(typeof masterHasUnsavedChanges==='function'&&masterHasUnsavedChanges('items')&&!confirm('저장하지 않은 변경사항이 있습니다. 변경사항을 버리고 이동할까요?'))return;
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
