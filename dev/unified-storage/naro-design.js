@@ -922,7 +922,7 @@
  // 글자 기호(+ ＋ ‹)는 글꼴마다 높이·크기가 달라(맥에서 처짐) 버튼 글자와 어긋난다 → 기호를 떼고 CSS로 그린 아이콘을 붙인다(nd-gi-plus / nd-gi-back).
  function glyphTidy(){
   const root=document.getElementById('appView');if(!root)return;
-  const md=document.getElementById('mm_detail');if(md&&md.getAttribute('aria-label')!=='상세 입력')md.setAttribute('aria-label','상세 입력'); // 폰에서는 + 아이콘만 보인다
+  const md=document.getElementById('mm_detail');if(md){if(md.getAttribute('aria-label')!=='상세 입력')md.setAttribute('aria-label','상세 입력');const want=matchMedia('(max-width:780px)').matches?'상세':'상세 입력';if(md.textContent!==want)md.textContent=want;} // 폰 아래 바는 좁아 '상세'
   for(const b of root.querySelectorAll('button,a,.btn')){
    const t=b.firstChild;if(!t||t.nodeType!==3)continue;
    const m=/^\s*([+＋‹])\s*/.exec(t.nodeValue);if(!m||!t.nodeValue.slice(m[0].length).trim())continue;
@@ -1041,6 +1041,12 @@
   const r=d.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)return;
   const ev=new Event('cancel',{cancelable:true});d.dispatchEvent(ev);if(!ev.defaultPrevented&&d.open)d.close();
  });
+ // 폰 업체 제공 자재 '상세 기록' 창: 창 밖(어두운 곳)을 누르면 [닫기]와 같게
+ document.addEventListener('click',e=>{
+  const card=document.getElementById('materialEntryCard');if(!card||card.hidden||!matchMedia('(max-width:780px)').matches)return;
+  const form=e.target.closest?.('#view-materials .material-detail-form');if(!form||card.contains(e.target))return;
+  e.preventDefault();e.stopPropagation();document.getElementById('mm_edit_cancel')?.click();
+ },true);
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -1076,7 +1082,9 @@
    };}
  }
  const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
- const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
+ const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
+  // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
+  const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',scope):scope();

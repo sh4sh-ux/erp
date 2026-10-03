@@ -2088,3 +2088,10 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
 @media screen and (max-width:780px){
  html body #appView[data-layout-system] .shell .main #view-stock.nd-st-sheet .stock-add{padding:10px 16px 0!important}
 }
+@media screen and (max-width:780px){
+ /* 폰 입금·출금 거래처별 집계: 제목은 아래 목록 글자와 같은 시작(안쪽 여백 중복 제거) */
+ html body #appView #view-payments .card:has(#payByCo)>.card-head{padding:4px 0!important}
+ /* 폰 자재 아래 바의 [상세 입력]: + 기호는 뜻이 모호 → '상세' 글자 버튼 */
+ html body #appView #view-materials.nd-mm-open #mm_detail{width:auto!important;min-width:56px!important;padding:0 14px!important;font:600 14px/1 var(--sans)!important;color:var(--nd-ink)!important}
+ html body #appView #view-materials.nd-mm-open #mm_detail::before,html body #appView #view-materials.nd-mm-open #mm_detail::after{content:none!important;display:none!important}
+}
