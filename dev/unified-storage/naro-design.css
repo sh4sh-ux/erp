@@ -1347,23 +1347,6 @@ html[data-theme="dark"]{
  #appView #view-stock.nd-st-open .stock-overview-heading h3{font:700 17px/24px var(--sans)!important}
  /* 옵션 표: 한 줄에 한 옵션 (카드 나열 대신) */
  #appView #view-stock .stock-option-scroll{overflow:visible!important;margin:8px 0 0!important}
- #appView #view-stock .stock-option-table{display:table!important;width:100%!important;table-layout:auto!important;border-collapse:collapse!important}
- #appView #view-stock .stock-option-table thead{display:table-header-group!important}
- #appView #view-stock .stock-option-table tbody{display:table-row-group!important}
- #appView #view-stock .stock-option-table tr{display:table-row!important;padding:0!important;margin:0!important;border:0!important;background:none!important;box-shadow:none!important}
- #appView #view-stock .stock-option-table :is(th,td){display:table-cell!important;padding:0 4px!important;height:44px;border:0!important;border-bottom:1px solid var(--nd-line-2)!important;font:500 13px/1.2 var(--sans)!important;text-align:right!important;white-space:nowrap;vertical-align:middle}
- #appView #view-stock .stock-option-table th{height:32px;font:600 10.5px/1.2 var(--sans)!important;color:var(--nd-ink-3)!important;background:none!important}
- #appView #view-stock .stock-option-table td::before{display:none!important;content:none!important}
- #appView #view-stock .stock-option-table :is(th,td):nth-child(1),#appView #view-stock .stock-option-table :is(th,td):nth-child(2){text-align:left!important;font-weight:700!important}
- #appView #view-stock .stock-option-table td:nth-child(1){color:var(--nd-ink-2)!important;font-weight:600!important}
- #appView #view-stock .stock-option-table :is(th,td):nth-child(3){width:14px;padding:0!important;text-align:center!important}
- #appView #view-stock .stock-option-table th:nth-child(3){font-size:0!important}
- #appView #view-stock .stock-option-table td:nth-child(3) .pill{display:inline-block!important;width:8px;height:8px;padding:0!important;border-radius:50%!important;font-size:0!important;vertical-align:middle}
- #appView #view-stock .stock-option-table td:nth-child(3) .pill::before{content:none!important}
- #appView #view-stock .stock-option-table td:nth-child(3) .pill.attention{background:var(--nd-amber-fill)!important}
- #appView #view-stock .stock-option-table td:nth-child(6){font-weight:700!important}
- #appView #view-stock .stock-option-table td.neg{color:var(--nd-red)!important}
- #appView #view-stock .stock-option-table td:last-child input{width:52px!important;min-width:0!important;height:34px!important;min-height:0!important;padding:0 4px!important;text-align:center!important;border-radius:8px!important;font-size:14px!important}
  #appView #view-stock .stock-min-actions{position:static!important;margin:12px 0 0!important;padding:0!important;background:none!important;border:0!important}
  #appView #view-stock .stock-min-actions>button{width:100%!important;height:44px!important;border-radius:12px!important}
  #appView #view-stock.nd-st-open .stock-history-title{padding:16px 16px 4px!important;margin:16px 0 0!important;border-top:8px solid var(--nd-page)!important}
@@ -1978,7 +1961,7 @@ html body #appView #stockOverview>.stock-overview-heading>h3>.nd-code{color:var(
 html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1!important}
 @media screen and (max-width:780px){
  html body #appView #view-stock .stock-add::before{order:-3!important;grid-column:1/-1!important;justify-self:center!important;align-self:start}
- html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-12px -24px 0!important;padding:0 24px!important}
+ html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-10px -16px 0!important;padding:0 16px!important}
 }
 html body #appView .nd-st-title>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px}
 @media screen and (max-width:780px){
@@ -2041,3 +2024,67 @@ html body #appView #view-stock .stock-history-title+.tbl-wrap td.num.pos{color:v
 html body #appView #view-stock .stock-history-title+.tbl-wrap td.num.neg{color:var(--nd-red)!important;font-weight:700}
 html body #appView #view-stock .stock-add>.nd-sk-reason{grid-column:1/-1!important}
 @media screen and (max-width:520px){html body #appView #view-stock .nd-sk-hint{display:none}}
+/* 요약 칸 구분선: 위아래(가로선은 좌우) 14px 띄운 짧은 선 — 재고·받을 금액·거래처 상세 등 모든 .stats (입금·출금과 같은 모양) */
+html body #appView .view :is(.stats,.sl-metrics,#dashStats)>.nd-div.nd-div.nd-div.nd-div.nd-dl{border-left-color:transparent!important;background-image:linear-gradient(var(--nd-line),var(--nd-line))!important;background-repeat:no-repeat!important;background-size:1px calc(100% - 28px)!important;background-position:0 14px!important}
+html body #appView .view :is(.stats,.sl-metrics,#dashStats)>.nd-div.nd-div.nd-div.nd-div.nd-dt{border-top-color:transparent!important;background-image:linear-gradient(var(--nd-line),var(--nd-line))!important;background-repeat:no-repeat!important;background-size:calc(100% - 28px) 1px!important;background-position:14px 0!important}
+html body #appView .view :is(.stats,.sl-metrics,#dashStats)>.nd-div.nd-div.nd-div.nd-div.nd-dl.nd-dt{background-image:linear-gradient(var(--nd-line),var(--nd-line)),linear-gradient(var(--nd-line),var(--nd-line))!important;background-size:1px calc(100% - 28px),calc(100% - 28px) 1px!important;background-position:0 14px,14px 0!important}
+/* 구분 탭은 고른 쪽이 색·밑줄로 보이므로 초점 상자를 그리지 않는다(눌렀을 때 파란 상자가 남던 것) */
+html body #appView :is(.nd-sk-tl>button,.nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button):is(:focus,:focus-visible){outline:none!important;box-shadow:none!important}
+/* 대상 칸의 원래 테두리는 모두 지우고(자리 기준 선만 남김) */
+html body #appView .view :is(.stats,.sl-metrics,#dashStats)>.nd-div.nd-div.nd-div.nd-div{border-left-color:transparent!important;border-top-color:transparent!important;border-right-color:transparent!important;border-bottom-color:transparent!important}
+/* 재고 입력 버튼 줄(.nd-sk-act): PC = 입력 칸 아래 두 칸 · 폰 창 = 아래 고정 바(불투명 + 위 구분선) */
+html body #appView #view-stock .stock-add>.nd-sk-act{grid-column:1/-1!important;order:10;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+html body #appView #view-stock .stock-add>.nd-sk-act>button{width:100%!important;margin:0!important;position:static!important;grid-column:auto!important}
+html body #appView #view-stock .stock-add[hidden]{display:none!important}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add>.nd-sk-act{grid-template-columns:1fr 2fr;gap:8px;position:sticky;bottom:0;z-index:5;margin:8px -16px 0!important;padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+ html body #appView #view-stock .stock-add>.nd-sk-act>button{height:48px!important;min-height:48px!important;border-radius:12px!important}
+ /* 상세: 안쪽 여백 중복 제거(제목·표가 다른 화면처럼 16px에서 시작) */
+ html body #appView #view-stock #stockOverview>.stock-overview-heading{padding:0 0 12px!important}
+ /* 상세 표 → 두 줄 목록: 1줄 품목·색상·규격 … 상태 / 2줄 현재·출고 예정·가용 … 최소 기준 */
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-scroll{overflow:visible!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table{display:block!important;width:100%!important;min-width:0!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table>thead{display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table>tbody{display:block!important;width:100%!important;min-width:0!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody tr{width:100%!important;min-width:0!important;box-sizing:border-box;display:flex!important;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:6px;padding:12px 0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;background:none!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody tr::before{content:"";order:5;flex:0 0 100%;height:0}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td{display:block!important;flex:none;height:auto!important;padding:0!important;border:0!important;width:auto!important;min-width:0;text-align:left!important;font-size:13px;line-height:20px;white-space:nowrap}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td::before{content:none!important}
+html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td[data-label="품목"]{order:1;font-weight:600;color:var(--nd-ink)!important;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td:is([data-label="색상"],[data-label="규격/옵션"]){order:2;font-weight:600;color:var(--nd-ink)!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td[data-label="상태"]{order:4;margin-left:auto}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td:is([data-label="현재"],[data-label="출고 예정"],[data-label="가용"]){order:6;color:var(--nd-ink-3)!important;font-size:12.5px}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td:is([data-label="현재"],[data-label="출고 예정"],[data-label="가용"])::before{content:attr(data-label) " "!important;display:inline!important;font-size:12.5px;color:var(--nd-ink-3)}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td:is([data-label="현재"],[data-label="가용"]) {color:var(--nd-ink)!important;font-weight:600}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td[data-label="가용"].neg{color:var(--nd-red)!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td[data-label="최소 기준"]{order:9;margin-left:auto}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-table tbody td[data-label="최소 기준"] input{width:76px!important;height:32px!important;min-height:0!important;padding:0 8px!important;font-size:13px!important;text-align:right!important}
+}
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview .stock-option-scroll{padding:0!important;margin:4px 0 0!important}
+ html body #appView[data-layout-system] .shell .main #view-stock #stockOverview>.stock-overview-heading{padding-bottom:4px!important}
+}
+/* 품목을 고르기 전(빈 상태)에도 [입력 닫기]는 늘 보인다 — 버튼 줄을 보이고 확인 버튼만 숨김 */
+html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act.nd-sk-act.nd-sk-act{display:grid!important;grid-template-columns:1fr!important}
+html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivCancelBtn{display:flex!important}
+html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn{display:none!important}
+/* 폰: 그린 기호를 손가락 크기 버튼에 맞게 키운다(PC 12px 선 → 폰 16px, 탭·버튼 앞 아이콘도 한 단계) */
+@media screen and (max-width:780px){
+ html body :is(.material-stepper,.qp-stepper)>button:is([aria-label$="줄이기"],[aria-label$="늘리기"])::before,
+ html body button:is([data-step="-1"],[data-step="1"])::before{width:16px!important}
+ html body :is(.material-stepper,.qp-stepper)>button[aria-label$="늘리기"]::after,
+ html body button[data-step="1"]::after{height:16px!important;width:2px!important}
+ html body #appView #view-materials.nd-mm-open #mm_detail::before{width:18px!important}
+ html body #appView #view-materials.nd-mm-open #mm_detail::after{height:18px!important}
+ html body #appView .nd-gi-plus::before{width:13px;height:13px;background-size:13px 2px,2px 13px!important}
+ html body #appView .nd-gi-back::before{width:9px;height:9px;border-width:2px!important}
+ html body #appView #view-stock .nd-sk-ic{width:14px;height:14px}
+ html body #appView #view-stock .nd-sk-ic::before,html body #appView #view-stock .nd-sk-ic.p::after{width:13px}
+ html body #appView #view-stock .nd-sk-ic.p::after{width:2px;height:13px}
+ html body #appView #view-stock .nd-sk-ic.eq{width:13px;height:10px}
+ html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button::before{width:13px;height:13px;background-size:13px 2px!important}
+ html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button:is([data-v="수금"],[data-v="받음"])::before{background-size:13px 2px,2px 13px!important}
+}
+@media screen and (max-width:780px){
+ html body #appView[data-layout-system] .shell .main #view-stock.nd-st-sheet .stock-add{padding:10px 16px 0!important}
+}

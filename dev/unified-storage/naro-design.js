@@ -333,7 +333,13 @@
     b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();},'기간 · 필터');};}
    if(c.filter&&!c.period){const b=toolBtn(ICON_FILTER,'필터');row.insertBefore(b,row.querySelector('.btn-add'));
-    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
+    b.onclick=()=>{const block=document.querySelector(c.filter);
+     if(!block){ // 폰처럼 PC용 필터 묶음이 없는 화면: 원래 고르기 칸(select)을 그대로 꺼내 보여주고 닫으면 제자리로
+      const view=document.getElementById('view-'+b.closest('.view')?.id.replace('view-',''))||b.closest('.view');
+      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'));if(!fields.length)return;
+      const marks=fields.map(f=>{const m=document.createComment('nd-filter');f.before(m);return m;});
+      openPop(b,el=>{el.classList.add('nd-pop-filter');fields.forEach(f=>{f.classList.add('nd-pop-field');el.append(f);});},()=>fields.forEach((f,i)=>{f.classList.remove('nd-pop-field');marks[i].replaceWith(f);}),'필터');return;}
+     const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block),'필터');};}
    if(c.filterSelect){const b=toolBtn(ICON_FILTER,'필터');row.append(b);
     b.onclick=()=>{const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
@@ -1001,6 +1007,40 @@
   const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
   if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
  }
+ // 요약 칸(.stats) 구분선 규칙: 칸 사이 선은 위아래(가로선은 좌우) 14px 띄운다 — 원래 테두리가 있는 칸만 골라 테두리를 투명하게 두고 같은 자리에 짧은 선을 그린다.
+ function statDividers(){
+  // 선은 화면에 놓인 자리로 정한다: 같은 줄 옆 칸 사이 = 세로선(위아래 14px 띄움), 새 줄의 첫 칸·아래 칸 = 가로선(좌우 14px 띄움).
+  // 원래 구분선이 있는 묶음(테두리가 하나라도 있는 칸)만 대상 — 카드 모양 묶음은 건드리지 않는다.
+  document.querySelectorAll('#appView :is(.stats,.sl-metrics,#dashStats)').forEach(g=>{
+   const kids=[...g.children].filter(k=>k.getClientRects().length);if(kids.length<2)return;
+   if(!g.dataset.ndDiv){const has=kids.some(k=>{const c=getComputedStyle(k);return (parseFloat(c.borderLeftWidth)>0&&c.borderLeftStyle!=='none')||(parseFloat(c.borderTopWidth)>0&&c.borderTopStyle!=='none');});if(!has)return;g.dataset.ndDiv='1';}
+   const top0=kids[0].getBoundingClientRect().top;
+   kids.forEach((k,i)=>{const r=k.getBoundingClientRect(),p=i?kids[i-1].getBoundingClientRect():null;
+    const sameRow=p&&Math.abs(r.top-p.top)<4,l=!!sameRow,t=r.top-top0>4; // 둘째 줄부터는 칸마다 위 가로선(줄 전체가 이어진다)
+    if(k.classList.contains('nd-dl')!==l)k.classList.toggle('nd-dl',l);if(k.classList.contains('nd-dt')!==t)k.classList.toggle('nd-dt',t);
+    if(!k.classList.contains('nd-div'))k.classList.add('nd-div');});
+  });
+ }
+ addEventListener('resize',()=>{clearTimeout(statDividers.t);statDividers.t=setTimeout(statDividers,150);});
+ // 폰 재고 입력 창: 아래 [입력 닫기][확인] 두 버튼을 한 줄 바로 묶는다(불투명 배경 + 위 구분선, 뒤 내용이 비치지 않게).
+ function stockActBar(){
+  const add=document.querySelector('#view-stock .stock-add'),c=document.getElementById('ivCancelBtn'),a=document.getElementById('ivAddBtn');if(!add||!c||!a)return;
+  let bar=add.querySelector(':scope>.nd-sk-act');if(!bar){bar=document.createElement('div');bar.className='nd-sk-act';add.append(bar);}
+  if(c.parentElement!==bar||a.parentElement!==bar||bar.firstElementChild!==c)bar.append(c,a);
+ }
+ // 폰 재고 입력 창 닫기: [입력 닫기] 뒤 바로 창·어두운 배경을 거둔다 / 창 밖(어두운 곳)을 눌러도 [입력 닫기]와 같게(저장 안 한 내용 확인 포함)
+ document.addEventListener('click',e=>{
+  const v=document.getElementById('view-stock');if(!v)return;
+  if(e.target.closest?.('#ivCancelBtn')){setTimeout(()=>{stockMobile();},0);return;}
+  if(v.classList.contains('nd-st-sheet')&&v.contains(e.target)&&!e.target.closest('.stock-add')&&e.target.closest('.cols>.card:nth-child(2)')){e.preventDefault();e.stopPropagation();document.getElementById('ivCancelBtn')?.click();}
+ },true);
+ // 창 밖을 누르면 닫힌다(모든 화면 공통): <dialog> 창의 바깥(어두운 곳)을 누르면 Esc와 같은 '취소'를 보낸다 —
+ // 창마다 붙어 있는 닫기 규칙(저장 안 한 내용 확인 등)을 그대로 따르고, 막지 않으면 닫는다.
+ document.addEventListener('click',e=>{
+  const d=e.target;if(!(d instanceof HTMLDialogElement)||!d.open)return;
+  const r=d.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom)return;
+  const ev=new Event('cancel',{cancelable:true});d.dispatchEvent(ev);if(!ev.defaultPrevented&&d.open)d.close();
+ });
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -1035,7 +1075,7 @@
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
