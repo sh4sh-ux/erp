@@ -1161,7 +1161,9 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
  #appView #view-materials.nd-mm-open .material-stepper>*{height:48px!important}
  #appView #view-materials.nd-mm-open #mm_quick_save{flex:1;height:48px!important;min-height:48px!important;margin:0!important;border-radius:12px!important;font-size:15px!important}
  #appView #view-materials.nd-mm-open #mm_detail{flex:none;width:48px!important;min-width:0!important;height:48px!important;padding:0!important;margin:0!important;border-radius:12px!important;font-size:0!important;display:flex!important;align-items:center;justify-content:center}
- #appView #view-materials.nd-mm-open #mm_detail::before{content:'+';font:600 22px/1 var(--sans);color:var(--nd-ink-2)}
+ #appView #view-materials.nd-mm-open #mm_detail{position:relative!important;color:var(--nd-ink-2)}
+ #appView #view-materials.nd-mm-open #mm_detail::before,#appView #view-materials.nd-mm-open #mm_detail::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;border-radius:1px;background:currentColor;transform:translate(-50%,-50%)}
+ #appView #view-materials.nd-mm-open #mm_detail::after{width:2px;height:14px}
  /* 기록 창: 아래에서 올라오는 시트 */
  #appView #view-materials .material-detail-form:has(#materialEntryCard:not([hidden]))::before{content:'';position:fixed;inset:0;background:rgba(15,20,30,.38);z-index:60}
  #appView #view-materials #materialEntryCard:not([hidden]){position:fixed!important;left:0;right:0;bottom:0;z-index:61;max-height:88vh;max-height:88dvh;overflow-y:auto;margin:0!important;padding:10px 16px calc(16px + env(safe-area-inset-bottom,0px))!important;background:var(--nd-surface)!important;border-radius:20px 20px 0 0!important;box-shadow:0 -10px 30px rgba(15,20,35,.18)!important}
@@ -1922,3 +1924,10 @@ html body #appView :is(#payEntry,.insight-method)[open]>summary::before{transfor
 @media (prefers-reduced-motion:reduce){html body #appView :is(#payEntry,.insight-method)>summary::before{transition:none}}
 /* 폰 뒤로 가기(‹ 견적서·거래처·품목·재고·업체 제공 자재): 꺾쇠 시작 = 아래 내용 글자 시작(버튼 안쪽 왼쪽 여백 없음) */
 html body #appView .nd-gi-back{padding-left:0!important;margin-left:0!important}
+/* 수량 칸 너비 = 안의 [ − | 숫자 | + ] 합(앱 기본값 flex-basis 128px 때문에 오른쪽에 10px 빈 틈이 생겼다) — PC·폰 공통 */
+html body #appView #view-materials .material-stepper{flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important}
+/* '›' 글자 → 그린 꺾쇠(글꼴과 상관없이 같은 크기·높이). 바로가기 표시 · 폰 자재 기록 줄 · 견적서 납품 수량 펼치기 */
+html body #appView [data-nd-go]::after{content:""!important;display:inline-block;width:5px;height:5px;margin:0 2px 0 6px;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:translateY(-1.5px) rotate(45deg);vertical-align:middle;opacity:.55;font:inherit}
+html body #appView #view-materials.nd-mm-open .material-record-side::after{content:""!important;flex:none;width:7px;height:7px;margin-left:4px;border-top:1.6px solid var(--nd-ink-4,#C3C6CE);border-right:1.6px solid var(--nd-ink-4,#C3C6CE);transform:rotate(45deg);font:inherit}
+html body #view-quotes .delivery-quantities>summary::after{content:""!important;display:inline-block;width:7px;height:7px;margin-left:8px;border-top:1.6px solid currentColor;border-right:1.6px solid currentColor;transform:translateY(-1px) rotate(45deg);vertical-align:middle;font-size:0}
+html body #view-quotes .delivery-quantities[open]>summary::after{transform:translateY(-3px) rotate(135deg)}

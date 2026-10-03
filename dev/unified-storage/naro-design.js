@@ -906,6 +906,7 @@
  // 글자 기호(+ ＋ ‹)는 글꼴마다 높이·크기가 달라(맥에서 처짐) 버튼 글자와 어긋난다 → 기호를 떼고 CSS로 그린 아이콘을 붙인다(nd-gi-plus / nd-gi-back).
  function glyphTidy(){
   const root=document.getElementById('appView');if(!root)return;
+  const md=document.getElementById('mm_detail');if(md&&md.getAttribute('aria-label')!=='상세 입력')md.setAttribute('aria-label','상세 입력'); // 폰에서는 + 아이콘만 보인다
   for(const b of root.querySelectorAll('button,a,.btn')){
    const t=b.firstChild;if(!t||t.nodeType!==3)continue;
    const m=/^\s*([+＋‹])\s*/.exec(t.nodeValue);if(!m||!t.nodeValue.slice(m[0].length).trim())continue;
