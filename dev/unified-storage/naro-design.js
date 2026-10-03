@@ -940,6 +940,13 @@
   if(!add.querySelector('.nd-sz'))stockBtnLabel(Number(String(document.getElementById('ivQty')?.value||'').replace(/[^\d.]/g,''))||0);
  }
  document.addEventListener('input',e=>{if(e.target?.id==='ivQty')stockKindTabs();});
+ // 입금·출금 · 업체 제공 자재 기록도 재고와 같은 규칙: 구분은 맨 위 탭, 저장 버튼 글자·색이 구분을 따라간다.
+ function kindSaveLabels(){
+  const pk=document.getElementById('payKind'),pb=document.getElementById('payAddBtn');
+  if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록 저장',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
+  const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
+  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
+ }
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -974,7 +981,7 @@
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();stockKindTabs();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

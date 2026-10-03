@@ -1985,3 +1985,29 @@ html body #appView .nd-st-title>.nd-code{color:var(--nd-ink-3);font-weight:400;f
  html body #appView #view-stock .stock-add>label:has(#ivDate){grid-column:1/-1!important}
  html body #appView #view-stock .stock-add>label:has(#ivDate) :is(.date-control,input){width:100%!important;max-width:none!important}
 }
+/* ===== 구분 탭 공통 규칙(재고 A안을 입금·출금 · 업체 제공 자재 기록에도) — 꽉 찬 색 버튼 대신 맨 위 탭: 고른 쪽만 뜻의 색 글자+밑줄 ===== */
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind){display:flex!important;flex-wrap:nowrap;align-items:flex-end;gap:24px!important;width:100%;height:auto!important;padding:0!important;margin:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;border-radius:0!important;background:none!important;box-shadow:none!important;overflow-x:auto;scrollbar-width:none}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button{flex:none!important;width:auto!important;min-width:0!important;height:48px!important;display:inline-flex!important;align-items:center;gap:7px;padding:0!important;margin:0 0 -1px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-3)!important;font:600 15px/1 var(--sans)!important;cursor:pointer}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button:hover{color:var(--nd-ink-2)!important}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button.on:is([data-v="수금"],[data-v="받음"]){color:var(--nd-green)!important;border-bottom-color:var(--nd-green)!important}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button.on:is([data-v="지급"],[data-v="작업 완료"],[data-v="반환"],[data-v="불량/분실"]){color:var(--nd-red)!important;border-bottom-color:var(--nd-red)!important}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button::before{content:"";flex:none;width:10px;height:10px;background:linear-gradient(currentColor,currentColor) center/10px 2px no-repeat}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button:is([data-v="수금"],[data-v="받음"])::before{background:linear-gradient(currentColor,currentColor) center/10px 2px no-repeat,linear-gradient(currentColor,currentColor) center/2px 10px no-repeat}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button:focus-visible{outline:2px solid var(--nd-blue)!important;outline-offset:-2px}
+@media (hover:none){html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button:is(:focus,:focus-visible){outline:none!important}}
+/* 오른쪽 안내(재고 탭과 같은 자리) */
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)::after{margin-left:auto;padding-bottom:16px;font-size:12px;color:var(--nd-ink-3);white-space:nowrap}
+html body #appView .nd-pay-kind:has(>button.on[data-v="수금"])::after{content:"받은 돈을 기록해요"}
+html body #appView .nd-pay-kind:has(>button.on[data-v="지급"])::after{content:"거래처에 보낸 돈을 기록해요"}
+html body #appView .nd-mm-kind:has(>button.on[data-v="받음"])::after{content:"업체에서 받은 자재를 더해요"}
+html body #appView .nd-mm-kind:has(>button.on[data-v="작업 완료"])::after{content:"작업에 쓴 자재를 빼요"}
+html body #appView .nd-mm-kind:has(>button.on[data-v="반환"])::after{content:"업체에 돌려준 자재를 빼요"}
+html body #appView .nd-mm-kind:has(>button.on[data-v="불량/분실"])::after{content:"못 쓰게 된 자재를 빼요"}
+@media screen and (max-width:520px){html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)::after{display:none}}
+/* 입금·출금: 탭이 입력 칸 맨 위 한 줄(라벨 '거래 유형'은 탭이 대신) */
+html body #appView #view-payments .pay-add>.pf-kind{grid-column:1/-1!important;order:-1}
+html body #appView #view-payments .pay-add>.pf-kind>label{display:none!important}
+/* 저장 버튼 색이 구분을 따라간다 */
+html body #appView :is(#payAddBtn,#mm_save)[data-kind="in"]{background:var(--nd-green)!important;border-color:var(--nd-green)!important;color:#fff!important}
+html body #appView :is(#payAddBtn,#mm_save)[data-kind="out"]{background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
+html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button.on:is([data-v]){background:none!important;box-shadow:none!important;border-top:0!important;border-left:0!important;border-right:0!important}
