@@ -370,7 +370,7 @@
    const sync=()=>seg.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===kindSel.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));});
    for(const o of kindSel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(kindSel.value!==o.value){kindSel.value=o.value;kindSel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
    kindSel.classList.add('nd-kind-src');kindSel.after(seg);kindSel.addEventListener('change',sync);sync();}
-  if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;const ab=document.getElementById('ivAddBtn');if(ab?.dataset.ndLabel&&ab.textContent!==ab.dataset.ndLabel)ab.textContent=ab.dataset.ndLabel;return;}
+  if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;stockBtnLabel(0);return;}
   const item=db.items.find(i=>i.id===document.getElementById('ivItem')?.value),color=document.getElementById('ivColor')?.value||'';
   const specs=[...grid.querySelectorAll('input[data-stock-size]')].map(i=>i.getAttribute('aria-label').replace(/ 수량$/,''));
   const key=[item?.id,color,specs.join(',')].join('|');
@@ -403,9 +403,10 @@
     wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,n(a),a<0?'neg':q?'chg':''));
     wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(inp=>{const v=String(stockQuickValues[s]??'');if(inp.value!==v&&document.activeElement!==inp)inp.value=v;});});
    wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,out()?'출고':'입고'));
+   const kd=out()?'out':'in';if(wrap.dataset.kind!==kd)wrap.dataset.kind=kd;
    wrap.querySelectorAll('[data-total]').forEach(el=>set(el,total?n(total)+'개':'0'));
    wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,n(afterSum)));
-   if(addBtn){const label=addBtn.dataset.ndLabel+(total&&!wrap.classList.contains('compact')&&!matchMedia('(max-width:780px)').matches?` · ${n(total)}개`:'');if(addBtn.textContent!==label)addBtn.textContent=label;}
+   stockBtnLabel(total);
   }
   const put=(i,v)=>{if(i<0||i>=specs.length)return;stockQuickValues[specs[i]]=v===''||v==null?'':String(v);};
   wrap.addEventListener('input',e=>{const inp=e.target.closest('input[data-i]');if(!inp)return;const clean=inp.value.replace(/[^\d.]/g,'');if(clean!==inp.value)inp.value=clean;put(+inp.dataset.i,clean);update();});
@@ -562,7 +563,7 @@
   let bar=detail.querySelector(':scope>.nd-st-bar');
   if(!bar){bar=document.createElement('div');bar.className='nd-st-bar';bar.innerHTML='<button type="button" class="nd-st-back">‹ 재고</button><b class="nd-st-title"></b>';detail.prepend(bar);}
   const sel=view.querySelector('#stockItems>.stock-item.selected>span:first-child,#stockItems>.stock-item.selected');
-  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');if(tt.textContent!==name)tt.textContent=name;
+  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');const mm=/^(.*?)\s*\[([^\]]+)\]$/.exec(name);const nm=mm?mm[1]:name,cd=mm?mm[2]:'';if(tt.dataset.k!==name){tt.dataset.k=name;tt.textContent=nm;if(cd){const c=document.createElement('span');c.className='nd-code';c.textContent=cd;tt.append(' ',c);}} // 품번은 [ ] 없이 얇은 회색
   let act=detail.querySelector(':scope>.nd-st-act');
   if(!act){act=document.createElement('div');act.className='nd-st-act';act.innerHTML='<button type="button" data-go="stockRegister" class="p">입고</button><button type="button" data-go="stockOutbound">출고</button><button type="button" data-go="stockAdjust">조정</button>';detail.append(act);}
   // 입력 창은 아래 바의 [입고][출고][조정]으로 열었을 때만 시트로 띄운다(품목을 고르면 원래 화면이 폼을 자동으로 펴기 때문).
@@ -915,6 +916,30 @@
    const d=getComputedStyle(b).display;const f=/^inline/.test(d)?'nd-gi-i':'nd-gi-f';if(!b.classList.contains(f))b.classList.add(f);
   }
  }
+ // 재고 입력(A안 확정): 입고·출고는 입력 칸 맨 위 탭으로 고른다(구분 = 탭, 버튼 아님). 확인 버튼 글자·색이 구분을 따라간다.
+ function stockBtnLabel(total){
+  const b=document.getElementById('ivAddBtn'),k=document.getElementById('ivKind');if(!b)return;
+  const out=k?.value==='출고',t=`${out?'출고':'입고'} ${total?(Math.round(total).toLocaleString('ko-KR')+'개 '):''}확인`;
+  if(b.textContent!==t)b.textContent=t;const kd=out?'out':'in';if(b.dataset.kind!==kd)b.dataset.kind=kd;
+ }
+ function stockKindTabs(){
+  const add=document.querySelector('#view-stock .stock-add'),sel=document.getElementById('ivKind');if(!add||!sel)return;
+  let bar=add.querySelector(':scope>.nd-sk-tabs');
+  if(!bar){bar=document.createElement('div');bar.className='nd-sk-tabs';
+   bar.innerHTML='<div class="nd-sk-tl" role="tablist" aria-label="구분"><button type="button" role="tab" data-v="입고"><i class="nd-sk-ic p" aria-hidden="true"></i>입고</button><button type="button" role="tab" data-v="출고"><i class="nd-sk-ic m" aria-hidden="true"></i>출고</button></div><span class="nd-sk-hint"></span>';
+   add.prepend(bar);
+   bar.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b||sel.value===b.dataset.v)return;sel.value=b.dataset.v;sel.dispatchEvent(new Event('change',{bubbles:true}));stockKindTabs();});
+   sel.closest('label')?.classList.add('nd-sk-src');}
+  const v=sel.value==='출고'?'출고':'입고',kd=v==='출고'?'out':'in';
+  if(bar.dataset.kind!==kd)bar.dataset.kind=kd;if(add.dataset.kind!==kd)add.dataset.kind=kd;
+  bar.querySelectorAll('button[data-v]').forEach(b=>{const on=String(b.dataset.v===v);if(b.getAttribute('aria-selected')!==on){b.setAttribute('aria-selected',on);b.tabIndex=on==='true'?0:-1;}});
+  const h=bar.querySelector('.nd-sk-hint'),ht=v==='출고'?'나간 수량을 빼요':'들어온 수량을 더해요';if(h.textContent!==ht)h.textContent=ht;
+  // 아래 품목 표 제목 '셰프복 [JK_01]' → 이름 + 얇은 회색 품번(품번 규칙)
+  const oh=document.querySelector('#stockOverview>.stock-overview-heading>h3');
+  if(oh&&!oh.querySelector('.nd-code')){const m=/^(.*?)\s*\[([^\]]+)\]\s*$/.exec(oh.textContent);if(m){oh.textContent=m[1]+' ';const c=document.createElement('span');c.className='nd-code';c.textContent=m[2];oh.append(c);}}
+  if(!add.querySelector('.nd-sz'))stockBtnLabel(Number(String(document.getElementById('ivQty')?.value||'').replace(/[^\d.]/g,''))||0);
+ }
+ document.addEventListener('input',e=>{if(e.target?.id==='ivQty')stockKindTabs();});
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -949,7 +974,7 @@
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();stockKindTabs();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

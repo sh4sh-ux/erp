@@ -9222,6 +9222,60 @@ html body #appView [data-nd-go]::after{content:""!important;display:inline-block
 html body #appView #view-materials.nd-mm-open .material-record-side::after{content:""!important;flex:none;width:7px;height:7px;margin-left:4px;border-top:1.6px solid var(--nd-ink-4,#C3C6CE);border-right:1.6px solid var(--nd-ink-4,#C3C6CE);transform:rotate(45deg);font:inherit}
 html body #view-quotes .delivery-quantities>summary::after{content:""!important;display:inline-block;width:7px;height:7px;margin-left:8px;border-top:1.6px solid currentColor;border-right:1.6px solid currentColor;transform:translateY(-1px) rotate(45deg);vertical-align:middle;font-size:0}
 html body #view-quotes .delivery-quantities[open]>summary::after{transform:translateY(-3px) rotate(135deg)}
+/* ===== 재고 입력 (A안 확정 2026-10) — 구분은 입력 칸 맨 위 탭(버튼 아님), 순서: 탭 → 품목·색상 → 규격 → 날짜 → 수량 ===== */
+html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1;order:-2;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:-24px -24px 0;padding:0 24px;border-bottom:1px solid var(--nd-line)}
+html body #appView #view-stock .nd-sk-tl{display:flex;gap:24px}
+html body #appView #view-stock .nd-sk-tl>button{height:48px;display:inline-flex;align-items:center;gap:7px;padding:0;margin:0 0 -1px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--nd-ink-3);font:600 15px/1 var(--sans);cursor:pointer}
+html body #appView #view-stock .nd-sk-tl>button:hover{color:var(--nd-ink-2)}
+html body #appView #view-stock .nd-sk-tabs[data-kind="in"] .nd-sk-tl>button[data-v="입고"]{color:var(--nd-green);border-bottom-color:var(--nd-green)}
+html body #appView #view-stock .nd-sk-tabs[data-kind="out"] .nd-sk-tl>button[data-v="출고"]{color:var(--nd-red);border-bottom-color:var(--nd-red)}
+html body #appView #view-stock .nd-sk-tl>button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+@media (hover:none){html body #appView #view-stock .nd-sk-tl>button:is(:focus,:focus-visible){outline:none}}
+html body #appView #view-stock .nd-sk-ic{position:relative;width:12px;height:12px;flex:none}
+html body #appView #view-stock .nd-sk-ic::before,html body #appView #view-stock .nd-sk-ic.p::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:2px;border-radius:1px;background:currentColor;transform:translate(-50%,-50%)}
+html body #appView #view-stock .nd-sk-ic.p::after{width:2px;height:10px}
+html body #appView #view-stock .nd-sk-hint{padding-bottom:16px;font-size:12px;color:var(--nd-ink-3);white-space:nowrap}
+/* 기존 구분 칸(큰 입고·출고 버튼)과 '재고 입력' 제목은 탭이 대신한다 */
+html body #appView #view-stock .stock-add>label.nd-sk-src{display:none!important}
+html body #appView #view-stock .stock-add>.stock-entry-heading>h3{display:none!important}
+html body #appView #view-stock .stock-add:not(.stock-entry-empty)>.stock-entry-heading{display:none!important}
+/* 순서 */
+html body #appView #view-stock .stock-add>.stock-entry-heading{order:-1}
+html body #appView #view-stock .stock-add>label:has(#ivItem){order:1}
+html body #appView #view-stock .stock-add>label:has(#ivColor){order:2}
+html body #appView #view-stock .stock-add>label:has(#ivSpec){order:3}
+html body #appView #view-stock .stock-add>label:has(#ivDate){order:4}
+html body #appView #view-stock .stock-add>label:has(#ivQty){order:5}
+html body #appView #view-stock .stock-add>#stockQuickEntry{order:6}
+html body #appView #view-stock .stock-add>label:has(#ivMemo){order:7}
+html body #appView #view-stock .stock-add>#ivCancelBtn{order:8}
+html body #appView #view-stock .stock-add>#ivAddBtn{order:9}
+/* 사이즈 표·확인 버튼 색이 구분을 따라간다(입고 초록 · 출고 빨강) */
+html body #appView #view-stock .nd-sz[data-kind="in"] tr.qty>td.k,html body #appView #view-stock .nd-sz[data-kind="in"] tr.qty>td.sum{color:var(--nd-green)!important}
+html body #appView #view-stock .nd-sz[data-kind="out"] tr.qty>td.k,html body #appView #view-stock .nd-sz[data-kind="out"] tr.qty>td.sum{color:var(--nd-red)!important}
+html body #appView #view-stock #ivAddBtn[data-kind="in"]{background:var(--nd-green)!important;border-color:var(--nd-green)!important;color:#fff!important}
+html body #appView #view-stock #ivAddBtn[data-kind="out"]{background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-24px -24px 0;padding:0 16px}
+ html body #appView #view-stock .nd-sk-tl>button{height:48px;font-size:15px}
+}
+/* 아래 품목 표: 제목·설명 글자 시작 = 표 첫 칸 글자 시작(16px) — 입고·출고 어느 화면에서도 같은 자리 */
+html body #appView #view-stock #stockOverview>.stock-overview-heading{margin:0!important;padding:0 16px 12px!important;text-indent:0}
+html body #appView #view-stock #stockOverview>.stock-overview-heading>h3{margin:0 0 6px!important;padding:0!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):first-child{padding-left:16px!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):last-child{padding-right:16px!important}
+html body #appView #stockOverview>.stock-overview-heading>h3>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px;margin-left:2px}
+/* 폰 재고 입력 창: 손잡이(회색 막대)는 탭 위 가운데 한 줄, 탭 줄과 아래 선은 창 끝까지 */
+html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1!important}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add::before{order:-3!important;grid-column:1/-1!important;justify-self:center!important;align-self:start}
+ html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-12px -24px 0!important;padding:0 24px!important}
+}
+html body #appView .nd-st-title>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add>label:has(#ivDate){grid-column:1/-1!important}
+ html body #appView #view-stock .stock-add>label:has(#ivDate) :is(.date-control,input){width:100%!important;max-width:none!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9594,7 +9648,7 @@ html body #view-quotes .delivery-quantities[open]>summary::after{transform:trans
    const sync=()=>seg.querySelectorAll('button').forEach(b=>{const on=b.dataset.v===kindSel.value;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));});
    for(const o of kindSel.options){const b=document.createElement('button');b.type='button';b.dataset.v=o.value;b.textContent=o.textContent;b.setAttribute('role','radio');b.onclick=()=>{if(kindSel.value!==o.value){kindSel.value=o.value;kindSel.dispatchEvent(new Event('change',{bubbles:true}));}sync();};seg.append(b);}
    kindSel.classList.add('nd-kind-src');kindSel.after(seg);kindSel.addEventListener('change',sync);sync();}
-  if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;const ab=document.getElementById('ivAddBtn');if(ab?.dataset.ndLabel&&ab.textContent!==ab.dataset.ndLabel)ab.textContent=ab.dataset.ndLabel;return;}
+  if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;stockBtnLabel(0);return;}
   const item=db.items.find(i=>i.id===document.getElementById('ivItem')?.value),color=document.getElementById('ivColor')?.value||'';
   const specs=[...grid.querySelectorAll('input[data-stock-size]')].map(i=>i.getAttribute('aria-label').replace(/ 수량$/,''));
   const key=[item?.id,color,specs.join(',')].join('|');
@@ -9627,9 +9681,10 @@ html body #view-quotes .delivery-quantities[open]>summary::after{transform:trans
     wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,n(a),a<0?'neg':q?'chg':''));
     wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(inp=>{const v=String(stockQuickValues[s]??'');if(inp.value!==v&&document.activeElement!==inp)inp.value=v;});});
    wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,out()?'출고':'입고'));
+   const kd=out()?'out':'in';if(wrap.dataset.kind!==kd)wrap.dataset.kind=kd;
    wrap.querySelectorAll('[data-total]').forEach(el=>set(el,total?n(total)+'개':'0'));
    wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,n(afterSum)));
-   if(addBtn){const label=addBtn.dataset.ndLabel+(total&&!wrap.classList.contains('compact')&&!matchMedia('(max-width:780px)').matches?` · ${n(total)}개`:'');if(addBtn.textContent!==label)addBtn.textContent=label;}
+   stockBtnLabel(total);
   }
   const put=(i,v)=>{if(i<0||i>=specs.length)return;stockQuickValues[specs[i]]=v===''||v==null?'':String(v);};
   wrap.addEventListener('input',e=>{const inp=e.target.closest('input[data-i]');if(!inp)return;const clean=inp.value.replace(/[^\d.]/g,'');if(clean!==inp.value)inp.value=clean;put(+inp.dataset.i,clean);update();});
@@ -9786,7 +9841,7 @@ html body #view-quotes .delivery-quantities[open]>summary::after{transform:trans
   let bar=detail.querySelector(':scope>.nd-st-bar');
   if(!bar){bar=document.createElement('div');bar.className='nd-st-bar';bar.innerHTML='<button type="button" class="nd-st-back">‹ 재고</button><b class="nd-st-title"></b>';detail.prepend(bar);}
   const sel=view.querySelector('#stockItems>.stock-item.selected>span:first-child,#stockItems>.stock-item.selected');
-  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');if(tt.textContent!==name)tt.textContent=name;
+  const name=(sel?.firstChild?.textContent||sel?.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);const tt=bar.querySelector('.nd-st-title');const mm=/^(.*?)\s*\[([^\]]+)\]$/.exec(name);const nm=mm?mm[1]:name,cd=mm?mm[2]:'';if(tt.dataset.k!==name){tt.dataset.k=name;tt.textContent=nm;if(cd){const c=document.createElement('span');c.className='nd-code';c.textContent=cd;tt.append(' ',c);}} // 품번은 [ ] 없이 얇은 회색
   let act=detail.querySelector(':scope>.nd-st-act');
   if(!act){act=document.createElement('div');act.className='nd-st-act';act.innerHTML='<button type="button" data-go="stockRegister" class="p">입고</button><button type="button" data-go="stockOutbound">출고</button><button type="button" data-go="stockAdjust">조정</button>';detail.append(act);}
   // 입력 창은 아래 바의 [입고][출고][조정]으로 열었을 때만 시트로 띄운다(품목을 고르면 원래 화면이 폼을 자동으로 펴기 때문).
@@ -10139,6 +10194,30 @@ html body #view-quotes .delivery-quantities[open]>summary::after{transform:trans
    const d=getComputedStyle(b).display;const f=/^inline/.test(d)?'nd-gi-i':'nd-gi-f';if(!b.classList.contains(f))b.classList.add(f);
   }
  }
+ // 재고 입력(A안 확정): 입고·출고는 입력 칸 맨 위 탭으로 고른다(구분 = 탭, 버튼 아님). 확인 버튼 글자·색이 구분을 따라간다.
+ function stockBtnLabel(total){
+  const b=document.getElementById('ivAddBtn'),k=document.getElementById('ivKind');if(!b)return;
+  const out=k?.value==='출고',t=`${out?'출고':'입고'} ${total?(Math.round(total).toLocaleString('ko-KR')+'개 '):''}확인`;
+  if(b.textContent!==t)b.textContent=t;const kd=out?'out':'in';if(b.dataset.kind!==kd)b.dataset.kind=kd;
+ }
+ function stockKindTabs(){
+  const add=document.querySelector('#view-stock .stock-add'),sel=document.getElementById('ivKind');if(!add||!sel)return;
+  let bar=add.querySelector(':scope>.nd-sk-tabs');
+  if(!bar){bar=document.createElement('div');bar.className='nd-sk-tabs';
+   bar.innerHTML='<div class="nd-sk-tl" role="tablist" aria-label="구분"><button type="button" role="tab" data-v="입고"><i class="nd-sk-ic p" aria-hidden="true"></i>입고</button><button type="button" role="tab" data-v="출고"><i class="nd-sk-ic m" aria-hidden="true"></i>출고</button></div><span class="nd-sk-hint"></span>';
+   add.prepend(bar);
+   bar.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b||sel.value===b.dataset.v)return;sel.value=b.dataset.v;sel.dispatchEvent(new Event('change',{bubbles:true}));stockKindTabs();});
+   sel.closest('label')?.classList.add('nd-sk-src');}
+  const v=sel.value==='출고'?'출고':'입고',kd=v==='출고'?'out':'in';
+  if(bar.dataset.kind!==kd)bar.dataset.kind=kd;if(add.dataset.kind!==kd)add.dataset.kind=kd;
+  bar.querySelectorAll('button[data-v]').forEach(b=>{const on=String(b.dataset.v===v);if(b.getAttribute('aria-selected')!==on){b.setAttribute('aria-selected',on);b.tabIndex=on==='true'?0:-1;}});
+  const h=bar.querySelector('.nd-sk-hint'),ht=v==='출고'?'나간 수량을 빼요':'들어온 수량을 더해요';if(h.textContent!==ht)h.textContent=ht;
+  // 아래 품목 표 제목 '셰프복 [JK_01]' → 이름 + 얇은 회색 품번(품번 규칙)
+  const oh=document.querySelector('#stockOverview>.stock-overview-heading>h3');
+  if(oh&&!oh.querySelector('.nd-code')){const m=/^(.*?)\s*\[([^\]]+)\]\s*$/.exec(oh.textContent);if(m){oh.textContent=m[1]+' ';const c=document.createElement('span');c.className='nd-code';c.textContent=m[2];oh.append(c);}}
+  if(!add.querySelector('.nd-sz'))stockBtnLabel(Number(String(document.getElementById('ivQty')?.value||'').replace(/[^\d.]/g,''))||0);
+ }
+ document.addEventListener('input',e=>{if(e.target?.id==='ivQty')stockKindTabs();});
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
@@ -10173,7 +10252,7 @@ html body #view-quotes .delivery-quantities[open]>summary::after{transform:trans
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();stockKindTabs();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

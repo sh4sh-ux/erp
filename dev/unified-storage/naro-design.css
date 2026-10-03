@@ -1931,3 +1931,57 @@ html body #appView [data-nd-go]::after{content:""!important;display:inline-block
 html body #appView #view-materials.nd-mm-open .material-record-side::after{content:""!important;flex:none;width:7px;height:7px;margin-left:4px;border-top:1.6px solid var(--nd-ink-4,#C3C6CE);border-right:1.6px solid var(--nd-ink-4,#C3C6CE);transform:rotate(45deg);font:inherit}
 html body #view-quotes .delivery-quantities>summary::after{content:""!important;display:inline-block;width:7px;height:7px;margin-left:8px;border-top:1.6px solid currentColor;border-right:1.6px solid currentColor;transform:translateY(-1px) rotate(45deg);vertical-align:middle;font-size:0}
 html body #view-quotes .delivery-quantities[open]>summary::after{transform:translateY(-3px) rotate(135deg)}
+/* ===== 재고 입력 (A안 확정 2026-10) — 구분은 입력 칸 맨 위 탭(버튼 아님), 순서: 탭 → 품목·색상 → 규격 → 날짜 → 수량 ===== */
+html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1;order:-2;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:-24px -24px 0;padding:0 24px;border-bottom:1px solid var(--nd-line)}
+html body #appView #view-stock .nd-sk-tl{display:flex;gap:24px}
+html body #appView #view-stock .nd-sk-tl>button{height:48px;display:inline-flex;align-items:center;gap:7px;padding:0;margin:0 0 -1px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--nd-ink-3);font:600 15px/1 var(--sans);cursor:pointer}
+html body #appView #view-stock .nd-sk-tl>button:hover{color:var(--nd-ink-2)}
+html body #appView #view-stock .nd-sk-tabs[data-kind="in"] .nd-sk-tl>button[data-v="입고"]{color:var(--nd-green);border-bottom-color:var(--nd-green)}
+html body #appView #view-stock .nd-sk-tabs[data-kind="out"] .nd-sk-tl>button[data-v="출고"]{color:var(--nd-red);border-bottom-color:var(--nd-red)}
+html body #appView #view-stock .nd-sk-tl>button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+@media (hover:none){html body #appView #view-stock .nd-sk-tl>button:is(:focus,:focus-visible){outline:none}}
+html body #appView #view-stock .nd-sk-ic{position:relative;width:12px;height:12px;flex:none}
+html body #appView #view-stock .nd-sk-ic::before,html body #appView #view-stock .nd-sk-ic.p::after{content:"";position:absolute;left:50%;top:50%;width:10px;height:2px;border-radius:1px;background:currentColor;transform:translate(-50%,-50%)}
+html body #appView #view-stock .nd-sk-ic.p::after{width:2px;height:10px}
+html body #appView #view-stock .nd-sk-hint{padding-bottom:16px;font-size:12px;color:var(--nd-ink-3);white-space:nowrap}
+/* 기존 구분 칸(큰 입고·출고 버튼)과 '재고 입력' 제목은 탭이 대신한다 */
+html body #appView #view-stock .stock-add>label.nd-sk-src{display:none!important}
+html body #appView #view-stock .stock-add>.stock-entry-heading>h3{display:none!important}
+html body #appView #view-stock .stock-add:not(.stock-entry-empty)>.stock-entry-heading{display:none!important}
+/* 순서 */
+html body #appView #view-stock .stock-add>.stock-entry-heading{order:-1}
+html body #appView #view-stock .stock-add>label:has(#ivItem){order:1}
+html body #appView #view-stock .stock-add>label:has(#ivColor){order:2}
+html body #appView #view-stock .stock-add>label:has(#ivSpec){order:3}
+html body #appView #view-stock .stock-add>label:has(#ivDate){order:4}
+html body #appView #view-stock .stock-add>label:has(#ivQty){order:5}
+html body #appView #view-stock .stock-add>#stockQuickEntry{order:6}
+html body #appView #view-stock .stock-add>label:has(#ivMemo){order:7}
+html body #appView #view-stock .stock-add>#ivCancelBtn{order:8}
+html body #appView #view-stock .stock-add>#ivAddBtn{order:9}
+/* 사이즈 표·확인 버튼 색이 구분을 따라간다(입고 초록 · 출고 빨강) */
+html body #appView #view-stock .nd-sz[data-kind="in"] tr.qty>td.k,html body #appView #view-stock .nd-sz[data-kind="in"] tr.qty>td.sum{color:var(--nd-green)!important}
+html body #appView #view-stock .nd-sz[data-kind="out"] tr.qty>td.k,html body #appView #view-stock .nd-sz[data-kind="out"] tr.qty>td.sum{color:var(--nd-red)!important}
+html body #appView #view-stock #ivAddBtn[data-kind="in"]{background:var(--nd-green)!important;border-color:var(--nd-green)!important;color:#fff!important}
+html body #appView #view-stock #ivAddBtn[data-kind="out"]{background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-24px -24px 0;padding:0 16px}
+ html body #appView #view-stock .nd-sk-tl>button{height:48px;font-size:15px}
+}
+/* 아래 품목 표: 제목·설명 글자 시작 = 표 첫 칸 글자 시작(16px) — 입고·출고 어느 화면에서도 같은 자리 */
+html body #appView #view-stock #stockOverview>.stock-overview-heading{margin:0!important;padding:0 16px 12px!important;text-indent:0}
+html body #appView #view-stock #stockOverview>.stock-overview-heading>h3{margin:0 0 6px!important;padding:0!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):first-child{padding-left:16px!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):last-child{padding-right:16px!important}
+html body #appView #stockOverview>.stock-overview-heading>h3>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px;margin-left:2px}
+/* 폰 재고 입력 창: 손잡이(회색 막대)는 탭 위 가운데 한 줄, 탭 줄과 아래 선은 창 끝까지 */
+html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1!important}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add::before{order:-3!important;grid-column:1/-1!important;justify-self:center!important;align-self:start}
+ html body #appView #view-stock .stock-add>.nd-sk-tabs{margin:-12px -24px 0!important;padding:0 24px!important}
+}
+html body #appView .nd-st-title>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px}
+@media screen and (max-width:780px){
+ html body #appView #view-stock .stock-add>label:has(#ivDate){grid-column:1/-1!important}
+ html body #appView #view-stock .stock-add>label:has(#ivDate) :is(.date-control,input){width:100%!important;max-width:none!important}
+}
