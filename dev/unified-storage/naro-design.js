@@ -373,7 +373,7 @@
   if(!area||!grid){area?.querySelector('.nd-sz')?.remove();if(area)delete area.dataset.ndKey;stockBtnLabel(0);return;}
   const item=db.items.find(i=>i.id===document.getElementById('ivItem')?.value),color=document.getElementById('ivColor')?.value||'';
   const specs=[...grid.querySelectorAll('input[data-stock-size]')].map(i=>i.getAttribute('aria-label').replace(/ 수량$/,''));
-  const key=[item?.id,color,specs.join(',')].join('|');
+  const key=[item?.id,color,specs.join(','),stockAdj?'adj':''].join('|');
   document.getElementById('stockQuickToggle')?.classList.add('nd-retired');grid.classList.add('nd-retired');
   if(area.dataset.ndKey===key&&area.querySelector('.nd-sz'))return;
   area.dataset.ndKey=key;area.querySelector('.nd-sz')?.remove();
@@ -386,18 +386,27 @@
   // Desktop table
   const t=document.createElement('table');t.className='nd-sz-table';
   t.innerHTML=`<thead><tr><th class="k"></th>${specs.map(s=>`<th>${escapeHtml(s)}</th>`).join('')}<th class="sum">합계</th></tr></thead><tbody>
-   <tr class="now"><td class="k">현재</td>${specs.map(s=>`<td>${n(now(s))}</td>`).join('')}<td class="sum" data-now></td></tr>
-   <tr class="qty"><td class="k" data-kind></td>${specs.map((s,i)=>`<td><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} 수량" placeholder="0" value="${escapeAttr(stockQuickValues[s]??'')}"></td>`).join('')}<td class="sum" data-total></td></tr>
-   <tr class="after"><td class="k">변경 후</td>${specs.map((s,i)=>`<td data-after="${i}"></td>`).join('')}<td class="sum" data-aftersum></td></tr></tbody>`;
+   <tr class="now"><td class="k">${stockAdj?'장부 수량':'현재'}</td>${specs.map(s=>`<td>${n(now(s))}</td>`).join('')}<td class="sum" data-now></td></tr>
+   <tr class="qty"><td class="k" data-kind></td>${specs.map((s,i)=>`<td><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} ${stockAdj?'실제 수량':'수량'}" placeholder="${stockAdj?'그대로':'0'}" value="${escapeAttr(stockQuickValues[s]??'')}"></td>`).join('')}<td class="sum" data-total></td></tr>
+   <tr class="after"><td class="k">${stockAdj?'차이':'변경 후'}</td>${specs.map((s,i)=>`<td data-after="${i}"></td>`).join('')}<td class="sum" data-aftersum></td></tr></tbody>`;
   // Phone list
   const list=document.createElement('div');list.className='nd-sz-list';
-  list.innerHTML=specs.map((s,i)=>`<div class="nd-sz-row"><span class="sz">${escapeHtml(s)}</span><span class="cur">현재 ${n(now(s))} → <b data-after="${i}"></b></span><span class="step"><button type="button" data-step="-1" data-i="${i}" aria-label="${escapeAttr(s)} 1 빼기">−</button><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} 수량" placeholder="0" value="${escapeAttr(stockQuickValues[s]??'')}"><button type="button" data-step="1" data-i="${i}" aria-label="${escapeAttr(s)} 1 더하기">+</button></span></div>`).join('')+'<div class="nd-sz-total"><span>합계</span><b data-total></b></div>';
+  list.innerHTML=specs.map((s,i)=>`<div class="nd-sz-row"><span class="sz">${escapeHtml(s)}</span><span class="cur">${stockAdj?'장부':'현재'} ${n(now(s))} ${stockAdj?'· 차이':'→'} <b data-after="${i}"></b></span><span class="step"><button type="button" data-step="-1" data-i="${i}" aria-label="${escapeAttr(s)} 1 빼기">−</button><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} ${stockAdj?'실제 수량':'수량'}" placeholder="${stockAdj?'그대로':'0'}" value="${escapeAttr(stockQuickValues[s]??'')}"><button type="button" data-step="1" data-i="${i}" aria-label="${escapeAttr(s)} 1 더하기">+</button></span></div>`).join('')+'<div class="nd-sz-total"><span>합계</span><b data-total></b></div>';
   wrap.append(bar,t,list);
   const tip=document.createElement('p');tip.className='nd-sz-tip';tip.innerHTML='<b>빠르게 입력</b> Enter·Tab 다음 사이즈 · ↑↓ 1씩 · 엑셀에서 한 줄 복사 후 붙여넣으면 사이즈별로 채워져요';wrap.append(tip);
   grid.before(wrap);
   const addBtn=document.getElementById('ivAddBtn');if(addBtn&&!addBtn.dataset.ndLabel)addBtn.dataset.ndLabel=addBtn.textContent;
   const set=(el,text,cls)=>{if(el.textContent!==text)el.textContent=text;if(cls!==undefined&&el.className!==cls)el.className=cls;};
   function update(){
+   if(stockAdj){ // 조정: 칸 = 실제 수량(빈칸 = 그대로), 아래 줄 = 차이
+    let changed=0,diff=0,actSum=0,nowSum=0;
+    specs.forEach((s,i)=>{const raw=String(stockQuickValues[s]??'').trim(),has=raw!=='',act=has?Number(raw):now(s),d=act-now(s);nowSum+=now(s);actSum+=act;if(has&&d){changed++;diff+=d;}
+     wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,has&&d?(d>0?'+':'−')+n(Math.abs(d)):'·',has&&d?(d>0?'pos':'neg'):'dim'));
+     wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(inp=>{const v=String(stockQuickValues[s]??'');if(inp.value!==v&&document.activeElement!==inp)inp.value=v;});});
+    wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,'실제 수량'));if(wrap.dataset.kind!=='adj')wrap.dataset.kind='adj';
+    wrap.querySelectorAll('[data-total]').forEach(el=>set(el,n(actSum)));wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));
+    wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,diff?(diff>0?'+':'−')+n(Math.abs(diff)):'·',diff?(diff>0?'pos':'neg'):'dim'));
+    stockAdjLabel(changed,diff);return;}
    const sign=out()?-1:1;let total=0,nowSum=0,afterSum=0;
    specs.forEach((s,i)=>{const q=val(s),a=now(s)+sign*q;total+=q;nowSum+=now(s);afterSum+=a;
     wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,n(a),a<0?'neg':q?'chg':''));
@@ -917,8 +926,41 @@
   }
  }
  // 재고 입력(A안 확정): 입고·출고는 입력 칸 맨 위 탭으로 고른다(구분 = 탭, 버튼 아님). 확인 버튼 글자·색이 구분을 따라간다.
+ // 재고 조정(시안 확정): 실제로 센 수량을 적으면 사이즈마다 차이만큼 입고(+)/출고(−) 기록을 '재고 조정' 표시와 사유로 남긴다.
+ // 지난 기록은 고치지 않는다(앱의 재고 장부 규칙과 같음). 저장은 앱의 최종 확인 창(openStockReview)을 그대로 거친다.
+ let stockAdj=false,stockAdjReason='재고 조사';
+ const ADJ_REASONS=['재고 조사','분실','파손·불량','잘못 입력'];
+ function stockAdjLabel(changed,diff){
+  const b=document.getElementById('ivAddBtn');if(!b)return;
+  const t=changed?`조정 확인 · ${changed}개 사이즈 ${diff>0?'+':diff<0?'−':''}${Math.abs(diff).toLocaleString('ko-KR')}`:'조정 확인';
+  if(b.textContent!==t)b.textContent=t;if(b.dataset.kind!=='adj')b.dataset.kind='adj';
+ }
+ function stockAdjEntries(){
+  const get=id=>document.getElementById(id)?.value||'',item_id=get('ivItem'),color=get('ivColor'),date=get('ivDate'),memo=get('ivMemo').trim(),cur=currentStocks();
+  const nowOf=spec=>cur[stockKeyOf({item_id,color,spec})]||0;
+  const pairs=document.querySelector('#stockQuickEntry .nd-sz')?Object.entries(stockQuickValues).filter(([,v])=>String(v).trim()!==''):[[get('ivSpec'),get('ivQty').replace(/,/g,'')]].filter(([,v])=>v.trim()!=='');
+  const out=[];
+  for(const [spec,raw] of pairs){const act=stockStrictQty(raw,true),now=nowOf(spec),d=act-now;if(!d)continue;
+   out.push({item_id,color,date,spec,kind:d>0?'입고':'출고',qty:Math.abs(d),memo:`재고 조정 · ${stockAdjReason} · 장부 ${now} → 실제 ${act}`+(memo?` · ${memo}`:''),adjust:{reason:stockAdjReason,book:now,actual:act}});}
+  return out;
+ }
+ function setStockAdj(on){
+  if(stockAdj===on)return;stockAdj=on;
+  try{stockQuickValues={};}catch{} const q=document.getElementById('ivQty');if(q)q.value='';
+  const area=document.getElementById('stockQuickEntry');if(area){area.querySelector('.nd-sz')?.remove();delete area.dataset.ndKey;}
+  if(on){const k=document.getElementById('ivKind');if(k&&k.value!=='입고'){k.value='입고';k.dispatchEvent(new Event('change',{bubbles:true}));}}
+  stockKindTabs();stockMatrix();
+ }
+ document.addEventListener('click',e=>{
+  if(e.target.closest?.('#ivAddBtn')&&stockAdj){e.preventDefault();e.stopImmediatePropagation();
+   try{const entries=stockAdjEntries();if(!entries.length){toast?.('바뀌는 수량이 없어요. 실제로 센 수량을 적어 주세요.');return;}
+    openStockReview({kind:'add',entries});const d=document.getElementById('stockReviewDialog');if(d){const h=d.querySelector('#stockReviewTitle');if(h)h.textContent='재고 조정 최종 확인';const p=h?.nextElementSibling;if(p)p.textContent=p.textContent.replace(/ · (입고|출고)$/,' · 재고 조정 · '+stockAdjReason);}
+   }catch(err){toast?.(err.message);}return;}
+  if(e.target.closest?.('#stockAdjust')){e.preventDefault();e.stopImmediatePropagation();document.getElementById('stockRegister')?.click();setStockAdj(true);requestAnimationFrame(()=>document.querySelector('#view-stock .stock-add')?.scrollIntoView({block:'start'}));return;}
+  if(e.target.closest?.('#stockRegister,#stockOutbound'))setStockAdj(false);
+ },true);
  function stockBtnLabel(total){
-  const b=document.getElementById('ivAddBtn'),k=document.getElementById('ivKind');if(!b)return;
+  const b=document.getElementById('ivAddBtn'),k=document.getElementById('ivKind');if(!b)return;if(stockAdj){stockAdjLabel(0,0);return;}
   const out=k?.value==='출고',t=`${out?'출고':'입고'} ${total?(Math.round(total).toLocaleString('ko-KR')+'개 '):''}확인`;
   if(b.textContent!==t)b.textContent=t;const kd=out?'out':'in';if(b.dataset.kind!==kd)b.dataset.kind=kd;
  }
@@ -926,18 +968,30 @@
   const add=document.querySelector('#view-stock .stock-add'),sel=document.getElementById('ivKind');if(!add||!sel)return;
   let bar=add.querySelector(':scope>.nd-sk-tabs');
   if(!bar){bar=document.createElement('div');bar.className='nd-sk-tabs';
-   bar.innerHTML='<div class="nd-sk-tl" role="tablist" aria-label="구분"><button type="button" role="tab" data-v="입고"><i class="nd-sk-ic p" aria-hidden="true"></i>입고</button><button type="button" role="tab" data-v="출고"><i class="nd-sk-ic m" aria-hidden="true"></i>출고</button></div><span class="nd-sk-hint"></span>';
+   bar.innerHTML='<div class="nd-sk-tl" role="tablist" aria-label="구분"><button type="button" role="tab" data-v="입고"><i class="nd-sk-ic p" aria-hidden="true"></i>입고</button><button type="button" role="tab" data-v="출고"><i class="nd-sk-ic m" aria-hidden="true"></i>출고</button><button type="button" role="tab" data-v="조정"><i class="nd-sk-ic eq" aria-hidden="true"></i>조정</button></div><span class="nd-sk-hint"></span>';
    add.prepend(bar);
-   bar.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b||sel.value===b.dataset.v)return;sel.value=b.dataset.v;sel.dispatchEvent(new Event('change',{bubbles:true}));stockKindTabs();});
+   bar.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;if(b.dataset.v==='조정'){setStockAdj(true);return;}setStockAdj(false);if(sel.value===b.dataset.v){stockKindTabs();return;}sel.value=b.dataset.v;sel.dispatchEvent(new Event('change',{bubbles:true}));stockKindTabs();});
+   const rs=document.createElement('div');rs.className='nd-sk-reason';rs.innerHTML='<span class="nd-sk-rl">조정 사유</span><div class="nd-sk-rc" role="radiogroup" aria-label="조정 사유">'+ADJ_REASONS.map(r=>`<button type="button" role="radio" data-r="${r}">${r}</button>`).join('')+'</div>';add.append(rs);
+   rs.addEventListener('click',e=>{const b=e.target.closest('button[data-r]');if(!b)return;stockAdjReason=b.dataset.r;stockKindTabs();});
    sel.closest('label')?.classList.add('nd-sk-src');}
-  const v=sel.value==='출고'?'출고':'입고',kd=v==='출고'?'out':'in';
+  const v=stockAdj?'조정':sel.value==='출고'?'출고':'입고',kd=stockAdj?'adj':v==='출고'?'out':'in';
+  add.querySelectorAll('.nd-sk-rc>button').forEach(b=>{const on=String(b.dataset.r===stockAdjReason);if(b.getAttribute('aria-checked')!==on)b.setAttribute('aria-checked',on);});
+  const ql=document.querySelector('#view-stock .stock-add>label:has(#ivQty)');if(ql){const tn=ql.firstChild;const want=stockAdj?'실제 수량':'수량';if(tn&&tn.nodeType===3&&tn.nodeValue.trim()!==want)tn.nodeValue=want;}
   if(bar.dataset.kind!==kd)bar.dataset.kind=kd;if(add.dataset.kind!==kd)add.dataset.kind=kd;
   bar.querySelectorAll('button[data-v]').forEach(b=>{const on=String(b.dataset.v===v);if(b.getAttribute('aria-selected')!==on){b.setAttribute('aria-selected',on);b.tabIndex=on==='true'?0:-1;}});
-  const h=bar.querySelector('.nd-sk-hint'),ht=v==='출고'?'나간 수량을 빼요':'들어온 수량을 더해요';if(h.textContent!==ht)h.textContent=ht;
+  const h=bar.querySelector('.nd-sk-hint'),ht=stockAdj?'실제로 센 수량에 맞춰요':v==='출고'?'나간 수량을 빼요':'들어온 수량을 더해요';if(h.textContent!==ht)h.textContent=ht;
+  // 최근 입출고 내역: 조정 기록은 [조정] 꼬리표 + 부호 있는 수량(+ 늘어남 · − 줄어듦)
+  document.querySelectorAll('#view-stock .stock-history-title+.tbl-wrap tbody tr').forEach(tr=>{
+   const memo=tr.querySelector('.ledger-memo');if(!memo||!/^재고 조정 · /.test(memo.textContent.trim()))return;
+   const pill=tr.querySelector('.pill'),num=tr.querySelector('td.num');if(!pill||!num)return;
+   const out=pill.classList.contains('out')||pill.textContent.trim()==='출고';
+   if(!pill.classList.contains('adj')){pill.classList.add('adj');pill.textContent='조정';}
+   const q=num.textContent.replace(/^[+−-]/,''),t=(out?'−':'+')+q;if(num.textContent!==t){num.textContent=t;num.classList.toggle('neg',out);num.classList.toggle('pos',!out);}
+  });
   // 아래 품목 표 제목 '셰프복 [JK_01]' → 이름 + 얇은 회색 품번(품번 규칙)
   const oh=document.querySelector('#stockOverview>.stock-overview-heading>h3');
   if(oh&&!oh.querySelector('.nd-code')){const m=/^(.*?)\s*\[([^\]]+)\]\s*$/.exec(oh.textContent);if(m){oh.textContent=m[1]+' ';const c=document.createElement('span');c.className='nd-code';c.textContent=m[2];oh.append(c);}}
-  if(!add.querySelector('.nd-sz'))stockBtnLabel(Number(String(document.getElementById('ivQty')?.value||'').replace(/[^\d.]/g,''))||0);
+  if(!add.querySelector('.nd-sz')){if(stockAdj){let ch=0,df=0;try{const es=stockAdjEntries();ch=es.length;df=es.reduce((t,e)=>t+(e.kind==='입고'?1:-1)*e.qty,0);}catch{}stockAdjLabel(ch,df);}else stockBtnLabel(Number(String(document.getElementById('ivQty')?.value||'').replace(/[^\d.]/g,''))||0);}
  }
  document.addEventListener('input',e=>{if(e.target?.id==='ivQty')stockKindTabs();});
  // 입금·출금 · 업체 제공 자재 기록도 재고와 같은 규칙: 구분은 맨 위 탭, 저장 버튼 글자·색이 구분을 따라간다.

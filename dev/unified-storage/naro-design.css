@@ -2011,3 +2011,33 @@ html body #appView #view-payments .pay-add>.pf-kind>label{display:none!important
 html body #appView :is(#payAddBtn,#mm_save)[data-kind="in"]{background:var(--nd-green)!important;border-color:var(--nd-green)!important;color:#fff!important}
 html body #appView :is(#payAddBtn,#mm_save)[data-kind="out"]{background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
 html body #appView .nd-kind:is(.nd-pay-kind,.nd-mm-kind)>button.on:is([data-v]){background:none!important;box-shadow:none!important;border-top:0!important;border-left:0!important;border-right:0!important}
+/* ===== 재고 조정 탭(시안 확정) — 조정 = 청록 ===== */
+html body #appView #view-stock .nd-sk-tabs[data-kind="adj"] .nd-sk-tl>button[data-v="조정"]{color:var(--nd-teal,#0E9384);border-bottom-color:var(--nd-teal,#0E9384)}
+html body #appView #view-stock .nd-sk-ic.eq{width:10px;height:8px;margin:0 1px;border-top:2px solid currentColor;border-bottom:2px solid currentColor;box-sizing:border-box}
+html body #appView #view-stock .nd-sk-ic.eq::before{content:none}
+/* 사유 칩: 조정일 때만 */
+html body #appView #view-stock .stock-add>.nd-sk-reason{display:none;grid-column:1/-1;order:4}
+html body #appView #view-stock .stock-add[data-kind="adj"]>.nd-sk-reason{display:grid;gap:8px}
+html body #appView #view-stock .nd-sk-rl{font-size:13px;font-weight:500;color:var(--nd-ink-2)}
+html body #appView #view-stock .nd-sk-rc{display:flex;flex-wrap:wrap;gap:8px}
+html body #appView #view-stock .nd-sk-rc>button{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 13px/1 var(--sans);cursor:pointer}
+html body #appView #view-stock .nd-sk-rc>button[aria-checked="true"]{border-color:var(--nd-teal,#0E9384);color:var(--nd-teal,#0E9384);background:color-mix(in srgb,var(--nd-teal,#0E9384) 10%,var(--nd-surface))}
+/* 칸 순서(사유가 규격 다음, 날짜 앞) */
+html body #appView #view-stock .stock-add>label:has(#ivDate){order:5}
+html body #appView #view-stock .stock-add>label:has(#ivQty){order:6}
+html body #appView #view-stock .stock-add>#stockQuickEntry{order:7}
+html body #appView #view-stock .stock-add>label:has(#ivMemo){order:8}
+html body #appView #view-stock .stock-add>#ivCancelBtn{order:9}
+html body #appView #view-stock .stock-add>#ivAddBtn{order:10}
+/* 사이즈 표·확인 버튼: 조정 = 청록, 차이는 + 초록 · − 빨강 */
+html body #appView #view-stock .nd-sz[data-kind="adj"] tr.qty>td.k{color:var(--nd-teal,#0E9384)!important}
+html body #appView #view-stock .nd-sz[data-kind="adj"] [data-after].pos,html body #appView #view-stock .nd-sz[data-kind="adj"] [data-aftersum].pos{color:var(--nd-green)!important;font-weight:700}
+html body #appView #view-stock .nd-sz[data-kind="adj"] [data-after].neg,html body #appView #view-stock .nd-sz[data-kind="adj"] [data-aftersum].neg{color:var(--nd-red)!important;font-weight:700}
+html body #appView #view-stock .nd-sz[data-kind="adj"] [data-after].dim,html body #appView #view-stock .nd-sz[data-kind="adj"] [data-aftersum].dim{color:var(--nd-ink-4,var(--nd-ink-3))!important;font-weight:400}
+html body #appView #view-stock .nd-sz[data-kind="adj"] input::placeholder{color:var(--nd-ink-4,var(--nd-ink-3));font-size:12px}
+html body #appView #view-stock #ivAddBtn[data-kind="adj"]{background:var(--nd-teal,#0E9384)!important;border-color:var(--nd-teal,#0E9384)!important;color:#fff!important}
+html body #appView #view-stock .pill.adj{background:var(--nd-teal-soft)!important;color:var(--nd-teal)!important;border-color:transparent!important}
+html body #appView #view-stock .stock-history-title+.tbl-wrap td.num.pos{color:var(--nd-green)!important;font-weight:700}
+html body #appView #view-stock .stock-history-title+.tbl-wrap td.num.neg{color:var(--nd-red)!important;font-weight:700}
+html body #appView #view-stock .stock-add>.nd-sk-reason{grid-column:1/-1!important}
+@media screen and (max-width:520px){html body #appView #view-stock .nd-sk-hint{display:none}}
