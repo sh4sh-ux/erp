@@ -1894,8 +1894,8 @@ html body button[data-step="1"]::after{content:"";position:absolute;left:50%;top
 html body :is(.material-stepper,.qp-stepper)>button[aria-label$="늘리기"]::after,
 html body button[data-step="1"]::after{width:2px;height:12px}
 /* 그린 아이콘: 글자 기호(+ ＋ ‹ ▶) 대신 — 글꼴과 상관없이 글자 줄 가운데에 정확히 놓인다(glyphTidy가 기호를 떼고 클래스를 붙임) */
-html body #appView .nd-gi-f{display:flex!important;align-items:center;justify-content:center;gap:6px}
-html body #appView .nd-gi-i{display:inline-flex!important;align-items:center;gap:6px}
+html body #appView .nd-gi-f:not([hidden]){display:flex;align-items:center;justify-content:center;gap:6px}
+html body #appView .nd-gi-i:not([hidden]){display:inline-flex;align-items:center;gap:6px}
 html body #appView .nd-gi-plus::before{content:"";flex:none;width:10px;height:10px;background:linear-gradient(currentColor,currentColor) center/10px 1.6px no-repeat,linear-gradient(currentColor,currentColor) center/1.6px 10px no-repeat}
 html body #appView .nd-gi-back::before{content:"";flex:none;width:7px;height:7px;margin:0 1px 0 1.5px;border-left:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg)}
 /* 접기·펼치기(입출금 기록 입력 · 예측 산출 방법): 브라우저 기본 ▶ 대신 그린 꺾쇠 — 닫힘 › · 열림 ⌄ */
@@ -2095,3 +2095,19 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  html body #appView #view-materials.nd-mm-open #mm_detail{width:auto!important;min-width:56px!important;padding:0 14px!important;font:600 14px/1 var(--sans)!important;color:var(--nd-ink)!important}
  html body #appView #view-materials.nd-mm-open #mm_detail::before,html body #appView #view-materials.nd-mm-open #mm_detail::after{content:none!important;display:none!important}
 }
+/* 폰 전용 뒤로 가기는 PC에서 늘 숨김(오른쪽 패널에 '‹ 거래처'가 보이던 것) */
+@media screen and (min-width:781px){html body #appView :is(#coBackToList,.nd-it-back,.nd-st-back,.nd-mm-back){display:none!important}}
+/* 품목 사진 칸: PC는 공급자 정보 명함·사업자등록증 칸과 같은 크기(너비 240px), 폰은 칸 너비 가득(공급자 정보와 같음) */
+@media screen and (min-width:781px){html body #appView .nd-photo-item{max-width:240px!important}}
+/* 거래처 상세(PC): '거래 내역'·'거래처 정보' 제목 글자 시작 = 표 첫 칸 글자 = 칸 이름 = 입력 글자(12px 안쪽) */
+@media screen and (min-width:781px){
+ html body #appView #coForm h3.co-ledger-h{padding-left:12px!important}
+ html body #appView #coForm .tbl :is(th,td):first-child{padding-left:12px!important}
+ html body #appView #coForm .field>label{padding-left:12px!important}
+}
+/* 폼 제목 규칙(PC): 섹션 제목 글자 시작 = 칸 이름 = 입력 글자(12px 안쪽) — 거래처·품목·공급자 정보 공통 */
+@media screen and (min-width:781px){
+ html body #appView .workspace-right :is(h3.ops-section-title,.nd-photo-ttl,.sup-sec-t,.nd-sec-t,h3.co-ledger-h){padding-left:12px!important}
+ html body #appView #view-settings .workspace-right .card>h3:first-child{padding-left:12px!important}
+}
+@media screen and (min-width:781px){html body #appView #itForm :is(h3.ops-section-title,.nd-photo-ttl){padding-left:12px!important}}
