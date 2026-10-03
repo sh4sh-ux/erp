@@ -9064,6 +9064,110 @@ dialog.qp-sheet .qp-edit-amount>.amt{font:700 16px/22px var(--sans)!important;le
  html body #appView[data-layout-system] .shell .main #view-items.nd-it-open #itForm{padding-bottom:0!important}
  html body #appView[data-layout-system] .shell .main #view-items.nd-it-open #itForm>.form-actions{bottom:0!important}
 }
+/* ===== 입금·출금 (시안 확정 2026-10) ===== */
+/* 요약: 세로 구분선은 위아래 14px 띄운 선(칸 끝까지 닿지 않게) */
+html body #appView #view-payments .ops-summary>.scr-hero,html body #appView #view-payments .ops-summary .stat{position:relative!important;border-left:0!important}
+html body #appView #view-payments .ops-summary .stat+.stat::before,html body #appView #view-payments .ops-summary>.scr-hero::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--nd-line)}
+@media screen and (max-width:780px){
+ /* 폰: 입금 | 출금 두 칸 아래에 차액 한 줄(왼쪽 이름 · 오른쪽 금액) */
+ html body #appView #view-payments .ops-summary>.scr-hero{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l v" "h v";align-items:center;column-gap:12px;row-gap:2px;padding:12px 18px!important;border-top:1px solid var(--nd-line)!important}
+ html body #appView #view-payments .ops-summary>.scr-hero::before{display:none}
+ html body #appView #view-payments .ops-summary>.scr-hero>.lbl{grid-area:l;justify-self:start;text-align:left!important;margin:0!important;color:var(--nd-ink)!important;font-size:13px!important}
+ html body #appView #view-payments .ops-summary>.scr-hero>.big{grid-area:v;margin:0!important;justify-self:end;text-align:right}
+ html body #appView #view-payments .ops-summary>.scr-hero>.hint{grid-area:h;justify-self:start;text-align:left!important;margin:0!important;font-size:11.5px!important;color:var(--nd-ink-3)!important}
+}
+/* 기록 입력: [입력 닫기][기록 저장]은 [입금] 버튼과 같은 너비로 오른쪽 끝에 한 줄 */
+html body #appView #view-payments .pay-add>.pf-btn{display:flex!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center;gap:6px!important;grid-column:1/-1;margin:4px 0 0}
+html body #appView #view-payments .pay-add>.pf-btn>button{flex:none;width:calc((100% - 16px)/4 - 3px);height:42px;min-height:0;margin:0!important;border-radius:var(--nd-r-control,10px);font:600 14px/1 var(--sans);display:inline-flex;align-items:center;justify-content:center}
+html body #appView #view-payments .pay-add>.pf-btn>#payClose{background:var(--nd-surface)!important;border:1px solid var(--nd-line-strong,var(--nd-line))!important;color:var(--nd-ink)!important}
+html body #appView #view-payments .pay-add>.pf-btn>#payAddBtn{background:var(--nd-blue)!important;border:1px solid var(--nd-blue)!important;color:#fff!important}
+@media screen and (max-width:780px){
+ html body #appView #view-payments .pay-add>.pf-btn{display:grid!important;grid-template-columns:1fr 2fr;gap:8px!important;padding-left:0!important;padding-right:0!important;margin-left:0!important;margin-right:0!important}
+ html body #appView #view-payments .pay-add>.pf-btn>button{width:auto}
+}
+/* 목록: X(삭제)는 숨기고 줄 전체를 누르면 기록 창. 입금 초록 + · 출금 빨강 − */
+html body #appView #view-payments #payTbl .rm{display:none!important}
+html body #appView #view-payments #payTbl tr:has(.rm)>td:last-child,html body #appView #view-payments #payTbl thead th:last-child:empty{display:none}
+html body #appView #view-payments #payTbl tbody tr[data-nd-pay]{cursor:pointer}
+html body #appView #view-payments #payTbl tbody tr[data-nd-pay]:hover{background:var(--nd-fill,var(--nd-surface-2))}
+html body #appView #view-payments #payTbl tbody tr[data-nd-pay]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView #view-payments #payTbl tbody tr[data-kind="in"]>td:nth-child(7){color:var(--nd-green)!important}
+html body #appView #view-payments #payTbl tbody tr[data-kind="out"]>td:nth-child(7){color:var(--nd-red)!important}
+html body #appView #view-payments #payTbl tbody tr[data-kind="in"]>td:nth-child(7)::before{content:"+"}
+html body #appView #view-payments #payTbl tbody tr[data-kind="out"]>td:nth-child(7)::before{content:"−"}
+@media screen and (max-width:780px){
+ html body #appView #view-payments #payTbl{display:block!important;width:100%!important;min-width:0!important}
+ html body #appView #view-payments #payTbl>thead{display:none!important}
+ html body #appView #view-payments #payTbl>tbody{display:block!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]{display:flex!important;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:4px;padding:12px 0!important;margin:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;border-radius:0!important;background:none}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]::before{content:"";order:3;flex:0 0 100%;height:0}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]:last-child{border-bottom:0!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td{display:block!important;flex:none;padding:0!important;border:0!important;min-width:0;width:auto!important;text-align:left!important;font-size:12.5px;line-height:18px;color:var(--nd-ink-3)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td::after{content:none!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(2){order:1;flex:1 1 0;font:600 15px/22px var(--sans)!important;color:var(--nd-ink)!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(7){order:2;font:700 15px/22px var(--sans)!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(1){order:4}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(5){order:5}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(6){order:6}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(4){order:7}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(4)::before{content:"· "}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay].nd-noquote>td:nth-child(4){display:none!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(3){order:8;flex:0 1 auto}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(3)::before{content:"· "}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay].nd-nomemo>td:nth-child(3){display:none!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(8){display:none!important}
+}
+/* 기록 창 */
+dialog.nd-pay-sheet{position:fixed!important;inset:0!important;margin:auto!important;height:fit-content;max-height:calc(100vh - 32px);overflow:auto;outline:none;border:0;padding:0;width:min(420px,calc(100vw - 32px));border-radius:16px;background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 18px 48px rgba(0,0,0,.18)}
+dialog.nd-pay-sheet::backdrop{background:rgba(15,18,25,.38)}
+.nd-pay-sheet .nd-ps-hd{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 20px;border-bottom:1px solid var(--nd-line)}
+.nd-pay-sheet .nd-ps-hd b{font:700 16px/22px var(--sans)}
+.nd-pay-sheet .nd-ps-x{border:0;background:none;color:var(--nd-ink-2);font:500 14px/1 var(--sans);height:36px;cursor:pointer}
+.nd-pay-sheet .nd-ps-kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;padding:18px 20px;font-size:14px;line-height:20px}
+.nd-pay-sheet .nd-ps-kv dt{color:var(--nd-ink-3)}
+.nd-pay-sheet .nd-ps-kv dd{margin:0;text-align:right;font-weight:600;overflow-wrap:anywhere}
+.nd-pay-sheet .nd-ps-kv dd.in{color:var(--nd-green)}.nd-pay-sheet .nd-ps-kv dd.out{color:var(--nd-red)}
+.nd-pay-sheet .nd-ps-act{display:grid;grid-template-columns:1fr 2fr;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--nd-line)}
+.nd-pay-sheet .nd-ps-act button{height:44px;border-radius:10px;font:600 14px/1 var(--sans);cursor:pointer;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink)}
+.nd-pay-sheet .nd-ps-act .nd-ps-del{color:var(--nd-red)}
+@media screen and (max-width:780px){
+ dialog.nd-pay-sheet{width:100vw;max-width:none;margin:auto 0 0!important;border-radius:16px 16px 0 0}
+ .nd-pay-sheet .nd-ps-act{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+}
+@media (hover:none){.nd-pay-sheet button:is(:focus,:focus-visible){outline:none}}
+/* 거래처별 집계: 제목 줄 48px + 아래 얇은 선 · 거래처 사이 얇은 선 · 합계 위 두꺼운 선(겹치는 선 없음) */
+html body #appView #view-payments .card:has(#payByCo)>.card-head{min-height:48px;display:flex;align-items:center;justify-content:space-between;margin:0!important;padding:4px 0!important;border-bottom:1px solid var(--nd-line)!important}
+html body #appView #view-payments .card:has(#payByCo)>.card-head h3{margin:0!important;padding:0!important;font:700 15px/22px var(--sans)!important;text-indent:0}
+html body #appView #view-payments .card:has(#payByCo)>.card-head .legend{font-size:12px;color:var(--nd-ink-3)}
+html body #appView #view-payments #payByCo tbody tr>td{border-bottom:0!important;border-top:1px solid var(--nd-line)!important}
+html body #appView #view-payments #payByCo tbody tr:first-child>td{border-top:0!important}
+html body #appView #view-payments #payByCo tbody tr:last-child:has(td[style*="font-weight"])>td{border-top:2px solid var(--nd-line)!important;background:none!important}
+html body #appView #view-payments #payByCo tbody tr:last-child{background:none!important}
+@media screen and (max-width:780px){
+ html body #appView #view-payments #payByCo{display:block!important;width:100%!important;min-width:0!important}
+ html body #appView #view-payments #payByCo>thead{display:none!important}
+ html body #appView #view-payments #payByCo>tbody{display:block!important}
+ html body #appView #view-payments #payByCo tbody tr{display:grid!important;grid-template-columns:auto auto minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:baseline;padding:10px 0!important;margin:0!important;border:0!important;border-top:1px solid var(--nd-line)!important;border-radius:0!important;background:none!important}
+ html body #appView #view-payments #payByCo tbody tr:first-child{border-top:0!important}
+ html body #appView #view-payments #payByCo tbody tr:last-child:has(td[style*="font-weight"]){border-top:2px solid var(--nd-line)!important}
+ html body #appView #view-payments #payByCo tbody tr:last-child:has(td[style*="font-weight"])>td{border-top:0!important}
+ html body #appView #view-payments .card:has(#payByCo)>.card-head{margin:0 16px!important}
+ html body #appView #view-payments .card:has(#payByCo) .tbl-wrap{padding-left:16px!important;padding-right:16px!important}
+ html body #appView #view-payments #payByCo tbody tr>td{display:block!important;padding:0!important;border:0!important;width:auto!important;min-width:0;text-align:left!important;font-size:12.5px;line-height:18px;white-space:nowrap}
+ html body #appView #view-payments #payByCo tbody tr>td:not(:nth-child(1)):not(:nth-child(5)){color:var(--nd-ink-3)!important;font-weight:400!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(5)::after{content:"원"!important}
+ html body #appView #view-payments #payByCo tbody tr>td::before{content:none!important}
+ html body #appView #view-payments #payByCo tbody tr>td::after{content:none!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(1){grid-column:1/3;grid-row:1;font:600 15px/22px var(--sans)!important;color:var(--nd-ink)!important;overflow:hidden;text-overflow:ellipsis}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(5){grid-column:3;grid-row:1;justify-self:end;font:700 15px/22px var(--sans)!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(2){display:none!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(3){grid-column:1;grid-row:2}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(4){grid-column:2;grid-row:2}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(3)::before{content:"입금 "!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(4)::before{content:"· 출금 "!important}
+ html body #appView #view-payments #payByCo tbody tr>td:nth-child(3)::after,html body #appView #view-payments #payByCo tbody tr>td:nth-child(4)::after{content:"원"!important}
+ html body #appView #view-payments #payByCo tbody tr>td :is(.sub){color:inherit!important;font:inherit!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -9950,6 +10054,45 @@ dialog.qp-sheet .qp-edit-amount>.amt{font:700 16px/22px var(--sans)!important;le
   if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
  }
  // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
+ // 입금·출금(시안 확정 2026-10): 말은 입금·출금·차액 하나로, 목록의 X 대신 줄을 누르면 기록 창 → [삭제].
+ function payTidy(){
+  const v=document.getElementById('view-payments');if(!v)return;
+  const setT=(el,t)=>{if(el&&el.textContent!==t)el.textContent=t;};
+  const ym=/^(\d{4})-(\d{2}) /,thisYear=String(new Date().getFullYear());
+  for(const id of ['paySumIn','paySumOut']){const l=document.getElementById(id)?.previousElementSibling;if(l&&ym.test(l.textContent))setT(l,l.textContent.replace(ym,(m,y,mo)=>(y===thisYear?'':y+'년 ')+(+mo)+'월 '));}
+  const net=document.getElementById('paySumNet');setT(net?.previousElementSibling,'차액 (입금 − 출금)');setT(net?.parentElement.querySelector('.hint'),'직접 기록한 입금·출금만');
+  const card=document.getElementById('payByCo')?.closest('.card');setT(card?.querySelector('h3'),'거래처별 집계');setT(card?.querySelector('.legend'),'차액 = 입금 − 출금');
+  v.querySelectorAll('#payByCo td .sub').forEach(x=>{if(x.textContent.trim()==='—')x.textContent='0';});
+  v.querySelectorAll('#payTbl tbody tr').forEach(tr=>{
+   const rm=tr.querySelector('.rm');if(!rm)return;
+   if(tr.dataset.ndPay!==rm.dataset.id){tr.dataset.ndPay=rm.dataset.id;tr.tabIndex=0;tr.setAttribute('aria-label','기록 보기');}
+   const kind=tr.children[4]?.textContent.trim()==='출금'?'out':'in';if(tr.dataset.kind!==kind)tr.dataset.kind=kind;
+   const memo=tr.children[2]?.textContent.trim(),none=!memo||memo==='—';if(tr.classList.contains('nd-nomemo')!==none)tr.classList.toggle('nd-nomemo',none);
+   const qn=tr.children[3]?.textContent.trim(),noq=!qn||qn==='—';if(tr.classList.contains('nd-noquote')!==noq)tr.classList.toggle('nd-noquote',noq);
+  });
+  // 거래처별 차액: 받은 쪽이 많으면 +를 붙여 목록 금액(+입금 · −출금)과 같은 읽기 방식
+  v.querySelectorAll('#payByCo tbody tr>td:nth-child(5)').forEach(td=>{const t=td.textContent.trim();if(/^[1-9][\d,]*$/.test(t))td.textContent='+'+t;else if(/^-[\d,]+$/.test(t))td.textContent='−'+t.slice(1);});
+ }
+ let paySheetEl=null;
+ function openPaySheet(id){
+  const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
+  const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const out=p.kind==='지급',co=(db.companies||[]).find(c=>c.id===p.company_id)?.name||'',q=p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no||'':'';
+  const amt=Math.round(Number(p.amount)||0).toLocaleString('ko-KR');
+  if(!paySheetEl){paySheetEl=document.createElement('dialog');paySheetEl.className='nd-pay-sheet';paySheetEl.setAttribute('aria-labelledby','ndPayTtl');
+   paySheetEl.addEventListener('click',ev=>{if(ev.target===paySheetEl)paySheetEl.close();});(document.getElementById('appView')||document.body).append(paySheetEl);}
+  const d=paySheetEl;
+  d.innerHTML=`<div class="nd-ps-hd"><b id="ndPayTtl">${out?'출금':'입금'} 기록</b></div>
+   <dl class="nd-ps-kv"><dt>거래처</dt><dd>${e(co)}</dd><dt>금액</dt><dd class="${out?'out':'in'}">${out?'−':'+'}${amt}원</dd><dt>날짜</dt><dd>${e(p.date)}</dd><dt>결제 방법</dt><dd>${e(p.method||'—')}</dd>${q?`<dt>연결 견적</dt><dd>${e(q)}</dd>`:''}${p.memo?`<dt>메모</dt><dd>${e(p.memo)}</dd>`:''}</dl>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-del" data-ps="del">삭제</button><button type="button" class="nd-ps-close" data-ps="close">닫기</button></div>`;
+  d.querySelectorAll('[data-ps="close"]').forEach(b=>b.onclick=()=>d.close());
+  d.querySelector('[data-ps="del"]').onclick=()=>{d.close();if(typeof deletePayment==='function')deletePayment(id);};
+  d.tabIndex=-1;d.showModal();d.focus(); // 첫 초점은 창 자체 — 버튼에 테두리가 생기지 않고 Enter로 삭제되는 일도 없다
+ }
+ // 왼쪽 목록(PC)을 눌러도 같은 기록 창 — 원래 동작(줄 강조)이 끝난 뒤 강조된 줄의 기록을 연다.
+ document.addEventListener('click',ev=>{if(!ev.target.closest?.('#view-payments .panel-b-index button'))return;setTimeout(()=>{const tr=document.querySelector('#payTbl tbody tr.panel-b-selected[data-nd-pay]');if(tr)openPaySheet(tr.dataset.ndPay);},0);});
+ document.addEventListener('click',ev=>{const tr=ev.target.closest?.('#payTbl tbody tr[data-nd-pay]');if(!tr||ev.target.closest('a,button,input,select'))return;openPaySheet(tr.dataset.ndPay);});
+ document.addEventListener('keydown',ev=>{if(ev.key!=='Enter'&&ev.key!==' ')return;const tr=ev.target.closest?.('#payTbl tbody tr[data-nd-pay]');if(tr&&ev.target===tr){ev.preventDefault();openPaySheet(tr.dataset.ndPay);}});
  const IT_PHONE=matchMedia('(max-width:780px)');IT_PHONE.addEventListener('change',()=>itemsMobile());
  function itemsMobile(){
   const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='‹ 거래처')cb.textContent='‹ 거래처';
@@ -9964,7 +10107,7 @@ dialog.qp-sheet .qp-edit-amount>.amt{font:700 16px/22px var(--sans)!important;le
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);

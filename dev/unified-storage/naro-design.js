@@ -884,6 +884,45 @@
   if(label&&!single&&label.textContent!=='남은 수량')label.textContent='남은 수량';
  }
  // 폰 품목: 목록 ↔ 상세(‹ 품목) — 상세가 열리면 목록·머리 줄을 숨기고 카드 맨 위에 '‹ 품목' 한 줄(견적서 '‹ 견적서'와 같은 모양).
+ // 입금·출금(시안 확정 2026-10): 말은 입금·출금·차액 하나로, 목록의 X 대신 줄을 누르면 기록 창 → [삭제].
+ function payTidy(){
+  const v=document.getElementById('view-payments');if(!v)return;
+  const setT=(el,t)=>{if(el&&el.textContent!==t)el.textContent=t;};
+  const ym=/^(\d{4})-(\d{2}) /,thisYear=String(new Date().getFullYear());
+  for(const id of ['paySumIn','paySumOut']){const l=document.getElementById(id)?.previousElementSibling;if(l&&ym.test(l.textContent))setT(l,l.textContent.replace(ym,(m,y,mo)=>(y===thisYear?'':y+'년 ')+(+mo)+'월 '));}
+  const net=document.getElementById('paySumNet');setT(net?.previousElementSibling,'차액 (입금 − 출금)');setT(net?.parentElement.querySelector('.hint'),'직접 기록한 입금·출금만');
+  const card=document.getElementById('payByCo')?.closest('.card');setT(card?.querySelector('h3'),'거래처별 집계');setT(card?.querySelector('.legend'),'차액 = 입금 − 출금');
+  v.querySelectorAll('#payByCo td .sub').forEach(x=>{if(x.textContent.trim()==='—')x.textContent='0';});
+  v.querySelectorAll('#payTbl tbody tr').forEach(tr=>{
+   const rm=tr.querySelector('.rm');if(!rm)return;
+   if(tr.dataset.ndPay!==rm.dataset.id){tr.dataset.ndPay=rm.dataset.id;tr.tabIndex=0;tr.setAttribute('aria-label','기록 보기');}
+   const kind=tr.children[4]?.textContent.trim()==='출금'?'out':'in';if(tr.dataset.kind!==kind)tr.dataset.kind=kind;
+   const memo=tr.children[2]?.textContent.trim(),none=!memo||memo==='—';if(tr.classList.contains('nd-nomemo')!==none)tr.classList.toggle('nd-nomemo',none);
+   const qn=tr.children[3]?.textContent.trim(),noq=!qn||qn==='—';if(tr.classList.contains('nd-noquote')!==noq)tr.classList.toggle('nd-noquote',noq);
+  });
+  // 거래처별 차액: 받은 쪽이 많으면 +를 붙여 목록 금액(+입금 · −출금)과 같은 읽기 방식
+  v.querySelectorAll('#payByCo tbody tr>td:nth-child(5)').forEach(td=>{const t=td.textContent.trim();if(/^[1-9][\d,]*$/.test(t))td.textContent='+'+t;else if(/^-[\d,]+$/.test(t))td.textContent='−'+t.slice(1);});
+ }
+ let paySheetEl=null;
+ function openPaySheet(id){
+  const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
+  const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const out=p.kind==='지급',co=(db.companies||[]).find(c=>c.id===p.company_id)?.name||'',q=p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no||'':'';
+  const amt=Math.round(Number(p.amount)||0).toLocaleString('ko-KR');
+  if(!paySheetEl){paySheetEl=document.createElement('dialog');paySheetEl.className='nd-pay-sheet';paySheetEl.setAttribute('aria-labelledby','ndPayTtl');
+   paySheetEl.addEventListener('click',ev=>{if(ev.target===paySheetEl)paySheetEl.close();});(document.getElementById('appView')||document.body).append(paySheetEl);}
+  const d=paySheetEl;
+  d.innerHTML=`<div class="nd-ps-hd"><b id="ndPayTtl">${out?'출금':'입금'} 기록</b></div>
+   <dl class="nd-ps-kv"><dt>거래처</dt><dd>${e(co)}</dd><dt>금액</dt><dd class="${out?'out':'in'}">${out?'−':'+'}${amt}원</dd><dt>날짜</dt><dd>${e(p.date)}</dd><dt>결제 방법</dt><dd>${e(p.method||'—')}</dd>${q?`<dt>연결 견적</dt><dd>${e(q)}</dd>`:''}${p.memo?`<dt>메모</dt><dd>${e(p.memo)}</dd>`:''}</dl>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-del" data-ps="del">삭제</button><button type="button" class="nd-ps-close" data-ps="close">닫기</button></div>`;
+  d.querySelectorAll('[data-ps="close"]').forEach(b=>b.onclick=()=>d.close());
+  d.querySelector('[data-ps="del"]').onclick=()=>{d.close();if(typeof deletePayment==='function')deletePayment(id);};
+  d.tabIndex=-1;d.showModal();d.focus(); // 첫 초점은 창 자체 — 버튼에 테두리가 생기지 않고 Enter로 삭제되는 일도 없다
+ }
+ // 왼쪽 목록(PC)을 눌러도 같은 기록 창 — 원래 동작(줄 강조)이 끝난 뒤 강조된 줄의 기록을 연다.
+ document.addEventListener('click',ev=>{if(!ev.target.closest?.('#view-payments .panel-b-index button'))return;setTimeout(()=>{const tr=document.querySelector('#payTbl tbody tr.panel-b-selected[data-nd-pay]');if(tr)openPaySheet(tr.dataset.ndPay);},0);});
+ document.addEventListener('click',ev=>{const tr=ev.target.closest?.('#payTbl tbody tr[data-nd-pay]');if(!tr||ev.target.closest('a,button,input,select'))return;openPaySheet(tr.dataset.ndPay);});
+ document.addEventListener('keydown',ev=>{if(ev.key!=='Enter'&&ev.key!==' ')return;const tr=ev.target.closest?.('#payTbl tbody tr[data-nd-pay]');if(tr&&ev.target===tr){ev.preventDefault();openPaySheet(tr.dataset.ndPay);}});
  const IT_PHONE=matchMedia('(max-width:780px)');IT_PHONE.addEventListener('change',()=>itemsMobile());
  function itemsMobile(){
   const cb=document.getElementById('coBackToList');if(cb&&cb.textContent!=='‹ 거래처')cb.textContent='‹ 거래처';
@@ -898,7 +937,7 @@
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});}};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',()=>{v5();v5Watch();}):(v5(),v5Watch());
  desk.addEventListener?.('change',scope);
