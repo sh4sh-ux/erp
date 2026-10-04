@@ -70,11 +70,21 @@
 #appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:var(--nd-db-value-size);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
 #appView #view-dash.nd-dashboard .nd-db-stage>b small{font-size:12px;font-weight:400;color:var(--nd-ink-3);margin-left:4px}
 #appView #view-dash.nd-dashboard .nd-db-empty{font-size:13px;color:var(--nd-ink-3);padding:24px;line-height:1.7}
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary{font-size:13px;color:var(--nd-ink-3);padding:10px 0;cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary{position:relative;display:block;list-style:none;font-size:13px;color:var(--nd-ink-3);padding:10px 24px;border-left:1px solid transparent;cursor:pointer;text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary::-webkit-details-marker{display:none}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{content:'▸';position:absolute;left:10px}
+#appView #view-dash.nd-dashboard .nd-db-analysis[open]>summary:before{transform:rotate(90deg)}
+/* Remove the legacy nested header inset; align disclosure, title and controls. */
+#appView .shell .main #view-dash.nd-dashboard #salesInsight{padding:2px 24px 24px}
+#appView .shell .main #view-dash.nd-dashboard #salesInsight>.card-head{padding:14px 0;justify-content:flex-start;text-align:left}
+#appView .shell .main #view-dash.nd-dashboard #salesInsight>.card-head h3{margin:0;padding:0!important;text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(hover:hover){#appView #view-dash.nd-dashboard :is(.nd-db-quote,.nd-db-stage,.nd-db-metric,.nd-db-attention>button):hover{background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))}}
 @media(max-width:1200px){#appView #view-dash.nd-dashboard .nd-db-work{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:0;border-top:1px solid var(--nd-line)}}
 @media(max-width:780px){
+ #appView #view-dash.nd-dashboard .nd-db-analysis>summary{padding-left:16px;padding-right:16px}
+ #appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{left:2px}
+ #appView .shell .main #view-dash.nd-dashboard #salesInsight{padding:2px 16px 20px}
  #appView #view-dash.nd-dashboard .dash-brief{padding:12px 12px 18px;gap:12px}
  #appView #view-dash.nd-dashboard .nd-db-head{min-height:48px;padding:12px 16px;gap:10px}
  #appView #view-dash.nd-dashboard .nd-db-head h3{font-size:var(--nd-db-section-size)}
