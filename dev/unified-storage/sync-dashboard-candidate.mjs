@@ -24,10 +24,21 @@ assert.equal(html.split('</body>').length,2,'One body close required');
 html=html.replace('</body>',dashboard+'</body>');
 await writeFile(file,html);
 manifest.files.find(f=>f.path==='erp/index.html').sha256=sha(html);
+// Optional, explicitly scoped icon refresh; never copy authentication/runtime sources.
+const changedReleaseFiles=['erp/index.html'];
+if(process.argv.includes('--icons')){
+ const assets=[['style.css',resolve(here,'../personal-cloud-onboarding/style.css')],
+  ...[180,192,512].map(size=>[`erp/icons/icon-${size}.png`,resolve(here,`naro-icons/icon-${size}.png`)])];
+ for(const [path,source] of assets){
+  const entry=manifest.files.find(f=>f.path===path);assert(entry,`Unpinned asset: ${path}`);
+  const bytes=await readFile(source);await writeFile(resolve(candidate,'release',path),bytes);
+  entry.sha256=sha(bytes);changedReleaseFiles.push(path);
+ }
+}
 manifest.aggregate=sha(JSON.stringify(manifest.files));
 await writeFile(resolve(candidate,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 const deploy=resolve(out,'deploy.mjs');
 const source=await readFile(deploy,'utf8');
 assert.match(source,/const PIN=\{files:67,aggregate:'[a-f0-9]{64}'/);
 await writeFile(deploy,source.replace(/(const PIN=\{files:67,aggregate:')[a-f0-9]{64}/,'$1'+manifest.aggregate));
-console.log(JSON.stringify({changedReleaseFiles:['erp/index.html'],files:manifest.files.length,aggregate:manifest.aggregate}));
+console.log(JSON.stringify({changedReleaseFiles,files:manifest.files.length,aggregate:manifest.aggregate}));
