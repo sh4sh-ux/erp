@@ -21,6 +21,14 @@ if(new URL(location.href).searchParams.has('layout')){
   }
  }
 }
+if(new URL(location.href).searchParams.has('dashboard')){
+ const now=new Date(),day=n=>{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+ data.companies=[{id:'dash-c',name:'대시보드 합성 거래처',type:'매출',prices:[]}];
+ data.items=[{id:'dash-i',name:'합성 품목',code:'DASH-01',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000}];
+ data.quotes=['작성중','발송','수주','부분납품','납품'].map((status,i)=>({id:'dash-q'+i,no:'DASH-'+i,company_id:'dash-c',date:day(-i),status,created_at:day(-i)+'T09:00:00Z',lines:[{id:'dash-l'+i,item_id:'dash-i',name:'합성 품목',qty:2,price:1000}],...(i>=3?{delivered_at:day(-i),deliveries:[{id:'dash-d'+i,date:day(-i),lines:[{line_id:'dash-l'+i,qty:i===3?1:2}]}]}:{})}));
+ data.payments=[{id:'dash-p',company_id:'dash-c',kind:'수금',amount:1000,date:day(-1),memo:'로컬 대시보드 검증용'}];
+ data.stock_moves=[{id:'dash-stock-in',item_id:'dash-i',kind:'입고',qty:3,color:'',spec:'',date:day(-5)},...[3,4].map(i=>({id:'dash-stock-'+i,item_id:'dash-i',kind:'출고',qty:i===3?1:2,color:'',spec:'',date:day(-i),quote_id:'dash-q'+i}))];
+}
 if(new URL(location.href).searchParams.has('interrupted')){
  data.companies=[{id:'synthetic-c',name:'합성 복구 거래처',type:'매출',prices:[]}];
  data.items=[{id:'synthetic-i',name:'합성 복구 품목',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000}];
