@@ -1785,6 +1785,8 @@ html body #appView #view-payments #payTbl tr:has(.rm)>td:last-child,html body #a
 html body #appView #view-payments #payTbl tbody tr[data-nd-pay]{cursor:pointer}
 html body #appView #view-payments #payTbl tbody tr[data-nd-pay]:hover{background:var(--nd-fill,var(--nd-surface-2))}
 html body #appView #view-payments #payTbl tbody tr[data-nd-pay]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+/* Keep keyboard focus visible; suppress only a pointer-originated/restored row focus. */
+html body #appView #view-payments[data-nd-pay-input="pointer"] #payTbl tbody tr[data-nd-pay]:focus{outline:none}
 html body #appView #view-payments #payTbl tbody tr[data-kind="in"]>td:nth-child(7){color:var(--nd-green)!important}
 html body #appView #view-payments #payTbl tbody tr[data-kind="out"]>td:nth-child(7){color:var(--nd-red)!important}
 html body #appView #view-payments #payTbl tbody tr[data-kind="in"]>td:nth-child(7)::before{content:"+"}
