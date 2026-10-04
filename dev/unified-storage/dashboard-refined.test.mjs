@@ -65,6 +65,13 @@ test('side-by-side work cards stretch equally, with shared headers and flexible 
  assert.match(css,/\.nd-db-work :is\(\.nd-db-quote,\.nd-db-stage\)\{flex:1\}/);
  assert.match(css,/@media\(max-width:1200px\)\{[^}]*\.nd-db-work\{grid-template-columns:1fr\}/);
 });
+test('analysis disclosure and title use the card content left inset, without nested header padding',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.match(css,/\.nd-db-analysis>summary\{[^}]*padding:10px 24px[^}]*text-align:left/);
+ assert.match(css,/#salesInsight\{padding:2px 24px 24px\}/);
+ assert.match(css,/#salesInsight>\.card-head\{padding:14px 0;justify-content:flex-start;text-align:left\}/);
+ assert.match(css,/#salesInsight\{padding:2px 16px 20px\}/);
+});
 test('dashboard inherits the shared page header, with pale hover and segmented controls',async()=>{
  const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
  assert.doesNotMatch(css,/--nd-db-type-scale|\.page-head\s+(?:h2|p|button)\s*\{/);
