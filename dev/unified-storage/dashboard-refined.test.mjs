@@ -16,6 +16,8 @@ test('quick ranges cross year boundaries and preserve leap-month endings',()=>{
  assert.deepEqual(plain(quickRange('last-month','2026-01-04')),{from:'2025-12-01',to:'2025-12-31'});
  assert.deepEqual(plain(quickRange('three-months','2026-01-04')),{from:'2025-11-01',to:'2026-01-04'});
  assert.deepEqual(plain(quickRange('this-month','2026-10-04')),{from:'2026-10-01',to:'2026-10-04'});
+ assert.deepEqual(plain(quickRange('this-year','2026-10-04')),{from:'2026-01-01',to:'2026-10-04'});
+ assert.deepEqual(plain(quickRange('this-year','2024-02-29')),{from:'2024-01-01',to:'2024-02-29'});
  assert.deepEqual(plain(defaultRange('month','2026-10-04')),{from:'2026-05-01',to:'2026-10-04'});
  assert.deepEqual(plain(defaultRange('day','2026-01-04')),{from:'2025-12-29',to:'2026-01-04'});
 });
@@ -54,6 +56,19 @@ test('month/day/year boundaries are calendar-based, including leap day',()=>{
  assert.deepEqual(plain(periods('month','2026-01-04').map(x=>x.key)),['2025-08','2025-09','2025-10','2025-11','2025-12','2026-01']);
  assert.equal(periods('day','2024-03-01').at(-2).key,'2024-02-29');
  assert.equal(periods('year','2026-01-01')[0].key,'2022');
+});
+test('period popover shares the field/filter width and keeps draft edits unapplied until submit',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.match(css,/\.nd-db-range-group\{position:relative;[^}]*width:320px;max-width:100%/);
+ assert.match(css,/\.nd-db-range-form\{position:absolute;[^}]*left:0;[^}]*width:100%;max-width:none;box-sizing:border-box/);
+ assert.match(css,/\.nd-db-range-group\{width:100%\}/);
+ assert.match(source,/role="dialog" aria-modal="false"/);
+ assert.match(source,/document.addEventListener\('pointerdown'/);
+ assert.match(source,/document.addEventListener\('focusin'/);
+ assert.match(source,/rangeListeners\?\.abort\(\)/);
+ assert.match(source,/\[data-range-reset\].*defaultRange\(chartMode,today\).*resetDraft=true/);
+ assert.doesNotMatch(source.match(/form.querySelector\('\[data-range-reset\]'\).onclick=.*;/)?.[0]||'',/chartRange=|renderChart\(/);
+ assert.match(source,/if\(resetDraft\)chartRange=null;closeRange\(false\);renderChart/);
 });
 test('same delivered-amount adapter across modes; receipts exclude outgoing and void records',()=>{
  const data={quotes:[{deliveries:[{date:'2026-10-03',total:1100},{date:'2026-10-04',total:2200},{date:'2025-10-04',total:4400}]}],payments:[{date:'2026-10-03',kind:'수금',amount:1000},{date:'2026-10-03',kind:'지급',amount:500},{date:'2026-10-03',kind:'수금',amount:999,void_at:'x'}]};

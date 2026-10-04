@@ -23,6 +23,7 @@
  }
  function quickRange(key,today){
   const d=parseDay(today),y=d.getFullYear(),m=d.getMonth();
+  if(key==='this-year')return {from:ymd(new Date(y,0,1)),to:today};
   return key==='last-month'?{from:ymd(new Date(y,m-1,1)),to:ymd(new Date(y,m,0))}:
    {from:ymd(new Date(y,m-(key==='three-months'?2:0),1)),to:today};
  }
@@ -84,6 +85,8 @@
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+  filter:'<path d="M4 6h16M7 12h10M10 18h4"/>',close:'<path d="m6 6 12 12M18 6 6 18"/>',
   file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/>',
   send:'<path d="m22 2-7 20-4-9-9-4 20-7ZM22 2 11 13"/>',
   check:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
@@ -92,6 +95,7 @@
  const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[n]||paths.file}</svg>`;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let chartMode='month',selectedKey=null,chartRange=null,chartPage=0;
+ let rangeListeners=null;
  const deliveryTotal=(q,d)=>quoteTotals({lines:deliveredLines(q,d)}).total;
  function openQuotes(status,id){
   if(switchView('quotes')===false||currentView!=='quotes')return;
@@ -105,6 +109,8 @@
  }
  function panel(title,body,extra=''){return `<section class="nd-db-card"><header class="nd-db-head"><h3>${title}</h3>${extra}</header>${body}</section>`;}
  function renderChart(host){
+  rangeListeners?.abort();rangeListeners=null;
+  host.classList.remove('range-open');
   const today=localDate(),range=chartRange||defaultRange(chartMode,today);
   const allRows=aggregate(db,chartMode,today,deliveryTotal,chartRange),pageCount=Math.ceil(allRows.length/31);
   chartPage=Math.min(chartPage,pageCount-1);
@@ -115,12 +121,14 @@
   const negative=allRows.some(r=>r.sale<0||r.receipt<0);
   const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
-  host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-chart-tools"><button type="button" class="nd-db-range-trigger" aria-expanded="false" aria-controls="nd-db-range-form">${esc(range.from.replaceAll('-','.'))} ~ ${esc(range.to.replaceAll('-','.'))} ▾</button><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
-   <form id="nd-db-range-form" class="nd-db-range-form" hidden novalidate>
-    <div class="nd-db-range-quick" role="group" aria-label="빠른 기간 선택">${[['this-month','이번 달'],['last-month','지난달'],['three-months','최근 3개월']].map(([key,label])=>`<button type="button" data-quick-range="${key}">${label}</button>`).join('')}</div>
-    <div class="nd-db-range-fields"><label>시작일<input type="date" name="from" aria-label="조회 시작일" min="1900-01-01" value="${range.from}" required></label><span aria-hidden="true">~</span><label>종료일<input type="date" name="to" aria-label="조회 종료일" min="1900-01-01" value="${range.to}" required></label><button type="submit" class="nd-db-range-apply">조회</button><button type="button" data-range-reset>초기화</button></div>
-    <p class="nd-db-range-help">이 그래프에만 적용됩니다. 최대 10년까지 조회할 수 있습니다.</p><p class="nd-db-range-error" role="alert" hidden></p>
-   </form>
+  host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-chart-tools"><div class="nd-db-range-group"><button type="button" class="nd-db-range-trigger" aria-label="조회 기간 변경" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('calendar')}<span>${esc(range.from.replaceAll('-','.'))} – ${esc(range.to.replaceAll('-','.'))}</span></button><button type="button" class="nd-db-range-filter${chartRange?' is-filtered':''}" aria-label="기간 필터${chartRange?' · 적용됨':''}" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('filter')}</button>
+   <form id="nd-db-range-form" class="nd-db-range-form" role="dialog" aria-modal="false" aria-labelledby="nd-db-range-title" aria-describedby="nd-db-range-help" hidden novalidate>
+    <div class="nd-db-range-heading"><strong id="nd-db-range-title">기간 설정</strong><button type="button" data-range-close aria-label="기간 설정 닫기">${icon('close')}</button></div>
+    <div class="nd-db-range-body"><div class="nd-db-range-quick" role="group" aria-label="빠른 기간 선택">${[['this-month','이번 달'],['last-month','지난달'],['this-year','올해']].map(([key,label])=>`<button type="button" data-quick-range="${key}" aria-pressed="false">${label}</button>`).join('')}</div>
+    <div class="nd-db-range-fields"><label>시작일<input type="date" name="from" aria-label="조회 시작일" min="1900-01-01" value="${range.from}" required></label><label>종료일<input type="date" name="to" aria-label="조회 종료일" min="1900-01-01" value="${range.to}" required></label></div>
+    <p id="nd-db-range-help" class="nd-db-sr">이 그래프에만 적용됩니다. 최대 10년까지 조회할 수 있습니다.</p><p class="nd-db-range-error" role="alert" hidden></p>
+    <div class="nd-db-range-actions"><button type="button" data-range-reset>초기화</button><button type="submit" class="nd-db-range-apply">적용</button></div></div>
+   </form></div><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
    <div class="nd-db-chart-meta"><span>${esc(range.from)} — ${esc(range.to)}${chartRange?' · 선택 기간':''}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
    <div class="nd-db-chart-scroll" tabindex="0" aria-label="기간별 그래프 가로 스크롤"><div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length};--db-bar-min:${rows.length>12?'48px':'0px'}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div></div>
    <div class="nd-db-chart-note">${rows.length>12?'좌우로 스크롤하여 다른 기간을 볼 수 있습니다. · ':''}매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
@@ -142,21 +150,36 @@
   });
   host.querySelector('.nd-db-bars').onpointerleave=()=>show(null);
   show(null);
-  const trigger=host.querySelector('.nd-db-range-trigger'),form=host.querySelector('.nd-db-range-form');
-  const closeRange=()=>{form.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});};
-  trigger.onclick=()=>{form.hidden=!form.hidden;trigger.setAttribute('aria-expanded',String(!form.hidden));if(!form.hidden)form.elements.from.focus({preventScroll:true});};
-  form.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeRange();}};
+  const group=host.querySelector('.nd-db-range-group'),triggers=[...group.querySelectorAll('[aria-controls="nd-db-range-form"]')],form=group.querySelector('.nd-db-range-form');
+  let opener=triggers[1],resetDraft=false;
+  const syncQuick=()=>form.querySelectorAll('[data-quick-range]').forEach(b=>{
+   const preset=quickRange(b.dataset.quickRange,today);
+   b.setAttribute('aria-pressed',String(preset.from===form.elements.from.value&&preset.to===form.elements.to.value));
+  });
+  const closeRange=(restoreFocus=true)=>{form.hidden=true;host.classList.remove('range-open');triggers.forEach(b=>b.setAttribute('aria-expanded','false'));rangeListeners?.abort();rangeListeners=null;if(restoreFocus)opener.focus({preventScroll:true});};
+  triggers.forEach(trigger=>trigger.onclick=()=>{
+   if(!form.hidden){closeRange(false);return;}
+   opener=trigger;resetDraft=false;form.elements.from.value=range.from;form.elements.to.value=range.to;syncQuick();form.querySelector('.nd-db-range-error').hidden=true;
+   form.hidden=false;host.classList.add('range-open');triggers.forEach(b=>b.setAttribute('aria-expanded','true'));
+   rangeListeners=new AbortController();const {signal}=rangeListeners;
+   document.addEventListener('pointerdown',e=>{if(!group.contains(e.target))closeRange(false);},{signal});
+   document.addEventListener('focusin',e=>{if(!group.contains(e.target))closeRange(false);},{signal});
+   document.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeRange();}},{signal});
+   form.querySelector('[data-range-close]').focus({preventScroll:true});
+  });
+  form.querySelector('[data-range-close]').onclick=()=>closeRange();
+  form.querySelectorAll('input').forEach(input=>input.oninput=()=>{resetDraft=false;syncQuick();form.querySelector('.nd-db-range-error').hidden=true;});
   form.querySelectorAll('[data-quick-range]').forEach(b=>b.onclick=()=>{
    const next=quickRange(b.dataset.quickRange,today);form.elements.from.value=next.from;form.elements.to.value=next.to;
-   form.querySelector('.nd-db-range-error').hidden=true;
+   resetDraft=false;syncQuick();form.querySelector('.nd-db-range-error').hidden=true;
   });
   form.onsubmit=e=>{
    e.preventDefault();
    const next={from:form.elements.from.value,to:form.elements.to.value},error=rangeError(next),message=form.querySelector('.nd-db-range-error');
    if(error){message.textContent=error;message.hidden=false;return;}
-   chartRange=next;chartPage=0;selectedKey=null;renderChart(host);host.querySelector('.nd-db-range-trigger').focus({preventScroll:true});
+   chartRange=next;chartPage=0;selectedKey=null;if(resetDraft)chartRange=null;closeRange(false);renderChart(host);host.querySelector('.nd-db-range-filter').focus({preventScroll:true});
   };
-  form.querySelector('[data-range-reset]').onclick=()=>{chartRange=null;chartPage=0;selectedKey=null;renderChart(host);host.querySelector('.nd-db-range-trigger').focus({preventScroll:true});};
+  form.querySelector('[data-range-reset]').onclick=()=>{const next=defaultRange(chartMode,today);form.elements.from.value=next.from;form.elements.to.value=next.to;resetDraft=true;syncQuick();form.querySelector('.nd-db-range-error').hidden=true;};
   host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;chartPage=0;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
  }
  function refinedDashboard(){
