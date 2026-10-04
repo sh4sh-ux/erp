@@ -47,7 +47,14 @@
 #appView #view-dash.nd-dashboard .nd-db-review-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);width:100%;text-align:left;font-size:13px}
 #appView #view-dash.nd-dashboard .nd-db-review-row b{display:flex;gap:5px;align-items:center}
 #appView #view-dash.nd-dashboard .nd-db-review-row small{display:block;color:var(--nd-ink-3);margin-top:6px}
-#appView #view-dash.nd-dashboard .nd-db-work{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:start}
+#appView #view-dash.nd-dashboard .nd-db-work{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:stretch}
+/* Side-by-side cards share header and bottom edges; rows absorb the difference.
+   Do not impose a fixed card height: empty lists and partial-delivery rows vary. */
+@media(min-width:1201px){
+ #appView #view-dash.nd-dashboard .nd-db-work>.nd-db-card{display:flex;flex-direction:column}
+ #appView #view-dash.nd-dashboard .nd-db-work .nd-db-head{flex:0 0 64px}
+ #appView #view-dash.nd-dashboard .nd-db-work :is(.nd-db-quote,.nd-db-stage){flex:1}
+}
 #appView #view-dash.nd-dashboard .nd-db-quote{display:flex;align-items:center;gap:12px;padding:14px 24px;min-height:66px;width:100%;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);border-radius:0;text-align:left;font-size:14px}
 #appView #view-dash.nd-dashboard .nd-db-quote:last-child{border-bottom:0}
 #appView #view-dash.nd-dashboard .nd-db-name{flex:1;min-width:0}
