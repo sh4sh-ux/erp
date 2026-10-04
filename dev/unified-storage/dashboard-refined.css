@@ -3,108 +3,113 @@
 #appView #view-dash.nd-dashboard .dash-brief>*{flex-shrink:0}
 #appView #view-dash.nd-dashboard .nd-db-card{display:block;min-width:0;background:var(--nd-surface);border:1px solid var(--nd-line);border-radius:16px;overflow:hidden;box-shadow:none}
 #appView #view-dash.nd-dashboard .nd-db-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:14px 24px;border-bottom:1px solid var(--nd-line);box-sizing:border-box}
-#appView #view-dash.nd-dashboard .nd-db-head h3{font-size:calc(17px * var(--nd-db-type-scale));font-weight:700;color:var(--nd-ink);line-height:1.4;margin:0;padding:0}
-#appView #view-dash.nd-dashboard .nd-db-head>span{font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3);line-height:1.5;text-align:right}
+#appView #view-dash.nd-dashboard .nd-db-head h3{font-size:var(--nd-db-section-size);font-weight:700;color:var(--nd-ink);line-height:1.4;margin:0;padding:0}
+#appView #view-dash.nd-dashboard .nd-db-head>span{font-size:12px;color:var(--nd-ink-3);line-height:1.5;text-align:right}
 #appView #view-dash.nd-dashboard button{font-family:inherit;cursor:pointer}
 #appView #view-dash.nd-dashboard button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-3px}
 #appView #view-dash.nd-dashboard svg{height:18px;width:18px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:0;color:var(--nd-blue);font-size:calc(13px * var(--nd-db-type-scale));white-space:nowrap;padding:8px 0}
+#appView #view-dash.nd-dashboard .nd-db-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:0;color:var(--nd-blue);font-size:13px;white-space:nowrap;padding:8px 0}
 #appView #view-dash.nd-dashboard .nd-db-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 0}
 #appView #view-dash.nd-dashboard .nd-db-metric{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:8px;padding:12px 24px;background:transparent;color:var(--nd-ink);text-align:left;border:0;border-radius:0}
 #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric:before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--nd-line)}
-#appView #view-dash.nd-dashboard .nd-db-metric>span{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-2)}
-#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:calc(clamp(22px,2.25vw,32px) * var(--nd-db-type-scale));font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#appView #view-dash.nd-dashboard .nd-db-metric>span{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;font-size:13px;color:var(--nd-ink-2)}
+#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:var(--nd-db-value-size);font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 #appView #view-dash.nd-dashboard .nd-db-metric:last-child strong{color:var(--nd-blue)}
-#appView #view-dash.nd-dashboard .nd-db-metric small{font-size:calc(11px * var(--nd-db-type-scale));color:var(--nd-ink-3);line-height:1.5}
-#appView #view-dash.nd-dashboard .nd-db-tabs{display:flex;gap:4px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-tabs button{font-size:calc(12px * var(--nd-db-type-scale));border:0;border-radius:7px;background:transparent;color:var(--nd-ink-3);padding:8px 13px;min-height:36px}
-#appView #view-dash.nd-dashboard .nd-db-tabs button[aria-pressed="true"]{background:var(--nd-ink);color:var(--nd-surface)}
-#appView #view-dash.nd-dashboard .nd-db-chart-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 24px 0;font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-metric>small{font-size:11px;color:var(--nd-ink-3);line-height:1.5}
+#appView #view-dash.nd-dashboard .nd-db-tabs{display:flex;gap:4px;flex:none;padding:4px;border-radius:10px;background:var(--nd-fill)}
+#appView #view-dash.nd-dashboard .nd-db-tabs button{font-size:12px;border:0;border-radius:7px;background:transparent;color:var(--nd-ink-3);padding:8px 13px;min-height:36px}
+#appView #view-dash.nd-dashboard .nd-db-tabs button[aria-pressed="true"]{background:var(--nd-surface);color:var(--nd-blue);font-weight:600;box-shadow:0 1px 4px #20294012}
+#appView #view-dash.nd-dashboard .nd-db-chart-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 24px 0;font-size:12px;color:var(--nd-ink-3)}
 #appView #view-dash.nd-dashboard .nd-db-values{display:flex;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
 #appView #view-dash.nd-dashboard .nd-db-values b{color:var(--nd-ink-2)}
 #appView #view-dash.nd-dashboard .nd-db-sale{color:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-receipt{color:var(--nd-green)}
 #appView #view-dash.nd-dashboard .nd-db-bars{display:grid;grid-template-columns:repeat(var(--db-bars),minmax(0,1fr));padding:14px 24px 0;gap:12px}
-#appView #view-dash.nd-dashboard .nd-db-bar-group{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;padding:0;background:transparent;border:0;border-radius:0;color:var(--nd-ink-3);font-size:calc(12px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-bar-group{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;padding:0;background:transparent;border:0;border-radius:0;color:var(--nd-ink-3);font-size:12px}
 #appView #view-dash.nd-dashboard .nd-db-pair{display:flex;justify-content:center;align-items:flex-end;gap:5px;height:126px;position:relative}
 #appView #view-dash.nd-dashboard .nd-db-bar{display:block;flex:0 1 16px;max-width:16px;width:16px;border-radius:5px 5px 0 0;background:var(--nd-blue);opacity:.22;z-index:1}
 #appView #view-dash.nd-dashboard .nd-db-bar.receipt{background:var(--nd-green)}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar{opacity:1}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-pair:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--nd-line)}
-#appView #view-dash.nd-dashboard .nd-db-bar-label{padding:8px 0 10px;border-bottom:2px solid transparent;font-size:calc(12px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-bar-label{padding:8px 0 10px;border-bottom:2px solid transparent;font-size:12px}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar-label{border-bottom-color:var(--nd-blue);color:var(--nd-ink)}
 #appView #view-dash.nd-dashboard .has-negative .nd-db-pair{margin-bottom:63px;height:63px;border-bottom:1px solid var(--nd-line)}
 #appView #view-dash.nd-dashboard .nd-db-bar.negative{align-self:flex-start;position:relative;top:100%;border-radius:0 0 5px 5px}
-#appView #view-dash.nd-dashboard .nd-db-chart-note{font-size:calc(11px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:10px 24px 14px;line-height:1.6}
+#appView #view-dash.nd-dashboard .nd-db-chart-note{font-size:11px;color:var(--nd-ink-3);padding:10px 24px 14px;line-height:1.6}
 #appView #view-dash.nd-dashboard .nd-db-attention{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:7px 0}
-#appView #view-dash.nd-dashboard .nd-db-attention>button{display:flex;align-items:center;gap:8px;padding:10px 20px;min-height:44px;background:transparent;color:var(--nd-ink-2);border:0;border-radius:0;font-size:calc(13px * var(--nd-db-type-scale));text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-attention>button{display:flex;align-items:center;gap:8px;padding:10px 20px;min-height:44px;background:transparent;color:var(--nd-ink-2);border:0;border-radius:0;font-size:13px;text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:1px solid var(--nd-line)}
 #appView #view-dash.nd-dashboard .nd-db-attention span{flex:1}
 #appView #view-dash.nd-dashboard .nd-db-attention b{color:var(--nd-ink);white-space:nowrap}
 #appView #view-dash.nd-dashboard .nd-db-attention>button[aria-expanded="true"]{color:var(--nd-blue)}
-#appView #view-dash.nd-dashboard .nd-db-review{padding:8px 24px 20px;border-top:1px solid var(--nd-line);font-size:calc(13px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-review{padding:8px 24px 20px;border-top:1px solid var(--nd-line);font-size:13px}
 #appView #view-dash.nd-dashboard .nd-db-review[hidden]{display:none}
-#appView #view-dash.nd-dashboard .nd-db-review-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);width:100%;text-align:left;font-size:calc(13px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-review-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);width:100%;text-align:left;font-size:13px}
 #appView #view-dash.nd-dashboard .nd-db-review-row b{display:flex;gap:5px;align-items:center}
 #appView #view-dash.nd-dashboard .nd-db-review-row small{display:block;color:var(--nd-ink-3);margin-top:6px}
 #appView #view-dash.nd-dashboard .nd-db-work{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:start}
-#appView #view-dash.nd-dashboard .nd-db-quote{display:flex;align-items:center;gap:12px;padding:14px 24px;min-height:66px;width:100%;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);border-radius:0;text-align:left;font-size:calc(14px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-quote{display:flex;align-items:center;gap:12px;padding:14px 24px;min-height:66px;width:100%;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);border-radius:0;text-align:left;font-size:14px}
 #appView #view-dash.nd-dashboard .nd-db-quote:last-child{border-bottom:0}
 #appView #view-dash.nd-dashboard .nd-db-name{flex:1;min-width:0}
 #appView #view-dash.nd-dashboard .nd-db-name strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#appView #view-dash.nd-dashboard .nd-db-name small{display:block;margin-top:8px;color:var(--nd-ink-3);font-size:calc(12px * var(--nd-db-type-scale));overflow-wrap:anywhere}
+#appView #view-dash.nd-dashboard .nd-db-name small{display:block;margin-top:8px;color:var(--nd-ink-3);font-size:12px;overflow-wrap:anywhere}
 #appView #view-dash.nd-dashboard .nd-db-quote-amount{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none}
 #appView #view-dash.nd-dashboard .nd-db-quote-amount strong{font-variant-numeric:tabular-nums}
 #appView #view-dash.nd-dashboard .nd-db-stage{display:flex;align-items:center;gap:10px;width:100%;min-height:66px;padding:14px 24px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:transparent;color:var(--nd-ink);text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-stage:last-child{border-bottom:0}
 #appView #view-dash.nd-dashboard .nd-db-stage-icon{display:flex;align-items:center;justify-content:center;background:var(--nd-fill);color:var(--nd-ink-3);border-radius:10px;width:28px;height:28px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-stage-name{flex:1;min-width:0;line-height:1.6;font-size:calc(14px * var(--nd-db-type-scale))}
-#appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3);display:inline-block}
-#appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:calc(25px * var(--nd-db-type-scale));font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-#appView #view-dash.nd-dashboard .nd-db-stage>b small{font-size:calc(12px * var(--nd-db-type-scale));font-weight:400;color:var(--nd-ink-3);margin-left:4px}
-#appView #view-dash.nd-dashboard .nd-db-empty{font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:24px;line-height:1.7}
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary{font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:10px 0;cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-stage-name{flex:1;min-width:0;line-height:1.6;font-size:14px}
+#appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:12px;color:var(--nd-ink-3);display:inline-block}
+#appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:var(--nd-db-value-size);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-stage>b small{font-size:12px;font-weight:400;color:var(--nd-ink-3);margin-left:4px}
+#appView #view-dash.nd-dashboard .nd-db-empty{font-size:13px;color:var(--nd-ink-3);padding:24px;line-height:1.7}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary{font-size:13px;color:var(--nd-ink-3);padding:10px 0;cursor:pointer}
 #appView #view-dash.nd-dashboard .nd-db-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(hover:hover){#appView #view-dash.nd-dashboard :is(.nd-db-quote,.nd-db-stage,.nd-db-metric,.nd-db-attention>button):hover{background:var(--nd-fill)}}
+@media(hover:hover){#appView #view-dash.nd-dashboard :is(.nd-db-quote,.nd-db-stage,.nd-db-metric,.nd-db-attention>button):hover{background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))}}
 @media(max-width:1200px){#appView #view-dash.nd-dashboard .nd-db-work{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:0;border-top:1px solid var(--nd-line)}}
 @media(max-width:780px){
  #appView #view-dash.nd-dashboard .dash-brief{padding:12px 12px 18px;gap:12px}
  #appView #view-dash.nd-dashboard .nd-db-head{min-height:48px;padding:12px 16px;gap:10px}
- #appView #view-dash.nd-dashboard .nd-db-head h3{font-size:calc(16px * var(--nd-db-type-scale))}
- #appView #view-dash.nd-dashboard .nd-db-head>span{font-size:calc(11px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-head h3{font-size:var(--nd-db-section-size)}
+ #appView #view-dash.nd-dashboard .nd-db-head>span{font-size:11px}
  #appView #view-dash.nd-dashboard .nd-db-metrics{grid-template-columns:1fr;padding:0 16px}
  #appView #view-dash.nd-dashboard .nd-db-metric{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:14px 0;gap:4px 8px}
  #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric{border-top:1px solid var(--nd-line)}
  #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric:before{display:none}
  #appView #view-dash.nd-dashboard .nd-db-metric>span svg{display:none}
- #appView #view-dash.nd-dashboard .nd-db-metric strong{grid-column:2;grid-row:1 / span 2;font-size:calc(23px * var(--nd-db-type-scale));text-align:right}
- #appView #view-dash.nd-dashboard .nd-db-metric small{grid-column:1}
+ #appView #view-dash.nd-dashboard .nd-db-metric strong{grid-column:2;grid-row:1 / span 2;font-size:var(--nd-db-value-size);text-align:right}
+ #appView #view-dash.nd-dashboard .nd-db-metric>small{grid-column:1}
  #appView #view-dash.nd-dashboard .nd-db-chart .nd-db-head{flex-wrap:wrap}
- #appView #view-dash.nd-dashboard .nd-db-tabs button{padding:8px 10px;min-height:44px}
- #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:12px 16px 0;font-size:calc(11px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-tabs{width:100%;box-sizing:border-box}
+ #appView #view-dash.nd-dashboard .nd-db-tabs button{flex:1;padding:8px 10px;min-height:44px}
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:12px 16px 0;font-size:11px}
  #appView #view-dash.nd-dashboard .nd-db-values{gap:6px 10px}
  #appView #view-dash.nd-dashboard .nd-db-bars{padding:14px 12px 0;gap:3px}
  #appView #view-dash.nd-dashboard .nd-db-pair{height:105px;gap:3px}
  #appView #view-dash.nd-dashboard .nd-db-bar{max-width:12px}
- #appView #view-dash.nd-dashboard .nd-db-bar-label{font-size:calc(11px * var(--nd-db-type-scale));min-height:44px;box-sizing:border-box;padding-top:12px}
+ #appView #view-dash.nd-dashboard .nd-db-bar-label{font-size:11px;min-height:44px;box-sizing:border-box;padding-top:12px}
  #appView #view-dash.nd-dashboard .nd-db-chart-note{padding:10px 16px 12px}
  #appView #view-dash.nd-dashboard .nd-db-attention{padding:0}
  #appView #view-dash.nd-dashboard .nd-db-attention>button{padding:12px 16px}
- #appView #view-dash.nd-dashboard .nd-db-quote{padding:12px 16px;font-size:calc(13px * var(--nd-db-type-scale));gap:10px}
- #appView #view-dash.nd-dashboard .nd-db-name small{font-size:calc(11px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-quote{padding:12px 16px;font-size:14px;gap:10px}
+ #appView #view-dash.nd-dashboard .nd-db-name small{font-size:11px}
  #appView #view-dash.nd-dashboard .nd-db-stage{padding:12px 16px;gap:12px}
- #appView #view-dash.nd-dashboard .nd-db-stage-name{font-size:calc(13px * var(--nd-db-type-scale))}
- #appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:calc(11px * var(--nd-db-type-scale))}
- #appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:calc(23px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-stage-name{font-size:14px}
+ #appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:11px}
+ #appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:var(--nd-db-value-size)}
 }
-@media(max-width:360px){#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:calc(20px * var(--nd-db-type-scale))}#appView #view-dash.nd-dashboard .nd-db-stage-icon{width:30px;height:30px}}
-/* Compact dashboard only: retain shared rail/header geometry and touch targets. */
-#appView #view-dash.nd-dashboard{--nd-db-type-scale:.7;--nd-db-number-font:-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
-#appView #view-dash.nd-dashboard .page-head h2{font-size:calc(24px * var(--nd-db-type-scale))!important}
-#appView #view-dash.nd-dashboard .page-head p{font-size:calc(13px * var(--nd-db-type-scale))!important}
-#appView #view-dash.nd-dashboard .page-head button{font-size:calc(13px * var(--nd-db-type-scale))!important}
-#appView #view-dash.nd-dashboard .nd-db-quote .pill{font-size:calc(11px * var(--nd-db-type-scale));padding:2px 5px}
+@media(max-width:360px){#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:var(--nd-db-value-size)}#appView #view-dash.nd-dashboard .nd-db-stage-icon{width:30px;height:30px}}
+/* Match shared section/body/secondary and stats typography; never scale the page header. */
+#appView #view-dash.nd-dashboard{--nd-db-section-size:14px;--nd-db-value-size:20px;--nd-db-number-font:Inter,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-family:var(--sans);font-size:14px;line-height:1.5}
+#appView #view-dash.nd-dashboard .nd-db-quote .pill{font-size:11px;padding:2px 5px}
 #appView #view-dash.nd-dashboard :is(.nd-db-metric strong,.nd-db-values,.nd-db-chart-meta,.nd-db-bar-label,.nd-db-quote-amount strong,.nd-db-stage>b,.nd-db-attention b,.nd-db-review-row b){font-family:var(--nd-db-number-font);font-variant-numeric:tabular-nums;letter-spacing:normal;-webkit-font-smoothing:antialiased}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-default .nd-db-bar{opacity:.4}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-default .nd-db-bar-label{border-bottom-color:color-mix(in srgb,var(--nd-blue) 25%,transparent)}
 #appView #view-dash.nd-dashboard .nd-db-attention b.needs-attention{color:var(--nd-amber)}
+
+/* Numerals and commas follow the approved mockup; currency is a separate, quiet unit. */
+#appView #view-dash.nd-dashboard .nd-db-metric strong{letter-spacing:-.6px;font-weight:600}
+#appView #view-dash.nd-dashboard .nd-db-currency{font:400 12px/1.5 var(--sans);letter-spacing:0;margin-left:3px;color:inherit}
+#appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){color:var(--nd-ink-2);display:inline-flex;align-items:center;gap:5px}
+#appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):before{content:"";width:7px;height:7px;border-radius:2px;background:var(--nd-blue)}
+#appView #view-dash.nd-dashboard .nd-db-values .nd-db-receipt:before{background:var(--nd-green)}
