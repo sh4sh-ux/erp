@@ -4,7 +4,40 @@
  'use strict';
  const stages=[['작성중','작성 중','견적 준비','file'],['발송','발송','고객 답변 대기','send'],['수주','수주','주문 확정·납품 준비','check'],['납품','납품','납품 완료','box']];
  const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
- function periods(mode,today){
+ const parseDay=value=>{
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return null;
+  const [y,m,d]=value.split('-').map(Number),date=new Date(y,m-1,d);
+  return y>=1900&&ymd(date)===value?date:null;
+ };
+ function rangeError(range){
+  const from=parseDay(range?.from),to=parseDay(range?.to);
+  if(!from||!to)return '시작일과 종료일을 올바르게 입력해 주세요.';
+  if(range.from>range.to)return '종료일은 시작일보다 빠를 수 없습니다.';
+  const limit=new Date(from.getFullYear()+10,from.getMonth(),from.getDate());
+  if(to>=limit)return '한 번에 조회할 수 있는 기간은 최대 10년입니다.';
+  return '';
+ }
+ function defaultRange(mode,today){
+  const first=periods(mode,today)[0].key;
+  return {from:first+(mode==='year'?'-01-01':mode==='month'?'-01':''),to:today};
+ }
+ function quickRange(key,today){
+  const d=parseDay(today),y=d.getFullYear(),m=d.getMonth();
+  return key==='last-month'?{from:ymd(new Date(y,m-1,1)),to:ymd(new Date(y,m,0))}:
+   {from:ymd(new Date(y,m-(key==='three-months'?2:0),1)),to:today};
+ }
+ function periods(mode,today,range=null){
+  if(range){
+   const error=rangeError(range);if(error)throw new RangeError(error);
+   const first=parseDay(range.from),last=parseDay(range.to),rows=[];
+   let date=mode==='year'?new Date(first.getFullYear(),0,1):mode==='month'?new Date(first.getFullYear(),first.getMonth(),1):first;
+   while(date<=last){
+    const key=ymd(date).slice(0,mode==='year'?4:mode==='day'?10:7);
+    rows.push({key,label:mode==='year'?key+'년':mode==='day'?`${date.getMonth()+1}/${date.getDate()}`:`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}`,sale:0,receipt:0});
+    date=mode==='year'?new Date(date.getFullYear()+1,0,1):mode==='month'?new Date(date.getFullYear(),date.getMonth()+1,1):new Date(date.getFullYear(),date.getMonth(),date.getDate()+1);
+   }
+   return rows;
+  }
   const [y,m,d]=today.split('-').map(Number);
   const count=mode==='year'?5:mode==='day'?7:6;
   return Array.from({length:count},(_,i)=>{
@@ -13,15 +46,18 @@
    return {key,label:mode==='year'?key+'년':mode==='day'?`${date.getMonth()+1}/${date.getDate()}`:`${date.getMonth()+1}월`,sale:0,receipt:0};
   });
  }
- function aggregate(data,mode,today,deliveryTotal){
-  const rows=periods(mode,today),byKey=new Map(rows.map(r=>[r.key,r])),size=rows[0].key.length;
+ function aggregate(data,mode,today,deliveryTotal,range=null){
+  const rows=periods(mode,today,range),byKey=new Map(rows.map(r=>[r.key,r])),size=rows[0].key.length;
+  const bounds=range||defaultRange(mode,today);
+  const inRange=date=>parseDay(date)&&date>=bounds.from&&date<=bounds.to;
   // The same deliveredLines + quoteTotals helpers used by monthSales include
   // partial delivery and final-delivery service/discount recognition.
   for(const q of data.quotes||[])for(const d of q.deliveries||[]){
+   if(!inRange(d.date))continue;
    const r=byKey.get(String(d.date||'').slice(0,size));if(r)r.sale+=deliveryTotal(q,d);
   }
   for(const p of data.payments||[]){
-   if(p.kind!=='수금'||p.void_at)continue;
+   if(p.kind!=='수금'||p.void_at||!inRange(p.date))continue;
    const r=byKey.get(String(p.date||'').slice(0,size));if(r)r.receipt+=Number(p.amount)||0;
   }
   return rows;
@@ -44,7 +80,7 @@
  // Keep plain text for accessible labels; only the visible currency unit is smaller.
  const amountHtml=v=>money(v).slice(0,-1)+'<small class="nd-db-currency">원</small>';
  const needsAttention=count=>Number(count)>0;
- const model={periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention};
+ const model={periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange};
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
@@ -55,7 +91,7 @@
   wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 8h18M17 12h4v5h-4a2.5 2.5 0 0 1 0-5Z"/>'};
  const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[n]||paths.file}</svg>`;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let chartMode='month',selectedKey=null;
+ let chartMode='month',selectedKey=null,chartRange=null,chartPage=0;
  const deliveryTotal=(q,d)=>quoteTotals({lines:deliveredLines(q,d)}).total;
  function openQuotes(status,id){
   if(switchView('quotes')===false||currentView!=='quotes')return;
@@ -69,18 +105,35 @@
  }
  function panel(title,body,extra=''){return `<section class="nd-db-card"><header class="nd-db-head"><h3>${title}</h3>${extra}</header>${body}</section>`;}
  function renderChart(host){
-  const rows=aggregate(db,chartMode,localDate(),deliveryTotal);
+  const today=localDate(),range=chartRange||defaultRange(chartMode,today);
+  const allRows=aggregate(db,chartMode,today,deliveryTotal,chartRange),pageCount=Math.ceil(allRows.length/31);
+  chartPage=Math.min(chartPage,pageCount-1);
+  const rows=allRows.slice(chartPage*31,(chartPage+1)*31);
   if(!rows.some(r=>r.key===selectedKey))selectedKey=null;
   const initial=chartEmphasis(rows,selectedKey);
-  const max=Math.max(1,...rows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]))*1.12;
-  const negative=rows.some(r=>r.sale<0||r.receipt<0);
+  const max=Math.max(1,...allRows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]))*1.12;
+  const negative=allRows.some(r=>r.sale<0||r.receipt<0);
   const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
-  host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></header>
-   <div class="nd-db-chart-meta"><span>${rows[0].key} — ${rows.at(-1).key}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
-   <div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div>
-   <div class="nd-db-chart-note">매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
+  host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-chart-tools"><button type="button" class="nd-db-range-trigger" aria-expanded="false" aria-controls="nd-db-range-form">${esc(range.from.replaceAll('-','.'))} ~ ${esc(range.to.replaceAll('-','.'))} ▾</button><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
+   <form id="nd-db-range-form" class="nd-db-range-form" hidden novalidate>
+    <div class="nd-db-range-quick" role="group" aria-label="빠른 기간 선택">${[['this-month','이번 달'],['last-month','지난달'],['three-months','최근 3개월']].map(([key,label])=>`<button type="button" data-quick-range="${key}">${label}</button>`).join('')}</div>
+    <div class="nd-db-range-fields"><label>시작일<input type="date" name="from" aria-label="조회 시작일" min="1900-01-01" value="${range.from}" required></label><span aria-hidden="true">~</span><label>종료일<input type="date" name="to" aria-label="조회 종료일" min="1900-01-01" value="${range.to}" required></label><button type="submit" class="nd-db-range-apply">조회</button><button type="button" data-range-reset>초기화</button></div>
+    <p class="nd-db-range-help">이 그래프에만 적용됩니다. 최대 10년까지 조회할 수 있습니다.</p><p class="nd-db-range-error" role="alert" hidden></p>
+   </form>
+   <div class="nd-db-chart-meta"><span>${esc(range.from)} — ${esc(range.to)}${chartRange?' · 선택 기간':''}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
+   <div class="nd-db-chart-scroll" tabindex="0" aria-label="기간별 그래프 가로 스크롤"><div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length};--db-bar-min:${rows.length>12?'48px':'0px'}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div></div>
+   <div class="nd-db-chart-note">${rows.length>12?'좌우로 스크롤하여 다른 기간을 볼 수 있습니다. · ':''}매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values');
+  if(pageCount>1){
+   const pager=document.createElement('div');pager.className='nd-db-chart-pager';
+   pager.innerHTML=`<button type="button" data-page-prev ${chartPage===0?'disabled':''}>이전 기간</button><span>${esc(rows[0].key)} ~ ${esc(rows.at(-1).key)} · ${chartPage+1}/${pageCount}</span><button type="button" data-page-next ${chartPage===pageCount-1?'disabled':''}>다음 기간</button>`;
+   host.querySelector('.nd-db-chart-note').before(pager);
+   for(const [selector,step] of [['[data-page-prev]',-1],['[data-page-next]',1]])pager.querySelector(selector).onclick=()=>{
+    chartPage+=step;selectedKey=null;renderChart(host);
+    const next=host.querySelector(selector);(next.disabled?host.querySelector('.nd-db-chart-scroll'):next).focus({preventScroll:true});
+   };
+  }
   const show=preview=>{const state=chartEmphasis(rows,selectedKey,preview);values.innerHTML=valueHtml(rows[state.shown]);groups.forEach((b,j)=>{b.classList.toggle('is-active',state.active===j);b.classList.toggle('is-default',state.active<0&&state.shown===j);});};
   groups.forEach((b,i)=>{
    b.onpointerenter=e=>{if(e.pointerType!=='touch')show(i);};b.onfocus=()=>show(i);
@@ -89,7 +142,22 @@
   });
   host.querySelector('.nd-db-bars').onpointerleave=()=>show(null);
   show(null);
-  host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
+  const trigger=host.querySelector('.nd-db-range-trigger'),form=host.querySelector('.nd-db-range-form');
+  const closeRange=()=>{form.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus({preventScroll:true});};
+  trigger.onclick=()=>{form.hidden=!form.hidden;trigger.setAttribute('aria-expanded',String(!form.hidden));if(!form.hidden)form.elements.from.focus({preventScroll:true});};
+  form.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeRange();}};
+  form.querySelectorAll('[data-quick-range]').forEach(b=>b.onclick=()=>{
+   const next=quickRange(b.dataset.quickRange,today);form.elements.from.value=next.from;form.elements.to.value=next.to;
+   form.querySelector('.nd-db-range-error').hidden=true;
+  });
+  form.onsubmit=e=>{
+   e.preventDefault();
+   const next={from:form.elements.from.value,to:form.elements.to.value},error=rangeError(next),message=form.querySelector('.nd-db-range-error');
+   if(error){message.textContent=error;message.hidden=false;return;}
+   chartRange=next;chartPage=0;selectedKey=null;renderChart(host);host.querySelector('.nd-db-range-trigger').focus({preventScroll:true});
+  };
+  form.querySelector('[data-range-reset]').onclick=()=>{chartRange=null;chartPage=0;selectedKey=null;renderChart(host);host.querySelector('.nd-db-range-trigger').focus({preventScroll:true});};
+  host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;chartPage=0;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
  }
  function refinedDashboard(){
   const view=document.getElementById('view-dash'),root=view?.querySelector('.dash-brief');if(!root)return;

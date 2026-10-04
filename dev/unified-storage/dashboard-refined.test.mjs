@@ -4,8 +4,52 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await readFile(new URL('./dashboard-refined.js',import.meta.url),'utf8');
 const context=vm.createContext({});vm.runInContext(source,context);
-const {periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention}=context.NaroDashboardModel;
+const {periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange}=context.NaroDashboardModel;
 const plain=v=>JSON.parse(JSON.stringify(v));
+test('date range validates impossible/empty/reversed dates and bounds excessive chart work',()=>{
+ for(const range of [{from:'',to:''},{from:'2026-02-29',to:'2026-03-01'},{from:'2026-10-04',to:'2026-10-01'},{from:'2020-01-01',to:'2030-01-01'}])assert.notEqual(rangeError(range),'');
+ assert.equal(rangeError({from:'2024-02-29',to:'2024-02-29'}),'');
+ assert.throws(()=>periods('day','2026-10-04',{from:'bad',to:'2026-10-04'}));
+});
+test('quick ranges cross year boundaries and preserve leap-month endings',()=>{
+ assert.deepEqual(plain(quickRange('last-month','2024-03-02')),{from:'2024-02-01',to:'2024-02-29'});
+ assert.deepEqual(plain(quickRange('last-month','2026-01-04')),{from:'2025-12-01',to:'2025-12-31'});
+ assert.deepEqual(plain(quickRange('three-months','2026-01-04')),{from:'2025-11-01',to:'2026-01-04'});
+ assert.deepEqual(plain(quickRange('this-month','2026-10-04')),{from:'2026-10-01',to:'2026-10-04'});
+ assert.deepEqual(plain(defaultRange('month','2026-10-04')),{from:'2026-05-01',to:'2026-10-04'});
+ assert.deepEqual(plain(defaultRange('day','2026-01-04')),{from:'2025-12-29',to:'2026-01-04'});
+});
+test('custom date bounds are inclusive and identical across daily, monthly, yearly aggregation',()=>{
+ const dates=['2025-12-30','2025-12-31','2026-01-01','2026-01-02'];
+ const data={quotes:[{deliveries:dates.map(date=>({date,total:1100}))}],payments:dates.map(date=>({date,kind:'수금',amount:1000}))};
+ data.payments.push({date:'2026-01-01',kind:'지급',amount:999},{date:'2026-01-01',kind:'수금',amount:999,void_at:'x'});
+ const before=JSON.stringify(data),range={from:'2025-12-31',to:'2026-01-01'};
+ for(const mode of ['year','month','day']){
+  const rows=aggregate(data,mode,'2026-10-04',(q,d)=>d.total,range);
+  assert.equal(rows.reduce((s,r)=>s+r.sale,0),2200);
+  assert.equal(rows.reduce((s,r)=>s+r.receipt,0),2000);
+  assert.equal(rows.length,2);
+ }
+ assert.equal(JSON.stringify(data),before);
+});
+test('single date, leap days, empty periods, and long daily ranges retain every bucket',()=>{
+ assert.equal(periods('day','2024-03-01',{from:'2024-02-28',to:'2024-03-01'}).length,3);
+ for(const mode of ['year','month','day'])assert.equal(periods(mode,'2026-10-04',{from:'2026-10-04',to:'2026-10-04'}).length,1);
+ const range={from:'2024-01-01',to:'2024-12-31'},rows=aggregate({},'day','2026-10-04',()=>0,range);
+ assert.equal(rows.length,366);assert(rows.every(r=>r.sale===0&&r.receipt===0));
+});
+test('default range stops at today, rejecting future or invalid ledger dates without modifying them',()=>{
+ const data={payments:[{date:'2026-10-04',kind:'수금',amount:10},{date:'2026-10-05',kind:'수금',amount:20},{date:'2026-10-99',kind:'수금',amount:30}]};
+ for(const mode of ['year','month','day'])assert.equal(aggregate(data,mode,'2026-10-04',()=>0).reduce((s,r)=>s+r.receipt,0),10);
+ assert.equal(data.payments.length,3);
+});
+test('date controls are graph scoped, preserve the chosen bounds on mode switches, and bound rendered bars',()=>{
+ assert.match(source,/chartRange=next;chartPage=0/);
+ assert.match(source,/chartMode=b.dataset.period;chartPage=0;selectedKey=null;renderChart/);
+ assert.match(source,/allRows.slice\(chartPage\*31,\(chartPage\+1\)\*31\)/);
+ assert.match(source,/allRows.flatMap/);
+ assert.match(source,/이 그래프에만 적용됩니다/);
+});
 test('month/day/year boundaries are calendar-based, including leap day',()=>{
  assert.deepEqual(plain(periods('month','2026-01-04').map(x=>x.key)),['2025-08','2025-09','2025-10','2025-11','2025-12','2026-01']);
  assert.equal(periods('day','2024-03-01').at(-2).key,'2024-02-29');
