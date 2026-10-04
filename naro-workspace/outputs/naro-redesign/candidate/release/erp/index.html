@@ -9402,6 +9402,15 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  html body #appView #view-settings .workspace-right .card>h3:first-child{padding-left:12px!important}
 }
 @media screen and (min-width:781px){html body #appView #itForm :is(h3.ops-section-title,.nd-photo-ttl){padding-left:12px!important}}
+/* Quote item actions are secondary controls: one neutral tone and center alignment.
+   Keep touch targets large; reduce only the drawn glyph, not the quantity behavior. */
+@media screen and (max-width:780px){
+ html body #appView #qtForm :is(.qp-add,#fq_sizeBtn):not([hidden]){display:flex!important;align-items:center!important;justify-content:center!important;gap:6px;padding:0 12px!important;min-height:44px;box-sizing:border-box;color:var(--nd-ink-2)!important;font:600 14px/20px var(--sans)!important;text-align:center!important}
+ html body #appView #qtForm .qp-add.nd-gi-plus::before{width:10px;height:10px;background-size:10px 1.5px,1.5px 10px!important}
+ html body #appView #qtForm .qp-stepper>button{min-width:44px;min-height:44px;color:var(--nd-ink-2)!important}
+ html body #appView #qtForm .qp-stepper>button:is([aria-label$="줄이기"],[aria-label$="늘리기"])::before{width:12px!important;height:1.5px!important}
+ html body #appView #qtForm .qp-stepper>button[aria-label$="늘리기"]::after{width:1.5px!important;height:12px!important}
+}
 </style><script>/* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
@@ -10611,10 +10620,10 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  #appView #view-dash.nd-dashboard .nd-db-attention>button+button{position:relative;border-top-color:transparent}
  #appView #view-dash.nd-dashboard .nd-db-attention>button+button:before{content:'';position:absolute;left:var(--nd-db-divider-inset);right:var(--nd-db-divider-inset);top:0;height:1px;background:var(--nd-line);pointer-events:none}
 }
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary{position:relative;display:block;list-style:none;font-size:13px;color:var(--nd-ink-3);padding:10px 24px;border-left:1px solid transparent;cursor:pointer;text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary{position:relative;display:block;list-style:none;font-size:13px;color:var(--nd-ink-3);padding:10px 24px;min-height:44px;box-sizing:border-box;line-height:22px;border-left:1px solid transparent;cursor:pointer;text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-analysis>summary::-webkit-details-marker{display:none}
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{content:'▸';position:absolute;left:10px}
-#appView #view-dash.nd-dashboard .nd-db-analysis[open]>summary:before{transform:rotate(90deg)}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{content:'';position:absolute;left:10px;top:50%;width:8px;height:8px;box-sizing:border-box;border-right:2px solid var(--nd-ink-2);border-bottom:2px solid var(--nd-ink-2);transform:translateY(-50%) rotate(-45deg);pointer-events:none}
+#appView #view-dash.nd-dashboard .nd-db-analysis[open]>summary:before{transform:translateY(-50%) rotate(45deg)}
 /* Remove the legacy nested header inset; align disclosure, title and controls. */
 #appView .shell .main #view-dash.nd-dashboard #salesInsight{padding:2px 24px 24px}
 #appView .shell .main #view-dash.nd-dashboard #salesInsight>.card-head{padding:14px 0;justify-content:flex-start;text-align:left}

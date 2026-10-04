@@ -144,6 +144,13 @@ test('analysis disclosure and title use the card content left inset, without nes
  assert.match(css,/#salesInsight>\.card-head\{padding:14px 0;justify-content:flex-start;text-align:left\}/);
  assert.match(css,/#salesInsight\{padding:2px 16px 20px\}/);
 });
+test('analysis disclosure has a visible centered chevron and a 44px tap target',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.match(css,/\.nd-db-analysis>summary\{[^}]*min-height:44px/);
+ assert.match(css,/\.nd-db-analysis>summary:before\{content:'';[^}]*top:50%;width:8px;height:8px;[^}]*border-right:2px solid var\(--nd-ink-2\)/);
+ assert.match(css,/translateY\(-50%\) rotate\(-45deg\)/);
+ assert.match(css,/\.nd-db-analysis\[open\]>summary:before\{transform:translateY\(-50%\) rotate\(45deg\)\}/);
+});
 test('dashboard inherits the shared page header, with pale hover and segmented controls',async()=>{
  const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
  assert.doesNotMatch(css,/--nd-db-type-scale|\.page-head\s+(?:h2|p|button)\s*\{/);

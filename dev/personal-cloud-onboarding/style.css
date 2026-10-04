@@ -33,7 +33,10 @@ body[data-screen="storage"] .panel{padding-top:167px}
 .provider[aria-pressed="true"] .radio{border:5px solid #2972ff}
 body[data-screen="connecting"] .panel,body[data-screen="preparing"] .panel{padding-top:236px;text-align:center}
 .connecting-icon{display:grid;place-items:center;margin:0 auto 28px;width:82px;height:82px;border:1px solid #e4eaf4;border-radius:21px;background:#fff}
-.connecting-icon .provider-icon{width:52px;height:52px}.progress{height:4px;width:208px;background:#e6eefb;border-radius:4px;margin:32px auto}.progress:before{content:'';display:block;width:44%;height:4px;background:#2c7aff;border-radius:4px}
+.connecting-icon .provider-icon{width:52px;height:52px}
+/* Loading Dropbox mark only: 52px × 80%; preserve its enclosing box and other providers. */
+.connecting-icon .provider-icon[src$="dropbox-icon.png"]{width:41.6px;height:41.6px}
+.progress{height:4px;width:208px;background:#e6eefb;border-radius:4px;margin:32px auto}.progress:before{content:'';display:block;width:44%;height:4px;background:#2c7aff;border-radius:4px}
 body[data-screen="ready"] .panel{padding-top:203px}.location-caption{font-size:12px;color:#788aa3;margin:0 0 10px}.location{display:flex;align-items:center;gap:18px;padding:22px;border:1px solid #e4eaf4;border-radius:12px;background:#fafcff;margin-bottom:34px}
 body[data-screen="reset"] .panel,body[data-screen="reset-sent"] .panel{padding-top:203px}
 .data-summary{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:26px 0}.data-summary li{display:flex;justify-content:space-between;padding:14px;background:#f5f8fd;border-radius:8px;font-size:13px}

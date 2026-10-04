@@ -111,10 +111,10 @@
  #appView #view-dash.nd-dashboard .nd-db-attention>button+button{position:relative;border-top-color:transparent}
  #appView #view-dash.nd-dashboard .nd-db-attention>button+button:before{content:'';position:absolute;left:var(--nd-db-divider-inset);right:var(--nd-db-divider-inset);top:0;height:1px;background:var(--nd-line);pointer-events:none}
 }
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary{position:relative;display:block;list-style:none;font-size:13px;color:var(--nd-ink-3);padding:10px 24px;border-left:1px solid transparent;cursor:pointer;text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary{position:relative;display:block;list-style:none;font-size:13px;color:var(--nd-ink-3);padding:10px 24px;min-height:44px;box-sizing:border-box;line-height:22px;border-left:1px solid transparent;cursor:pointer;text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-analysis>summary::-webkit-details-marker{display:none}
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{content:'▸';position:absolute;left:10px}
-#appView #view-dash.nd-dashboard .nd-db-analysis[open]>summary:before{transform:rotate(90deg)}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{content:'';position:absolute;left:10px;top:50%;width:8px;height:8px;box-sizing:border-box;border-right:2px solid var(--nd-ink-2);border-bottom:2px solid var(--nd-ink-2);transform:translateY(-50%) rotate(-45deg);pointer-events:none}
+#appView #view-dash.nd-dashboard .nd-db-analysis[open]>summary:before{transform:translateY(-50%) rotate(45deg)}
 /* Remove the legacy nested header inset; align disclosure, title and controls. */
 #appView .shell .main #view-dash.nd-dashboard #salesInsight{padding:2px 24px 24px}
 #appView .shell .main #view-dash.nd-dashboard #salesInsight>.card-head{padding:14px 0;justify-content:flex-start;text-align:left}
