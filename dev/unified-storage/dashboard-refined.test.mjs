@@ -106,6 +106,11 @@ test('default period is pale; preview overrides pinned selection with only one e
  assert.deepEqual(plain(chartEmphasis(rows,'2025-01')),{shown:5,active:-1,pinned:-1});
  for(const mode of ['year','day']){const r=periods(mode,'2026-10-04');assert.equal(chartEmphasis(r,null).active,-1);assert.equal(chartEmphasis(r,r[0].key).active,0);}
 });
+test('chart selection keeps its underline without a vertical guide between bars',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.doesNotMatch(css,/\.nd-db-pair::?before/);
+ assert.match(css,/\.nd-db-bar-group\.is-active \.nd-db-bar-label\{border-bottom-color:var\(--nd-blue\)/);
+});
 test('Dutch Pay number formatting uses ordinary thousands commas; only positive counts warn',()=>{
  assert.equal(money(1087350),'1,087,350원');assert.equal(money(115500),'115,500원');
  assert.equal(money(-1234.5),'-1,234원');assert.equal(money(0),'0원');
@@ -138,5 +143,14 @@ test('dashboard inherits the shared page header, with pale hover and segmented c
  assert.match(css,/font-weight:600;.*|letter-spacing:-\.6px;font-weight:600/);
  assert.match(css,/color-mix\(in srgb,var\(--nd-fill\) 35%,var\(--nd-surface\)\)/);
  assert.match(css,/button\[aria-pressed="true"\]\{background:var\(--nd-surface\);color:var\(--nd-blue\)/);
- assert.match(css,/\.nd-db-tabs\{width:100%;box-sizing:border-box\}/);
+ assert.match(css,/\.nd-db-tabs\{width:100%;height:44px;box-sizing:border-box\}/);
+});
+test('mobile chart legend stays below the period and tabs match the 44px range control',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ const mobile=css.slice(css.indexOf('@media(max-width:780px)'));
+ assert.match(mobile,/\.nd-db-chart-meta\{flex-direction:column;align-items:stretch;/);
+ assert.match(mobile,/\.nd-db-values\{width:100%;gap:6px 10px\}/);
+ assert.match(mobile,/:is\(\.nd-db-range-trigger,\.nd-db-range-filter\)\{min-height:44px\}/);
+ assert.match(mobile,/\.nd-db-tabs\{width:100%;height:44px;box-sizing:border-box\}/);
+ assert.match(mobile,/\.nd-db-tabs button\{flex:1;padding:4px 10px;min-height:36px;box-sizing:border-box\}/);
 });
