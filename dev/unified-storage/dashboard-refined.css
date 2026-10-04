@@ -62,7 +62,6 @@
 #appView #view-dash.nd-dashboard .nd-db-bar{display:block;flex:0 1 16px;max-width:16px;width:16px;border-radius:5px 5px 0 0;background:var(--nd-blue);opacity:.22;z-index:1}
 #appView #view-dash.nd-dashboard .nd-db-bar.receipt{background:var(--nd-green)}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar{opacity:1}
-#appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-pair:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--nd-line)}
 #appView #view-dash.nd-dashboard .nd-db-bar-label{padding:8px 0 10px;border-bottom:2px solid transparent;font-size:12px}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar-label{border-bottom-color:var(--nd-blue);color:var(--nd-ink)}
 #appView #view-dash.nd-dashboard .has-negative .nd-db-pair{margin-bottom:63px;height:63px;border-bottom:1px solid var(--nd-line)}
@@ -137,10 +136,10 @@
  #appView #view-dash.nd-dashboard .nd-db-metric strong{grid-column:2;grid-row:1 / span 2;font-size:var(--nd-db-value-size);text-align:right}
  #appView #view-dash.nd-dashboard .nd-db-metric>small{grid-column:1}
  #appView #view-dash.nd-dashboard .nd-db-chart .nd-db-head{flex-wrap:wrap}
- #appView #view-dash.nd-dashboard .nd-db-tabs{width:100%;box-sizing:border-box}
- #appView #view-dash.nd-dashboard .nd-db-tabs button{flex:1;padding:8px 10px;min-height:44px}
- #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:12px 16px 0;font-size:11px}
- #appView #view-dash.nd-dashboard .nd-db-values{gap:6px 10px}
+ #appView #view-dash.nd-dashboard .nd-db-tabs{width:100%;height:44px;box-sizing:border-box}
+ #appView #view-dash.nd-dashboard .nd-db-tabs button{flex:1;padding:4px 10px;min-height:36px;box-sizing:border-box}
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta{flex-direction:column;align-items:stretch;padding:12px 16px 0;font-size:11px}
+ #appView #view-dash.nd-dashboard .nd-db-values{width:100%;gap:6px 10px}
  #appView #view-dash.nd-dashboard .nd-db-bars{padding:14px 12px 0;gap:3px}
  #appView #view-dash.nd-dashboard .nd-db-pair{height:105px;gap:3px}
  #appView #view-dash.nd-dashboard .nd-db-bar{max-width:12px}
