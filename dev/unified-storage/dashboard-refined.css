@@ -26,17 +26,33 @@
 #appView #view-dash.nd-dashboard .nd-db-receipt{color:var(--nd-green)}
 #appView #view-dash.nd-dashboard .nd-db-bars{display:grid;grid-template-columns:repeat(var(--db-bars),minmax(var(--db-bar-min,0px),1fr));padding:14px 24px 0;gap:12px}
 #appView #view-dash.nd-dashboard .nd-db-chart-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
-#appView #view-dash.nd-dashboard .nd-db-range-trigger{border:1px solid var(--nd-line);border-radius:9px;padding:8px 12px;min-height:36px;background:var(--nd-surface);color:var(--nd-ink-2);font-size:12px;white-space:nowrap}
-#appView #view-dash.nd-dashboard .nd-db-range-form{padding:16px 24px;border-bottom:1px solid var(--nd-line);background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))}
+#appView #view-dash.nd-dashboard .nd-db-chart{overflow:visible;position:relative}
+#appView #view-dash.nd-dashboard .nd-db-chart.range-open{z-index:5}
+#appView #view-dash.nd-dashboard .nd-db-chart>.nd-db-head{flex-wrap:wrap}
+/* One containing block controls both edges: popup = period field + gap + filter. */
+#appView #view-dash.nd-dashboard .nd-db-range-group{position:relative;display:flex;align-items:center;gap:8px;width:320px;max-width:100%;min-width:0}
+#appView #view-dash.nd-dashboard :is(.nd-db-range-trigger,.nd-db-range-filter){display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--nd-line);border-radius:9px;min-height:40px;color:var(--nd-ink-2);font-size:12px}
+#appView #view-dash.nd-dashboard .nd-db-range-trigger{flex:1;min-width:0;padding:8px 10px;background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface));justify-content:flex-start;white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-range-trigger>span{overflow:hidden;text-overflow:ellipsis}
+#appView #view-dash.nd-dashboard .nd-db-range-filter{position:relative;flex:0 0 40px;padding:0;background:var(--nd-surface)}
+#appView #view-dash.nd-dashboard .nd-db-range-filter[aria-expanded="true"]{border-color:var(--nd-blue);color:var(--nd-blue);background:var(--nd-blue-soft)}
+#appView #view-dash.nd-dashboard .nd-db-range-filter.is-filtered:after{content:'';position:absolute;right:5px;top:5px;width:5px;height:5px;background:var(--nd-blue);border-radius:50%}
+#appView #view-dash.nd-dashboard .nd-db-range-form{position:absolute;z-index:10;left:0;top:calc(100% + 10px);width:100%;max-width:none;box-sizing:border-box;margin:0;padding:0;border:1px solid var(--nd-line);border-radius:16px;background:var(--nd-surface);box-shadow:0 14px 36px #20294020,0 3px 8px #2029400a;color:var(--nd-ink)}
 #appView #view-dash.nd-dashboard .nd-db-range-form[hidden]{display:none}
-#appView #view-dash.nd-dashboard :is(.nd-db-range-quick,.nd-db-range-fields){display:flex;gap:8px;align-items:end;flex-wrap:wrap}
-#appView #view-dash.nd-dashboard .nd-db-range-quick{margin-bottom:12px}
+#appView #view-dash.nd-dashboard .nd-db-range-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 18px;border-bottom:1px solid var(--nd-line);font-size:14px}
+#appView #view-dash.nd-dashboard .nd-db-range-body{padding:18px}
+#appView #view-dash.nd-dashboard .nd-db-range-quick{display:flex;gap:8px;margin-bottom:18px}
 #appView #view-dash.nd-dashboard .nd-db-range-form button,#appView #view-dash.nd-dashboard .nd-db-chart-pager button{min-height:36px;padding:8px 12px;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink-2);font-size:12px}
+#appView #view-dash.nd-dashboard .nd-db-range-form [data-range-close]{display:flex;align-items:center;justify-content:center;width:32px;min-height:32px;padding:0;border:0;background:transparent}
+#appView #view-dash.nd-dashboard .nd-db-range-quick button{flex:1;padding:8px 6px;border-radius:20px;white-space:nowrap}
+#appView #view-dash.nd-dashboard .nd-db-range-quick button[aria-pressed="true"]{border-color:var(--nd-blue);color:var(--nd-blue);background:var(--nd-blue-soft)}
+#appView #view-dash.nd-dashboard .nd-db-range-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 #appView #view-dash.nd-dashboard .nd-db-range-fields label{display:grid;gap:6px;color:var(--nd-ink-2);font-size:12px;min-width:0}
-#appView #view-dash.nd-dashboard .nd-db-range-fields input{box-sizing:border-box;width:160px;max-width:100%;min-width:0;min-height:36px;padding:6px 10px;font:13px var(--sans);border:1px solid var(--nd-line);border-radius:8px;color:var(--nd-ink);background:var(--nd-surface)}
-#appView #view-dash.nd-dashboard .nd-db-range-fields>span{padding-bottom:9px;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-range-fields input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:40px;padding:8px 10px;font:13px var(--sans);border:1px solid var(--nd-line);border-radius:9px;color:var(--nd-ink);background:var(--nd-surface)}
+#appView #view-dash.nd-dashboard .nd-db-range-actions{display:flex;gap:10px;margin-top:20px}
+#appView #view-dash.nd-dashboard .nd-db-range-actions button{min-height:40px}
 #appView #view-dash.nd-dashboard .nd-db-range-form .nd-db-range-apply{background:var(--nd-blue);border-color:var(--nd-blue);color:white}
-#appView #view-dash.nd-dashboard .nd-db-range-help{margin:10px 0 0;font-size:11px;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-range-apply{flex:1}
 #appView #view-dash.nd-dashboard .nd-db-range-error{margin:8px 0 0;font-size:12px;color:var(--nd-red,#bd4149)}
 #appView #view-dash.nd-dashboard .nd-db-chart-scroll{overflow-x:auto;overscroll-behavior-x:contain}
 #appView #view-dash.nd-dashboard .nd-db-chart-pager{display:flex;justify-content:center;align-items:center;gap:12px;padding:10px 16px 0;font-size:11px;color:var(--nd-ink-2)}
@@ -99,12 +115,12 @@
 @media(max-width:1200px){#appView #view-dash.nd-dashboard .nd-db-work{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:0;border-top:1px solid var(--nd-line)}}
 @media(max-width:780px){
  #appView #view-dash.nd-dashboard .nd-db-chart-tools{width:100%;justify-content:stretch}
- #appView #view-dash.nd-dashboard .nd-db-range-trigger{width:100%;min-height:44px;text-align:left}
- #appView #view-dash.nd-dashboard .nd-db-range-form{padding:14px 16px}
- #appView #view-dash.nd-dashboard .nd-db-range-fields{display:grid;grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr)}
- #appView #view-dash.nd-dashboard .nd-db-range-fields input{width:100%;min-height:44px}
- #appView #view-dash.nd-dashboard .nd-db-range-fields>button{min-height:44px}
- #appView #view-dash.nd-dashboard .nd-db-range-fields>button:last-child{grid-column:3}
+ #appView #view-dash.nd-dashboard .nd-db-range-group{width:100%}
+ #appView #view-dash.nd-dashboard :is(.nd-db-range-trigger,.nd-db-range-filter){min-height:44px}
+ #appView #view-dash.nd-dashboard .nd-db-range-filter{flex-basis:44px}
+ #appView #view-dash.nd-dashboard .nd-db-range-body{padding:16px}
+ #appView #view-dash.nd-dashboard .nd-db-range-fields input{width:100%;min-height:44px;font-size:16px}
+ #appView #view-dash.nd-dashboard .nd-db-range-actions button{min-height:44px}
  #appView #view-dash.nd-dashboard .nd-db-range-quick button{flex:1;min-height:44px;padding:8px}
  #appView #view-dash.nd-dashboard .nd-db-analysis>summary{padding-left:16px;padding-right:16px}
  #appView #view-dash.nd-dashboard .nd-db-analysis>summary:before{left:2px}
