@@ -57,6 +57,14 @@ test('visible amounts retain ordinary commas and separate the small currency uni
  assert.equal(amountHtml(0),'0<small class="nd-db-currency">원</small>');
  assert.equal(amountHtml(-1234),'-1,234<small class="nd-db-currency">원</small>');
 });
+test('side-by-side work cards stretch equally, with shared headers and flexible rows',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.match(css,/\.nd-db-work\{[^}]*align-items:stretch/);
+ assert.match(css,/@media\(min-width:1201px\)\{[\s\S]*?\.nd-db-work>\.nd-db-card\{display:flex;flex-direction:column\}/);
+ assert.match(css,/\.nd-db-work \.nd-db-head\{flex:0 0 64px\}/);
+ assert.match(css,/\.nd-db-work :is\(\.nd-db-quote,\.nd-db-stage\)\{flex:1\}/);
+ assert.match(css,/@media\(max-width:1200px\)\{[^}]*\.nd-db-work\{grid-template-columns:1fr\}/);
+});
 test('dashboard inherits the shared page header, with pale hover and segmented controls',async()=>{
  const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
  assert.doesNotMatch(css,/--nd-db-type-scale|\.page-head\s+(?:h2|p|button)\s*\{/);
