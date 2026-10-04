@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await readFile(new URL('./dashboard-refined.js',import.meta.url),'utf8');
 const context=vm.createContext({});vm.runInContext(source,context);
-const {periods,aggregate,progress,recent,chartEmphasis,money,needsAttention}=context.NaroDashboardModel;
+const {periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention}=context.NaroDashboardModel;
 const plain=v=>JSON.parse(JSON.stringify(v));
 test('month/day/year boundaries are calendar-based, including leap day',()=>{
  assert.deepEqual(plain(periods('month','2026-01-04').map(x=>x.key)),['2025-08','2025-09','2025-10','2025-11','2025-12','2026-01']);
@@ -51,4 +51,18 @@ test('Dutch Pay number formatting uses ordinary thousands commas; only positive 
  assert.equal(money(1087350),'1,087,350원');assert.equal(money(115500),'115,500원');
  assert.equal(money(-1234.5),'-1,234원');assert.equal(money(0),'0원');
  assert.equal(needsAttention(0),false);assert.equal(needsAttention(1),true);assert.equal(needsAttention(30),true);
+});
+test('visible amounts retain ordinary commas and separate the small currency unit',()=>{
+ assert.equal(amountHtml(1087350),'1,087,350<small class="nd-db-currency">원</small>');
+ assert.equal(amountHtml(0),'0<small class="nd-db-currency">원</small>');
+ assert.equal(amountHtml(-1234),'-1,234<small class="nd-db-currency">원</small>');
+});
+test('dashboard inherits the shared page header, with pale hover and segmented controls',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.doesNotMatch(css,/--nd-db-type-scale|\.page-head\s+(?:h2|p|button)\s*\{/);
+ assert.match(css,/--nd-db-section-size:14px;--nd-db-value-size:20px/);
+ assert.match(css,/font-weight:600;.*|letter-spacing:-\.6px;font-weight:600/);
+ assert.match(css,/color-mix\(in srgb,var\(--nd-fill\) 35%,var\(--nd-surface\)\)/);
+ assert.match(css,/button\[aria-pressed="true"\]\{background:var\(--nd-surface\);color:var\(--nd-blue\)/);
+ assert.match(css,/\.nd-db-tabs\{width:100%;box-sizing:border-box\}/);
 });

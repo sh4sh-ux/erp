@@ -1,5 +1,7 @@
 # NARO Personal Cloud handoff
 
+2026-10-04 대시보드 글자 규칙 재조정: 전용 0.7 배율·헤더 크기 덮어쓰기 제거(공통 24/30px 헤더 상속), 섹션/본문 14px·보조 12px·통계 숫자 20px로 업무 탭 규칙에 맞춤. 금액은 시안의 숫자 서체 스택·600 굵기·좁은 자간과 별도 작은 원 단위로 표시(금액 계산/천 단위 쉼표 유지). hover 회색은 fill 35%+surface 65%, 기간 선택은 회색 묶음/흰 선택면/파란 글자로 변경하고 폰에서는 제목 아래 너비 전체 사용. 기존 기본 기간 옅은 강조·선택 단일 강조·양수 주황 경고 유지. 인증/저장/집계 변경 없음.
+
 2026-10-04 대시보드 후속 조정: dashboard-refined.css의 공통 글자 배율 0.7, 카드 헤더/본문/차트 높이와 여백 축소(모바일 터치 영역 유지). 숫자·쉼표는 dutch-pay index.html의 시스템 서체(-apple-system/SF Pro Text/Helvetica Neue/Arial), tabular-nums, Math.round→ko-KR 형식과 통일. 차트 기본 최신 기간은 옅게, 클릭/키보드/hover 중 한 구간만 진하게(고정 선택과 미리보기 이중 강조 해소). '확인해야 할 일' 제목, 양수 건수만 --nd-amber. 데이터/집계/저장 로직 변경 없음. 210개 테스트 및 390px/PC 실화면 확인.
 
 Base: b8efd90 (v1.186, = main). This branch adds the uncommitted local source used for the public naro-biz.web.app release (2026-09-29 13:17 KST). No code changes.

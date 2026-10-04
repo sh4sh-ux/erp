@@ -41,8 +41,10 @@
   return {shown:preview>=0?preview:pinned>=0?pinned:rows.length-1,active:preview>=0?preview:pinned,pinned};
  }
  const money=v=>Math.round(v).toLocaleString('ko-KR')+'원';
+ // Keep plain text for accessible labels; only the visible currency unit is smaller.
+ const amountHtml=v=>money(v).slice(0,-1)+'<small class="nd-db-currency">원</small>';
  const needsAttention=count=>Number(count)>0;
- const model={periods,aggregate,progress,recent,chartEmphasis,money,needsAttention};
+ const model={periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention};
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
@@ -98,8 +100,8 @@
   const aged=ar.filter(r=>r.open>0&&(daysSince(r.lastDeliver)||0)>=30),tax=db.quotes.filter(needsTax);
   const short=Object.values(currentStocks()).filter(n=>n<=0).length;
   const qs=recent(db.quotes),stagesNow=progress(db.quotes);
-  const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${money(value)}</strong><small>${hint}</small></button>`;
-  const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${money(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span>${icon('chevron')}</button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
+  const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
+  const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span>${icon('chevron')}</button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
   root.innerHTML=panel('핵심 현황',`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,'전체 납품 − 입금 · 선입금 포함','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
