@@ -129,6 +129,14 @@ test('side-by-side work cards stretch equally, with shared headers and flexible 
  assert.match(css,/\.nd-db-work :is\(\.nd-db-quote,\.nd-db-stage\)\{flex:1\}/);
  assert.match(css,/@media\(max-width:1200px\)\{[^}]*\.nd-db-work\{grid-template-columns:1fr\}/);
 });
+test('task, recent and progress horizontal rules share desktop/mobile insets without shrinking hit areas',async()=>{
+ const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
+ assert.match(css,/--nd-db-divider-inset:24px/);
+ assert.match(css,/@media\(max-width:780px\)\{[^}]*--nd-db-divider-inset:16px/);
+ assert.match(css,/\.nd-db-quote:not\(:last-child\),\.nd-db-stage:not\(:last-child\)\):after\{[^}]*left:var\(--nd-db-divider-inset\);right:var\(--nd-db-divider-inset\)/);
+ assert.match(css,/\.nd-db-attention>button\+button:before\{[^}]*pointer-events:none/);
+ assert.match(css,/\.nd-db-attention>button\+button\{border-left:0;border-top:1px solid transparent\}/);
+});
 test('analysis disclosure and title use the card content left inset, without nested header padding',async()=>{
  const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
  assert.match(css,/\.nd-db-analysis>summary\{[^}]*padding:10px 24px[^}]*text-align:left/);
