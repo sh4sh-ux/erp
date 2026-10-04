@@ -1,5 +1,9 @@
 # NARO Personal Cloud handoff
 
+2026-10-04 파란 초점 테두리 수정 배포 승인: 사용자 요청으로 PR·머지·NARO Biz Hosting 배포 진행. 관련 232 테스트 재통과, 배포 후보 67개 중 erp/index.html만 변경. 인증·저장·데이터·보안 규칙 유지. 배포 결과 및 공개 파일 67개 검증 기록은 PR 댓글에 남김.
+
+2026-10-04 입금·출금 기록 파란 초점 테두리: #payTbl 기록 행의 :focus-visible 2px 파랑 규칙이 상세 dialog 초점 복귀 시 터치 환경에서도 남는 경우를 방지. pointerdown 시 메모리상 data-nd-pay-input=pointer 표시, 실제 키보드 입력 시 제거하여 해당 행의 pointer 초점만 outline:none. blur/초점 이동/저장/데이터 코드 변경 없이 키보드 Tab·Enter·Esc 초점 표시 유지(휴대전화 외장 키보드도 동일). 390px 합성 브라우저에서 클릭→닫기 테두리 없음, Tab 역이동 및 Enter→Esc 복귀 시 파란 키보드 초점 유지·합성 저장 0 확인. 관련 232 테스트 PASS. 후보 erp/index.html만 재동기화, 실제 iPhone 확인 및 PR·배포는 아직 전.
+
 2026-10-04 사용자 배포 승인: 앞선 미배포 견적 버튼 정리·대시보드 펼침 화살표·Dropbox/설치 아이콘 크기 조정을 함께 PR·머지·NARO Biz Hosting 배포 대상으로 확정. 관련 229개 테스트 재통과. 실제 배포 변경은 67개 중 erp/index.html, style.css, erp/icons 3개뿐이며 인증·저장·보안 규칙 불변. 배포 성공 여부는 배포 도구의 공개 67개 파일 해시 검증 결과 및 PR 댓글로 기록.
 
 2026-10-04 아이콘 크기 조정: 연결/불러오기 화면의 Dropbox 내부 이미지만 52→41.6px(−20%), 외곽 박스·Drive·다른 위치 아이콘 유지. 설치용 NARO 심볼은 원본 PNG를 보존(naro-icon-source.png)하고 중심 기준 1.2배로 180/192/512px 재출력(render-app-icons.swift, 재실행해도 누적 확대 없음). imagegen 초안은 미세한 형태/비율 차이 때문에 채택하지 않고 원본 비례 출력 사용. sync-dashboard-candidate.mjs --icons는 기존 67개 해시 검증 후 style.css·erp/icons 3개만 추가 동기화(이전 미배포 ERP 표시 변경 보존). 관련 테스트 229 PASS, 인증/저장/데이터 변경 없음. 브라우저 file URL 접근 제한으로 비교 HTML의 브라우저 검증은 미완료; PNG 시각 확인 완료. 아직 PR·배포 전.

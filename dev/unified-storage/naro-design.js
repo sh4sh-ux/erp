@@ -1049,6 +1049,20 @@
   const form=e.target.closest?.('#view-materials .material-detail-form');if(!form||card.contains(e.target))return;
   e.preventDefault();e.stopPropagation();document.getElementById('mm_edit_cancel')?.click();
  },true);
+ // Safari can retain :focus-visible when a dialog returns focus to a tapped row.
+ // Track input modality, not viewport/hover capability: touch devices can use keyboards too.
+ function paymentFocusMode(doc=document){
+  doc.addEventListener('pointerdown',()=>{
+   const view=doc.getElementById('view-payments');
+   if(view&&view.dataset.ndPayInput!=='pointer')view.dataset.ndPayInput='pointer';
+  },true);
+  doc.addEventListener('keydown',ev=>{
+   if(ev.isComposing||['Shift','Control','Alt','Meta'].includes(ev.key))return;
+   const view=doc.getElementById('view-payments');
+   if(view)delete view.dataset.ndPayInput;
+  },true);
+ }
+ paymentFocusMode();
  let paySheetEl=null;
  function openPaySheet(id){
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
