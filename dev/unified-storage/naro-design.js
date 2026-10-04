@@ -1,6 +1,77 @@
+/* NARO company ledger groups — display only; never persist or infer quote links. */
+const NaroCompanyLedger=(()=>{
+ const text=v=>String(v??'');
+ const escape=v=>text(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const amount=v=>Number.isFinite(Number(v))?Number(v):0;
+ const money=v=>amount(v).toLocaleString('ko-KR');
+ const latest=events=>events.map(e=>e.date).filter(Boolean).sort().at(-1)||'';
+ function rows(data,cid,helpers){
+  const quotes=data.quotes||[],payments=data.payments||[],counts=new Map(),groups=[],byId=new Map(),separate=[];
+  for(const q of quotes)if(q.id)counts.set(q.id,(counts.get(q.id)||0)+1);
+  quotes.forEach((q,index)=>{
+   if(q.company_id!==cid)return;
+   const deliveries=(q.deliveries||[]).map(d=>{
+    const lines=helpers.deliveredLines(q,d),names=lines.map(l=>l.name).filter(Boolean);
+    return {date:d.date||q.delivered_at||'',ts:d.created_at||'',kind:'납품',amount:helpers.total(lines),description:names.length?names[0]+(names.length>1?` 외 ${names.length-1}건`:''):'납품',memo:d.memo||''};
+   });
+   const group={type:'quote',key:'q:'+index,no:q.no||'견적번호 없음',deliveries,payments:[],quoteTotal:helpers.quoteAmount(q),full:helpers.fullyDelivered(q)};
+   groups.push(group);
+   // Duplicate/missing IDs are never used to associate a payment, even if numbers/amounts match.
+   if(q.id&&counts.get(q.id)===1)byId.set(q.id,group);
+  });
+  payments.forEach((p,index)=>{
+   if(p.company_id!==cid||p.void_at)return;
+   const event={date:p.date||'',ts:p.created_at||'',kind:p.kind==='수금'?'입금':p.kind==='지급'?'출금':p.kind||'입출금',amount:amount(p.amount),description:p.method||'',memo:p.memo||''};
+   const group=p.quote_id&&byId.get(p.quote_id);
+   if(group&&p.kind==='수금'&&Number.isFinite(Number(p.amount))&&Number(p.amount)>0){group.payments.push(event);return;}
+   if(group&&p.kind==='수금')group.review=true;
+   separate.push({type:'payment',key:'p:'+index,event,no:group?.no||'',linked:!!group,hasReference:!!p.quote_id,date:event.date});
+  });
+  return [...groups.filter(g=>g.deliveries.length||g.payments.length).map(g=>{
+   const delivered=g.deliveries.reduce((s,e)=>s+e.amount,0),paid=g.payments.reduce((s,e)=>s+e.amount,0),balance=delivered-paid;
+   const hasDelivery=g.deliveries.length>0,hasPayment=g.payments.length>0;
+   let status,tone='neutral';
+   if(!hasDelivery){status=paid>g.quoteTotal?'초과 입금 · 납품 전':'선입금 · 납품 전';tone='warning';}
+   else if(g.full&&hasPayment&&balance===0){status='납품·입금 완료';tone='complete';}
+   else {
+    const delivery=g.full?'납품 완료':'부분 납품';
+    const payment=!hasPayment?'입금 없음':paid>g.quoteTotal?'초과 입금':balance<0?(g.full?'초과 입금':'선입금 포함'):balance===0?'납품분 입금 완료':'부분 입금';
+    status=delivery+' · '+payment;tone=hasPayment?'warning':'neutral';
+   }
+   if(g.review){status='별도 입금 내역 확인 필요';tone='warning';}
+   return {...g,delivered,paid,balance,status,tone,amount:hasDelivery?delivered:paid,date:latest(g.deliveries)||latest(g.payments),events:[...g.deliveries,...g.payments].sort((a,b)=>text(a.date).localeCompare(text(b.date))||text(a.ts).localeCompare(text(b.ts)))};
+  }),...separate].sort((a,b)=>text(b.date).localeCompare(text(a.date))||a.key.localeCompare(b.key));
+ }
+ const value=n=>`<span class="nd-cl-number">${escape(money(n))}<small>원</small></span>`;
+ function html(entries){
+  const quotes=entries.filter(e=>e.type==='quote').length,other=entries.length-quotes;
+  const count=[quotes?`견적 ${quotes}건`:'',other?`별도 입출금 ${other}건`:''].filter(Boolean).join(' · ')||'0건';
+  const eventHtml=e=>`<div class="nd-cl-event"><div><span>${escape(e.date||'날짜 없음')} · ${escape(e.kind)}</span>${e.description?`<small>${escape(e.description)}</small>`:''}${e.memo?`<small>${escape(e.memo)}</small>`:''}</div>${value(e.amount)}</div>`;
+  return `<h3 class="co-ledger-h nd-cl-heading">거래 내역 <span>${count}</span></h3><div class="nd-cl-list">${entries.length?entries.map(g=>{
+   if(g.type==='payment')return `<details class="nd-cl-row"><summary><div class="nd-cl-main"><b>${escape(g.no||g.event.kind)}</b><strong>${g.event.kind==='출금'?'−':''}${value(g.event.amount)}</strong></div><div class="nd-cl-description">${escape(g.event.description||'입출금 기록')}${g.hasReference&&!g.linked?' · 견적 연결 확인 필요':!g.hasReference?' · 연결 견적 없음':''}</div><div class="nd-cl-meta"><span class="nd-cl-status">${escape(g.event.kind)} · 별도 기록</span><span>${escape(g.date||'날짜 없음')}<i class="nd-cl-chevron" aria-hidden="true"></i></span></div></summary><div class="nd-cl-detail">${eventHtml(g.event)}</div></details>`;
+   const desc=g.deliveries.at(-1)?.description||'납품 전 입금 내역';
+   const hint=g.review?'별도 기록의 입금 금액을 확인해 주세요':g.payments.length&&g.deliveries.length&&g.tone!=='complete'?`입금 ${money(g.paid)}원 · ${g.balance<0?'납품액 초과':'납품 잔액'} ${money(Math.abs(g.balance))}원`:'';
+   return `<details class="nd-cl-row"><summary><div class="nd-cl-main"><b>${escape(g.no)}</b><strong>${!g.deliveries.length?'<em>입금</em>':!g.full?'<em>납품액</em>':''}${value(g.amount)}</strong></div><div class="nd-cl-description">${escape(desc)}</div><div class="nd-cl-meta"><span class="nd-cl-status ${g.tone}">${escape(g.status)}</span><span>${escape(g.date||'날짜 없음')}${g.deliveries.length?' 납품':''}<i class="nd-cl-chevron" aria-hidden="true"></i></span></div>${hint?`<div class="nd-cl-hint">${escape(hint)}</div>`:''}</summary><div class="nd-cl-detail"><div class="nd-cl-detail-heading">원본 내역 · ${g.events.length}건</div>${g.events.map(eventHtml).join('')}<div class="nd-cl-event nd-cl-balance"><span>${!g.deliveries.length?'납품 전 입금':g.balance<0?'납품액 초과 입금':'납품 기준 잔액'}</span>${g.review?'별도 입금 확인 필요':value(!g.deliveries.length?g.paid:Math.abs(g.balance))}</div></div></details>`;
+  }).join(''):'<div class="empty">아직 거래 내역이 없습니다.</div>'}</div>`;
+ }
+ function replaceLedger(original,entries){
+  const begin=original.indexOf('<h3 class="co-ledger-h">거래 내역 '),end=original.indexOf('<h3 class="co-ledger-h" style="margin-top:28px">거래처 정보',begin);
+  // Preserve the original markup if a future base version changes its ledger boundary.
+  return begin>=0&&end>begin?original.slice(0,begin)+html(entries)+original.slice(end):original;
+ }
+ return {rows,html,replaceLedger};
+})();
 /* NARO theme: system | light | dark. One preference shared by the onboarding shell
    and the /erp/ frame (same origin → same localStorage, kept in sync via 'storage'). */
 (() => {
+ if(typeof coLedgerHtml==='function'){
+  const originalLedger=coLedgerHtml;
+  coLedgerHtml=function(c){
+   return NaroCompanyLedger.replaceLedger(originalLedger(c),NaroCompanyLedger.rows(db,c.id,{
+    deliveredLines,total:lines=>quoteTotals({lines}).total,quoteAmount,fullyDelivered:quoteIsFullyDelivered
+   }));
+  };
+ }
  const KEY='naroTheme',root=document.documentElement,media=matchMedia('(prefers-color-scheme: dark)');
  const read=()=>{try{const v=localStorage.getItem(KEY);return v==='light'||v==='dark'?v:'system';}catch{return 'system';}};
  const apply=()=>{const pref=read();root.dataset.themePreference=pref;root.dataset.theme=pref==='system'?(media.matches?'dark':'light'):pref;
@@ -297,7 +368,7 @@
   stock:{search:'#stockSearch',ph:'품목명·코드·색상·규격',add:[['입고 추가','#stockRegister'],['출고 추가','#stockOutbound'],['재고 조정','#stockAdjust']],filter:'#view-stock .stock-tools>details.panel-b-more',
    chips:{select:'stockFilter',host:'#view-stock .workspace-left',before:'#stockItems',items:[['all','전체'],['short','주문 부족'],['low','최소 미달'],['zero','품절']],mafter:'#view-stock>.page-head'},hide:['#view-stock .stock-tools']},
   items:{filter:'#view-items label.ops-category',hide:['#view-items .cols>.card>label.ops-category']},
-  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar,#view-sales>.filter-bar',period:['slFrom','slTo'],
+  sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar,#view-sales>.filter-bar',
    chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']],mafter:'#view-sales>.page-head'},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar','#view-sales>.filter-bar']},
   ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
    chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
@@ -306,7 +377,7 @@
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
  function openPop(btn,build,restore,title){if(pop&&pop.btn===btn){closePop();return;}closePop();
   // Same width as the tool row it opens from, right under it (like the receipt app's pickers).
-  const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');
+  const el=document.createElement('div');el.className='nd-pop-panel';if(btn.closest('#view-payments'))el.classList.add('nd-pay-filter');el.setAttribute('role','dialog');
   if(title){const h=document.createElement('div');h.className='nd-pop-hd';h.textContent=title;el.append(h);el.setAttribute('aria-label',title);}
   const body=document.createElement('div');body.className='nd-pop-body';el.append(body);build(body);(document.getElementById('appView')||document.body).append(el);
   const row=btn.parentElement.getBoundingClientRect(),w=Math.min(row.width,innerWidth-32);el.style.width=w+'px';
@@ -326,14 +397,14 @@
     const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
     const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
     input.addEventListener('input',push);
-    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
     const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
-    b.onclick=()=>{const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
+    b.onclick=()=>{if(pop?.btn===b){closePop();return;}const block=document.querySelector(c.filter);if(!block)return;const mark=document.createComment('nd-filter');block.before(mark);
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>{mark.replaceWith(block);label();},'기간 · 필터');};}
    if(c.filter&&!c.period){const b=toolBtn(ICON_FILTER,'필터');row.insertBefore(b,row.querySelector('.btn-add'));
-    b.onclick=()=>{const block=document.querySelector(c.filter);
+    b.onclick=()=>{if(pop?.btn===b){closePop();return;}const block=document.querySelector(c.filter);
      if(!block){ // 폰처럼 PC용 필터 묶음이 없는 화면: 원래 고르기 칸(select)을 그대로 꺼내 보여주고 닫으면 제자리로
       const view=document.getElementById('view-'+b.closest('.view')?.id.replace('view-',''))||b.closest('.view');
       const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'));if(!fields.length)return;
@@ -342,7 +413,7 @@
      const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
      openPop(b,el=>{el.classList.add('nd-pop-filter');el.append(block);},()=>mark.replaceWith(block),'필터');};}
    if(c.filterSelect){const b=toolBtn(ICON_FILTER,'필터');row.append(b);
-    b.onclick=()=>{const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
+    b.onclick=()=>{if(pop?.btn===b){closePop();return;}const sel=document.querySelector(c.filterSelect);if(!sel)return;const mark=document.createComment('nd-filter');sel.before(mark);
      openPop(b,el=>{el.classList.add('nd-pop-filter');const l=document.createElement('label');l.className='nd-pop-field';l.textContent='표시';l.append(sel);el.append(l);},()=>mark.replaceWith(sel),'필터');};}
    if(c.add){const b=toolBtn(ICON_PLUS,c.add.length>1?'새 기록':c.add[0][0],'nd-tadd');row.append(b);
     b.onclick=()=>{if(c.add.length===1){document.querySelector(c.add[0][1])?.click();return;}
@@ -449,6 +520,26 @@
  /* 기간 칩 — one period control for every filter (견적서 · 입금출금 · 매출): [전체][이번 달][지난 달][올해].
     Each chip sets the screen's own date inputs and fires their change event, so each screen filters as before;
     the date inputs stay below for a custom range. The chip matching the current range is highlighted. */
+ // Keep the original date inputs/listeners; only normalize their filter presentation.
+ function filterDates(){
+  for(const [id,title] of [['slFrom','시작일'],['slTo','종료일'],['qtFrom','시작일'],['qtTo','종료일']]){
+   const input=document.getElementById(id);if(!input)continue;
+   let wrap=input.closest('.date-control');if(!wrap)continue; // core date enhancement owns the native input
+   wrap.classList.add('nd-filter-date');
+   let field=wrap.closest('label');
+   if(!field){field=document.createElement('label');wrap.before(field);field.append(wrap);}
+   field.classList.add('nd-filter-date-field');field.htmlFor=id;
+   if(!field.querySelector('.filter-label')){const label=document.createElement('span');label.className='filter-label';label.textContent=title;field.prepend(label);}
+   if(input.getAttribute('aria-label')!==title)input.setAttribute('aria-label',title);
+   let value=wrap.querySelector('.nd-filter-date-value');
+   if(!value){value=document.createElement('span');value.className='nd-filter-date-value';value.setAttribute('aria-hidden','true');wrap.append(value);}
+   const text=input.value?input.value.replaceAll('-','.'): '날짜 선택';
+   if(value.textContent!==text)value.textContent=text;
+   value.classList.toggle('empty',!input.value);
+  }
+ }
+ document.addEventListener('input',e=>{if(['slFrom','slTo','qtFrom','qtTo'].includes(e.target.id))filterDates();});
+ document.addEventListener('change',e=>{if(['slFrom','slTo','qtFrom','qtTo'].includes(e.target.id))filterDates();});
  function periodPresets(){
   const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const today=new Date(),y=today.getFullYear(),m=today.getMonth();
@@ -458,7 +549,7 @@
   const fire=id=>{const el=document.getElementById(id);el&&el.dispatchEvent(new Event('change',{bubbles:true}));};
   const setv=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
   const screens=[
-   {host:'#view-sales .filter-bar',before:'#slFrom',
+   {host:'#view-sales .filter-bar',anchor:'slFrom',before:'#slFrom',
     now(){const f=document.getElementById('slFrom')?.value,t=document.getElementById('slTo')?.value;return {f,t,all:f===earliest()&&t===ranges.month[1]};},
     apply(k){const [f,t]=k==='all'?[earliest(),ymd(today)]:ranges[k];setv('slFrom',f);setv('slTo',t);fire('slFrom');}},
    {host:'#view-quotes .quote-filters',before:'.quote-period-row',
@@ -472,7 +563,8 @@
      setv('payPeriod','month');setv('payMonth',ym(ranges[k][0]));fire('payPeriod');}}
   ];
   for(const sc of screens){
-   let host=document.querySelector(sc.host);if(!host)continue;
+   // Sales fields move into a popup outside #view-sales. Keep the same source controls live there.
+   let host=sc.anchor?document.getElementById(sc.anchor)?.closest('.filter-bar'):document.querySelector(sc.host);if(!host)continue;
    if(sc.hostUp)host=host.closest('label')?.parentElement;if(!host)continue;
    let row=host.querySelector(':scope>.nd-period');
    if(!row){row=document.createElement('div');row.className='nd-period';row.setAttribute('role','group');row.setAttribute('aria-label','기간');
@@ -486,7 +578,13 @@
    const c=sc.now();let on='';
    if(c.all)on='all';else for(const k of ['month','prev','year'])if(c.f===ranges[k][0]&&(c.t===ranges[k][1]||(k==='month'&&c.month===ym(ranges.month[0]))))on=k;
    row.querySelectorAll('button').forEach(b=>{const v=b.dataset.p===on;if(b.classList.contains('on')!==v)b.classList.toggle('on',v);if(b.getAttribute('aria-pressed')!==String(v))b.setAttribute('aria-pressed',String(v));});
+   if(sc.anchor==='slFrom'&&!host.querySelector('.nd-sales-reset')){
+    const reset=document.createElement('button');reset.type='button';reset.className='btn nd-sales-reset';reset.textContent='필터 초기화';
+    reset.onclick=()=>{setv('slCo','');setv('slStatus','all');sc.apply('all');fire('slStatus');periodPresets();};
+    host.append(reset);
+   }
   }
+  filterDates();
  }
  /* 월별 매출·입금 짚어 보기 (영수증 앱 지출 추이와 같은 방식): 차트 위에 마우스를 대거나 손가락으로 밀면
     그 달에 얇은 세로선이 생기고, 범례 자리에 '9월 · 매출 N원 · 입금 N원'이 나온다. 떼면 범례로 돌아간다. */
@@ -511,12 +609,76 @@
   chart.addEventListener('pointerleave',hide);chart.addEventListener('pointercancel',hide);chart.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')hide();});
  }
  /* 레일 아이콘: 매출 집계 = 막대 그래프, 받을 금액 = 지갑 (달력·시계는 뜻과 안 맞아서). 레일·모바일 더보기 공통. */
+ const COMPANY_ICON='<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 8h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2M10 6h4M10 10h4M10 14h4M10 18h4"/>';
  function navIcons(){
   const icons={dash:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+   companies:COMPANY_ICON,
    materials:'<path d="m16 16 2 2 4-4M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14M3.3 7 12 12l8.7-5M12 22V12M7.5 4.3l9 5.2"/>',
    sales:'<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M8 17v-4"/><path d="M13 17V9"/><path d="M18 17V5"/>',
    ar:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'};
   for(const [v,d] of Object.entries(icons))document.querySelectorAll(`#appView [data-view="${v}"] svg:not([data-nd-icon])`).forEach(svg=>{svg.innerHTML=d;svg.setAttribute('data-nd-icon',v);});
+ }
+ // Local navigation preference only. No account tokens, business data or cloud writes.
+ function mobileNavModel(){
+  const key='naro.mobileNav.v1',defaults=['quotes','payments','materials'];
+  const labels={quotes:'견적서',payments:'입금·출금',materials:'자재',companies:'거래처',items:'품목',stock:'재고',sales:'매출 집계',ar:'받을 금액',settings:'공급자 정보'};
+  const normalize=value=>{
+   const slots=Array.isArray(value)?value.filter(v=>typeof v==='string'&&Object.hasOwn(labels,v)):[];
+   return [...new Set([...slots,...defaults])].slice(0,3);
+  };
+  const move=(slots,from,to)=>{const next=normalize(slots);if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>2||to>2)return next;next.splice(to,0,next.splice(from,1)[0]);return next;};
+  const assign=(slots,index,value)=>{const next=normalize(slots);if(!Number.isInteger(index)||index<0||index>2||!Object.hasOwn(labels,value))return next;const old=next.indexOf(value);if(old>=0&&old!==index)return next;next[index]=value;return next;};
+  const read=storage=>{try{const saved=JSON.parse(storage.getItem(key));return saved?.version===1?normalize(saved.slots):[...defaults];}catch{return [...defaults];}};
+  const write=(storage,slots)=>{try{storage.setItem(key,JSON.stringify({version:1,slots:normalize(slots)}));return true;}catch{return false;}};
+  return {key,defaults,labels,normalize,move,assign,read,write};
+ }
+ let mobileNavController=null;
+ function mobileNavPreferences(){
+  if(mobileNavController){mobileNavController.sync();return;}
+  const bar=document.getElementById('bottomNav'),rail=document.querySelector('#appView .rail-nav'),more=document.getElementById('moreNavBtn');
+  if(!bar||!rail||!more)return;
+  const buttons=[...bar.querySelectorAll('.mobile-nav-item')].filter(b=>b.dataset.view!=='dash');if(buttons.length!==3)return;
+  const model=mobileNavModel();let storage;try{storage=window.localStorage;}catch{}
+  let slots=model.read(storage),draft=[...slots],dialog=null;
+  const source=v=>rail.querySelector(`.nav-item[data-view="${v}"]`);
+  const icon=v=>source(v)?.querySelector('svg')?.outerHTML||'';
+  const active=()=>typeof currentView==='string'?currentView:document.querySelector('#appView .view:not(.hidden)')?.id.replace('view-','');
+  const sync=()=>{
+   const view=active();buttons.forEach((b,i)=>{
+    const v=slots[i];if(b.dataset.view!==v||b.querySelector('span')?.textContent!==model.labels[v]){b.dataset.view=v;b.innerHTML=icon(v);const label=document.createElement('span');label.textContent=model.labels[v];b.append(label);}
+    b.classList.toggle('on',v===view);if(v===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
+   });
+   more.classList.toggle('on',!!view&&view!=='dash'&&!slots.includes(view));
+  };
+  const edit=document.createElement('button');edit.type='button';edit.className='nd-nav-act nd-mobile-nav-edit';edit.innerHTML=svgI('<path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="currentColor"/><circle cx="15" cy="17" r="2" fill="currentColor"/>')+'<span>하단 메뉴 편집</span>';rail.append(edit);
+  const renderDraft=()=>{
+   const preview=dialog.querySelector('.nd-mn-preview');preview.replaceChildren();
+   for(const v of ['dash',...draft,'more']){const cell=document.createElement('span');cell.innerHTML=v==='more'?svgI('<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'):icon(v);const text=document.createElement('small');text.textContent=v==='dash'?'홈':v==='more'?'더보기':model.labels[v];cell.append(text);preview.append(cell);}
+   // Native mobile pickers must keep the same select and option nodes while open.
+   const list=dialog.querySelector('.nd-mn-slots');
+   if(!list.children.length)list.innerHTML=draft.map((v,i)=>`<div class="nd-mn-row" data-slot="${i}"><label><span>${i+1}번 메뉴</span><select data-slot-select="${i}">${Object.entries(model.labels).filter(([v])=>source(v)).map(([k,t])=>`<option value="${k}">${t}</option>`).join('')}</select></label><button type="button" data-move="-1" aria-label="${i+1}번 메뉴 위로"${i===0?' disabled':''}>${svgI('<path d="m6 14 6-6 6 6"/>')}</button><button type="button" data-move="1" aria-label="${i+1}번 메뉴 아래로"${i===2?' disabled':''}>${svgI('<path d="m6 10 6 6 6-6"/>')}</button></div>`).join('');
+   list.querySelectorAll('select').forEach((select,i)=>{select.value=draft[i];for(const option of select.options)option.disabled=option.value!==draft[i]&&draft.includes(option.value);});
+  };
+  edit.onclick=()=>{
+   if(!dialog){dialog=document.createElement('dialog');dialog.className='nd-mobile-nav-dialog';dialog.setAttribute('aria-labelledby','ndMobileNavTitle');
+    dialog.innerHTML='<header><h2 id="ndMobileNavTitle">하단 메뉴 편집</h2><button type="button" data-mn-close aria-label="닫기">×</button></header><p class="nd-mn-help">홈과 더보기는 고정입니다. 서로 다른 메뉴 3개를 골라 주세요.<br>오른쪽 위·아래 화살표로 순서를 바꿀 수 있어요.</p><div class="nd-mn-preview" aria-label="하단 메뉴 미리보기"></div><div class="nd-mn-slots"></div><p class="nd-mn-note">이 기기·브라우저에만 저장됩니다. 같은 브라우저를 함께 사용하면 메뉴 설정도 공유됩니다. 업무 데이터는 변경되지 않습니다.</p><p class="nd-mn-status" role="status" aria-live="polite"></p><footer><button type="button" data-mn-reset>기본값</button><button type="button" data-mn-close>취소</button><button type="button" data-mn-save>저장</button></footer>';
+    document.body.append(dialog);
+    dialog.addEventListener('close',()=>{edit.focus();});
+    // Keep Esc/Tab inside the top-layer dialog, not the drawer's keyboard handler.
+    dialog.addEventListener('keydown',e=>{if(!['Shift','Control','Alt','Meta'].includes(e.key))delete dialog.dataset.mnPointer;e.stopPropagation();});
+    dialog.addEventListener('pointerdown',()=>{dialog.dataset.mnPointer='true';},true);
+    dialog.addEventListener('click',e=>{const b=e.target.closest('button');if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();return;}if(!b)return;
+     if(b.hasAttribute('data-mn-close'))dialog.close();
+     else if(b.hasAttribute('data-mn-reset')){draft=[...model.defaults];renderDraft();dialog.querySelector('.nd-mn-status').textContent='기본 메뉴를 선택했습니다. 저장하면 적용됩니다.';}
+     else if(b.hasAttribute('data-mn-save')){draft=model.normalize(draft);if(!model.write(storage,draft)){dialog.querySelector('.nd-mn-status').textContent='이 브라우저에 설정을 저장하지 못했습니다. 기존 메뉴는 유지됩니다.';return;}slots=[...draft];sync();dialog.close();typeof toast==='function'&&toast('하단 메뉴를 저장했습니다.');}
+     else if(b.hasAttribute('data-move')){const from=Number(b.closest('[data-slot]').dataset.slot),to=from+Number(b.dataset.move);draft=model.move(draft,from,to);renderDraft();dialog.querySelector('.nd-mn-status').textContent='메뉴 순서를 변경했습니다. 저장하면 적용됩니다.';}
+    });
+    dialog.addEventListener('change',e=>{if(!e.target.matches('[data-slot-select]'))return;const index=Number(e.target.dataset.slotSelect),value=e.target.value,duplicate=draft.some((v,i)=>i!==index&&v===value);draft=model.assign(draft,index,value);renderDraft();dialog.querySelector('.nd-mn-status').textContent=duplicate?'이미 사용 중인 메뉴입니다. 순서는 위·아래 버튼으로 변경해 주세요.':'메뉴를 변경했습니다. 저장하면 적용됩니다.';});
+   }
+   draft=[...slots];dialog.querySelector('.nd-mn-status').textContent='';renderDraft();dialog.showModal();
+  };
+  addEventListener('storage',e=>{if(e.key!==model.key&&e.key!==null)return;slots=model.read(storage);sync();if(dialog?.open){dialog.close();typeof toast==='function'&&toast('다른 창에서 하단 메뉴 설정이 변경되었습니다.');}});
+  mobileNavController={sync};sync();
  }
  /* 업체 제공 자재 — 폰(≤780px): 목록 → 상세 두 단계. 상세는 [‹ 업체 제공 자재][⋯ 기준일·재고내역서] · 업체명 · 자재 칩 · 남은 수량 ·
     그래프 · 기록, 아래에 [− N +][N개 사용 기록][+] 고정. [+]·기록 줄은 아래에서 올라오는 기록 창(원래 상세 입력 폼)을 연다.
@@ -690,7 +852,7 @@
   }
  }
  function eyebrows(){for(const [v,t] of Object.entries(EYEBROW))document.querySelectorAll(`#view-${v} :is(.workspace-heading,.panel-b-empty-heading)>.workspace-caption`).forEach(c=>{if(c.textContent!==t)c.textContent=t;});}
- function v5(){railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
+ function v5(){navIcons();mobileNavPreferences();railDocs();chips();actions();watchMaterials();retireCsv();supplierAddress();watchSettings();tools();
   const roots=['coForm','itForm','qtForm'].map(id=>document.getElementById(id)).filter(Boolean);
   if(roots.length){const mo=new MutationObserver(()=>{mo.disconnect();actions();roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));});roots.forEach(r=>mo.observe(r,{childList:true,subtree:true}));}}
  // Screens are (re)built after sign-in and on every render: re-apply the idempotent layout passes each frame something changes.
@@ -921,6 +1083,45 @@
   // 거래처별 차액: 받은 쪽이 많으면 +를 붙여 목록 금액(+입금 · −출금)과 같은 읽기 방식
   v.querySelectorAll('#payByCo tbody tr>td:nth-child(5)').forEach(td=>{const t=td.textContent.trim();if(/^[1-9][\d,]*$/.test(t))td.textContent='+'+t;else if(/^-[\d,]+$/.test(t))td.textContent='−'+t.slice(1);});
  }
+ // Mobile records-first presentation. Original controls, form nodes and handlers are retained;
+ // no payment data, calculation or persistence is implemented in this adapter.
+ const PAY_PHONE=matchMedia('(max-width:780px)');let payPhoneUI=null;
+ PAY_PHONE.addEventListener('change',()=>paymentsMobile());
+ function paymentsMobile(){
+  const v=document.getElementById('view-payments');if(!v)return;
+  if(!PAY_PHONE.matches){if(payPhoneUI?.dialog.open)payPhoneUI.dialog.close();return;}
+  const head=v.querySelector(':scope>.page-head'),summary=v.querySelector('.ops-summary'),entry=document.getElementById('payEntry'),results=document.getElementById('payResults'),byCo=document.getElementById('payByCo')?.closest('.card');
+  if(!head||!summary||!entry||!results||!byCo||!head.querySelector('.nd-tools'))return;
+  if(!payPhoneUI){
+   const create=(tag,cls)=>{const el=document.createElement(tag);el.className=cls;return el;};
+   const add=create('button','nd-pay-mobile nd-pay-record');add.type='button';add.textContent='기록하기';head.append(add);
+   add.onclick=()=>{closePop();document.getElementById('payInbound')?.click();};
+   const period=create('p','nd-pay-mobile nd-pay-period-label');summary.before(period);
+   const tabs=create('div','nd-pay-mobile nd-pay-tabs');tabs.setAttribute('role','group');tabs.setAttribute('aria-label','입출금 구분');
+   for(const [value,label] of [['','전체'],['수금','입금'],['지급','출금']]){const b=create('button','');b.type='button';b.dataset.kind=value;b.textContent=label;b.onclick=()=>{const select=document.getElementById('payFilter');select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));paymentsMobile();};tabs.append(b);}results.before(tabs);
+   const toggle=create('button','nd-pay-mobile nd-pay-company');toggle.type='button';toggle.setAttribute('aria-expanded','false');toggle.setAttribute('aria-controls','payByCo');
+   toggle.innerHTML='<span>거래처별 집계</span>'+svgI('<path d="m9 5 7 7-7 7"/>');byCo.prepend(toggle);byCo.classList.add('nd-pay-company-card');
+   toggle.onclick=()=>{const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));byCo.classList.toggle('nd-pay-company-open',open);};
+   const note=create('p','nd-pay-mobile nd-pay-note');note.textContent='직접 기록한 입금·출금만 표시합니다.';byCo.after(note);
+   const dialog=create('dialog','nd-pay-entry-sheet');dialog.setAttribute('aria-labelledby','ndPayEntryTitle');
+   dialog.innerHTML='<div class="nd-pay-entry-head"><h3 id="ndPayEntryTitle">입금·출금 기록</h3><button type="button" aria-label="기록 입력 닫기">×</button></div>';v.append(dialog);
+   let marker=null;
+   const restore=()=>{if(marker){marker.replaceWith(entry);marker=null;}entry.open=false;};
+   const dismiss=()=>{restore();dialog.close();};
+   dialog.querySelector('button').onclick=dismiss;dialog.addEventListener('close',()=>{restore();if(PAY_PHONE.matches&&!v.classList.contains('hidden'))add.focus({preventScroll:true});});
+   dialog.addEventListener('cancel',e=>{e.preventDefault();dismiss();});
+   dialog.addEventListener('click',e=>{if(e.target===dialog)dismiss();});
+   const syncEntry=()=>{if(PAY_PHONE.matches&&entry.open&&!dialog.open){marker=document.createComment('payment-entry-home');entry.before(marker);dialog.append(entry);dialog.showModal();document.getElementById('payCo')?.focus();}else if(!entry.open&&dialog.open)dialog.close();};
+   new MutationObserver(syncEntry).observe(entry,{attributes:true,attributeFilter:['open']});
+   payPhoneUI={dialog,period,tabs,syncEntry};
+  }
+  const {period,tabs,syncEntry}=payPhoneUI,get=id=>document.getElementById(id)?.value||'';
+  const mode=get('payPeriod'),month=get('payMonth'),from=get('payFrom'),to=get('payTo');
+  const label=mode==='all'?'전체 기간':mode==='range'?`${from||'시작일'} – ${to||'종료일'}`:month?month.replace('-','년 ')+'월':'조회 월 선택';
+  if(period.textContent!==label)period.textContent=label;
+  for(const b of tabs.children){const pressed=String(b.dataset.kind===get('payFilter'));if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);}
+  syncEntry();
+ }
  // 글자 기호(+ ＋ ‹)는 글꼴마다 높이·크기가 달라(맥에서 처짐) 버튼 글자와 어긋난다 → 기호를 떼고 CSS로 그린 아이콘을 붙인다(nd-gi-plus / nd-gi-back).
  function glyphTidy(){
   const root=document.getElementById('appView');if(!root)return;
@@ -1097,7 +1298,7 @@
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

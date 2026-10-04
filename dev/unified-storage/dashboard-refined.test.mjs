@@ -6,6 +6,11 @@ const source=await readFile(new URL('./dashboard-refined.js',import.meta.url),'u
 const context=vm.createContext({});vm.runInContext(source,context);
 const {periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange}=context.NaroDashboardModel;
 const plain=v=>JSON.parse(JSON.stringify(v));
+test('dashboard title follows the current local month without changing receivables scope',()=>{
+ for(const [date,title] of [['2026-10-05','10월 현황'],['2026-12-31','12월 현황'],['2027-01-01','1월 현황']])assert.equal(context.NaroDashboardModel.monthHeading(date),title);
+ assert.match(source,/panel\(monthHeading\(today\)/);
+ assert.match(source,/metric\('받을 금액',open,'전체 납품 − 입금 · 선입금 포함','ar'\)/);
+});
 test('date range validates impossible/empty/reversed dates and bounds excessive chart work',()=>{
  for(const range of [{from:'',to:''},{from:'2026-02-29',to:'2026-03-01'},{from:'2026-10-04',to:'2026-10-01'},{from:'2020-01-01',to:'2030-01-01'}])assert.notEqual(rangeError(range),'');
  assert.equal(rangeError({from:'2024-02-29',to:'2024-02-29'}),'');
@@ -154,7 +159,8 @@ test('analysis disclosure has a visible centered chevron and a 44px tap target',
 test('dashboard inherits the shared page header, with pale hover and segmented controls',async()=>{
  const css=await readFile(new URL('./dashboard-refined.css',import.meta.url),'utf8');
  assert.doesNotMatch(css,/--nd-db-type-scale|\.page-head\s+(?:h2|p|button)\s*\{/);
- assert.match(css,/--nd-db-section-size:14px;--nd-db-value-size:20px/);
+ assert.match(css,/--nd-db-section-size:14px;--nd-db-value-size:var\(--nd-stat-size\)/);
+ assert.match(css,/--nd-stat-size:20px/);
  assert.match(css,/font-weight:600;.*|letter-spacing:-\.6px;font-weight:600/);
  assert.match(css,/color-mix\(in srgb,var\(--nd-fill\) 35%,var\(--nd-surface\)\)/);
  assert.match(css,/button\[aria-pressed="true"\]\{background:var\(--nd-surface\);color:var\(--nd-blue\)/);

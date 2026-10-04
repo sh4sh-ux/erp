@@ -11,9 +11,10 @@ import {createRequire} from 'node:module';
 import {dirname,resolve} from 'node:path';
 import {homedir} from 'node:os';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {installMetadataConfig} from './install-metadata.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url)),dir=resolve(here,'candidate');
-const PIN={files:67,aggregate:'f5aadd0b90d72b46efaea8a24609386108fd2611885be713727a1535c4293a44',
+const PIN={files:67,aggregate:'3f2c1750eb8e6a33a7a443f3b539ae6d9c1f58d86887d9d0a5b9bf0150c61f6f',
  auth:{'google-oauth.mjs':'2c1375a6bf250fd57ed1a9ae3debddac8d717277b6f5b67f61c113f66e3b609e','dropbox-oauth.mjs':'1e5054416f1453fceff71d4b2539245df1203bc36a014beb1a4b0ec74281f95c'}};
 const endpoint='https://firebasehosting.googleapis.com/v1beta1/',site='https://naro-biz.web.app/';
 const out=resolve(process.env.NARO_DEPLOY_LOG_DIR||here,'deploy-log');
@@ -36,7 +37,7 @@ try{
  for(const [name,hash] of Object.entries(PIN.auth))check(m.files.find(f=>f.path===name)?.sha256===hash,'AUTH_CONTRACT_CHANGED');
  const {config,site:siteId}=JSON.parse(await readFile(resolve(dir,'hosting-config.json')));check(siteId==='naro-biz','SITE');
  const approved=JSON.parse(await readFile(resolve(here,'../general-public-readiness/candidate/hosting-config.json'))).config;
- check(JSON.stringify(config)===JSON.stringify(approved),'CONFIG_DIFF');
+ check(JSON.stringify(config)===JSON.stringify(installMetadataConfig(approved)),'CONFIG_DIFF');
 
  stage='AUTH';
  let token;

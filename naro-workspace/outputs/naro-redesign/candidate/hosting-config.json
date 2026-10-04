@@ -39,7 +39,7 @@
         "glob": "/oauth/dropbox/callback",
         "headers": {
           "Cross-Origin-Opener-Policy": "unsafe-none",
-          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src https://naro-biz.web.app/naro-symbol.png https://naro-biz.web.app/erp/icons/; manifest-src https://naro-biz.web.app/manifest.webmanifest",
           "Referrer-Policy": "no-referrer"
         }
       },
@@ -47,7 +47,7 @@
         "glob": "/oauth/dropbox/waiting",
         "headers": {
           "Cross-Origin-Opener-Policy": "unsafe-none",
-          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src https://naro-biz.web.app/naro-symbol.png https://naro-biz.web.app/erp/icons/; manifest-src https://naro-biz.web.app/manifest.webmanifest",
           "Referrer-Policy": "no-referrer"
         }
       },
@@ -55,7 +55,7 @@
         "glob": "/dropbox-callback.html",
         "headers": {
           "Cross-Origin-Opener-Policy": "unsafe-none",
-          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src https://naro-biz.web.app/naro-symbol.png https://naro-biz.web.app/erp/icons/; manifest-src https://naro-biz.web.app/manifest.webmanifest",
           "Referrer-Policy": "no-referrer"
         }
       },
@@ -63,7 +63,7 @@
         "glob": "/dropbox-waiting.html",
         "headers": {
           "Cross-Origin-Opener-Policy": "unsafe-none",
-          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "Content-Security-Policy": "default-src 'none'; script-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; img-src https://naro-biz.web.app/naro-symbol.png https://naro-biz.web.app/erp/icons/; manifest-src https://naro-biz.web.app/manifest.webmanifest",
           "Referrer-Policy": "no-referrer"
         }
       },
