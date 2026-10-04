@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await readFile(new URL('./dashboard-refined.js',import.meta.url),'utf8');
 const context=vm.createContext({});vm.runInContext(source,context);
-const {periods,aggregate,progress,recent}=context.NaroDashboardModel;
+const {periods,aggregate,progress,recent,chartEmphasis,money,needsAttention}=context.NaroDashboardModel;
 const plain=v=>JSON.parse(JSON.stringify(v));
 test('month/day/year boundaries are calendar-based, including leap day',()=>{
  assert.deepEqual(plain(periods('month','2026-01-04').map(x=>x.key)),['2025-08','2025-09','2025-10','2025-11','2025-12','2026-01']);
@@ -38,4 +38,17 @@ test('recent quotes only, sorted without modifying the original collection',()=>
 test('presentation has no persistence, provider calls or dataset mutations',()=>{
  assert.doesNotMatch(source,/\b(?:fetch|localStorage|sessionStorage|indexedDB|saveTable|postMessage)\b\s*[.(]/);
  assert.doesNotMatch(source,/db\.\w+\s*=|db\.\w+\.(?:push|splice|sort)\(/);
+});
+test('default period is pale; preview overrides pinned selection with only one emphasis',()=>{
+ const rows=periods('month','2026-10-04');
+ assert.deepEqual(plain(chartEmphasis(rows,null)),{shown:5,active:-1,pinned:-1});
+ assert.deepEqual(plain(chartEmphasis(rows,'2026-10',3)),{shown:3,active:3,pinned:5});
+ assert.deepEqual(plain(chartEmphasis(rows,'2026-08')),{shown:3,active:3,pinned:3});
+ assert.deepEqual(plain(chartEmphasis(rows,'2025-01')),{shown:5,active:-1,pinned:-1});
+ for(const mode of ['year','day']){const r=periods(mode,'2026-10-04');assert.equal(chartEmphasis(r,null).active,-1);assert.equal(chartEmphasis(r,r[0].key).active,0);}
+});
+test('Dutch Pay number formatting uses ordinary thousands commas; only positive counts warn',()=>{
+ assert.equal(money(1087350),'1,087,350원');assert.equal(money(115500),'115,500원');
+ assert.equal(money(-1234.5),'-1,234원');assert.equal(money(0),'0원');
+ assert.equal(needsAttention(0),false);assert.equal(needsAttention(1),true);assert.equal(needsAttention(30),true);
 });
