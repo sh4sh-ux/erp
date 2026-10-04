@@ -34,7 +34,15 @@
   return rows;
  }
  function recent(quotes){return [...(quotes||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,4);}
- const model={periods,aggregate,progress,recent};
+ // One visual emphasis only; the latest period is a soft default, not a user selection.
+ function chartEmphasis(rows,pinnedKey,previewIndex=null){
+  const pinned=rows.findIndex(r=>r.key===pinnedKey);
+  const preview=Number.isInteger(previewIndex)&&previewIndex>=0&&previewIndex<rows.length?previewIndex:-1;
+  return {shown:preview>=0?preview:pinned>=0?pinned:rows.length-1,active:preview>=0?preview:pinned,pinned};
+ }
+ const money=v=>Math.round(v).toLocaleString('ko-KR')+'원';
+ const needsAttention=count=>Number(count)>0;
+ const model={periods,aggregate,progress,recent,chartEmphasis,money,needsAttention};
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
@@ -45,7 +53,6 @@
   wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 8h18M17 12h4v5h-4a2.5 2.5 0 0 1 0-5Z"/>'};
  const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[n]||paths.file}</svg>`;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const money=v=>Math.round(v).toLocaleString('ko-KR')+'원';
  let chartMode='month',selectedKey=null;
  const deliveryTotal=(q,d)=>quoteTotals({lines:deliveredLines(q,d)}).total;
  function openQuotes(status,id){
@@ -61,25 +68,25 @@
  function panel(title,body,extra=''){return `<section class="nd-db-card"><header class="nd-db-head"><h3>${title}</h3>${extra}</header>${body}</section>`;}
  function renderChart(host){
   const rows=aggregate(db,chartMode,localDate(),deliveryTotal);
-  let selected=Math.max(0,rows.findIndex(r=>r.key===selectedKey));
-  if(!rows.some(r=>r.key===selectedKey))selected=rows.length-1;
-  selectedKey=rows[selected].key;
+  if(!rows.some(r=>r.key===selectedKey))selectedKey=null;
+  const initial=chartEmphasis(rows,selectedKey);
   const max=Math.max(1,...rows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]))*1.12;
   const negative=rows.some(r=>r.sale<0||r.receipt<0);
   const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
   host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></header>
-   <div class="nd-db-chart-meta"><span>${rows[0].key} — ${rows.at(-1).key}</span><div class="nd-db-values">${valueHtml(rows[selected])}</div></div>
-   <div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===selected}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div>
+   <div class="nd-db-chart-meta"><span>${rows[0].key} — ${rows.at(-1).key}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
+   <div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div>
    <div class="nd-db-chart-note">매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values');
-  const show=i=>{values.innerHTML=valueHtml(rows[i]);groups.forEach((b,j)=>b.classList.toggle('is-preview',i===j));};
+  const show=preview=>{const state=chartEmphasis(rows,selectedKey,preview);values.innerHTML=valueHtml(rows[state.shown]);groups.forEach((b,j)=>{b.classList.toggle('is-active',state.active===j);b.classList.toggle('is-default',state.active<0&&state.shown===j);});};
   groups.forEach((b,i)=>{
    b.onpointerenter=e=>{if(e.pointerType!=='touch')show(i);};b.onfocus=()=>show(i);
-   b.onblur=()=>show(selected);
-   b.onclick=()=>{selected=i;selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(i);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
+   b.onblur=()=>show(null);
+   b.onclick=()=>{selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(null);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
   });
-  host.querySelector('.nd-db-bars').onpointerleave=()=>show(selected);
+  host.querySelector('.nd-db-bars').onpointerleave=()=>show(null);
+  show(null);
   host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
  }
  function refinedDashboard(){
@@ -96,7 +103,7 @@
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
   root.innerHTML=panel('핵심 현황',`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,'전체 납품 − 입금 · 선입금 포함','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
-   +panel('확인할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length+'곳'],['tax','file','계산서 미발행',tax.length+'건'],['stock','box','재고 부족',short+'옵션']].map(([key,i,label,count])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b>${count}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
+   +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
    +`<div class="nd-db-work">${panel('최근 견적',quoteRows,'<button type="button" class="nd-db-link" data-all-quotes>전체 보기 '+icon('arrow')+'</button>')}${panel('견적 진행',stageRows,'<span>상태별 견적 수</span>')}</div>`
    +'<details class="nd-db-analysis"><summary>품목 판매 분석 보기</summary><section class="card sales-insight" id="salesInsight" aria-label="품목 판매 분석"></section></details>';
   renderChart(root.querySelector('.nd-db-chart'));

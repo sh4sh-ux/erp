@@ -10499,105 +10499,115 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  addEventListener('resize',()=>{try{tableAlign();}catch{}});
 })();
 </script><style id="naro-dashboard-style">/* Approved dashboard layout. Scope every rule; use the app's light/dark tokens. */
-#appView #view-dash.nd-dashboard .dash-brief{display:flex!important;flex-direction:column;gap:20px;width:100%;max-width:none;padding:26px 28px 32px;box-sizing:border-box}
+#appView #view-dash.nd-dashboard .dash-brief{display:flex!important;flex-direction:column;gap:14px;width:100%;max-width:none;padding:18px 28px 24px;box-sizing:border-box}
 #appView #view-dash.nd-dashboard .dash-brief>*{flex-shrink:0}
 #appView #view-dash.nd-dashboard .nd-db-card{display:block;min-width:0;background:var(--nd-surface);border:1px solid var(--nd-line);border-radius:16px;overflow:hidden;box-shadow:none}
-#appView #view-dash.nd-dashboard .nd-db-head{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px;padding:20px 24px;border-bottom:1px solid var(--nd-line);box-sizing:border-box}
-#appView #view-dash.nd-dashboard .nd-db-head h3{font-size:17px;font-weight:700;color:var(--nd-ink);line-height:1.4;margin:0;padding:0}
-#appView #view-dash.nd-dashboard .nd-db-head>span{font-size:12px;color:var(--nd-ink-3);line-height:1.5;text-align:right}
+#appView #view-dash.nd-dashboard .nd-db-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:14px 24px;border-bottom:1px solid var(--nd-line);box-sizing:border-box}
+#appView #view-dash.nd-dashboard .nd-db-head h3{font-size:calc(17px * var(--nd-db-type-scale));font-weight:700;color:var(--nd-ink);line-height:1.4;margin:0;padding:0}
+#appView #view-dash.nd-dashboard .nd-db-head>span{font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3);line-height:1.5;text-align:right}
 #appView #view-dash.nd-dashboard button{font-family:inherit;cursor:pointer}
 #appView #view-dash.nd-dashboard button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-3px}
 #appView #view-dash.nd-dashboard svg{height:18px;width:18px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:0;color:var(--nd-blue);font-size:13px;white-space:nowrap;padding:8px 0}
-#appView #view-dash.nd-dashboard .nd-db-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 0}
-#appView #view-dash.nd-dashboard .nd-db-metric{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:12px;padding:18px 24px;background:transparent;color:var(--nd-ink);text-align:left;border:0;border-radius:0}
+#appView #view-dash.nd-dashboard .nd-db-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:0;color:var(--nd-blue);font-size:calc(13px * var(--nd-db-type-scale));white-space:nowrap;padding:8px 0}
+#appView #view-dash.nd-dashboard .nd-db-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 0}
+#appView #view-dash.nd-dashboard .nd-db-metric{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:8px;padding:12px 24px;background:transparent;color:var(--nd-ink);text-align:left;border:0;border-radius:0}
 #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric:before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--nd-line)}
-#appView #view-dash.nd-dashboard .nd-db-metric>span{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;font-size:13px;color:var(--nd-ink-2)}
-#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:clamp(22px,2.25vw,32px);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#appView #view-dash.nd-dashboard .nd-db-metric>span{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-2)}
+#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:calc(clamp(22px,2.25vw,32px) * var(--nd-db-type-scale));font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 #appView #view-dash.nd-dashboard .nd-db-metric:last-child strong{color:var(--nd-blue)}
-#appView #view-dash.nd-dashboard .nd-db-metric small{font-size:11px;color:var(--nd-ink-3);line-height:1.5}
+#appView #view-dash.nd-dashboard .nd-db-metric small{font-size:calc(11px * var(--nd-db-type-scale));color:var(--nd-ink-3);line-height:1.5}
 #appView #view-dash.nd-dashboard .nd-db-tabs{display:flex;gap:4px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-tabs button{font-size:12px;border:0;border-radius:7px;background:transparent;color:var(--nd-ink-3);padding:8px 13px;min-height:36px}
+#appView #view-dash.nd-dashboard .nd-db-tabs button{font-size:calc(12px * var(--nd-db-type-scale));border:0;border-radius:7px;background:transparent;color:var(--nd-ink-3);padding:8px 13px;min-height:36px}
 #appView #view-dash.nd-dashboard .nd-db-tabs button[aria-pressed="true"]{background:var(--nd-ink);color:var(--nd-surface)}
-#appView #view-dash.nd-dashboard .nd-db-chart-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 24px 0;font-size:12px;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-chart-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 24px 0;font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3)}
 #appView #view-dash.nd-dashboard .nd-db-values{display:flex;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
 #appView #view-dash.nd-dashboard .nd-db-values b{color:var(--nd-ink-2)}
 #appView #view-dash.nd-dashboard .nd-db-sale{color:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-receipt{color:var(--nd-green)}
-#appView #view-dash.nd-dashboard .nd-db-bars{display:grid;grid-template-columns:repeat(var(--db-bars),minmax(0,1fr));padding:20px 24px 0;gap:12px}
-#appView #view-dash.nd-dashboard .nd-db-bar-group{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;padding:0;background:transparent;border:0;border-radius:0;color:var(--nd-ink-3);font-size:12px}
-#appView #view-dash.nd-dashboard .nd-db-pair{display:flex;justify-content:center;align-items:flex-end;gap:5px;height:180px;position:relative}
-#appView #view-dash.nd-dashboard .nd-db-bar{display:block;flex:0 1 16px;max-width:16px;width:16px;border-radius:5px 5px 0 0;background:var(--nd-blue);opacity:.3;z-index:1}
+#appView #view-dash.nd-dashboard .nd-db-bars{display:grid;grid-template-columns:repeat(var(--db-bars),minmax(0,1fr));padding:14px 24px 0;gap:12px}
+#appView #view-dash.nd-dashboard .nd-db-bar-group{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;padding:0;background:transparent;border:0;border-radius:0;color:var(--nd-ink-3);font-size:calc(12px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-pair{display:flex;justify-content:center;align-items:flex-end;gap:5px;height:126px;position:relative}
+#appView #view-dash.nd-dashboard .nd-db-bar{display:block;flex:0 1 16px;max-width:16px;width:16px;border-radius:5px 5px 0 0;background:var(--nd-blue);opacity:.22;z-index:1}
 #appView #view-dash.nd-dashboard .nd-db-bar.receipt{background:var(--nd-green)}
-#appView #view-dash.nd-dashboard .nd-db-bar-group:is([aria-pressed="true"],.is-preview) .nd-db-bar{opacity:1}
-#appView #view-dash.nd-dashboard .nd-db-bar-group.is-preview .nd-db-pair:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--nd-line)}
-#appView #view-dash.nd-dashboard .nd-db-bar-label{padding:8px 0 10px;border-bottom:2px solid transparent;font-size:12px}
-#appView #view-dash.nd-dashboard .nd-db-bar-group:is([aria-pressed="true"],.is-preview) .nd-db-bar-label{border-bottom-color:var(--nd-blue);color:var(--nd-ink)}
-#appView #view-dash.nd-dashboard .has-negative .nd-db-pair{margin-bottom:90px;height:90px;border-bottom:1px solid var(--nd-line)}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar{opacity:1}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-pair:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--nd-line)}
+#appView #view-dash.nd-dashboard .nd-db-bar-label{padding:8px 0 10px;border-bottom:2px solid transparent;font-size:calc(12px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.is-active .nd-db-bar-label{border-bottom-color:var(--nd-blue);color:var(--nd-ink)}
+#appView #view-dash.nd-dashboard .has-negative .nd-db-pair{margin-bottom:63px;height:63px;border-bottom:1px solid var(--nd-line)}
 #appView #view-dash.nd-dashboard .nd-db-bar.negative{align-self:flex-start;position:relative;top:100%;border-radius:0 0 5px 5px}
-#appView #view-dash.nd-dashboard .nd-db-chart-note{font-size:11px;color:var(--nd-ink-3);padding:15px 24px 20px;line-height:1.6}
-#appView #view-dash.nd-dashboard .nd-db-attention{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 0}
-#appView #view-dash.nd-dashboard .nd-db-attention>button{display:flex;align-items:center;gap:10px;padding:14px 20px;min-height:54px;background:transparent;color:var(--nd-ink-2);border:0;border-radius:0;font-size:13px;text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-chart-note{font-size:calc(11px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:10px 24px 14px;line-height:1.6}
+#appView #view-dash.nd-dashboard .nd-db-attention{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:7px 0}
+#appView #view-dash.nd-dashboard .nd-db-attention>button{display:flex;align-items:center;gap:8px;padding:10px 20px;min-height:44px;background:transparent;color:var(--nd-ink-2);border:0;border-radius:0;font-size:calc(13px * var(--nd-db-type-scale));text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:1px solid var(--nd-line)}
 #appView #view-dash.nd-dashboard .nd-db-attention span{flex:1}
 #appView #view-dash.nd-dashboard .nd-db-attention b{color:var(--nd-ink);white-space:nowrap}
 #appView #view-dash.nd-dashboard .nd-db-attention>button[aria-expanded="true"]{color:var(--nd-blue)}
-#appView #view-dash.nd-dashboard .nd-db-review{padding:8px 24px 20px;border-top:1px solid var(--nd-line);font-size:13px}
+#appView #view-dash.nd-dashboard .nd-db-review{padding:8px 24px 20px;border-top:1px solid var(--nd-line);font-size:calc(13px * var(--nd-db-type-scale))}
 #appView #view-dash.nd-dashboard .nd-db-review[hidden]{display:none}
-#appView #view-dash.nd-dashboard .nd-db-review-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);width:100%;text-align:left;font-size:13px}
+#appView #view-dash.nd-dashboard .nd-db-review-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);width:100%;text-align:left;font-size:calc(13px * var(--nd-db-type-scale))}
 #appView #view-dash.nd-dashboard .nd-db-review-row b{display:flex;gap:5px;align-items:center}
 #appView #view-dash.nd-dashboard .nd-db-review-row small{display:block;color:var(--nd-ink-3);margin-top:6px}
-#appView #view-dash.nd-dashboard .nd-db-work{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:start}
-#appView #view-dash.nd-dashboard .nd-db-quote{display:flex;align-items:center;gap:16px;padding:20px 24px;min-height:93px;width:100%;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);border-radius:0;text-align:left;font-size:14px}
+#appView #view-dash.nd-dashboard .nd-db-work{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:start}
+#appView #view-dash.nd-dashboard .nd-db-quote{display:flex;align-items:center;gap:12px;padding:14px 24px;min-height:66px;width:100%;border:0;border-bottom:1px solid var(--nd-line);background:transparent;color:var(--nd-ink);border-radius:0;text-align:left;font-size:calc(14px * var(--nd-db-type-scale))}
 #appView #view-dash.nd-dashboard .nd-db-quote:last-child{border-bottom:0}
 #appView #view-dash.nd-dashboard .nd-db-name{flex:1;min-width:0}
 #appView #view-dash.nd-dashboard .nd-db-name strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#appView #view-dash.nd-dashboard .nd-db-name small{display:block;margin-top:8px;color:var(--nd-ink-3);font-size:12px;overflow-wrap:anywhere}
+#appView #view-dash.nd-dashboard .nd-db-name small{display:block;margin-top:8px;color:var(--nd-ink-3);font-size:calc(12px * var(--nd-db-type-scale));overflow-wrap:anywhere}
 #appView #view-dash.nd-dashboard .nd-db-quote-amount{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none}
 #appView #view-dash.nd-dashboard .nd-db-quote-amount strong{font-variant-numeric:tabular-nums}
-#appView #view-dash.nd-dashboard .nd-db-stage{display:flex;align-items:center;gap:14px;width:100%;min-height:93px;padding:20px 24px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:transparent;color:var(--nd-ink);text-align:left}
+#appView #view-dash.nd-dashboard .nd-db-stage{display:flex;align-items:center;gap:10px;width:100%;min-height:66px;padding:14px 24px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:transparent;color:var(--nd-ink);text-align:left}
 #appView #view-dash.nd-dashboard .nd-db-stage:last-child{border-bottom:0}
-#appView #view-dash.nd-dashboard .nd-db-stage-icon{display:flex;align-items:center;justify-content:center;background:var(--nd-fill);color:var(--nd-ink-3);border-radius:10px;width:38px;height:38px;flex:none}
-#appView #view-dash.nd-dashboard .nd-db-stage-name{flex:1;min-width:0;line-height:1.6;font-size:14px}
-#appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:12px;color:var(--nd-ink-3);display:inline-block}
-#appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:25px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-#appView #view-dash.nd-dashboard .nd-db-stage>b small{font-size:12px;font-weight:400;color:var(--nd-ink-3);margin-left:4px}
-#appView #view-dash.nd-dashboard .nd-db-empty{font-size:13px;color:var(--nd-ink-3);padding:24px;line-height:1.7}
-#appView #view-dash.nd-dashboard .nd-db-analysis>summary{font-size:13px;color:var(--nd-ink-3);padding:10px 0;cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-stage-icon{display:flex;align-items:center;justify-content:center;background:var(--nd-fill);color:var(--nd-ink-3);border-radius:10px;width:28px;height:28px;flex:none}
+#appView #view-dash.nd-dashboard .nd-db-stage-name{flex:1;min-width:0;line-height:1.6;font-size:calc(14px * var(--nd-db-type-scale))}
+#appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:calc(12px * var(--nd-db-type-scale));color:var(--nd-ink-3);display:inline-block}
+#appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:calc(25px * var(--nd-db-type-scale));font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-stage>b small{font-size:calc(12px * var(--nd-db-type-scale));font-weight:400;color:var(--nd-ink-3);margin-left:4px}
+#appView #view-dash.nd-dashboard .nd-db-empty{font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:24px;line-height:1.7}
+#appView #view-dash.nd-dashboard .nd-db-analysis>summary{font-size:calc(13px * var(--nd-db-type-scale));color:var(--nd-ink-3);padding:10px 0;cursor:pointer}
 #appView #view-dash.nd-dashboard .nd-db-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(hover:hover){#appView #view-dash.nd-dashboard :is(.nd-db-quote,.nd-db-stage,.nd-db-metric,.nd-db-attention>button):hover{background:var(--nd-fill)}}
 @media(max-width:1200px){#appView #view-dash.nd-dashboard .nd-db-work{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention{grid-template-columns:1fr}#appView #view-dash.nd-dashboard .nd-db-attention>button+button{border-left:0;border-top:1px solid var(--nd-line)}}
 @media(max-width:780px){
- #appView #view-dash.nd-dashboard .dash-brief{padding:16px 12px 24px;gap:16px}
- #appView #view-dash.nd-dashboard .nd-db-head{min-height:64px;padding:18px 16px;gap:10px}
- #appView #view-dash.nd-dashboard .nd-db-head h3{font-size:16px}
- #appView #view-dash.nd-dashboard .nd-db-head>span{font-size:11px}
+ #appView #view-dash.nd-dashboard .dash-brief{padding:12px 12px 18px;gap:12px}
+ #appView #view-dash.nd-dashboard .nd-db-head{min-height:48px;padding:12px 16px;gap:10px}
+ #appView #view-dash.nd-dashboard .nd-db-head h3{font-size:calc(16px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-head>span{font-size:calc(11px * var(--nd-db-type-scale))}
  #appView #view-dash.nd-dashboard .nd-db-metrics{grid-template-columns:1fr;padding:0 16px}
- #appView #view-dash.nd-dashboard .nd-db-metric{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:20px 0;gap:5px 8px}
+ #appView #view-dash.nd-dashboard .nd-db-metric{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:14px 0;gap:4px 8px}
  #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric{border-top:1px solid var(--nd-line)}
  #appView #view-dash.nd-dashboard .nd-db-metric+.nd-db-metric:before{display:none}
  #appView #view-dash.nd-dashboard .nd-db-metric>span svg{display:none}
- #appView #view-dash.nd-dashboard .nd-db-metric strong{grid-column:2;grid-row:1 / span 2;font-size:23px;text-align:right}
+ #appView #view-dash.nd-dashboard .nd-db-metric strong{grid-column:2;grid-row:1 / span 2;font-size:calc(23px * var(--nd-db-type-scale));text-align:right}
  #appView #view-dash.nd-dashboard .nd-db-metric small{grid-column:1}
  #appView #view-dash.nd-dashboard .nd-db-chart .nd-db-head{flex-wrap:wrap}
  #appView #view-dash.nd-dashboard .nd-db-tabs button{padding:8px 10px;min-height:44px}
- #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:16px 16px 0;font-size:11px}
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:12px 16px 0;font-size:calc(11px * var(--nd-db-type-scale))}
  #appView #view-dash.nd-dashboard .nd-db-values{gap:6px 10px}
- #appView #view-dash.nd-dashboard .nd-db-bars{padding:20px 12px 0;gap:3px}
- #appView #view-dash.nd-dashboard .nd-db-pair{height:150px;gap:3px}
+ #appView #view-dash.nd-dashboard .nd-db-bars{padding:14px 12px 0;gap:3px}
+ #appView #view-dash.nd-dashboard .nd-db-pair{height:105px;gap:3px}
  #appView #view-dash.nd-dashboard .nd-db-bar{max-width:12px}
- #appView #view-dash.nd-dashboard .nd-db-bar-label{font-size:11px;min-height:44px;box-sizing:border-box;padding-top:12px}
- #appView #view-dash.nd-dashboard .nd-db-chart-note{padding:14px 16px 18px}
+ #appView #view-dash.nd-dashboard .nd-db-bar-label{font-size:calc(11px * var(--nd-db-type-scale));min-height:44px;box-sizing:border-box;padding-top:12px}
+ #appView #view-dash.nd-dashboard .nd-db-chart-note{padding:10px 16px 12px}
  #appView #view-dash.nd-dashboard .nd-db-attention{padding:0}
- #appView #view-dash.nd-dashboard .nd-db-attention>button{padding:18px 16px}
- #appView #view-dash.nd-dashboard .nd-db-quote{padding:18px 16px;font-size:13px;gap:10px}
- #appView #view-dash.nd-dashboard .nd-db-name small{font-size:11px}
- #appView #view-dash.nd-dashboard .nd-db-stage{padding:18px 16px;gap:12px}
- #appView #view-dash.nd-dashboard .nd-db-stage-name{font-size:13px}
- #appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:11px}
- #appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:23px}
+ #appView #view-dash.nd-dashboard .nd-db-attention>button{padding:12px 16px}
+ #appView #view-dash.nd-dashboard .nd-db-quote{padding:12px 16px;font-size:calc(13px * var(--nd-db-type-scale));gap:10px}
+ #appView #view-dash.nd-dashboard .nd-db-name small{font-size:calc(11px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-stage{padding:12px 16px;gap:12px}
+ #appView #view-dash.nd-dashboard .nd-db-stage-name{font-size:calc(13px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-stage-name small{font-size:calc(11px * var(--nd-db-type-scale))}
+ #appView #view-dash.nd-dashboard .nd-db-stage>b{font-size:calc(23px * var(--nd-db-type-scale))}
 }
-@media(max-width:360px){#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:20px}#appView #view-dash.nd-dashboard .nd-db-stage-icon{width:30px;height:30px}}
+@media(max-width:360px){#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:calc(20px * var(--nd-db-type-scale))}#appView #view-dash.nd-dashboard .nd-db-stage-icon{width:30px;height:30px}}
+/* Compact dashboard only: retain shared rail/header geometry and touch targets. */
+#appView #view-dash.nd-dashboard{--nd-db-type-scale:.7;--nd-db-number-font:-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif}
+#appView #view-dash.nd-dashboard .page-head h2{font-size:calc(24px * var(--nd-db-type-scale))!important}
+#appView #view-dash.nd-dashboard .page-head p{font-size:calc(13px * var(--nd-db-type-scale))!important}
+#appView #view-dash.nd-dashboard .page-head button{font-size:calc(13px * var(--nd-db-type-scale))!important}
+#appView #view-dash.nd-dashboard .nd-db-quote .pill{font-size:calc(11px * var(--nd-db-type-scale));padding:2px 5px}
+#appView #view-dash.nd-dashboard :is(.nd-db-metric strong,.nd-db-values,.nd-db-chart-meta,.nd-db-bar-label,.nd-db-quote-amount strong,.nd-db-stage>b,.nd-db-attention b,.nd-db-review-row b){font-family:var(--nd-db-number-font);font-variant-numeric:tabular-nums;letter-spacing:normal;-webkit-font-smoothing:antialiased}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.is-default .nd-db-bar{opacity:.4}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.is-default .nd-db-bar-label{border-bottom-color:color-mix(in srgb,var(--nd-blue) 25%,transparent)}
+#appView #view-dash.nd-dashboard .nd-db-attention b.needs-attention{color:var(--nd-amber)}
 </style><script id="naro-dashboard-script">/* Dashboard presentation only. Read the active in-memory workspace; never retain a
    dataset, write a ledger, migrate statuses, or perform network/storage operations. */
 (() => {
@@ -10634,7 +10644,15 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
   return rows;
  }
  function recent(quotes){return [...(quotes||[])].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,4);}
- const model={periods,aggregate,progress,recent};
+ // One visual emphasis only; the latest period is a soft default, not a user selection.
+ function chartEmphasis(rows,pinnedKey,previewIndex=null){
+  const pinned=rows.findIndex(r=>r.key===pinnedKey);
+  const preview=Number.isInteger(previewIndex)&&previewIndex>=0&&previewIndex<rows.length?previewIndex:-1;
+  return {shown:preview>=0?preview:pinned>=0?pinned:rows.length-1,active:preview>=0?preview:pinned,pinned};
+ }
+ const money=v=>Math.round(v).toLocaleString('ko-KR')+'원';
+ const needsAttention=count=>Number(count)>0;
+ const model={periods,aggregate,progress,recent,chartEmphasis,money,needsAttention};
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
@@ -10645,7 +10663,6 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
   wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 8h18M17 12h4v5h-4a2.5 2.5 0 0 1 0-5Z"/>'};
  const icon=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[n]||paths.file}</svg>`;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const money=v=>Math.round(v).toLocaleString('ko-KR')+'원';
  let chartMode='month',selectedKey=null;
  const deliveryTotal=(q,d)=>quoteTotals({lines:deliveredLines(q,d)}).total;
  function openQuotes(status,id){
@@ -10661,25 +10678,25 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  function panel(title,body,extra=''){return `<section class="nd-db-card"><header class="nd-db-head"><h3>${title}</h3>${extra}</header>${body}</section>`;}
  function renderChart(host){
   const rows=aggregate(db,chartMode,localDate(),deliveryTotal);
-  let selected=Math.max(0,rows.findIndex(r=>r.key===selectedKey));
-  if(!rows.some(r=>r.key===selectedKey))selected=rows.length-1;
-  selectedKey=rows[selected].key;
+  if(!rows.some(r=>r.key===selectedKey))selectedKey=null;
+  const initial=chartEmphasis(rows,selectedKey);
   const max=Math.max(1,...rows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]))*1.12;
   const negative=rows.some(r=>r.sale<0||r.receipt<0);
   const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
   host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></header>
-   <div class="nd-db-chart-meta"><span>${rows[0].key} — ${rows.at(-1).key}</span><div class="nd-db-values">${valueHtml(rows[selected])}</div></div>
-   <div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===selected}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div>
+   <div class="nd-db-chart-meta"><span>${rows[0].key} — ${rows.at(-1).key}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
+   <div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div>
    <div class="nd-db-chart-note">매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values');
-  const show=i=>{values.innerHTML=valueHtml(rows[i]);groups.forEach((b,j)=>b.classList.toggle('is-preview',i===j));};
+  const show=preview=>{const state=chartEmphasis(rows,selectedKey,preview);values.innerHTML=valueHtml(rows[state.shown]);groups.forEach((b,j)=>{b.classList.toggle('is-active',state.active===j);b.classList.toggle('is-default',state.active<0&&state.shown===j);});};
   groups.forEach((b,i)=>{
    b.onpointerenter=e=>{if(e.pointerType!=='touch')show(i);};b.onfocus=()=>show(i);
-   b.onblur=()=>show(selected);
-   b.onclick=()=>{selected=i;selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(i);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
+   b.onblur=()=>show(null);
+   b.onclick=()=>{selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(null);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
   });
-  host.querySelector('.nd-db-bars').onpointerleave=()=>show(selected);
+  host.querySelector('.nd-db-bars').onpointerleave=()=>show(null);
+  show(null);
   host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
  }
  function refinedDashboard(){
@@ -10696,7 +10713,7 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
   root.innerHTML=panel('핵심 현황',`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,'전체 납품 − 입금 · 선입금 포함','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
-   +panel('확인할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length+'곳'],['tax','file','계산서 미발행',tax.length+'건'],['stock','box','재고 부족',short+'옵션']].map(([key,i,label,count])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b>${count}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
+   +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
    +`<div class="nd-db-work">${panel('최근 견적',quoteRows,'<button type="button" class="nd-db-link" data-all-quotes>전체 보기 '+icon('arrow')+'</button>')}${panel('견적 진행',stageRows,'<span>상태별 견적 수</span>')}</div>`
    +'<details class="nd-db-analysis"><summary>품목 판매 분석 보기</summary><section class="card sales-insight" id="salesInsight" aria-label="품목 판매 분석"></section></details>';
   renderChart(root.querySelector('.nd-db-chart'));

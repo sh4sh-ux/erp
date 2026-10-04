@@ -1,5 +1,7 @@
 # NARO Personal Cloud handoff
 
+2026-10-04 대시보드 후속 조정: dashboard-refined.css의 공통 글자 배율 0.7, 카드 헤더/본문/차트 높이와 여백 축소(모바일 터치 영역 유지). 숫자·쉼표는 dutch-pay index.html의 시스템 서체(-apple-system/SF Pro Text/Helvetica Neue/Arial), tabular-nums, Math.round→ko-KR 형식과 통일. 차트 기본 최신 기간은 옅게, 클릭/키보드/hover 중 한 구간만 진하게(고정 선택과 미리보기 이중 강조 해소). '확인해야 할 일' 제목, 양수 건수만 --nd-amber. 데이터/집계/저장 로직 변경 없음. 210개 테스트 및 390px/PC 실화면 확인.
+
 Base: b8efd90 (v1.186, = main). This branch adds the uncommitted local source used for the public naro-biz.web.app release (2026-09-29 13:17 KST). No code changes.
 
 - `dev/personal-cloud-onboarding/` — onboarding source (Firebase Auth, Google/Dropbox OAuth, UI). Review screenshots excluded.
