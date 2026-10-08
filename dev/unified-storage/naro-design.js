@@ -1073,6 +1073,27 @@ const NaroCompanyLedger=(()=>{
   else if(ctl.parentElement===head&&ctl.__ndHome?.parentNode){ctl.__ndHome.after(ctl);ctl.classList.remove('nd-mh-tools');}
  }
  matDesk.addEventListener('change',()=>materialHeadTools());
+
+ /* 품목 고르기 목록(B안, 10/8): 이름이 같은 품목은 이름을 한 번만(묶음 머리 'N종'), 그 아래 줄은 품번을 크게.
+    폰 견적서 '품목 검색'(.qp-results)과 PC 품목 고르기(.ip-list) 공통. 앱이 목록을 다시 그릴 때마다 다시 묶는다.
+    가나다순이라 같은 이름은 늘 붙어 있다. 카테고리와 상관없이 '같은 이름'으로 묶는다. */
+ function groupPickRows(list){
+  const ip=list.classList.contains('ip-list');
+  list.querySelectorAll(':scope>.nd-grp').forEach(h=>h.remove());
+  list.querySelectorAll(':scope>.nd-grp-in').forEach(r=>r.classList.remove('nd-grp-in'));
+  const rows=[...list.children].filter(r=>ip?(r.classList.contains('ip-opt')&&r.dataset.id!=='__free__'):(r.classList.contains('qp-result')&&r.querySelector('strong')));
+  const nameOf=r=>(ip?r.querySelector('.nm'):r.querySelector('strong'))?.textContent.trim()||'';
+  for(let i=0;i<rows.length;){let j=i;const n=nameOf(rows[i]);while(j+1<rows.length&&nameOf(rows[j+1])===n&&rows[j+1].previousElementSibling===rows[j])j++;
+   if(n&&j>i){const h=document.createElement('div');h.className='nd-grp';h.setAttribute('aria-hidden','true');const b=document.createElement('b');b.textContent=n;const c=document.createElement('span');c.textContent=(j-i+1)+'종';h.append(b,c);rows[i].before(h);for(let k=i;k<=j;k++)rows[k].classList.add('nd-grp-in');}
+   i=j+1;}
+ }
+ const pickMo=new MutationObserver(recs=>{
+  const lists=new Set();
+  for(const r of recs){const t=r.target;if(t.nodeType===1&&t.matches?.('.qp-results,.ip-list'))lists.add(t);
+   r.addedNodes.forEach(n=>{if(n.nodeType===1)n.querySelectorAll?.('.qp-results,.ip-list').forEach(l=>lists.add(l));});}
+  if(!lists.size)return;lists.forEach(groupPickRows);pickMo.takeRecords(); // 우리가 넣은 머리 줄 변화는 버린다
+ });
+ pickMo.observe(document.body,{childList:true,subtree:true});
  function jClick(e){
   const app=document.getElementById('appView');if(!app||!app.contains(e.target))return false;
   const sc=e.target.closest?.('[data-nd-stat]');if(sc&&statRoute[sc.dataset.ndStat]){statRoute[sc.dataset.ndStat]();return true;}
