@@ -167,7 +167,8 @@
 }
 @media(max-width:360px){#appView #view-dash.nd-dashboard .nd-db-metric strong{font-size:var(--nd-db-value-size)}#appView #view-dash.nd-dashboard .nd-db-stage-icon{width:30px;height:30px}}
 /* Match shared section/body/secondary and stats typography; never scale the page header. */
-#appView #view-dash.nd-dashboard{--nd-db-section-size:14px;--nd-db-value-size:20px;--nd-db-number-font:Inter,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-family:var(--sans);font-size:14px;line-height:1.5}
+#appView{--nd-number-font:Inter,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;--nd-stat-size:20px;--nd-stat-weight:600;--nd-stat-spacing:-.6px}
+#appView #view-dash.nd-dashboard{--nd-db-section-size:14px;--nd-db-value-size:var(--nd-stat-size);--nd-db-number-font:var(--nd-number-font);font-family:var(--sans);font-size:14px;line-height:1.5}
 #appView #view-dash.nd-dashboard .nd-db-quote .pill{font-size:11px;padding:2px 5px}
 #appView #view-dash.nd-dashboard :is(.nd-db-metric strong,.nd-db-values,.nd-db-chart-meta,.nd-db-bar-label,.nd-db-quote-amount strong,.nd-db-stage>b,.nd-db-attention b,.nd-db-review-row b){font-family:var(--nd-db-number-font);font-variant-numeric:tabular-nums;letter-spacing:normal;-webkit-font-smoothing:antialiased}
 #appView #view-dash.nd-dashboard .nd-db-bar-group.is-default .nd-db-bar{opacity:.4}
@@ -175,7 +176,7 @@
 #appView #view-dash.nd-dashboard .nd-db-attention b.needs-attention{color:var(--nd-amber)}
 
 /* Numerals and commas follow the approved mockup; currency is a separate, quiet unit. */
-#appView #view-dash.nd-dashboard .nd-db-metric strong{letter-spacing:-.6px;font-weight:600}
+#appView #view-dash.nd-dashboard .nd-db-metric strong{letter-spacing:var(--nd-stat-spacing);font-weight:var(--nd-stat-weight)}
 #appView #view-dash.nd-dashboard .nd-db-currency{font:400 12px/1.5 var(--sans);letter-spacing:0;margin-left:3px;color:inherit}
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){color:var(--nd-ink-2);display:inline-flex;align-items:center;gap:5px}
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):before{content:"";width:7px;height:7px;border-radius:2px;background:var(--nd-blue)}

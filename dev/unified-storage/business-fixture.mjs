@@ -39,6 +39,30 @@ if(new URL(location.href).searchParams.has('interrupted')){
  data.items=[{id:'synthetic-i',name:'합성 복구 품목',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000}];
  data.quotes=[{id:'synthetic-q',no:'SYN-RECOVERY',company_id:'synthetic-c',date:'2026-09-29',status:'납품',lines:[{id:'synthetic-l',item_id:'synthetic-i',name:'합성 복구 품목',color:'',spec:'',qty:2,price:1000}],deliveries:[{id:'synthetic-d',date:'2026-09-29',lines:[{line_id:'synthetic-l',qty:2}]}]}];
 }
+if(new URL(location.href).searchParams.has('company-ledger')){
+ data.companies=[{id:'ledger-c',name:'합성 거래내역 검증 거래처',type:'매출',prices:[]}];
+ data.items=[{id:'ledger-i',name:'검증 품목',code:'TEST',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000}];
+ const states=['완료','부분 입금','부분 납품','초과 입금','선입금','입금 없음'];
+ data.quotes=states.map((state,i)=>({id:'ledger-q'+i,no:'TEST-'+state,company_id:'ledger-c',date:'2026-08-01',status:i===4?'수주':i===2?'부분납품':'납품',lines:[{id:'ledger-l'+i,item_id:'ledger-i',name:'검증 품목',qty:2,price:1000}],deliveries:i===4?[]:[{id:'ledger-d'+i,date:'2026-09-'+String(30-i).padStart(2,'0'),lines:[{line_id:'ledger-l'+i,qty:i===2?1:2}]}]}));
+ data.payments=[2200,1000,1100,2500,1000].map((amount,i)=>({id:'ledger-p'+i,company_id:'ledger-c',quote_id:'ledger-q'+i,kind:'수금',amount,date:'2026-10-01',method:'계좌이체'}));
+ data.payments.push({id:'ledger-unlinked',company_id:'ledger-c',kind:'수금',amount:2200,date:'2026-09-01',method:'현금'}, {id:'ledger-out',company_id:'ledger-c',quote_id:'ledger-q0',kind:'지급',amount:100,date:'2026-08-31',method:'계좌이체'});
+ data.stock_moves=[{id:'ledger-in',item_id:'ledger-i',kind:'입고',qty:20,date:'2026-08-01',color:'',spec:''},...data.quotes.flatMap(q=>q.deliveries.map(d=>({id:'stock-'+d.id,item_id:'ledger-i',kind:'출고',quote_id:q.id,qty:d.lines[0].qty,date:d.date,color:'',spec:''})))];
+}
+if(new URL(location.href).searchParams.has('sales-analysis')){
+ data.companies=[{id:'sa-c',name:'합성 루미호스피탈리티_슈가스컬(서울역) 아주 긴 거래처명',type:'매출',prices:[]},{id:'sa-d',name:'합성 테스트 주방',type:'매출',prices:[]}];
+ data.items=[{id:'sa-a',name:'합성 셰프복',code:'SA-CHEF',category:'의류',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000},{id:'sa-b',name:'합성 타월',code:'SA-TOWEL',category:'잡화',type:'단품',components:[],variants:[],colors:[],buy_price:300,sell_price:500}];
+ const date=new Date(),today=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+ data.quotes=[{id:'sa-q',no:'SA-001',company_id:'sa-c',date:today,status:'수주',lines:[{id:'sa-l1',item_id:'sa-a',name:'합성 셰프복',qty:4,price:1000},{id:'sa-l2',item_id:'sa-b',name:'합성 타월',qty:3,price:500},{id:'sa-l3',item_id:'__free__',name:'합성 배송비',qty:1,price:100}]},{id:'sa-q2',no:'SA-002',company_id:'sa-d',date:today,status:'수주',lines:[{id:'sa-l4',item_id:'sa-a',name:'합성 셰프복',qty:2,price:1000}]}];
+ data.payments=[];data.stock_moves=[];
+ if(new URL(location.href).searchParams.has('sales-many')){
+  for(let i=0;i<20;i++){
+   const id='sa-extra-'+i;
+   data.companies.push({id,name:'합성 추가 거래처 '+String(i+1).padStart(2,'0'),type:'매출',prices:[]});
+   data.quotes.push({id:'q-'+id,no:'SA-EXTRA-'+i,company_id:id,date:today,status:'수주',lines:[{id:'l-'+id,item_id:'sa-a',name:'합성 셰프복',qty:1,price:100+i}]});
+  }
+ }
+ if(new URL(location.href).searchParams.has('sales-large'))data.quotes.forEach(q=>q.lines.forEach(l=>l.price*=1000));
+}
 const identity=key=>({provider:'drive',logicalKey:key,fileId:'synthetic-'+key,path:datasetPath(key),revision:String(revisions[key])});
 const backend={list:async()=>keys.map(datasetPath),identity:async path=>identity(keys.find(k=>datasetPath(k)===path)),load:async path=>structuredClone(data[keys.find(k=>datasetPath(k)===path)]),async updateDataset(key,before,next){data[key]=structuredClone(next);revisions[key]++;document.documentElement.dataset.syntheticSaves=String(Object.values(revisions).reduce((a,b)=>a+b,0)-7);return {rows:structuredClone(next),identity:identity(key)};}};
 const repo=createStorageRepository(new GoogleDriveProvider(backend),{businessWrite:true,extendedWrite:new URL(location.href).searchParams.has('extended')});await repo.loadAll();

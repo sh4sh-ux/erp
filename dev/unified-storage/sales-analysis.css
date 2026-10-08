@@ -1,0 +1,176 @@
+/* Sales: existing rail + master list + detail. Read-only presentation layer. */
+@media screen{
+ #appView{--nd-section-tab-size:13px}
+ html body #appView #view-quotes #qtForm .qp-tabs>button{font-size:var(--nd-section-tab-size)!important}
+ html body #appView .shell .main #qtList .li-nm{display:block!important;-webkit-line-clamp:unset!important;-webkit-box-orient:initial!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;overflow-wrap:normal!important;min-width:0}
+ html body #appView .shell .main #qtList .li-body{min-width:0;flex:1}
+ html body #appView #view-sales.nd-sales-ready :is(#slBody,.sl-summary,.sl-hero,.sl-metrics,.panel-b-index,.nd-chips){display:none!important}
+ html body #appView #view-sales.nd-sales-ready>.workspace-heading>:not(.nd-sa-header){display:none!important}
+ #appView :is(.nd-sales-analysis,.nd-sales-index,.nd-sa-header){min-width:0;color:var(--nd-ink);font:400 14px/1.5 var(--sans);box-sizing:border-box}
+ #appView .nd-sales-index{min-width:0}
+ #appView .nd-sa-tabs{display:flex;gap:0;border-bottom:1px solid var(--nd-line);padding:0 20px}
+ #appView .nd-sa-tabs button{flex:1;min-width:0;border:0;border-bottom:2px solid transparent;background:none;color:var(--nd-ink-2);border-radius:0;font:500 var(--nd-section-tab-size)/20px var(--sans);padding:12px 0;min-height:46px;text-align:center;white-space:nowrap}
+ #appView .nd-sa-tabs button[aria-pressed=true]{color:var(--nd-blue);border-bottom-color:var(--nd-blue)}
+ #appView .nd-sa-count{padding:12px var(--panel-inset,24px);font-size:12px;color:var(--nd-ink-3)}
+ #appView .nd-sales-index .nd-sa-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-content:center;box-sizing:border-box;min-height:80px;width:100%;padding:16px var(--panel-inset,24px);text-align:left;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:transparent;color:var(--nd-ink);position:relative}
+ #appView .nd-sa-entry.on{background:color-mix(in srgb,var(--nd-blue) 5%,var(--nd-surface));box-shadow:inset 3px 0 var(--nd-blue)}
+ #appView .nd-sa-entry.on .nd-sa-entry-name{color:var(--nd-blue-ink)}
+ #appView .nd-sa-entry-name{grid-column:1;grid-row:1;font:500 14px/21px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+ #appView .nd-sa-entry-note{font:400 12px/18px var(--sans);color:var(--nd-ink-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #appView .nd-sa-entry-amount{grid-column:2;grid-row:1;font:600 14px/21px var(--nd-number-font);letter-spacing:-.2px;white-space:nowrap;text-align:right}
+ #appView .nd-sa-margin{display:block;font:400 11px/18px var(--nd-number-font);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--nd-blue-ink);text-align:right;white-space:nowrap}
+ #appView .nd-sa-margin.is-negative{color:var(--danger,#D32F2F)}
+ #appView .nd-sa-margin.is-unknown{color:var(--nd-ink-3)}
+ #appView .nd-sa-entry>.nd-sa-entry-note{grid-column:1;grid-row:2}
+ #appView .nd-sa-entry>.nd-sa-margin{grid-column:2;grid-row:2}
+ #appView .nd-sa-sale{display:block;line-height:21px}
+ #appView .nd-sa-money>.nd-sa-margin{margin-top:4px}
+ #appView .nd-sa-table tbody td.nd-sa-name,#appView .nd-sa-table tbody td.nd-sa-money{vertical-align:top}
+ #appView .nd-sa-table .nd-sa-open-detail{min-height:21px}
+ #appView .nd-sa-header{width:100%;min-width:0}
+ #appView .nd-sa-headline{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;min-width:0}
+ #appView .nd-sa-heading{min-width:0;flex:1}
+ #appView .nd-sa-eyebrow{font:600 11px/13px var(--sans);letter-spacing:.8px;color:var(--nd-ink-3);margin-bottom:7px}
+ html body #appView #view-sales .nd-sa-header .nd-sa-title{font:700 var(--panel-title,24px)/var(--panel-title-line,30px) var(--sans);letter-spacing:-.5px;color:var(--nd-ink);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView .nd-sa-header-amount{flex-shrink:0;text-align:right}
+ #appView .nd-sa-label{font:400 12px/18px var(--sans);color:var(--nd-ink-2);margin-bottom:5px}
+ #appView .nd-sa-header-amount strong,#appView .nd-sa-kpis strong{font:var(--nd-stat-weight) var(--nd-stat-size)/1.2 var(--nd-number-font);letter-spacing:var(--nd-stat-spacing);font-variant-numeric:tabular-nums;white-space:nowrap}
+ #appView .nd-sa-header-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;min-width:0}
+ #appView .nd-sa-period{display:flex;flex-wrap:wrap;gap:2px 8px;flex:1;min-width:80px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;width:320px;flex-shrink:0;max-width:100%}
+ #appView .nd-sa-search{display:flex;gap:8px;align-items:center;background:var(--nd-fill);border-radius:9px;padding:0 12px;min-width:0;flex:1;color:var(--nd-ink-3);margin:0}
+ #appView .nd-sa-search>svg{flex:none;width:16px;height:16px}
+ html body #appView #view-sales .nd-sa-search input{width:100%;min-width:0;border:0!important;background:transparent!important;box-shadow:none;font:400 13px/20px var(--sans);padding:0;color:var(--nd-ink);box-sizing:border-box;height:100%;min-height:0;max-height:100%;margin:0}
+ #appView .nd-sa-search:focus-within{box-shadow:0 0 0 2px var(--nd-blue-line)}
+ #appView .nd-sa-toolbar select{font:400 13px/20px var(--sans);padding:0 28px 0 10px;border:1px solid var(--nd-line);border-radius:9px;background-color:var(--nd-surface);color:var(--nd-ink-2);width:132px;min-width:0;flex-shrink:0}
+ html body #appView #view-sales .nd-sa-toolbar :is(.nd-sa-search,select){box-sizing:border-box;height:40px!important;min-height:40px!important;max-height:40px;margin:0;line-height:20px}
+ #appView .nd-sa-back{display:none}
+ #appView .nd-sa-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 0 24px;padding:4px 0 24px;border-bottom:1px solid var(--nd-line)}
+ #appView .nd-sa-kpis>div{min-width:0;padding-left:20px;border-left:1px solid var(--nd-line)}
+ #appView .nd-sa-kpis>div:first-child{padding-left:0;border:0}
+ #appView .nd-sa-kpis.nd-sa-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #appView .nd-sa-kpis>div>span{display:block;font-size:12px;color:var(--nd-ink-2);margin-bottom:8px}
+ #appView :is(.nd-sales-analysis,.nd-sales-index,.nd-sa-header) :is(.nd-sa-num,.nd-sa-n,.nd-sa-entry-amount){font-family:var(--nd-number-font);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+ #appView .nd-sa-num{letter-spacing:inherit}
+ #appView :is(.nd-sales-analysis,.nd-sales-index,.nd-sa-header) .nd-sa-currency{font:400 12px/1.5 var(--sans);letter-spacing:0;margin-left:3px;color:var(--nd-ink-2)}
+ #appView .nd-sa-sectionhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+ #appView .nd-sa-sectionhead h4{font:600 14px/22px var(--sans);margin:0}
+ #appView .nd-sa-sectionhead>span{font-size:12px;color:var(--nd-ink-3)}
+ #appView .nd-sa-open-detail{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--nd-ink);text-align:left}
+ #appView .nd-sa-open-detail>.nd-sa-item-name{flex:1}
+ #appView .nd-sa-open-detail>span:last-child{font:400 22px/1 var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-table{width:100%;border-collapse:collapse;table-layout:fixed;color:var(--nd-ink)}
+ #appView .nd-sa-table th{padding:10px;font:500 12px/18px var(--sans);color:var(--nd-ink-2);background:var(--nd-fill);text-align:left}
+ #appView .nd-sa-table th:first-child{width:44%}
+ #appView .nd-sa-table th:nth-child(2){width:12%}
+ #appView .nd-sa-table th:nth-child(3){width:20%}
+ #appView .nd-sa-table th:last-child{width:24%}
+ #appView .nd-sa-table td{padding:16px 10px;border-bottom:1px solid var(--nd-line);font-size:13px;vertical-align:middle}
+ html body #appView #view-sales .nd-sa-table :is(th,td).nd-sa-n{text-align:right!important;font-variant-numeric:tabular-nums}
+ #appView .nd-sa-item-name{display:block;font:500 14px/21px var(--sans);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #appView .nd-sa-code{display:block;font:400 12px/18px var(--sans);margin-top:4px;color:var(--nd-ink-3)}
+ #appView .nd-sa-table td.nd-sa-money{font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.2px}
+ #appView .nd-sa-table tfoot td{border:0;font-weight:600;padding-top:20px}
+ #appView .nd-sa-share-meter{display:flex;flex-direction:row;align-items:center;justify-content:flex-end;gap:10px;font:400 12px/18px var(--nd-number-font);font-variant-numeric:tabular-nums;color:var(--nd-ink-2)}
+ #appView .nd-sa-share-track{display:block;width:72px;max-width:100%;height:4px;background:color-mix(in srgb,var(--nd-blue) 7%,var(--nd-surface));border-radius:3px;overflow:hidden}
+ #appView .nd-sa-share-track>span{display:block;height:100%;background:color-mix(in srgb,var(--nd-blue) 65%,var(--nd-surface));border-radius:inherit}
+ #appView .nd-sa-mobile-share,#appView .nd-sa-mobile-qty{display:none}
+ #appView .nd-sa-note{font-size:12px;color:var(--nd-ink-3);line-height:1.7;margin:22px 0 0}
+ #appView .nd-sa-empty{padding:32px 16px;color:var(--nd-ink-2);text-align:center;font-size:13px}
+}
+@media screen and (hover:hover){#appView .nd-sales-index .nd-sa-entry:hover{background:color-mix(in srgb,var(--nd-fill) 30%,var(--nd-surface))}}
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system="b"] .shell .main #view-sales>.workspace-heading{height:var(--panel-head)!important;min-height:var(--panel-head)!important;padding:28px var(--panel-inset) 12px!important;box-sizing:border-box;overflow:hidden}
+ html body #appView[data-layout-system="b"] .shell .main #view-sales>.workspace-left{padding-top:0!important}
+ #appView #view-sales .nd-sales-index{margin-inline:calc(-1 * var(--panel-inset));width:auto}
+ #appView .nd-sales-analysis{padding:4px 0 20px}
+}
+@media screen and (min-width:1024px) and (max-width:1279px){
+ #appView #view-sales{--panel-list:300px}
+ #appView .nd-sa-toolbar{width:268px}
+ #appView .nd-sa-toolbar select{width:122px;font-size:12px}
+ #appView .nd-sa-header-bottom{gap:8px}
+ #appView .nd-sa-period{font-size:11px;line-height:15px}
+ html body #appView #view-sales .nd-sa-header .nd-sa-title{font-size:20px}
+ #appView .nd-sa-table th:first-child{width:34%}
+ #appView .nd-sa-table th:nth-child(2){width:12%}
+ #appView .nd-sa-table th:nth-child(3){width:22%}
+ #appView .nd-sa-table th:last-child{width:32%}
+ #appView .nd-sa-share-track{width:36px}
+ #appView .nd-sa-share-meter{gap:5px}
+}
+@media screen and (max-width:1023px){
+ #appView{--nd-section-tab-size:14px}
+ html body #appView .shell .main #view-sales.nd-sales-ready:not(.hidden){padding:0!important;background:var(--nd-surface);margin:0!important}
+ /* Quote list rhythm: eyebrow y16, title y42, search y88/44px, divider y150. */
+ html body #appView .shell .main #view-sales.nd-sales-ready>.page-head{background:var(--nd-surface)!important;min-height:0!important;height:auto!important;padding:42px 16px 18px!important;margin:0!important;border-bottom:1px solid var(--nd-line)!important;gap:0!important}
+ html body #appView .shell .main #view-sales.nd-sales-ready>.page-head .nd-tools{margin-top:18px!important;gap:8px;height:44px!important}
+ html body #appView .shell .main #view-sales.nd-sales-ready>.page-head .nd-tsearch{min-width:0;height:44px!important;min-height:44px!important}
+ html body #appView .shell .main #view-sales.nd-sales-ready>.page-head .nd-tool{width:44px!important;height:44px!important;min-height:44px!important;flex:0 0 44px}
+ html body #appView #view-sales.nd-sales-ready>.nd-chips-m{display:none!important}
+ #appView #view-sales.nd-sales-ready .nd-sales-analysis{display:none!important}
+ #appView #view-sales.nd-sales-ready.nd-sa-mobile-detail .nd-sales-analysis{display:block!important}
+ html body #appView #view-sales.nd-sa-mobile-detail>:is(.page-head,.nd-sales-index){display:none!important}
+ html body #appView .shell .main #view-sales.nd-sales-ready>.nd-sales-index{background:var(--nd-surface);margin:0!important;padding:0!important;width:100%}
+ #appView .nd-sa-tabs{padding:0 16px;height:44px;box-sizing:border-box}
+ #appView .nd-sa-tabs button{min-height:0;height:43px;box-sizing:border-box;padding:10px 0;font-size:var(--nd-section-tab-size)}
+ #appView .nd-sa-count{padding:12px 16px}
+ #appView .nd-sales-index .nd-sa-entry{min-height:78px;padding:16px;gap:5px 10px}
+ #appView .nd-sa-entry-name{grid-column:1;grid-row:1}
+ #appView .nd-sa-entry-amount{grid-column:2;grid-row:1}
+ #appView .nd-sa-entry-note{grid-column:1/-1}
+ #appView .nd-sa-entry.on{box-shadow:none;background:transparent}
+ #appView .nd-sa-entry.on .nd-sa-entry-name{color:var(--nd-ink)}
+ html body #appView .shell .main #view-sales .nd-sales-analysis{padding:0!important;margin:0!important;background:var(--nd-surface);border:0;border-radius:0;width:100%;box-sizing:border-box}
+ /* Same mobile detail surface as quote-detail-card: 12px outside + 16px inside. */
+ html body #appView .shell .main #view-sales.nd-sales-ready.nd-sa-mobile-detail{padding:0 12px!important;background:var(--nd-page)!important}
+ html body #appView .shell .main #view-sales.nd-sa-mobile-detail .nd-sales-analysis{padding:16px 16px 24px!important;border-radius:16px!important;min-height:calc(100dvh - env(safe-area-inset-top,0px));overflow:hidden}
+ html body #appView:has(#view-sales.nd-sa-mobile-detail:not(.hidden)) #bottomNav{display:none!important}
+ html body #appView .shell .main #view-sales.nd-sa-mobile-detail::after{display:none!important}
+ #appView .nd-sa-header{padding:0 0 20px;border-bottom:1px solid var(--nd-line)}
+ #appView .nd-sa-back{display:flex;align-items:center;gap:9px;min-height:44px;padding:0 4px;border:0;background:transparent;color:var(--nd-ink-2);font:400 14px/20px var(--sans);margin:0 0 12px}
+ #appView .nd-sa-back>span{width:8px;height:8px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg)}
+ #appView .nd-sa-headline{display:flex;align-items:flex-start;gap:12px}
+ #appView .nd-sa-eyebrow{font:400 12px/18px var(--sans);letter-spacing:0;margin-bottom:6px}
+ html body #appView #view-sales .nd-sa-header .nd-sa-title{font:700 19px/26.6px var(--sans);white-space:normal;overflow-wrap:anywhere;letter-spacing:-.5px}
+ #appView .nd-sa-header-amount{display:block;text-align:right;margin:0;max-width:55%;min-width:0}
+ #appView .nd-sa-header-amount .nd-sa-label{font:400 12px/18px var(--sans);margin-bottom:6px}
+ #appView .nd-sa-header-amount strong{font-size:19px;line-height:26.6px;font-weight:700}
+ #appView .nd-sa-header-bottom{flex-direction:column;align-items:stretch;gap:16px;margin-top:12px}
+ #appView .nd-sa-period{font-size:11px;gap:4px 8px}
+ #appView .nd-sa-toolbar{width:100%;flex-wrap:wrap}
+ #appView .nd-sa-search{min-width:0}
+ html body #appView #view-sales .nd-sa-search input{font-size:16px}
+ html body #appView #view-sales .nd-sa-toolbar :is(.nd-sa-search,select){height:44px!important;min-height:44px!important;max-height:44px}
+ #appView .nd-sa-result{padding:22px 0 0}
+ #appView .nd-sa-kpis{padding:0 0 22px;margin:0 0 22px}
+ #appView .nd-sa-kpis>div{padding-left:12px}
+ #appView .nd-sa-kpis>div>span{font-size:11px;white-space:nowrap}
+ #appView .nd-sa-kpis strong{font-size:18px}
+ #appView .nd-sa-table .nd-sa-share{display:none}
+ #appView .nd-sa-table thead{display:none}
+ #appView .nd-sa-table,#appView .nd-sa-table :is(tbody,tfoot){display:block;width:100%}
+ #appView .nd-sa-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:18px 0;border-bottom:1px solid var(--nd-line);align-items:center}
+ #appView .nd-sa-table :is(th,td){display:block;border:0!important;padding:0!important;width:auto!important;min-width:0}
+ #appView .nd-sa-table tbody .nd-sa-qty{display:none}
+ #appView .nd-sa-table .nd-sa-money{grid-column:2;grid-row:1;align-self:start}
+ #appView .nd-sa-table .nd-sa-name{align-self:start}
+ #appView .nd-sa-table tfoot tr{border:0}
+ html body #appView #view-sales .nd-sa-table tfoot td:nth-child(2){grid-column:1;grid-row:2;text-align:left!important;font-size:12px;color:var(--nd-ink-3)}
+ #appView .nd-sa-table tfoot td:nth-child(2)::before{content:'수량 '}
+ #appView .nd-sa-table th:first-child{width:40%}
+ #appView .nd-sa-table th:nth-child(2){width:16%}
+ #appView .nd-sa-table th:last-child{width:44%}
+ #appView .nd-sa-table :is(th,td){padding:14px 4px;font-size:12px}
+ #appView .nd-sa-table :is(th,td):first-child{padding-left:0}
+ #appView .nd-sa-table :is(th,td):last-child{padding-right:0}
+ #appView .nd-sa-item-name{font-size:14px;font-weight:600}
+ #appView .nd-sa-code{display:inline;font-size:12px;overflow-wrap:anywhere}
+ #appView .nd-sa-mobile-qty{display:inline;font-size:12px;color:var(--nd-ink-3)}
+ #appView .nd-sa-table td.nd-sa-money{font-size:14px}
+ #appView .nd-sa-mobile-share{display:block;margin-top:8px}
+ #appView .nd-sa-mobile-share .nd-sa-share-meter{flex-direction:row;align-items:center;justify-content:flex-start;gap:6px;font-size:11px}
+ #appView .nd-sa-mobile-share .nd-sa-share-track{width:38px}
+ #appView .nd-sa-note{font-size:11px}
+ #appView .nd-sa-sectionhead{padding-bottom:12px;border-bottom:1px solid var(--nd-line);margin-bottom:0}
+}

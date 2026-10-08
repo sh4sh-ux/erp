@@ -2,7 +2,49 @@
    Loaded after panel-layout-b. Presentation only: no data, storage or calculation rules.
    Print output (#printArea, preview sheet) stays on white paper in every theme. */
 
+/* Quote-grouped company history. Scoped away from item agreements and printed statements. */
+#appView #view-companies .nd-cl-heading{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+#appView #view-companies .nd-cl-heading>span{font-size:12px;font-weight:400;color:var(--nd-ink-2)}
+#appView #view-companies .nd-cl-list{padding:0 12px;min-width:0}
+#appView #view-companies .nd-cl-row{border:0;border-bottom:1px solid var(--nd-line);border-radius:0;padding:0;margin:0;background:none;min-width:0}
+#appView #view-companies .nd-cl-row:last-child{border-bottom:0}
+#appView #view-companies .nd-cl-row>summary{list-style:none;display:block;padding:18px 0;margin:0;min-height:44px;color:var(--nd-ink);text-align:left;border:0;background:none;cursor:pointer}
+#appView #view-companies .nd-cl-row>summary::-webkit-details-marker{display:none}
+#appView #view-companies .nd-cl-row>summary::before,#appView #view-companies .nd-cl-row>summary::after{content:none}
+@media(hover:hover){#appView #view-companies .nd-cl-row>summary:hover{background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))}}
+#appView #view-companies .nd-cl-main{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px}
+#appView #view-companies .nd-cl-main>b{font:600 14px/1.5 var(--sans);overflow-wrap:anywhere}
+#appView #view-companies .nd-cl-main>strong{margin-left:auto;font-size:17px;font-weight:650;white-space:nowrap}
+#appView #view-companies .nd-cl-main em{font:400 12px/1.5 var(--sans);color:var(--nd-ink-2);margin-right:6px}
+#appView #view-companies .nd-cl-number{font-family:Inter,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:normal}
+#appView #view-companies .nd-cl-number>small{font:400 12px/1.5 var(--sans);margin-left:3px}
+#appView #view-companies .nd-cl-description{font:400 13px/1.5 var(--sans);color:var(--nd-ink-2);margin-top:4px;overflow-wrap:anywhere}
+#appView #view-companies .nd-cl-meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:9px;font:400 12px/1.5 var(--sans)}
+#appView #view-companies .nd-cl-meta>span:last-child{display:inline-flex;align-items:center;gap:8px;color:var(--nd-ink-2);white-space:nowrap}
+#appView #view-companies .nd-cl-status{padding:2px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2)}
+#appView #view-companies .nd-cl-status.complete{background:var(--nd-green-soft);color:var(--nd-green)}
+#appView #view-companies .nd-cl-status.warning{background:var(--nd-amber-soft);color:var(--nd-ink-2)}
+#appView #view-companies .nd-cl-chevron{display:inline-block;width:7px;height:7px;margin:0 4px 3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg)}
+#appView #view-companies details[open] .nd-cl-chevron{transform:rotate(225deg);margin-top:5px}
+#appView #view-companies .nd-cl-hint{font:400 12px/1.5 var(--sans);margin-top:7px;color:var(--nd-ink-2)}
+#appView #view-companies .nd-cl-detail{padding:12px;margin-bottom:16px;background:var(--nd-fill);border-radius:10px;font:400 13px/1.5 var(--sans)}
+#appView #view-companies .nd-cl-detail-heading{font-weight:600;margin-bottom:8px}
+#appView #view-companies .nd-cl-event{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;padding:8px 0;color:var(--nd-ink)}
+#appView #view-companies .nd-cl-event>div{min-width:0;flex:1 1 160px;overflow-wrap:anywhere}
+#appView #view-companies .nd-cl-event small{display:block;color:var(--nd-ink-2);font-size:12px}
+#appView #view-companies .nd-cl-event>.nd-cl-number{white-space:nowrap;margin-left:auto}
+#appView #view-companies .nd-cl-event>.nd-cl-number small{display:inline}
+#appView #view-companies .nd-cl-balance{border-top:1px solid var(--nd-line);margin-top:5px;padding-top:11px}
+@media screen and (max-width:780px){#appView #view-companies .nd-cl-list{padding:0}}
+
 /* ---------- 1. Theme tokens ---------- */
+/* Shared search typography includes legacy text inputs, panel search and item pickers. */
+@media screen{
+ #appView{--nd-search-font-size:14px}
+ html body #appView[data-layout-system] :is(#qtSearch,#coSearch,#itSearch,input[type="search"],.search input,.nd-tsearch input,.ip-pop>input){font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+ html body #appView[data-layout-system] :is(#qtSearch,#coSearch,#itSearch,input[type="search"],.search input,.nd-tsearch input,.ip-pop>input)::placeholder{font:inherit!important;letter-spacing:inherit!important;color:var(--nd-ink-3)!important;opacity:1!important}
+}
+@media screen and (max-width:1023px){#appView{--nd-search-font-size:16px}}
 :root{
  color-scheme:light;
  --nd-page:#EEF0F4;--nd-frame:#FFFFFF;--nd-rail:#F7F8FA;--nd-left:#FAFAFC;--nd-surface:#FFFFFF;--nd-raised:#FFFFFF;
@@ -782,6 +824,22 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
 .nd-pop-filter .date-control{border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;overflow:hidden}
 .nd-pop-filter .date-control>input{border:0!important;background:transparent!important;border-radius:0!important;height:100%!important;box-shadow:none!important}
 .nd-pop-filter .date-control>:not(input){background:transparent!important}
+/* The payment popup uses the wrapper as its sole date/month field border. */
+.nd-pay-filter .nd-pop-body.nd-pop-filter{display:flex;flex-direction:column;gap:14px}
+.nd-pay-filter .date-control>.date-control-display{width:100%!important;height:100%!important;box-sizing:border-box;border:0!important;border-radius:0!important;box-shadow:none!important;min-width:0;pointer-events:none}
+/* Sales and quote date filters share one border and a full-size native picker target. */
+html body #appView .nd-filter-date-field{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;min-width:0!important;width:100%!important;margin:0!important}
+html body #appView .nd-filter-date-field>.filter-label{display:block!important;font:500 12px/18px var(--sans)!important;color:var(--nd-ink-2)!important;margin:0!important;padding:0!important}
+html body #appView .nd-filter-date{position:relative!important;display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:none!important;height:44px!important;min-height:44px!important;padding:0!important;margin:0!important;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;box-shadow:none!important;overflow:hidden!important;outline:none!important}
+html body #appView .nd-filter-date>:is(.date-control-display,.date-control-icon){display:none!important}
+html body #appView .nd-filter-date>.nd-filter-date-value{display:flex!important;align-items:center!important;box-sizing:border-box!important;width:100%!important;height:100%!important;padding:0 42px 0 14px!important;border:0!important;background:transparent!important;font:400 14px/1 var(--sans)!important;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--nd-ink)!important;pointer-events:none}
+html body #appView .nd-filter-date>.nd-filter-date-value.empty{color:var(--nd-ink-3)!important}
+html body #appView .nd-filter-date::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none;background:center/18px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A8F98' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M16 3v4M8 3v4M3 11h18'/%3E%3C/svg%3E")}
+html body #appView .nd-filter-date>input[type=date]{position:absolute!important;inset:0!important;z-index:2!important;width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;opacity:0!important;font-size:16px!important;cursor:pointer}
+html body #appView .nd-filter-date>input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+html body #appView .nd-filter-date:has(>input:focus-visible){outline:2px solid var(--nd-blue)!important;outline-offset:2px!important}
+html body #appView #view-quotes .quote-filters .nd-filter-date{background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important}
+@media screen and (max-width:780px){html body #appView .nd-filter-date>.nd-filter-date-value{font-size:16px!important}}
 @media screen and (max-width:780px){
  #appView #view-items .list-head>#itNewBtn{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex:0 0 44px!important}
  /* 거래처·품목·견적서: the search row belongs to the header like every other screen (title → 20px → search → 20px → line). */
@@ -2135,3 +2193,114 @@ html body #appView [data-nd-go]:focus-visible{outline:2px solid var(--nd-blue);o
 }
 html body #appView .shell .main .list-head>.search{padding:0 12px!important;gap:8px!important;color:var(--nd-ink-3)}
 html body #appView .shell .main .list-head>.search>svg{width:16px!important;height:16px!important;flex:none;margin:0!important;color:var(--nd-ink-3)}
+/* Device-local mobile navigation editor. Business data and desktop navigation stay unchanged. */
+html body #appView .nd-mobile-nav-edit{display:none!important}
+dialog.nd-mobile-nav-dialog{box-sizing:border-box;width:min(600px,calc(100vw - 32px));max-height:90dvh;padding:0;border:1px solid var(--nd-line);border-radius:16px;background:var(--nd-surface);color:var(--nd-ink);overflow:auto;font:400 14px/1.5 var(--sans)}
+.nd-mobile-nav-dialog::backdrop{background:rgb(15 23 42 / .35)}
+.nd-mobile-nav-dialog header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 8px;gap:8px}
+.nd-mobile-nav-dialog h2{font:700 18px/24px var(--sans);margin:0}
+.nd-mobile-nav-dialog button{font:500 14px/20px var(--sans);min-height:44px;min-width:44px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2)}
+.nd-mobile-nav-dialog header button{border:0;font-size:24px}
+.nd-mobile-nav-dialog svg{width:20px;height:20px;display:block;flex:none}
+.nd-mn-help,.nd-mn-note{margin:0;padding:0 22px 14px;color:var(--nd-ink-3);font-size:12px;line-height:1.65}
+.nd-mn-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;background:var(--nd-fill);border-radius:12px;margin:0 22px 18px;padding:12px 4px}
+.nd-mn-preview>span{display:flex;align-items:center;flex-direction:column;gap:6px;min-width:0;color:var(--nd-ink-2)}
+.nd-mn-preview small{font-size:11px;white-space:nowrap}
+.nd-mn-slots{padding:0 22px}
+.nd-mn-row{display:grid;grid-template-columns:minmax(0,1fr) 44px 44px;align-items:end;gap:6px;margin-bottom:14px;border-radius:10px}
+.nd-mn-row>button{display:grid;place-items:center}
+.nd-mn-row label{display:flex;flex-direction:column;gap:5px;min-width:0;color:var(--nd-ink-3);font-size:12px}
+.nd-mn-row select{box-sizing:border-box;width:100%;min-width:0;height:44px;padding:0 40px 0 12px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink);font:400 16px var(--sans);-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A909D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px}
+.nd-mn-row button:disabled{opacity:.3;cursor:default}
+.nd-mobile-nav-dialog button{-webkit-tap-highlight-color:transparent}
+.nd-mobile-nav-dialog button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+.nd-mobile-nav-dialog[data-mn-pointer="true"] button:focus{outline:none;box-shadow:none}
+.nd-mn-status{min-height:20px;margin:0;padding:0 22px 12px;color:var(--nd-ink-2);font-size:12px}
+.nd-mobile-nav-dialog footer{position:sticky;bottom:0;display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:8px;padding:12px 22px 18px;background:var(--nd-surface);border-top:1px solid var(--nd-line)}
+.nd-mobile-nav-dialog [data-mn-save]{color:#fff;background:var(--nd-blue);border-color:var(--nd-blue)}
+.nd-pay-mobile{display:none!important}
+/* Records-first is phone-only. Desktop payments keeps its existing layout. */
+@media screen and (max-width:780px){
+ .nd-pay-filter .ops-search{display:none!important}
+ html body #appView .shell .main #view-payments{background:var(--nd-surface)!important}
+ html body #appView #view-payments .nd-pay-mobile{display:flex!important}
+ html body #appView #view-payments>.page-head{position:relative;background:var(--nd-surface)!important;border-bottom:1px solid var(--nd-line)!important;padding-bottom:18px!important}
+ html body #appView #view-payments>.page-head h2{padding-right:90px}
+ html body #appView #view-payments .nd-pay-record{position:absolute;right:16px;top:36px;height:40px;align-items:center;justify-content:center;padding:0 12px;border:0;border-radius:10px;background:var(--nd-blue);color:white;font:600 14px/20px var(--sans)}
+ html body #appView #view-payments .nd-tools .nd-tadd{display:none!important}
+ html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px!important}
+ html body #appView #view-payments .nd-pay-period-label{margin:16px 16px 0!important;padding:0!important;color:var(--nd-ink-3);font:400 12px/18px var(--sans);overflow-wrap:anywhere}
+ html body #appView #view-payments .ops-summary{display:flex!important;flex-direction:column;margin:0 16px 12px!important;background:transparent!important;border-radius:0!important;overflow:visible!important}
+ html body #appView #view-payments .ops-summary .stats{display:grid!important;grid-template-columns:1fr 1fr;gap:0;margin:0!important;border-radius:0!important;background:transparent!important}
+ html body #appView #view-payments .ops-summary .stat{padding:20px 0!important;background:transparent!important;border:0!important}
+ html body #appView #view-payments .ops-summary .stat+.stat{padding-left:20px!important}
+ html body #appView #view-payments .ops-summary .stat .v{font:600 23px/30px var(--sans)!important;letter-spacing:-.4px}
+ html body #appView #view-payments .ops-summary>.scr-hero{padding:12px 0!important;grid-template-areas:"l v";border-bottom:1px solid var(--nd-line)!important}
+ html body #appView #view-payments .ops-summary>.scr-hero>.big{font:600 16px/22px var(--sans)!important}
+ html body #appView #view-payments .ops-summary>.scr-hero>.hint{display:none!important}
+ html body #appView #view-payments>.card{margin:0 16px!important;border-radius:0!important;padding:0!important;background:transparent!important}
+ html body #appView #view-payments #payEntry>summary{display:none!important}
+ html body #appView #view-payments .nd-pay-tabs{align-items:stretch;gap:24px;min-height:44px;border-bottom:1px solid var(--nd-line)}
+ html body #appView #view-payments .nd-pay-tabs button{min-width:44px;padding:12px 4px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--nd-ink-3);font:500 14px/20px var(--sans);border-radius:0}
+ html body #appView #view-payments .nd-pay-tabs button[aria-pressed="true"]{color:var(--nd-blue);border-bottom-color:var(--nd-blue);font-weight:600}
+ html body #appView #view-payments #payResults{padding:18px 0 4px!important;border:0!important;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-payments .card>.tbl-wrap{padding-left:0!important;padding-right:0!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]{padding:17px 0!important;row-gap:7px}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(7){font-weight:600!important;font-size:17px!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(7)::before{content:none!important}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(5){order:4}
+ html body #appView #view-payments #payTbl tbody tr[data-nd-pay]>td:nth-child(1){order:5}
+ html body #appView #view-payments .nd-pay-company-card{border-top:1px solid var(--nd-line)!important;margin-top:12px!important}
+ html body #appView #view-payments .nd-pay-company-card>.card-head{display:none!important}
+ html body #appView #view-payments .nd-pay-company-card:has(#payByCo)>.tbl-wrap{padding-left:0!important;padding-right:0!important}
+ html body #appView #view-payments .nd-pay-company-card:not(.nd-pay-company-open)>.tbl-wrap{display:none!important}
+ html body #appView #view-payments .nd-pay-company{width:100%;min-height:56px;align-items:center;gap:8px;padding:12px 0;border:0;background:transparent;color:var(--nd-ink-2);font:600 14px/22px var(--sans);text-align:left}
+ html body #appView #view-payments .nd-pay-company svg{width:18px;height:18px;flex:none}
+ html body #appView #view-payments .nd-pay-company svg:last-child{margin-left:auto;width:16px;height:16px}
+ html body #appView #view-payments .nd-pay-company[aria-expanded="true"] svg:last-child{transform:rotate(90deg)}
+ html body #appView #view-payments .nd-pay-note{margin:0 16px 20px!important;padding:0!important;font-size:11px;line-height:18px;color:var(--nd-ink-3)}
+ html body #appView #view-payments dialog.nd-pay-entry-sheet{position:fixed!important;inset:auto 0 0!important;margin:0!important;width:100%;max-width:100%;max-height:90vh;max-height:90dvh;overflow:auto;padding:0!important;border:0;border-radius:18px 18px 0 0;background:var(--nd-surface);color:var(--nd-ink);box-shadow:var(--nd-pop);outline:none}
+ .nd-pay-entry-sheet::backdrop{background:rgba(10,12,16,.4)}
+ html body #appView #view-payments .nd-pay-entry-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--nd-line);margin-bottom:16px}
+ html body #appView #view-payments .nd-pay-entry-head h3{font:700 17px/24px var(--sans);margin:0;padding:0}
+ html body #appView #view-payments .nd-pay-entry-head button{width:44px;height:44px;border:0;background:transparent;color:var(--nd-ink-2);font-size:24px;border-radius:10px}
+ html body #appView #view-payments dialog.nd-pay-entry-sheet .pf-btn{width:calc(100% + 32px)!important;max-width:none!important;margin:4px -16px 0!important;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))!important}
+}
+@media(max-width:820px){
+ html body #appView .nd-mobile-nav-edit{display:flex!important}
+ dialog.nd-mobile-nav-dialog{width:100%;max-width:100%;max-height:92dvh;margin:auto 0 0!important;border-radius:18px 18px 0 0}
+ .nd-mobile-nav-dialog header{padding-left:16px;padding-right:16px}
+ .nd-mn-help,.nd-mn-note,.nd-mn-slots,.nd-mn-status{padding-left:16px;padding-right:16px}
+ .nd-mn-preview{margin-left:16px;margin-right:16px}
+ .nd-mobile-nav-dialog footer{padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+}
+/* 대시보드 그래프 금액(매출·입금) = 누르면 이동하는 숫자(규칙 19): 얇은 점선 밑줄 → 그 기간 내역 창 */
+html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){cursor:pointer;border-radius:6px;text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:color-mix(in srgb,currentColor 50%,transparent)}
+@media (hover:hover){html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt):hover{text-decoration-style:solid;text-decoration-color:currentColor;background:color-mix(in srgb,currentColor 9%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,currentColor 9%,transparent)}}
+.nd-period-sheet .nd-ps-hd{gap:12px}
+.nd-period-sheet .nd-per-sum{font:600 15px/22px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink);white-space:nowrap}
+.nd-period-sheet .nd-per-sum.receipt{color:var(--nd-green)}
+.nd-period-sheet .nd-per-note{margin:0;padding:0 24px 10px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+.nd-period-sheet .nd-per-list{padding:0 24px 8px;max-height:min(56vh,520px);overflow:auto}
+.nd-period-sheet .nd-per-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;width:100%;padding:14px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;text-align:left;cursor:pointer;color:var(--nd-ink);font:inherit}
+.nd-period-sheet .nd-per-row:first-child{border-top:0}
+.nd-period-sheet .nd-per-nm{font:600 14px/20px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nd-period-sheet .nd-per-amt{font:600 14px/20px var(--sans);font-variant-numeric:tabular-nums;text-align:right}
+.nd-period-sheet .nd-per-sub{grid-column:1/-1;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+@media (hover:hover){.nd-period-sheet .nd-per-row:hover{background:var(--nd-fill);box-shadow:-24px 0 0 var(--nd-fill),24px 0 0 var(--nd-fill)}}
+.nd-period-sheet .nd-per-empty{margin:0;padding:28px 0;text-align:center;color:var(--nd-ink-3);font-size:14px}
+.nd-period-sheet .nd-per-act{grid-template-columns:1fr}
+/* 구분 탭 규칙(앱 전체): 목록을 '종류'로 나누는 줄(매출 집계 거래처별·품목별·카테고리별 / 입금·출금 전체·입금·출금)은
+   같은 너비로 나눈 밑줄 탭. 높이 PC 46 · 폰 44, 글자 PC 13 · 폰 14 / 500, 고른 쪽 = 파란 글자 600 + 2px 밑줄, 아래 1px 선.
+   '상태'로 거르는 칩(견적서 작성중·발송…, 재고 주문 부족…)은 칩 그대로. */
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs){display:flex!important;gap:0!important;align-items:stretch!important;min-height:0!important;height:auto!important;padding:0 20px!important;border-bottom:1px solid var(--nd-line)!important;background:none!important;overflow:visible!important}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button{flex:1 1 0!important;min-width:0!important;width:auto!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-2)!important;font:500 13px/20px var(--sans)!important;text-align:center!important;white-space:nowrap}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button[aria-pressed="true"]{color:var(--nd-blue)!important;border-bottom-color:var(--nd-blue)!important;font-weight:600!important}
+@media (max-width:1023px){
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs){padding:0!important}
+ html body #appView #view-sales .nd-sa-tabs{padding:0 16px!important}
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button{height:44px!important;min-height:44px!important;font-size:14px!important}
+}
+.nd-period-sheet{outline:none}
+.nd-period-sheet .nd-per-row:focus{outline:none}
+.nd-period-sheet .nd-per-row:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px;border-radius:6px}

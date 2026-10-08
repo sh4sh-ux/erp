@@ -97,3 +97,17 @@ test('new adapters and callback have no credential storage or logging calls',asy
  }
  const callback=await readFile(new URL('../dropbox-callback.mjs',import.meta.url),'utf8');assert.ok(callback.indexOf('history.replaceState')<callback.indexOf('postMessage'));
 });
+test('repeated success notifications exchange once and never force or restart Dropbox verification',async()=>{
+ let listener,exchanges=0,navigations=0,opens=0;
+ const origin='https://naro-biz.web.app';
+ const popup={closed:false,close(){this.closed=true;},location:{replace(url){
+  navigations++;const u=new URL(url);
+  assert.equal(u.searchParams.has('force_reapprove'),false);
+  assert.equal(u.searchParams.has('force_reauthentication'),false);
+  queueMicrotask(()=>{const event={origin,source:popup,data:{type:'NARO_DROPBOX_CALLBACK',state:u.searchParams.get('state'),code:'synthetic-code'}};listener(event);listener(event);});
+ }}};
+ const win={location:{origin},open(){opens++;return popup;},addEventListener(_name,fn){listener=fn;},removeEventListener(){}};
+ const oauth=createDropboxOAuth({clientId:'synthetic-public-key',win,cryptoApi:webcrypto,fetcher:async()=>{exchanges++;return json({access_token:'synthetic-token',expires_in:3600,scope:scopes});}});
+ oauth.reserve();await oauth.authorize();
+ assert.equal(opens,1);assert.equal(navigations,1);assert.equal(exchanges,1);assert.equal(popup.closed,true);
+});

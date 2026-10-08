@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {dirname,resolve} from 'node:path';
 import assert from 'node:assert/strict';
+import {installMetadataConfig} from '../../naro-workspace/outputs/naro-redesign/install-metadata.mjs';
 const here=dirname(fileURLToPath(import.meta.url));
 const out=resolve(here,'../../naro-workspace/outputs/naro-redesign');
 const candidate=resolve(out,'candidate'),file=resolve(candidate,'release/erp/index.html');
@@ -16,7 +17,7 @@ const start=html.indexOf('<style id="naro-design">');
 assert(start>=0,'Missing design layer');
 const end=html.indexOf('</script>',html.indexOf('</style><script>',start));
 assert(end>start,'Missing design script end');
-const design=`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}</script>`;
+const design=`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}</script>`;
 html=html.slice(0,start)+design+html.slice(end+'</script>'.length);
 const dashboard=`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script>`;
 html=html.replace(/<style id="naro-dashboard-style">[\s\S]*?<\/script>/,'');
@@ -26,6 +27,16 @@ await writeFile(file,html);
 manifest.files.find(f=>f.path==='erp/index.html').sha256=sha(html);
 // Optional, explicitly scoped icon refresh; never copy authentication/runtime sources.
 const changedReleaseFiles=['erp/index.html'];
+if(process.argv.includes('--install-metadata')){
+ for(const path of ['dropbox-callback.html','dropbox-waiting.html']){
+  const entry=manifest.files.find(f=>f.path===path);assert(entry,`Unpinned metadata: ${path}`);
+  const bytes=await readFile(resolve(here,'../personal-cloud-onboarding',path));
+  await writeFile(resolve(candidate,'release',path),bytes);entry.sha256=sha(bytes);changedReleaseFiles.push(path);
+ }
+ const baseline=JSON.parse(await readFile(resolve(out,'../general-public-readiness/candidate/hosting-config.json'),'utf8'));
+ assert.equal(baseline.site,'naro-biz');
+ await writeFile(resolve(candidate,'hosting-config.json'),JSON.stringify({...baseline,config:installMetadataConfig(baseline.config)},null,2)+'\n');
+}
 if(process.argv.includes('--icons')){
  const assets=[['style.css',resolve(here,'../personal-cloud-onboarding/style.css')],
   ...[180,192,512].map(size=>[`erp/icons/icon-${size}.png`,resolve(here,`naro-icons/icon-${size}.png`)])];
