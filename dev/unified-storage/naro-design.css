@@ -2122,3 +2122,16 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
  html body #appView #qtForm .qp-stepper>button:is([aria-label$="줄이기"],[aria-label$="늘리기"])::before{width:12px!important;height:1.5px!important}
  html body #appView #qtForm .qp-stepper>button[aria-label$="늘리기"]::after{width:1.5px!important;height:12px!important}
 }
+/* 누르면 이동하는 숫자(바로가기, [data-nd-go]) — 화살표 대신 얇은 점선 밑줄(1px). 올리면 실선 + 옅은 바탕. 앱 전체 공통 */
+html body #appView [data-nd-go]::after{content:none!important;display:none!important}
+html body #appView [data-nd-go]{cursor:pointer;border-radius:6px;text-decoration:underline dotted!important;text-decoration-thickness:1px!important;text-underline-offset:4px;text-decoration-color:color-mix(in srgb,currentColor 50%,transparent)!important}
+html body #appView [data-nd-go]:hover{text-decoration-style:solid!important;text-decoration-color:currentColor!important;background:color-mix(in srgb,currentColor 9%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,currentColor 9%,transparent)}
+html body #appView [data-nd-go]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:3px}
+@media (hover:none){html body #appView [data-nd-go]:hover{background:none;box-shadow:none}}
+/* 왼쪽 패널 머리 규칙(앱 전체): 제목·눈썹·검색 왼쪽 끝 = 패널 안쪽 여백 하나(PC 28px). 견적서만 24px이던 것 통일.
+   검색창은 .search·.nd-tsearch 한 모양: 안쪽 12px · 돋보기 16px · 간격 8px · 회색 아이콘 */
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system] .shell .main>#view-quotes>.page-head{padding-left:var(--panel-inset,28px)!important;padding-right:var(--panel-inset,28px)!important}
+}
+html body #appView .shell .main .list-head>.search{padding:0 12px!important;gap:8px!important;color:var(--nd-ink-3)}
+html body #appView .shell .main .list-head>.search>svg{width:16px!important;height:16px!important;flex:none;margin:0!important;color:var(--nd-ink-3)}

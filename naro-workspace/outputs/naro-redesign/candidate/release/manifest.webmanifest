@@ -3,7 +3,7 @@
   "short_name": "NARO Biz",
   "start_url": "./",
   "scope": "./",
-  "display": "minimal-ui",
+  "display": "browser",
   "background_color": "#FFFFFF",
   "theme_color": "#FFFFFF",
   "icons": [

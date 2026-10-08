@@ -304,7 +304,7 @@
   settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
  let pop=null;
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
- function openPop(btn,build,restore,title){if(pop&&pop.btn===btn){closePop();return;}closePop();
+ function openPop(btn,build,restore,title){if(popToggled.k===popKey(btn)&&Date.now()-popToggled.t<600){popToggled={k:'',t:0};return;}if(pop&&pop.btn===btn){closePop();return;}closePop();
   // Same width as the tool row it opens from, right under it (like the receipt app's pickers).
   const el=document.createElement('div');el.className='nd-pop-panel';el.setAttribute('role','dialog');
   if(title){const h=document.createElement('div');h.className='nd-pop-hd';h.textContent=title;el.append(h);el.setAttribute('aria-label',title);}
@@ -312,7 +312,12 @@
   const row=btn.parentElement.getBoundingClientRect(),w=Math.min(row.width,innerWidth-32);el.style.width=w+'px';
   el.style.left=Math.max(16,Math.min(row.left,innerWidth-w-16))+'px';el.style.top=(row.bottom+8)+'px';
   btn.setAttribute('aria-expanded','true');pop={el,btn,restore};}
- document.addEventListener('pointerdown',e=>{if(pop&&!pop.el.contains(e.target)&&!pop.btn.contains(e.target))closePop();},true);
+ // 같은 도구 버튼을 다시 누르면 닫힘(토글) — 팝업이 열린 사이 도구 줄이 다시 그려져 버튼이 바뀌어도 '같은 버튼'(화면+이름)으로 알아본다.
+ const popKey=b=>b?((b.closest('.view')?.id||'')+'|'+(b.getAttribute('aria-label')||b.className)):'';let popToggled={k:'',t:0};
+ document.addEventListener('pointerdown',e=>{if(!pop){popToggled={k:'',t:0};return;}if(pop.el.contains(e.target))return; // 닫힌 뒤 새로 누르면 늘 다시 열린다(버튼 글자가 다시 그려져 click이 빠져도 남지 않게)
+ const tb=e.target.closest?.('button');
+  if(tb&&(pop.btn.contains(e.target)||popKey(tb)===popKey(pop.btn))){popToggled={k:popKey(tb),t:Date.now()};closePop();return;}
+  closePop();},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
  const toolBtn=(icon,label,cls='')=>{const b=document.createElement('button');b.type='button';b.className='nd-tool '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svgI(icon);return b;};
  function tools(){
@@ -924,6 +929,8 @@
  // 글자 기호(+ ＋ ‹)는 글꼴마다 높이·크기가 달라(맥에서 처짐) 버튼 글자와 어긋난다 → 기호를 떼고 CSS로 그린 아이콘을 붙인다(nd-gi-plus / nd-gi-back).
  function glyphTidy(){
   const root=document.getElementById('appView');if(!root)return;
+  // 검색 돋보기는 앱 전체 한 모양(.nd-tsearch와 같은 선 1.8·원 r7) — 옛 .search 아이콘(선 2·r8)을 바꿔 둔다
+  root.querySelectorAll('.search>svg:not([data-nd-mag])').forEach(g=>{g.setAttribute('data-nd-mag','');g.setAttribute('stroke-width','1.8');g.setAttribute('aria-hidden','true');g.innerHTML='<circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>';});
   const md=document.getElementById('mm_detail');if(md){if(md.getAttribute('aria-label')!=='상세 입력')md.setAttribute('aria-label','상세 입력');const want=matchMedia('(max-width:780px)').matches?'상세':'상세 입력';if(md.textContent!==want)md.textContent=want;} // 폰 아래 바는 좁아 '상세'
   for(const b of root.querySelectorAll('button,a,.btn')){
    const t=b.firstChild;if(!t||t.nodeType!==3)continue;

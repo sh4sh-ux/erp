@@ -31,7 +31,8 @@ const onboardingHtml=(await readFile(resolve(original,'index.html'),'utf8')).rep
  .replace('</head>','<script src="./theme.js"></script></head>');
 await writeFile(resolve(release,'index.html'),onboardingHtml);
 // 안드로이드 '설치하기' 아이콘·이름 = 첫 화면의 앱 정보 파일. (사이트 보안 설정에 manifest-src 'self' 필요)
-await writeFile(resolve(release,'manifest.webmanifest'),JSON.stringify({name:'NARO Biz',short_name:'NARO Biz',start_url:'./',scope:'./',display:'minimal-ui',background_color:'#FFFFFF',theme_color:'#FFFFFF',icons:[{src:'erp/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any'},{src:'erp/icons/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any'}]},null,2)+'\n');
+// display는 'browser'(독립 앱 창 금지): 독립 앱 창에서는 Dropbox·Google 연결 창이 따로 떠 로그인을 기억 못 하고 결과도 앱으로 못 돌아와 인증을 계속 다시 묻는다(10/2 minimal-ui 때 생긴 문제).
+await writeFile(resolve(release,'manifest.webmanifest'),JSON.stringify({name:'NARO Biz',short_name:'NARO Biz',start_url:'./',scope:'./',display:'browser',background_color:'#FFFFFF',theme_color:'#FFFFFF',icons:[{src:'erp/icons/icon-192.png',sizes:'192x192',type:'image/png',purpose:'any'},{src:'erp/icons/icon-512.png',sizes:'512x512',type:'image/png',purpose:'any'}]},null,2)+'\n');
 await copyFile(resolve(onboarding,'theme.js'),resolve(release,'theme.js'));
 await copyFile(resolve(onboarding,'google-backend.mjs'),resolve(release,'google-backend.mjs'));
 await copyFile(resolve(onboarding,'company-contract.mjs'),resolve(release,'company-contract.mjs'));
