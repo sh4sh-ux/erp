@@ -37,3 +37,8 @@ html body #appView #qtForm[data-vinc="mixed"] .qline[data-vinc] .amt::before,htm
 html body #appView #qtForm .qp-cards>section>h3:has(>.nd-vinc-lg){display:flex;align-items:baseline;gap:6px}
 html body #appView #qtForm .qp-cards>section>h3>.nd-vinc-lg{margin-left:auto;font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
 html body #appView #qtForm .qp-card.nd-vinc .qp-card-amount>strong::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--nd-blue);margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+/* 견적서 기본 정보: 세금계산서 발행일 아래 '계산서 발행 안 함' 체크 */
+html body #appView #qtForm .nd-notax{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font:500 13px/18px var(--sans);color:var(--nd-ink-2);cursor:pointer}
+html body #appView #qtForm .nd-notax input{width:16px;height:16px;margin:0;accent-color:var(--nd-blue)}
+html body #appView #qtForm .nd-notax:has(input:disabled){cursor:default;opacity:.7}
+html body #appView #qtForm .field>label.nd-notax{display:inline-flex!important;margin:8px 0 0!important;padding:0!important;width:auto!important;font:500 13px/18px var(--sans)!important;color:var(--nd-ink-2)!important;text-transform:none!important;letter-spacing:0!important}

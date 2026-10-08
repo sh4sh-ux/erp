@@ -227,6 +227,26 @@ function lineSupplyVat(l){const g=(Number(l.qty)||0)*(Number(l.price)||0);if(!l.
  // 견적서 편집 줄: 부가세 포함 줄은 금액 옆에 표시
  P(`  return \`<div class="qline" data-idx="\${idx}">`,`  return \`<div class="qline" data-idx="\${idx}"\${l.vat_inc?' data-vinc':''}>`,'VATINC_QLINE');
 }
+// 계산서 발행 안 함(q.no_tax 또는 거래처 no_tax, 10/8): 쇼핑몰(카드·네이버페이)·개인 고객 판매는 세금계산서 대신
+// 카드전표·현금영수증으로 처리되므로 '계산서 미발행'에서 뺀다. 발행일(tax_at)이 있는 건 그대로 '발행 완료'.
+{
+ const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
+ P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q); }`,`function noTax(q){ return !!(q && (q.no_tax || (db.companies||[]).find(c=>c.id===q.company_id)?.no_tax)); }
+function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOTAX_NEEDS');
+ P(`if(!isTaxed(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,`if(!isTaxed(q)&&!noTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,'NOTAX_AR',true);
+ P(`\${isTaxed(r.q)?\`<span class="sub">\${escapeHtml(r.q.tax_at)}</span>\`:'<span class="pill tax-unissued">미발행</span>'}`,`\${isTaxed(r.q)?\`<span class="sub">\${escapeHtml(r.q.tax_at)}</span>\`:noTax(r.q)?'<span class="sub">발행 안 함</span>':'<span class="pill tax-unissued">미발행</span>'}`,'NOTAX_AR_CELL');
+ P(`          <div class="hint">\${isTaxed(e)
+            ? "발행 완료"
+            : (isDelivered(e) ? '<b class="tax-unissued">납품했지만 아직 미발행</b>입니다'
+                              : "납품 후 발행하면 날짜를 남겨 두세요")}</div>`,`          <div class="hint">\${isTaxed(e)
+            ? "발행 완료"
+            : noTax(e) ? "계산서를 발행하지 않는 판매예요 (카드·네이버페이·현금영수증 등)"
+            : (isDelivered(e) ? '<b class="tax-unissued">납품했지만 아직 미발행</b>입니다'
+                              : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+          <label class="nd-notax"><input type="checkbox" id="fq_notax" \${noTax(e)?"checked":""} \${!e.no_tax&&noTax(e)?'disabled title="거래처 설정으로 발행 안 함"':""}> 계산서 발행 안 함</label>`,'NOTAX_FIELD');
+ P(`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };`,`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
+  const fqNoTax=document.getElementById("fq_notax"); if(fqNoTax) fqNoTax.onchange=ev=>{ if(ev.target.checked) e.no_tax=true; else delete e.no_tax; renderQtDetail(); };`,'NOTAX_BIND');
+}
 // 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
 {
  const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],

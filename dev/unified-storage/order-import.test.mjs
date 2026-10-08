@@ -23,7 +23,7 @@ test('긴 품번 우선 — JK_3SB가 JK_3SB-LS 안에서 잘못 잡히지 않�
 test('견적서: 수주 · 부가세 뺀 단가 · 배송비 줄 · 주문번호 기록, 개인정보는 없다',()=>{
  const o=M.orders(naver,{items}).orders[0];let i=0;
  const q=M.quote(o,{companyId:'co',no:'Q-1',uuid:()=>'id'+(i++),now:'t',shipItem:items[2]});
- assert.equal(q.status,'수주');assert.equal(q.order_ref,'naver:N1');assert.deepEqual(plain(q.deliveries),[]);
+ assert.equal(q.status,'수주');assert.equal(q.order_ref,'naver:N1');assert.equal(q.no_tax,true);assert.deepEqual(plain(q.deliveries),[]);
  assert.deepEqual(plain(q.lines.map(l=>[l.qty,l.price,l.vat_inc])),[[1,22000,true],[4,22000,true],[1,3000,true]]);assert.equal(q.lines[2].item_id,'w');
  assert.equal(new Set(q.lines.map(l=>l.id)).size,q.lines.length);
  const json=JSON.stringify(q);for(const p of ['홍길동','010-0000-0000','서울시'])assert.ok(!json.includes(p));

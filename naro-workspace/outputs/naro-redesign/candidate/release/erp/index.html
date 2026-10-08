@@ -4142,7 +4142,8 @@ function isDelivered(q){ return !!(q && (quoteDeliveredQty(q)>0 || q.delivered_a
 /* 세금계산서 발행 여부 — 발행일(tax_at)이 있으면 발행된 것으로 본다.
    납품했는데 아직 발행 안 한 건이 누락되지 않도록 추적한다 */
 function isTaxed(q){ return !!(q && q.tax_at); }
-function needsTax(q){ return isDelivered(q) && !isTaxed(q); }
+function noTax(q){ return !!(q && (q.no_tax || (db.companies||[]).find(c=>c.id===q.company_id)?.no_tax)); }
+function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }
 /* 견적 1건의 금액·수금·잔액 — 수금에 quote_id를 달면 건별로 남은 금액을 알 수 있다 */
 function quoteAmount(q){ return quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total; }
 function quotePaid(qid){
@@ -4641,8 +4642,10 @@ function renderQtDetail(){
           </div>
           <div class="hint">${isTaxed(e)
             ? "발행 완료"
+            : noTax(e) ? "계산서를 발행하지 않는 판매예요 (카드·네이버페이·현금영수증 등)"
             : (isDelivered(e) ? '<b class="tax-unissued">납품했지만 아직 미발행</b>입니다'
                               : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
+          <label class="nd-notax"><input type="checkbox" id="fq_notax" ${noTax(e)?"checked":""} ${!e.no_tax&&noTax(e)?'disabled title="거래처 설정으로 발행 안 함"':""}> 계산서 발행 안 함</label>
       </div>
     </div>
 
@@ -4711,6 +4714,7 @@ function renderQtDetail(){
   document.getElementById("fq_valid").oninput=ev=>{ e.valid=ev.target.value; };
   document.getElementById("fq_tax").onchange=ev=>{ e.tax_at=ev.target.value; refreshDateControl("fq_tax"); };
   document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
+  const fqNoTax=document.getElementById("fq_notax"); if(fqNoTax) fqNoTax.onchange=ev=>{ if(ev.target.checked) e.no_tax=true; else delete e.no_tax; renderQtDetail(); };
   document.getElementById("fq_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById("fq_addLine").onclick=()=>{ e.lines.push(blankLine()); renderQtDetail(); };
   document.getElementById("fq_sizeBtn").onclick=()=>{
@@ -6659,7 +6663,7 @@ function arData(){
     if(isDelivered(q)){
       r.delivered+=deliveredAmount(q); r.delivers++;
       if(q.delivered_at>r.lastDeliver) r.lastDeliver=q.delivered_at;
-      if(!isTaxed(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }
+      if(!isTaxed(q)&&!noTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }
     }
   });
   (db.payments||[]).forEach(p=>{
@@ -6760,7 +6764,7 @@ function renderArByQuote(tbl){
         <td class="num">${fmt(r.amt)}</td>
         <td class="num">${r.paid?fmt(r.paid):'<span class="sub">—</span>'}</td>
         <td class="num" style="color:${r.bal>0?"var(--danger)":r.bal<0?"var(--primary)":"var(--ink-3)"}">${fmt(r.bal)}</td>
-        <td>${isTaxed(r.q)?`<span class="sub">${escapeHtml(r.q.tax_at)}</span>`:'<span class="pill tax-unissued">미발행</span>'}</td>
+        <td>${isTaxed(r.q)?`<span class="sub">${escapeHtml(r.q.tax_at)}</span>`:noTax(r.q)?'<span class="sub">발행 안 함</span>':'<span class="pill tax-unissued">미발행</span>'}</td>
       </tr>`).join("")}
       <tr style="background:var(--paper)">
         <td style="font-weight:700">합계</td><td></td><td></td>
@@ -9934,6 +9938,11 @@ html body #appView #qtForm[data-vinc="mixed"] .qline[data-vinc] .amt::before,htm
 html body #appView #qtForm .qp-cards>section>h3:has(>.nd-vinc-lg){display:flex;align-items:baseline;gap:6px}
 html body #appView #qtForm .qp-cards>section>h3>.nd-vinc-lg{margin-left:auto;font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
 html body #appView #qtForm .qp-card.nd-vinc .qp-card-amount>strong::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--nd-blue);margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+/* 견적서 기본 정보: 세금계산서 발행일 아래 '계산서 발행 안 함' 체크 */
+html body #appView #qtForm .nd-notax{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font:500 13px/18px var(--sans);color:var(--nd-ink-2);cursor:pointer}
+html body #appView #qtForm .nd-notax input{width:16px;height:16px;margin:0;accent-color:var(--nd-blue)}
+html body #appView #qtForm .nd-notax:has(input:disabled){cursor:default;opacity:.7}
+html body #appView #qtForm .field>label.nd-notax{display:inline-flex!important;margin:8px 0 0!important;padding:0!important;width:auto!important;font:500 13px/18px var(--sans)!important;color:var(--nd-ink-2)!important;text-transform:none!important;letter-spacing:0!important}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -11589,7 +11598,7 @@ const NaroOrderImport=(()=>{
   const unit=(g,q)=>Math.round(g/q*1e6)/1e6;
   const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:unit(l.gross,l.qty),vat_inc:true}));
   if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'__free__',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:order.ship,vat_inc:true});
-  return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',created_at:now,order_ref:order.ref};
+  return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',no_tax:true,created_at:now,order_ref:order.ref}; // 쇼핑몰 판매는 세금계산서 대상이 아니다(카드·네이버페이)
  }
  // 견적서로 만들었을 때 합계 = 결제액(부가세 포함 단가 줄이라 반올림 차이가 없다)
  function quoteTotal(order){return order.lines.reduce((s,l)=>s+l.gross,0)+order.ship;}
@@ -11666,7 +11675,7 @@ const NaroOrderImport=(()=>{
  }
  async function company(label){
   let c=(db.companies||[]).find(x=>x.name===label);if(c)return c;
-  c={id:crypto.randomUUID(),name:label,type:'매출',contact:'',phone:'',email:'',memo:'쇼핑몰 주문 가져오기로 만든 거래처',prices:[]};
+  c={id:crypto.randomUUID(),name:label,type:'매출',contact:'',phone:'',email:'',memo:'쇼핑몰 주문 가져오기로 만든 거래처',prices:[],no_tax:true};
   const next=[...db.companies,c];if(!await saveTable('companies',next))return null;db.companies=next;return c;
  }
  async function run(){

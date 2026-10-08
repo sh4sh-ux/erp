@@ -94,7 +94,7 @@ const NaroOrderImport=(()=>{
   const unit=(g,q)=>Math.round(g/q*1e6)/1e6;
   const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:unit(l.gross,l.qty),vat_inc:true}));
   if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'__free__',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:order.ship,vat_inc:true});
-  return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',created_at:now,order_ref:order.ref};
+  return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',no_tax:true,created_at:now,order_ref:order.ref}; // 쇼핑몰 판매는 세금계산서 대상이 아니다(카드·네이버페이)
  }
  // 견적서로 만들었을 때 합계 = 결제액(부가세 포함 단가 줄이라 반올림 차이가 없다)
  function quoteTotal(order){return order.lines.reduce((s,l)=>s+l.gross,0)+order.ship;}
@@ -171,7 +171,7 @@ const NaroOrderImport=(()=>{
  }
  async function company(label){
   let c=(db.companies||[]).find(x=>x.name===label);if(c)return c;
-  c={id:crypto.randomUUID(),name:label,type:'매출',contact:'',phone:'',email:'',memo:'쇼핑몰 주문 가져오기로 만든 거래처',prices:[]};
+  c={id:crypto.randomUUID(),name:label,type:'매출',contact:'',phone:'',email:'',memo:'쇼핑몰 주문 가져오기로 만든 거래처',prices:[],no_tax:true};
   const next=[...db.companies,c];if(!await saveTable('companies',next))return null;db.companies=next;return c;
  }
  async function run(){
