@@ -16,10 +16,16 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  let windowStart=now(),requests=0;
  const metrics={readRequests:0,datasetCreateRequests:0,businessWriteRequests:0,blockedWrites:0};
  const check=()=>{if(disposed||signal?.aborted)throw fault('CANCELLED');if(!token||now()>=expires)throw fault('RECONNECT_REQUIRED');};
+ // 기억된 기기(oauth.renew)는 4시간 열쇠가 끝나기 5분 전에, 또 폰이 잠에서 깨어 화면이 다시 보일 때 창 없이 새 열쇠를 받는다.
+ let timer=null,renewing=null;
+ const renewNow=()=>renewing||(renewing=(async()=>{try{const r=await oauth.renew?.(signal);if(r&&!disposed){token=r.accessToken;expires=r.expiresAt;schedule();}}catch{if(!disposed){clearTimeout(timer);timer=setTimeout(renewNow,60000);}}finally{renewing=null;}})());
+ function schedule(){clearTimeout(timer);timer=null;if(!oauth.renew||disposed)return;timer=setTimeout(renewNow,Math.max(10000,expires-now()-300000));timer?.unref?.();}
+ const onVisible=()=>{if(globalThis.document?.visibilityState==='visible'&&token&&now()>=expires-300000)renewNow();};
+ const fresh=async()=>{if(oauth.renew&&token&&!disposed&&now()>=expires-60000)await renewNow();};
  const assets=createAssetStore({provider:'dropbox',auth:()=>{check();return token;},fetcher,signal,enabled:businessWrite,now});
  const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path))throw fault('WRITE_BLOCKED');return '/'+path;};
  async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch}={}){
-  check();let response;
+  await fresh();check();let response;
   if(now()-windowStart>=60000){windowStart=now();requests=0;}if(++requests>120)throw fault('QUOTA_LIMIT');
   if(upload!==undefined){metrics.businessWriteRequests++;if(arg.mode==='add')metrics.datasetCreateRequests++;}else metrics.readRequests++;
   const headers={Authorization:'Bearer '+token};
@@ -48,8 +54,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   return {provider:'dropbox',logicalKey:path.split('/').pop().replace('.json',''),fileId:m.id,path:m.path_lower,revision:m.rev,revisionKind:'dropbox.rev',etag:null};
  }
  return {
-  async connect(){if(disposed)throw fault('CANCELLED');const result=await oauth.authorize(signal);if(disposed||signal?.aborted)throw fault('CANCELLED');token=result.accessToken;expires=result.expiresAt;},
-  async disconnect(){disposed=true;token=null;expires=0;prepared=false;oauth.close();},
+  async connect(){if(disposed)throw fault('CANCELLED');const result=await oauth.authorize(signal);if(disposed||signal?.aborted)throw fault('CANCELLED');token=result.accessToken;expires=result.expiresAt;schedule();globalThis.document?.addEventListener('visibilitychange',onVisible);},
+  async disconnect(){disposed=true;token=null;expires=0;prepared=false;clearTimeout(timer);globalThis.document?.removeEventListener('visibilitychange',onVisible);oauth.close();},
   async exists(path){return !!await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});},
   load,identity,metrics:()=>({...metrics}),
   async updateDataset(key,before,next,expected,{recoveryOnly=false}={}){

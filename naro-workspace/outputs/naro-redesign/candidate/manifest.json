@@ -15,7 +15,7 @@
     },
     {
       "path": "app.mjs",
-      "sha256": "683e7939084e0c5cc7d4fd00c9f7a8dddaebcb6daf2ef5ade7e7d85b867fb7c9"
+      "sha256": "bf717f9df05480515ab2539270ea5fef96a1f6621c1f8069c079e6742c67f378"
     },
     {
       "path": "asset-store.mjs",
@@ -46,6 +46,10 @@
       "sha256": "0e57081bb1fd13080e7078678527f795764984623c77f5baa7d2484d6b024e18"
     },
     {
+      "path": "device-vault.mjs",
+      "sha256": "90a22bc1900fbad010c7205756e2f4b84f8379173e3b4163d3b07fac30eaea05"
+    },
+    {
       "path": "drive-account-binding.mjs",
       "sha256": "d7f09426c06c5f9a76f70c0b28d81d3d2a26c128ca697b06d7e2781db7a2f8d8"
     },
@@ -55,7 +59,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "39d79f0b50ae03947569effc82b875d6f1d7ca8a53867ec201be812bac4ff940"
+      "sha256": "e5caf0d3e6e648794b2ff0bc8ead02f568d14f1272c086086ccd51e173b3d901"
     },
     {
       "path": "dropbox-callback.html",
@@ -71,7 +75,7 @@
     },
     {
       "path": "dropbox-oauth.mjs",
-      "sha256": "1e5054416f1453fceff71d4b2539245df1203bc36a014beb1a4b0ec74281f95c"
+      "sha256": "cb9acb7020a10be20dbf05f11ad3e908f60ebe3a5faa441a3e03e0ca0ffbc403"
     },
     {
       "path": "dropbox-waiting.html",
@@ -199,7 +203,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "e188e3b5f53cfe637ef430e5264703028a1070fead77f19a5f6a2c5609ba3e75"
+      "sha256": "cbfd3b99d653b0c9b14cc5443e7f8575d093639bf540adcee0a4cde27798ca4b"
     },
     {
       "path": "manifest.webmanifest",
@@ -247,7 +251,7 @@
     },
     {
       "path": "runtime.mjs",
-      "sha256": "7a01e7b33c47aa999d66520218dc11aadc6be6197cbd233f6a48468b91870ecb"
+      "sha256": "3488386e9682ad90ee349c2ced6192776c34e55b3c39e3da568f493eac259e86"
     },
     {
       "path": "sdk.mjs",
@@ -259,7 +263,7 @@
     },
     {
       "path": "style.css",
-      "sha256": "baff5b4357826484e09a542ff9e38394f40261aff3059b9fcbbd7347ccf68d67"
+      "sha256": "f13dfff9395de7969718353e280641c2f76b08292e6ac547bfe9b292f6dbbac0"
     },
     {
       "path": "theme.js",
@@ -270,7 +274,7 @@
       "sha256": "7192f0b4d219f7089da580a22a46e5c2c2afc64965a3c2beabd7427dc6bafb9e"
     }
   ],
-  "aggregate": "f6f55dd84623fd941c0d7ed7dc59c24e97104d817d7bafb10832b69b5d96b351",
+  "aggregate": "32faa6c09d74ad56daf6c1d73e7c1e0e10594df0240f472daa40ff09e8415030",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

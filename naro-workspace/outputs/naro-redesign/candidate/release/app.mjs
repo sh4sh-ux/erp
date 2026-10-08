@@ -12,7 +12,8 @@ async function recordRead(repository,backend,timing={}){activeRepository=reposit
 
 import {createRuntime} from './runtime.mjs';
 
-const {auth,cloud,blockedProviders={},prepareConnect=()=>{},cancelConnect=()=>{}}=await createRuntime();
+const {auth,cloud,blockedProviders={},prepareConnect=()=>{},cancelConnect=()=>{},canResume=()=>false,deviceRemember=()=>false,setDeviceRemember=()=>{},forgetDevice=async()=>{}}=await createRuntime();
+let autoResumeTried=false;
 const view=document.getElementById('view'),notice=document.getElementById('notice');
 let previousScreen='',selectedProvider=null,chooseStorage=false,connectStarted=0,phaseStarted=0;
 const labels=['거래처','품목','견적서','입금·출금','재고 기록','업체 제공 자재'];
@@ -76,6 +77,8 @@ function render(state){
     catch(e){notice.textContent=e?.code==='POPUP_BLOCKED'?'팝업을 허용한 뒤 연결하기를 다시 눌러 주세요.':message(e);notice.setAttribute('role','alert');}
     finally{cancelConnect();}
    });
+   {const box=document.createElement('label');box.className='remember-device';box.innerHTML='<input type="checkbox"'+(deviceRemember()?' checked':'')+'><span>이 기기 기억하기<small>Dropbox · 다음부터 자동으로 연결돼요. 공용 기기에서는 끄세요.</small></span>';box.querySelector('input').onchange=ev=>setDeviceRemember(ev.target.checked);const at=view.querySelector('.connect-note')||document.getElementById('connect');at?.after(box);
+    if(selectedProvider&&canResume(selectedProvider)&&!autoResumeTried){autoResumeTried=true;const note=view.querySelector('.connect-note');if(note)note.textContent='이 기기에 기억된 연결로 자동 연결하고 있어요…';setTimeout(()=>document.getElementById('connect')?.click(),0);}}
   }else if(screen==='connecting'||screen==='preparing'){
    view.innerHTML=`<div class="connecting-icon">${providerIcon(state.provider||selectedProvider)}</div>`+
     (state.screen==='preparing'?heading('업무 데이터를<br>불러오고 있습니다.','저장공간에서 최신 자료를 가져오고 있어요.'):heading(providerName(state.provider||selectedProvider)+'에<br>연결하고 있습니다.','계정 확인 창이 열리면 승인해 주세요.'))+
@@ -84,7 +87,7 @@ function render(state){
    auth.rememberProvider(state.provider||selectedProvider);chooseStorage=false;
    view.innerHTML=heading('업무 화면을<br>열고 있습니다.','저장공간 확인이 완료되었습니다.')+'<div class="progress" role="progressbar" aria-label="화면 여는 중" data-step="3"></div>';
    const verifiedData=state.db,verifiedRepository=activeRepository;
-   queueMicrotask(()=>{if(flow.state.screen==='ready'&&flow.state.db===verifiedData&&activeRepository===verifiedRepository)openWorkspace(verifiedData,()=>flow.logout(),verifiedRepository);});
+   queueMicrotask(()=>{if(flow.state.screen==='ready'&&flow.state.db===verifiedData&&activeRepository===verifiedRepository)openWorkspace(verifiedData,async()=>{await forgetDevice();flow.logout();},verifiedRepository);});
   }else if(screen==='workspace'){
    view.innerHTML=heading('나의 NARO','빈 업무 공간이 준비되었습니다.')+
     `<ul class="data-summary">${tables.map((k,i)=>`<li>${labels[i]}<strong>${state.db[k].length}</strong></li>`).join('')}</ul>`+button('logout','로그아웃','secondary');
@@ -105,7 +108,7 @@ function render(state){
    view.innerHTML=heading('재설정 메일을<br>보냈습니다.','메일함에서 비밀번호 재설정 안내를 확인해 주세요.')+button('back','로그인으로 돌아가기');
    bind('back',()=>flow.show('login'));
   }
-  bind('logout',()=>flow.logout());
+  bind('logout',async()=>{await forgetDevice();flow.logout();});
   view.querySelectorAll('[data-password]').forEach(toggle=>toggle.onclick=()=>{
    const input=view.querySelector(`[name="${toggle.dataset.password}"]`),visible=input.type==='password';
    input.type=visible?'text':'password';toggle.setAttribute('aria-pressed',String(visible));

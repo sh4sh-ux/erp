@@ -55,6 +55,7 @@ if(extended){
  runtime=(await readFile(resolve(onboarding,'runtime-live.mjs'),'utf8')).replace('createGoogleBackend({oauth:drive,signal})','createGoogleBackend({oauth:drive,signal,readOnly:true,businessWrite:true,extendedWrite:true,initializeNew:true})').replace('createDropboxBackend({oauth,signal})','createDropboxBackend({oauth,signal,businessWrite:true})');
  for(const name of ['dropbox-oauth.mjs','dropbox-backend.mjs','dropbox-callback.html','dropbox-callback.mjs','dropbox-waiting.html'])await copyFile(resolve(onboarding,name),resolve(release,name));
 }
+await copyFile(resolve(onboarding,'device-vault.mjs'),resolve(release,'device-vault.mjs'));
 await writeFile(resolve(release,'runtime.mjs'),runtime);
 let app=await readFile(resolve(original,'app.mjs'),'utf8');
 app=app.replace('NARO에<br>오신 것을 환영합니다.','NARO-biz에<br>오신 것을 환영합니다.');
@@ -133,6 +134,15 @@ if(business){
   if(!app.includes(place))throw Error('ACCOUNT_CHOICE_BOUNDARY_CHANGED');
   app=app.replace(place,"if(reconnect){view.querySelector('.connect-note').after(accountChoice);requestAnimationFrame(()=>document.getElementById('connect')?.focus({preventScroll:true}));}else document.getElementById('connect').before(accountChoice);");
  }else if(business)throw Error('RECONNECT_UI_BOUNDARY_CHANGED');
+}
+// 이 기기 기억하기(10/8, 사용자 선택 A): 저장소 화면에 체크(기본 켬). 기억된 Dropbox면 화면을 열자마자 창 없이 자동 연결,
+// 로그아웃하면 이 기기의 열쇠를 지운다. 열쇠 보관·갱신은 device-vault.mjs · dropbox-oauth.mjs · dropbox-backend.mjs.
+{
+ const P=(from,to,code)=>{if(!app.includes(from))throw Error(code);app=app.replace(from,()=>to);};
+ P("const {auth,cloud,blockedProviders={},prepareConnect=()=>{},cancelConnect=()=>{}}=await createRuntime();","const {auth,cloud,blockedProviders={},prepareConnect=()=>{},cancelConnect=()=>{},canResume=()=>false,deviceRemember=()=>false,setDeviceRemember=()=>{},forgetDevice=async()=>{}}=await createRuntime();\nlet autoResumeTried=false;",'REMEMBER_RUNTIME');
+ P("    finally{cancelConnect();}\n   });\n","    finally{cancelConnect();}\n   });\n   {const box=document.createElement('label');box.className='remember-device';box.innerHTML='<input type=\"checkbox\"'+(deviceRemember()?' checked':'')+'><span>이 기기 기억하기<small>Dropbox · 다음부터 자동으로 연결돼요. 공용 기기에서는 끄세요.</small></span>';box.querySelector('input').onchange=ev=>setDeviceRemember(ev.target.checked);const at=view.querySelector('.connect-note')||document.getElementById('connect');at?.after(box);\n    if(selectedProvider&&canResume(selectedProvider)&&!autoResumeTried){autoResumeTried=true;const note=view.querySelector('.connect-note');if(note)note.textContent='이 기기에 기억된 연결로 자동 연결하고 있어요…';setTimeout(()=>document.getElementById('connect')?.click(),0);}}\n",'REMEMBER_UI');
+ const before=app;app=app.split("bind('logout',()=>flow.logout());").join("bind('logout',async()=>{await forgetDevice();flow.logout();});");if(app===before)throw Error('REMEMBER_LOGOUT');
+ { const re=/openWorkspace\(([A-Za-z.]+),\(\)=>flow\.logout\(\)/g; if(!re.test(app))throw Error('REMEMBER_WS_LOGOUT'); app=app.replace(re,(_m,d)=>`openWorkspace(${d},async()=>{await forgetDevice();flow.logout();}`); }
 }
 // Progress that says what is happening: account (1/3) → data (2/3) → workspace (3/3).
 {
