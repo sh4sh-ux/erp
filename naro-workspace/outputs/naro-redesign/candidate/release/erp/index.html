@@ -10032,15 +10032,19 @@ html body #appView #qtForm #fq_short>div>.hd{cursor:pointer;position:relative;pa
 html body #appView #qtForm #fq_short>div>.hd::after{content:'보기 ›';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
 html body #appView #qtForm #fq_short.nd-open>div>.hd::after{content:'접기'}
 html body #appView #qtForm #fq_short:not(.nd-open)>div>.hd{border-bottom:0!important;margin-bottom:0!important;padding-bottom:0!important}
-/* 폰: 단계 줄 = 얇은 막대 4칸(글자는 막대 아래) */
+/* 폰(10/8 다시): 단계 줄 대신 한 줄 요약(지금 상태 · 나머지) + 오른쪽 버튼 하나. 요약을 누르면 진행 탭. */
+html body #appView #qtForm .nd-sum{display:none}
 @media (max-width:780px){
- html body #appView #qtForm .nd-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:start}
- html body #appView #qtForm .nd-step-ln{display:none}
- html body #appView #qtForm .nd-step>:is(button,span){display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;font-size:11.5px;line-height:15px;white-space:normal;text-align:left;word-break:keep-all}
- html body #appView #qtForm .nd-step i{width:100%;height:4px;border:0!important;border-radius:2px;background:color-mix(in srgb,var(--nd-ink) 12%,transparent)!important}
- html body #appView #qtForm .nd-step i svg{display:none}
- html body #appView #qtForm .nd-step.done i{background:var(--nd-blue)!important}
- html body #appView #qtForm .nd-step.cur i{background:color-mix(in srgb,var(--nd-blue) 35%,transparent)!important}
+ html body #appView #qtForm .nd-next{flex-wrap:wrap;align-items:center;gap:10px 12px;margin:0 0 16px;padding:14px 0;border-bottom:1px solid var(--nd-line)}
+ html body #appView #qtForm .nd-steps{display:none!important}
+ html body #appView #qtForm .nd-sum{display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex:1 1 170px;min-width:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+ html body #appView #qtForm .nd-sum b{font:700 15.5px/22px var(--sans);color:var(--nd-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+ html body #appView #qtForm .nd-sum span{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+ html body #appView #qtForm .nd-next-act{flex:0 0 auto;margin:0 0 0 auto}
+ html body #appView #qtForm .nd-next-b{flex:none;height:40px;padding:0 16px}
+ html body #appView #qtForm .nd-next-b[data-qa]:not(.pri){display:none}
+ html body #appView #qtForm .nd-next.nd-cancelled .nd-cx{flex-direction:column;gap:0}
+}
 }
 .nd-qa-sheet .nd-ps-act.nd-ps-one{grid-template-columns:1fr}
 html body #appView #qtForm [data-delivery-remove][disabled]{display:none!important}
@@ -10096,6 +10100,13 @@ html body #appView #qtForm .nd-next.nd-cancelled .nd-cx span{font:400 13px/20px 
 html body #appView #qtForm .nd-rec-row .a.neg{color:var(--nd-red)}
 html body #appView #qtList>.nd-cancel-toggle{display:block;width:calc(100% - 32px);margin:12px 16px 20px;height:40px;border:1px dashed var(--nd-line);border-radius:10px;background:transparent;color:var(--nd-ink-2);font:500 13px/1 var(--sans);cursor:pointer}
 @media (max-width:600px){.nd-qa-sheet .nd-qa-pick{grid-template-columns:1fr}}
+/* 폰: 상세 탭 줄(품목·진행·정보)을 목록 탭 줄(전체·작성중…)과 같은 위치·높이로(10/8) — 머리를 줄이고 사이 여백·위 여백을 없앤다 */
+@media (max-width:780px){
+ html body #appView #view-quotes #qtForm>.qp-mobile-actions{height:40px!important;min-height:40px!important}
+ html body #appView #view-quotes #qtForm>.qt-hero{padding-top:6px!important;padding-bottom:0!important;margin-bottom:0!important;height:95px!important;box-sizing:border-box!important;overflow:hidden}
+ html body #appView #view-quotes #qtForm>.qt-hero .qs-row .qs-k,html body #appView #view-quotes #qtForm>.qt-hero .qs-amt-k{margin-bottom:4px!important}
+ html body #appView #view-quotes #qtForm>.qp-tabs{padding-top:0!important;margin-top:0!important}
+}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -11898,7 +11909,7 @@ const NaroOrderImport=(()=>{
  function steps(q){
   if(!committed(q)){
    const sent=q.status==='발송',days=sent&&q.sent_at&&typeof daysSince==='function'?daysSince(q.sent_at):0;
-   return {key:q.status+'|'+days,list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
+   return {key:q.status+'|'+days,sum:sent?{t:days>0?`회신 대기 · ${days}일째`:'회신 대기',s:'거래처가 확정하면 수주 확정을 누르세요'}:{t:'작성중',s:'보냈으면 발송함, 확정됐으면 수주 확정'},list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
     acts:(sent?'':'<button type="button" class="nd-next-b" data-st="발송">발송함</button>')+'<button type="button" class="nd-next-b pri" data-st="수주">수주 확정</button>'};
   }
   const s=state(work(q)),dDone=s.left<=0,pDone=s.balance<=0,taxed=taxedOf(q),nt=noTaxOf(q);
@@ -11907,7 +11918,9 @@ const NaroOrderImport=(()=>{
    {t:nt?'계산서 발행 안 함':taxed?'계산서 발행':'계산서 미발행',st:nt||taxed?'done':'todo',tab:'flow'}];
   const acts=!dDone?(pDone?'':'<button type="button" class="nd-next-b" data-qa="pay">입금 받기</button>')+'<button type="button" class="nd-next-b pri" data-qa="deliver">납품 처리</button>'
    :!pDone?'<button type="button" class="nd-next-b pri" data-qa="pay">입금 받기</button>':'';
-  return {key:[s.left,s.delivered,s.balance,taxed,nt].join('|'),list,acts};
+  const taxTxt=nt?'계산서 발행 안 함':taxed?'계산서 발행':'계산서 미발행';
+  const sum=!dDone?{t:`납품 ${won(s.delivered)} / ${won(s.ordered)}개`,s:`입금 ${won(s.paid)}원 · ${taxTxt}`}:!pDone?{t:`입금 ${won(s.balance)}원 남음`,s:`납품 완료 · ${taxTxt}`}:{t:'납품·입금 완료',s:taxTxt};
+  return {key:[s.left,s.delivered,s.balance,taxed,nt].join('|'),list,acts,sum};
  }
  function bar(){
   const f=document.getElementById('qtForm');if(!f)return;
@@ -11931,7 +11944,7 @@ const NaroOrderImport=(()=>{
   if(el&&el.dataset.key===key&&el.nextElementSibling===anchor)return;
   if(!el){el=document.createElement('div');el.className='nd-next';}
   el.dataset.key=key;
-  el.innerHTML=`<ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
+  el.innerHTML=`<button type="button" class="nd-sum" data-tab="flow"><b>${e(S.sum.t)}</b><span>${e(S.sum.s)}</span></button><ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
   if(el.nextElementSibling!==anchor)anchor.before(el);
  }
  // 품목: 작성중이 아니면 보기 모드(입력칸 테두리·행 삭제·행 추가 숨김) + [편집]

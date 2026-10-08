@@ -31,7 +31,7 @@
  function steps(q){
   if(!committed(q)){
    const sent=q.status==='발송',days=sent&&q.sent_at&&typeof daysSince==='function'?daysSince(q.sent_at):0;
-   return {key:q.status+'|'+days,list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
+   return {key:q.status+'|'+days,sum:sent?{t:days>0?`회신 대기 · ${days}일째`:'회신 대기',s:'거래처가 확정하면 수주 확정을 누르세요'}:{t:'작성중',s:'보냈으면 발송함, 확정됐으면 수주 확정'},list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
     acts:(sent?'':'<button type="button" class="nd-next-b" data-st="발송">발송함</button>')+'<button type="button" class="nd-next-b pri" data-st="수주">수주 확정</button>'};
   }
   const s=state(work(q)),dDone=s.left<=0,pDone=s.balance<=0,taxed=taxedOf(q),nt=noTaxOf(q);
@@ -40,7 +40,9 @@
    {t:nt?'계산서 발행 안 함':taxed?'계산서 발행':'계산서 미발행',st:nt||taxed?'done':'todo',tab:'flow'}];
   const acts=!dDone?(pDone?'':'<button type="button" class="nd-next-b" data-qa="pay">입금 받기</button>')+'<button type="button" class="nd-next-b pri" data-qa="deliver">납품 처리</button>'
    :!pDone?'<button type="button" class="nd-next-b pri" data-qa="pay">입금 받기</button>':'';
-  return {key:[s.left,s.delivered,s.balance,taxed,nt].join('|'),list,acts};
+  const taxTxt=nt?'계산서 발행 안 함':taxed?'계산서 발행':'계산서 미발행';
+  const sum=!dDone?{t:`납품 ${won(s.delivered)} / ${won(s.ordered)}개`,s:`입금 ${won(s.paid)}원 · ${taxTxt}`}:!pDone?{t:`입금 ${won(s.balance)}원 남음`,s:`납품 완료 · ${taxTxt}`}:{t:'납품·입금 완료',s:taxTxt};
+  return {key:[s.left,s.delivered,s.balance,taxed,nt].join('|'),list,acts,sum};
  }
  function bar(){
   const f=document.getElementById('qtForm');if(!f)return;
@@ -64,7 +66,7 @@
   if(el&&el.dataset.key===key&&el.nextElementSibling===anchor)return;
   if(!el){el=document.createElement('div');el.className='nd-next';}
   el.dataset.key=key;
-  el.innerHTML=`<ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
+  el.innerHTML=`<button type="button" class="nd-sum" data-tab="flow"><b>${e(S.sum.t)}</b><span>${e(S.sum.s)}</span></button><ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
   if(el.nextElementSibling!==anchor)anchor.before(el);
  }
  // 품목: 작성중이 아니면 보기 모드(입력칸 테두리·행 삭제·행 추가 숨김) + [편집]
