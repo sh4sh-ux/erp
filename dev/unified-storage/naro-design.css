@@ -2349,3 +2349,8 @@ html body #appView .nd-stat-link:focus-visible{outline:2px solid var(--nd-blue);
  html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head>.nd-mh-tools>.field>label{padding:0!important}
  html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head>.nd-mh-tools>.field{flex:none!important;width:auto!important;min-width:0!important;padding:0!important}
 }
+/* 레일 로고: 심볼 가로 = NARO 글자 가로(둘 다 64px — 두 원본 그림의 여백 비율이 같아 상자 폭이 같으면 잉크 폭도 같다) */
+html body #appView[data-layout-system] .shell .rail-logo>.rail-mark{width:64px!important;height:56px!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-mark>img{width:64px!important;height:auto!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-brand{width:64px!important;height:15px!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-brand::before{-webkit-mask-size:100% 100%!important;mask-size:100% 100%!important}
