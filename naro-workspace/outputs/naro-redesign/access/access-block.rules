@@ -1,6 +1,7 @@
     // ── NARO Biz 회원 승인제 (여기부터) ─────────────────────────────
     // 기존 규칙은 그대로 두고, 'match /databases/{database}/documents {' 바로 아래 줄에 이 블록만 붙여 넣는다.
-    // access/{uid} = { email, status: 'pending' | 'approved' | 'rejected', requestedAt, decidedAt }
+    // access/{uid} = { email, status: 'pending' | 'approved' | 'rejected', requestedAt, decidedAt, features: [기능 키], accent: 강조 색 }
+    // (2026-10-08) 관리자가 사람마다 켜는 features·accent 두 칸 추가 — 본인은 못 바꾼다.
     match /access/{uid} {
       function naroAdmin() {
         return request.auth != null
@@ -16,8 +17,10 @@
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.requestedAt is timestamp;
       allow update: if naroAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
-        && request.resource.data.status in ['pending', 'approved', 'rejected'];
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt', 'features', 'accent'])
+        && request.resource.data.status in ['pending', 'approved', 'rejected']
+        && (!('features' in request.resource.data) || (request.resource.data.features is list && request.resource.data.features.size() <= 50))
+        && (!('accent' in request.resource.data) || request.resource.data.accent in ['', 'green', 'teal', 'violet', 'pink']);
       allow delete: if naroAdmin();
     }
     // ── NARO Biz 회원 승인제 (여기까지) ─────────────────────────────

@@ -11,7 +11,7 @@
     },
     {
       "path": "access-control.mjs",
-      "sha256": "d095ef5eb42e6f013e345e797bda689fb2e0164876e756785a608df01b71792c"
+      "sha256": "d2e60eeffe2d3c225e146546592162a6c87cca698365d6da2361bbcbc563f5bd"
     },
     {
       "path": "app.mjs",
@@ -83,7 +83,7 @@
     },
     {
       "path": "erp/access-ui.mjs",
-      "sha256": "4b2338d77a23f012cd191c530e67c91c5b4dd1010aaaf7a1ef229a4381309757"
+      "sha256": "ca7226319955dc6fcc9ca7123bff2619f15a93f1dcf3b72229f3b85b33717bbb"
     },
     {
       "path": "erp/asset-ui.mjs",
@@ -91,7 +91,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "aeaa618aa827d1b70a8ab41b628397a78974da4277265e5b336c9484ce78a624"
+      "sha256": "56c83b167f146e4f730481844f0df7088b01c407a536afc06d7612cd9b4fc75b"
     },
     {
       "path": "erp/favicon.png",
@@ -111,7 +111,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "02e6edf1d0af32a07889ee84d4a1654908a035febd77add1c8cf44d4edfb548c"
+      "sha256": "84d7efa0d58b0ce1c17e7f9ab08f1869a66926a9d837095f415df1e14f76fe43"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -267,10 +267,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "dcefbcfcaa0b9662c09ca706ffed1345a77214b24d33bba4b011c8c5479cb902"
+      "sha256": "7192f0b4d219f7089da580a22a46e5c2c2afc64965a3c2beabd7427dc6bafb9e"
     }
   ],
-  "aggregate": "76358a61422170ba293141a5b214b632585b7133dbdd4a0d5752ac4895c12751",
+  "aggregate": "7af7b86956b3c1121479842ee812f1fe8d0948b393f1352634139f8c688492f5",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

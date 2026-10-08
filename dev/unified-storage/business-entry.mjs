@@ -77,6 +77,11 @@ export function start(bridge,build){
   try{
    if(!build?.personalBusinessWrite)throw Error();
    snapshot=validateData(e.data.data);Object.assign(bridge.db,structuredClone(snapshot));port=e.ports[0];providerLabel=e.data.provider==='dropbox'?'Dropbox':'Google Drive';
+   // 사용자별 맞춤(관리자가 켠 기능·강조 색): <html data-nd-f="기능 …" data-nd-accent="색">, window.ndHas('기능').
+   {const f=(Array.isArray(e.data.features)?e.data.features:[]).filter(k=>typeof k==='string'&&/^([a-z0-9-]{1,32}|\*)$/.test(k)).slice(0,50);
+    const accent=typeof e.data.accent==='string'&&/^[a-z]{0,12}$/.test(e.data.accent)?e.data.accent:'';
+    document.documentElement.dataset.ndF=f.join(' ');if(accent)document.documentElement.dataset.ndAccent=accent;else delete document.documentElement.dataset.ndAccent;
+    window.ndHas=key=>f.includes('*')||f.includes(key);}
    port.onmessage=async e=>{
     const m=e.data;if(mail?.onMessage(m)||accessUI?.onMessage(m))return;
     if(!pending||m?.requestId!==pending.requestId)return;

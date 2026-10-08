@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createAccess,ADMIN_EMAIL} from './access-control.mjs';
+import {createAccess,ADMIN_EMAIL,FEATURES,ACCENTS} from './access-control.mjs';
 const BASE='https://firestore.googleapis.com/v1/projects/naro-biz/databases/(default)/documents';
 function fake({email='buyer@company.co.kr',verified=true,routes=[]}={}){
  const calls=[];
@@ -52,4 +52,23 @@ test('목록·결정은 관리자만, 결정은 status·decidedAt만 바꾼다',
  const c=admin.calls[2];assert.equal(c.method,'PATCH');assert.equal(c.url,BASE+'/access/u1?updateMask.fieldPaths=status&updateMask.fieldPaths=decidedAt&currentDocument.exists=true');
  assert.deepEqual(Object.keys(c.body.fields).sort(),['decidedAt','status']);
  await assert.rejects(admin.access.decide('../x','approved'),{code:'VALIDATION'});await assert.rejects(admin.access.decide('u1','owner'),{code:'VALIDATION'});
+});
+
+test('사용자별 맞춤: 확인 결과·profile에 켜진 기능·강조 색이 실리고, 모르는 값은 버린다',async()=>{
+ const {access}=fake({routes:[{status:200,body:doc('approved',{features:{arrayValue:{values:[{stringValue:'extra-report'},{stringValue:'<x>'}]}},accent:{stringValue:'green'}})}]});
+ const r=await access.check();assert.deepEqual(r.features,['extra-report']);assert.equal(r.accent,'green');
+ assert.deepEqual(access.profile(),{features:['extra-report'],accent:'green'});
+ const bad=fake({routes:[{status:200,body:doc('approved',{accent:{stringValue:'red;}'}})}]});assert.equal((await bad.access.check()).accent,'');
+ const admin=fake({email:ADMIN_EMAIL});await admin.access.check();assert.deepEqual(admin.access.profile().features,['*']);
+});
+test('맞춤 저장은 관리자만, features·accent 두 칸만, 목록에 있는 값만',async()=>{
+ const user=fake();await assert.rejects(user.access.configure('u1',{accent:'green'}),{code:'ACCESS_DENIED'});
+ const admin=fake({email:ADMIN_EMAIL,routes:[{status:200,body:doc('approved',{accent:{stringValue:'violet'},features:{arrayValue:{}}})},{status:403,body:{error:{message:'Missing or insufficient permissions.'}}}]});
+ await assert.rejects(admin.access.configure('u1',{accent:'black'}),{code:'VALIDATION'});
+ await assert.rejects(admin.access.configure('u1',{features:['not-in-catalog']}),{code:'VALIDATION'});
+ assert.ok(ACCENTS.some(([k])=>k==='violet'));assert.ok(Array.isArray(FEATURES));
+ const d=await admin.access.configure('u1',{accent:'violet',features:[]});assert.equal(d.accent,'violet');assert.deepEqual(d.features,[]);
+ const c=admin.calls[0];assert.equal(c.method,'PATCH');assert.equal(c.url,BASE+'/access/u1?updateMask.fieldPaths=features&updateMask.fieldPaths=accent&currentDocument.exists=true');
+ assert.deepEqual(Object.keys(c.body.fields).sort(),['accent','features']);
+ await assert.rejects(admin.access.configure('u1',{accent:''}),{code:'ACCESS_RULES_OLD'});
 });

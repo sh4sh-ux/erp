@@ -1,6 +1,6 @@
 import {createMergeImport} from './merge-import.mjs';
 import {createGmailSender} from './gmail-send.mjs';
-import {activeAccess} from './access-control.mjs';
+import {activeAccess,FEATURES,ACCENTS} from './access-control.mjs';
 let gmail=null;
 // Only fixed diagnostic labels cross into the UI; never forward provider messages.
 export function safeStorageFailure(error){
@@ -63,11 +63,12 @@ export function openWorkspace(data,logout,repository){
    // 사용자 승인(관리자만): 저장소 작업과 따로. 관리자가 아니면 목록도 결정도 하지 않는다(서버 규칙도 같은 것을 막는다).
    if(typeof m?.type==='string'&&m.type.startsWith('ACCESS_')){
     const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
-    const codes=['ACCESS_DENIED','ACCESS_NOT_SET_UP','NETWORK_ERROR','SESSION_EXPIRED','QUOTA_LIMIT','VALIDATION'];
+    const codes=['ACCESS_DENIED','ACCESS_NOT_SET_UP','ACCESS_RULES_OLD','NETWORK_ERROR','SESSION_EXPIRED','QUOTA_LIMIT','VALIDATION'];
     const fail=e=>reply({type:'ACCESS_ERROR',code:codes.includes(e?.code)?e.code:'ACCESS_CHECK_FAILED'});
     const access=activeAccess();
     if(!access?.isAdmin()){fail({code:'ACCESS_DENIED'});return;}
-    if(m.type==='ACCESS_LIST'){access.list().then(users=>reply({type:'ACCESS_USERS',users}),fail);return;}
+    if(m.type==='ACCESS_LIST'){access.list().then(users=>reply({type:'ACCESS_USERS',users,catalog:{features:FEATURES,accents:ACCENTS}}),fail);return;}
+    if(m.type==='ACCESS_SET'){access.configure(m.uid,{features:m.features,accent:m.accent}).then(user=>reply({type:'ACCESS_DONE',user}),fail);return;}
     if(m.type==='ACCESS_DECIDE'){access.decide(m.uid,m.status).then(user=>reply({type:'ACCESS_DONE',user}),fail);return;}
     return;
    }
@@ -96,7 +97,8 @@ export function openWorkspace(data,logout,repository){
    finally{busy=false;}
   };
   const provider=repository.identities()[0]?.provider;
-  target.contentWindow.postMessage({type:'NARO_READ_SNAPSHOT',data,provider,admin:activeAccess()?.isAdmin()===true},location.origin,[channel.port2]);
+  const prof=activeAccess()?.profile?.()||{features:[],accent:''};
+  target.contentWindow.postMessage({type:'NARO_READ_SNAPSHOT',data,provider,admin:activeAccess()?.isAdmin()===true,features:prof.features,accent:prof.accent},location.origin,[channel.port2]);
  };
  ready=e=>{if(e.origin===location.origin&&e.source===target.contentWindow&&e.data?.type==='NARO_READ_READY')deliver();};
  window.addEventListener('message',ready);
