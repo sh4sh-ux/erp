@@ -2304,3 +2304,11 @@ html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-p
 .nd-period-sheet{outline:none}
 .nd-period-sheet .nd-per-row:focus{outline:none}
 .nd-period-sheet .nd-per-row:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px;border-radius:6px}
+/* 레일 로고(PC): 심볼 위 + 'NARO' 글자 아래, 가운데 정렬(사용자 지정 그림). 'NARO Biz' 글자는 화면에서 뺀다(읽기 프로그램용으로만 남김).
+   NARO 글자는 원본 그림을 마스크로 써서 글자색 토큰을 칠한다 — 다크 모드에서도 보이게. */
+html body #appView[data-layout-system] .shell>.rail-gutter>.sidebar .rail-logo{flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:12px!important;padding-left:0!important;padding-right:0!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-mark{width:52px!important;height:45px!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-mark>img{width:52px!important;height:auto!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-brand{position:relative;display:block!important;width:76px;height:17px}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-brand>*{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
+html body #appView[data-layout-system] .shell .rail-logo>.rail-brand::before{content:'';position:absolute;inset:0;background:var(--nd-ink);-webkit-mask:url('../naro-wordmark.png') center/contain no-repeat;mask:url('../naro-wordmark.png') center/contain no-repeat}
