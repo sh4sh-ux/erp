@@ -260,7 +260,7 @@ function lineSupplyVat(l){const g=(Number(l.qty)||0)*(Number(l.price)||0);if(!l.
 // 카드전표·현금영수증으로 처리되므로 '계산서 미발행'에서 뺀다. 발행일(tax_at)이 있는 건 그대로 '발행 완료'.
 {
  const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
- P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q); }`,`function noTax(q){ return !!(q && (q.no_tax || (db.companies||[]).find(c=>c.id===q.company_id)?.no_tax)); }
+ P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q); }`,`function noTax(q){ if(!q) return false; const c=(db.companies||[]).find(c=>c.id===q.company_id); return !!(q.no_tax || c?.no_tax || /^(naver|coupang):/.test(q.order_ref||'') || /스마트스토어|쿠팡|네이버/.test(c?.name||'')); }
 function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOTAX_NEEDS');
  P(`if(!isTaxed(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,`if(!isTaxed(q)&&!noTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,'NOTAX_AR',true);
  P(`\${isTaxed(r.q)?\`<span class="sub">\${escapeHtml(r.q.tax_at)}</span>\`:'<span class="pill tax-unissued">미발행</span>'}`,`\${isTaxed(r.q)?\`<span class="sub">\${escapeHtml(r.q.tax_at)}</span>\`:noTax(r.q)?'<span class="sub">발행 안 함</span>':'<span class="pill tax-unissued">미발행</span>'}`,'NOTAX_AR_CELL');
@@ -272,7 +272,7 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
             : noTax(e) ? "계산서를 발행하지 않는 판매예요 (카드·네이버페이·현금영수증 등)"
             : (isDelivered(e) ? '<b class="tax-unissued">납품했지만 아직 미발행</b>입니다'
                               : "납품 후 발행하면 날짜를 남겨 두세요")}</div>
-          <label class="nd-notax"><input type="checkbox" id="fq_notax" \${noTax(e)?"checked":""} \${!e.no_tax&&noTax(e)?'disabled title="거래처 설정으로 발행 안 함"':""}> 계산서 발행 안 함</label>`,'NOTAX_FIELD');
+          <label class="nd-notax"><input type="checkbox" id="fq_notax" \${noTax(e)?"checked":""} \${!e.no_tax&&noTax(e)?'disabled title="거래처 설정(또는 네이버·쿠팡 판매)으로 발행 안 함"':""}> 계산서 발행 안 함</label>`,'NOTAX_FIELD');
  P(`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };`,`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
   const fqNoTax=document.getElementById("fq_notax"); if(fqNoTax) fqNoTax.onchange=ev=>{ if(ev.target.checked) e.no_tax=true; else delete e.no_tax; renderQtDetail(); };`,'NOTAX_BIND');
 }

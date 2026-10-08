@@ -93,3 +93,5 @@ html body #appView #qtForm #fq_short:not(.nd-open)>div>.hd{border-bottom:0!impor
  html body #appView #qtForm .nd-step.done i{background:var(--nd-blue)!important}
  html body #appView #qtForm .nd-step.cur i{background:color-mix(in srgb,var(--nd-blue) 35%,transparent)!important}
 }
+.nd-qa-sheet .nd-ps-act.nd-ps-one{grid-template-columns:1fr}
+html body #appView #qtForm [data-delivery-remove][disabled]{display:none!important}
