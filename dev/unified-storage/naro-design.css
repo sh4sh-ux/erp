@@ -2291,15 +2291,15 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){curs
 .nd-period-sheet .nd-per-empty{margin:0;padding:28px 0;text-align:center;color:var(--nd-ink-3);font-size:14px}
 .nd-period-sheet .nd-per-act{grid-template-columns:1fr}
 /* 구분 탭 규칙(앱 전체): 목록을 '종류'로 나누는 줄(매출 집계 거래처별·품목별·카테고리별 / 입금·출금 전체·입금·출금)은
-   같은 너비로 나눈 밑줄 탭. 높이 PC 46 · 폰 44, 글자 PC 13 · 폰 14 / 500, 고른 쪽 = 파란 글자 600 + 2px 밑줄, 아래 1px 선.
+   같은 너비로 나눈 밑줄 탭(거래처 전체·매출·매입 포함). 높이 PC 46 · 폰 44, 글자 PC 13 · 폰 14 / 500, 고른 쪽 = 파란 글자 600 + 2px 밑줄, 아래 1px 선.
    '상태'로 거르는 칩(견적서 작성중·발송…, 재고 주문 부족…)은 칩 그대로. */
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs){display:flex!important;gap:0!important;align-items:stretch!important;min-height:0!important;height:auto!important;padding:0 20px!important;border-bottom:1px solid var(--nd-line)!important;background:none!important;overflow:visible!important}
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button{flex:1 1 0!important;min-width:0!important;width:auto!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-2)!important;font:500 13px/20px var(--sans)!important;text-align:center!important;white-space:nowrap}
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button[aria-pressed="true"]{color:var(--nd-blue)!important;border-bottom-color:var(--nd-blue)!important;font-weight:600!important}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs,#view-companies .nd-chips){display:flex!important;gap:0!important;align-items:stretch!important;min-height:0!important;height:auto!important;padding:0 20px!important;border-bottom:1px solid var(--nd-line)!important;background:none!important;overflow:visible!important}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs,#view-companies .nd-chips)>button{flex:1 1 0!important;min-width:0!important;width:auto!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-2)!important;font:500 13px/20px var(--sans)!important;text-align:center!important;white-space:nowrap}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs,#view-companies .nd-chips)>button[aria-pressed="true"]{color:var(--nd-blue)!important;border-bottom-color:var(--nd-blue)!important;font-weight:600!important}
 @media (max-width:1023px){
- html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs){padding:0!important}
- html body #appView #view-sales .nd-sa-tabs{padding:0 16px!important}
- html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs)>button{height:44px!important;min-height:44px!important;font-size:14px!important}
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs,#view-companies .nd-chips){padding:0!important}
+ html body #appView :is(#view-sales .nd-sa-tabs,#view-companies .nd-chips){padding:0 16px!important}
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-chips,#view-payments .nd-pay-tabs,#view-companies .nd-chips)>button{height:44px!important;min-height:44px!important;font-size:14px!important}
 }
 .nd-period-sheet{outline:none}
 .nd-period-sheet .nd-per-row:focus{outline:none}
