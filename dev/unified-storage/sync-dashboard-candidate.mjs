@@ -17,7 +17,7 @@ const start=html.indexOf('<style id="naro-design">');
 assert(start>=0,'Missing design layer');
 const end=html.indexOf('</script>',html.indexOf('</style><script>',start));
 assert(end>start,'Missing design script end');
-const design=`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}</script>`;
+const design=`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}</script>`;
 html=html.slice(0,start)+design+html.slice(end+'</script>'.length);
 const dashboard=`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script>`;
 html=html.replace(/<style id="naro-dashboard-style">[\s\S]*?<\/script>/,'');
