@@ -128,7 +128,7 @@ const NaroSalesAnalysis=(()=>{
  });
  header.addEventListener('input',ev=>{if(ev.target===input){state.query=input.value;render();}});
  result.addEventListener('click',ev=>{
-  const button=ev.target.closest('[data-sa-detail]');if(!button||current?.selected)return;
+  const button=ev.target.closest('[data-sa-detail]')||ev.target.closest('tbody tr')?.querySelector('[data-sa-detail]');if(!button||current?.selected)return; // 줄 어디를 눌러도 그 항목으로
   const selected=current.details[Number(button.dataset.saDetail)];if(!selected)return;
   state.selected=selected.id;state.query='';input.value='';render();
   if(phone.matches)header.querySelector('.nd-sa-back').focus({preventScroll:true});else input.focus({preventScroll:true});

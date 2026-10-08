@@ -174,3 +174,23 @@
  #appView .nd-sa-note{font-size:11px}
  #appView .nd-sa-sectionhead{padding-bottom:12px;border-bottom:1px solid var(--nd-line);margin-bottom:0}
 }
+/* 상세 표(사용자 요청 10/8): 수량·비중은 오른쪽(판매 금액 쪽)으로 모으고, 이름 옆 › 화살표 대신 줄 전체를 눌러 그 항목으로.
+   눌러서 들어갈 수 있는 줄은 올리면 옅은 회색(요약 칸·대시보드와 같은 색). */
+@media screen and (min-width:1024px){
+ html body #appView #view-sales .nd-sa-table th:first-child{width:48%}
+ html body #appView #view-sales .nd-sa-table th:nth-child(2){width:10%}
+ html body #appView #view-sales .nd-sa-table th:nth-child(3){width:18%}
+ html body #appView #view-sales .nd-sa-table th:last-child{width:24%}
+}
+@media screen and (min-width:1024px) and (max-width:1279px){
+ html body #appView #view-sales .nd-sa-table th:first-child{width:38%}
+ html body #appView #view-sales .nd-sa-table th:nth-child(2){width:10%}
+ html body #appView #view-sales .nd-sa-table th:nth-child(3){width:22%}
+ html body #appView #view-sales .nd-sa-table th:last-child{width:30%}
+}
+html body #appView #view-sales .nd-sa-open-detail>span[aria-hidden]{display:none!important}
+html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail){cursor:pointer;transition:background-color .12s}
+@media (hover:hover){html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail):hover{background:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))}}
+html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail):active{background:color-mix(in srgb,var(--nd-fill) 60%,var(--nd-surface))}
+html body #appView #view-sales .nd-sa-open-detail:focus{outline:none}
+html body #appView #view-sales .nd-sa-open-detail:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
