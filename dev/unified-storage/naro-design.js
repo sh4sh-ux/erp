@@ -1094,6 +1094,22 @@ const NaroCompanyLedger=(()=>{
   if(!lists.size)return;lists.forEach(groupPickRows);pickMo.takeRecords(); // 우리가 넣은 머리 줄 변화는 버린다
  });
  pickMo.observe(document.body,{childList:true,subtree:true});
+
+ /* 부가세 포함 단가 줄 범례: 견적서 품목 제목 줄 오른쪽에 한 번(금액 칸은 숫자만). 같으면 손대지 않는다. */
+ function vatIncLegend(){
+  const f=document.getElementById('qtForm');if(!f)return;
+  const e=typeof qtEditing!=='undefined'?qtEditing:null;
+  const lines=(e?.lines||[]).filter(l=>(l.name||'').trim()&&(Number(l.qty)||0)>0),inc=lines.filter(l=>l.vat_inc).length;
+  const mode=!inc?'':inc===lines.length?'all':'mixed';
+  if((f.dataset.vinc||'')!==mode){if(mode)f.dataset.vinc=mode;else delete f.dataset.vinc;}
+  const cls='nd-vinc-lg'+(mode==='mixed'?' mixed':''),txt=mode==='all'?'단가·금액 부가세 포함':'부가세 포함 단가';
+  const put=t=>{if(!t)return;let lg=t.querySelector(':scope>.nd-vinc-lg');if(!mode){lg?.remove();return;}
+   if(!lg){lg=document.createElement('span');t.append(lg);}if(lg.className!==cls)lg.className=cls;if(lg.textContent!==txt)lg.textContent=txt;};
+  put([...f.querySelectorAll('.qt-sec-t')].find(x=>/^품목/.test(x.textContent.trim())));        // PC 품목 제목 줄
+  put(f.querySelector('.qp-cards>section:first-child>h3'));                                    // 폰 카드 '품목 N건'
+  const incIds=new Set(lines.filter(l=>l.vat_inc).map(l=>l.id));                              // 폰: 섞였을 때 그 카드 금액 앞 점
+  f.querySelectorAll('.qp-card').forEach(c=>{const id=c.querySelector('[data-qp-edit]')?.dataset.qpEdit;const on=mode==='mixed'&&incIds.has(id);if(c.classList.contains('nd-vinc')!==on)c.classList.toggle('nd-vinc',on);});
+ }
  function jClick(e){
   const app=document.getElementById('appView');if(!app||!app.contains(e.target))return false;
   const sc=e.target.closest?.('[data-nd-stat]');if(sc&&statRoute[sc.dataset.ndStat]){statRoute[sc.dataset.ndStat]();return true;}
@@ -1382,7 +1398,7 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

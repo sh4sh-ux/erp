@@ -29,5 +29,11 @@ html body #appView #view-quotes .list-head:has(.nd-oi-btn){flex-wrap:nowrap!impo
 html body #appView #view-quotes .list-head:has(.nd-oi-btn)>.search{flex:1 1 0!important;min-width:0!important;width:auto!important}
 html body #appView #view-quotes .list-head>.nd-oi-btn{flex:none}
 html body #appView[data-layout-system] #view-quotes .list-head:has(.nd-oi-btn){grid-template-columns:minmax(0,1fr) repeat(3,auto)!important}
-/* 부가세 포함 단가 줄(쇼핑몰 주문 등): 견적서 편집 줄의 금액 옆에 작은 표시 */
-html body #appView #qtForm .qline[data-vinc] .amt::after{content:'부가세 포함';display:block;font:400 10.5px/14px var(--sans);color:var(--nd-ink-3);text-align:right;white-space:nowrap}
+/* 부가세 포함 단가 줄: 금액은 숫자만, 품목 제목 줄 오른쪽에 범례 한 번(사용자 요청 10/8).
+   모든 줄이 부가세 포함이면 '단가·금액 부가세 포함', 일반 줄과 섞이면 그 줄 금액 앞에 작은 점 + '• 부가세 포함 단가' */
+html body #appView #qtForm .qt-sec-t:has(>.nd-vinc-lg){display:flex;align-items:baseline;gap:6px}
+html body #appView #qtForm .qt-sec-t>.nd-vinc-lg{margin-left:auto;font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
+html body #appView #qtForm[data-vinc="mixed"] .qline[data-vinc] .amt::before,html body #appView #qtForm .qt-sec-t>.nd-vinc-lg.mixed::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--nd-blue);margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+html body #appView #qtForm .qp-cards>section>h3:has(>.nd-vinc-lg){display:flex;align-items:baseline;gap:6px}
+html body #appView #qtForm .qp-cards>section>h3>.nd-vinc-lg{margin-left:auto;font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
+html body #appView #qtForm .qp-card.nd-vinc .qp-card-amount>strong::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--nd-blue);margin-right:6px;vertical-align:middle;position:relative;top:-1px}
