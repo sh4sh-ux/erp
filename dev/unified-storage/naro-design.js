@@ -1047,8 +1047,35 @@ const NaroCompanyLedger=(()=>{
   d.querySelectorAll('.nd-per-row').forEach(b=>b.onclick=()=>{d.close();rows[+b.dataset.i].open();});
   if(!d.open){d.tabIndex=-1;d.showModal();d.focus({preventScroll:true});} // 첫 줄에 초점 테두리가 생기지 않게 창 자체에 초점
  }
+
+ /* 요약 칸 = 대시보드 '10월 현황' 칸과 같은 모양(규칙 27). 누르면 그 목록으로 — 칸 전체가 버튼. */
+ const STAT_LINKS={arDelivered:'delivered',arPaid:'paid',arPending:'pending',arUntaxed:'tax',paySumIn:'in',paySumOut:'out',paySumNet:'all'};
+ function statLinks(){
+  for(const [id,go] of Object.entries(STAT_LINKS)){const v=document.getElementById(id);const cell=v?.closest('.stat,.scr-hero');if(!cell||cell.dataset.ndStat===go)continue;
+   cell.dataset.ndStat=go;cell.setAttribute('role','button');cell.tabIndex=0;cell.classList.add('nd-stat-link');}
+  document.querySelectorAll('#view-stock .stats>.stock-kpi:not(.nd-stat-link)').forEach(b=>b.classList.add('nd-stat-link'));
+  // 숫자 뒤 단위(원·종)는 대시보드처럼 작게 — 앱이 글자를 다시 쓰면 다음 패스에서 다시 나눈다(같으면 손대지 않음)
+  document.querySelectorAll('#view-ar .stats .stat>.v, #view-stock .stats .stat>.v, #view-payments .ops-summary :is(.stat>.v,.scr-hero>.big)').forEach(v=>{if(v.children.length)return;const m=v.textContent.match(/^(.*\d)\s*(원|종|개|곳|건)$/);if(m)v.innerHTML=m[1].replace(/[&<>]/g,'')+'<small class="nd-cur">'+m[2]+'</small>';});
+ }
+ const setSel=(id,val)=>{const s=document.getElementById(id);if(s&&s.value!==val){s.value=val;s.dispatchEvent(new Event('change',{bubbles:true}));}};
+ const statRoute={
+  delivered:()=>{if(switchView('quotes')===false)return;setSel('qtStatus','납품');},
+  paid:()=>{if(switchView('payments')===false)return;setSel('payFilter','수금');},
+  pending:()=>jPendingList(),tax:()=>jTaxList(),
+  in:()=>setSel('payFilter','수금'),out:()=>setSel('payFilter','지급'),all:()=>setSel('payFilter','')};
+
+ /* 업체 제공 자재(PC): 조회 기준일·재고내역서는 오른쪽 헤더 아래 줄(제목 아래, 왼쪽)로 — 다른 화면처럼 '이 화면을 고르는 도구'는 헤더에. 폰은 제자리. */
+ const matDesk=matchMedia('(min-width:1024px)');
+ function materialHeadTools(){
+  const head=document.querySelector('#view-materials .material-detail-head'),ctl=document.querySelector('#view-materials .material-statement-controls');
+  if(!head||!ctl)return;
+  if(matDesk.matches){if(ctl.parentElement!==head){if(!ctl.previousSibling||ctl.previousSibling.nodeType!==8||ctl.previousSibling.data!=='nd-mat-tools'){ctl.before(document.createComment('nd-mat-tools'));}ctl.__ndHome=ctl.previousSibling;head.append(ctl);ctl.classList.add('nd-mh-tools');}}
+  else if(ctl.parentElement===head&&ctl.__ndHome?.parentNode){ctl.__ndHome.after(ctl);ctl.classList.remove('nd-mh-tools');}
+ }
+ matDesk.addEventListener('change',()=>materialHeadTools());
  function jClick(e){
   const app=document.getElementById('appView');if(!app||!app.contains(e.target))return false;
+  const sc=e.target.closest?.('[data-nd-stat]');if(sc&&statRoute[sc.dataset.ndStat]){statRoute[sc.dataset.ndStat]();return true;}
   const dv=e.target.closest?.('#view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt)');
   if(dv){periodSheet(dv.classList.contains('nd-db-sale')?'sale':'receipt',dv.closest('.nd-db-values'));return true;}
   const go=e.target.closest?.('[data-nd-go]');
@@ -1060,7 +1087,7 @@ const NaroCompanyLedger=(()=>{
   return false;
  }
  document.addEventListener('click',e=>{try{if(jClick(e)){e.preventDefault();e.stopImmediatePropagation();}}catch(err){}},true);
- document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go]')){e.preventDefault();jClick(e);}},true);
+ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go],[data-nd-stat]')){e.preventDefault();jClick(e);}},true);
  // 저장 버튼 상태: 저장된 그대로면 회색 '저장됨', 고치기 시작하면 파란 '저장'. 새로 만드는 중('등록')은 그대로.
  // 회색이어도 누를 수는 있다(재고 반영을 다시 하려고 견적을 다시 저장하는 경우 등).
  const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')]];
@@ -1334,7 +1361,7 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

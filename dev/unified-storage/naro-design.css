@@ -2312,3 +2312,40 @@ html body #appView[data-layout-system] .shell .rail-logo>.rail-mark>img{width:52
 html body #appView[data-layout-system] .shell .rail-logo>.rail-brand{position:relative;display:block!important;width:76px;height:17px}
 html body #appView[data-layout-system] .shell .rail-logo>.rail-brand>*{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}
 html body #appView[data-layout-system] .shell .rail-logo>.rail-brand::before{content:'';position:absolute;inset:0;background:var(--nd-ink);-webkit-mask:url('../naro-wordmark.png') center/contain no-repeat;mask:url('../naro-wordmark.png') center/contain no-repeat}
+/* 요약 칸 규칙(규칙 27): 받을 금액·재고·입금·출금 요약 = 대시보드 '10월 현황' 칸과 같은 모양.
+   PC: 흰 카드 + 1px 선 · 모서리 16 · 칸 안쪽 12/24 · 이름 13/400 회색 + 오른쪽 ↗ · 숫자 20/600 · 설명 11 회색. 누르면 이동하는 칸은 올리면 옅은 회색. */
+@media screen and (min-width:781px){
+ html body #appView .shell .main :is(#view-ar .stats,#view-stock .stats,#view-payments .ops-summary){background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important;border-radius:16px!important;padding:8px 0!important;box-shadow:none!important;overflow:hidden}
+ html body #appView .shell .main #view-payments .ops-summary .stats{background:none!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) :is(.stats>.stat,.ops-summary>.scr-hero){display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;gap:8px!important;padding:12px 24px!important;background-color:transparent!important;border-radius:0!important;box-shadow:none!important;text-align:left!important;color:var(--nd-ink)}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) :is(.stat>.k,.scr-hero>.lbl){display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:0!important;font:400 13px/18px var(--sans)!important;letter-spacing:0!important;color:var(--nd-ink-2)!important;text-transform:none!important}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) :is(.stat>.v,.scr-hero>.big){margin:0!important;font-family:var(--nd-number-font,inherit)!important;font-size:var(--nd-stat-size,20px)!important;font-weight:var(--nd-stat-weight,600)!important;letter-spacing:var(--nd-stat-spacing,normal)!important;line-height:1.2!important;font-variant-numeric:tabular-nums}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) .nd-cur{font:400 12px/1.5 var(--sans)!important;letter-spacing:0!important;margin-left:3px;color:inherit!important}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) :is(.stat>.hint,.scr-hero>.hint){margin:0!important;font-size:11px!important;line-height:1.5!important;color:var(--nd-ink-3)!important}
+ html body #appView .shell .main .nd-stat-link :is(.k,.lbl)::after{content:'';width:14px;height:14px;flex:none;background:var(--nd-ink-2);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E") center/contain no-repeat}
+}
+html body #appView .nd-stat-link{cursor:pointer;transition:background-color .12s}
+html body #appView .nd-stat-link [data-nd-go]{text-decoration:none!important;background:none!important;box-shadow:none!important}
+@media (hover:hover){html body #appView .shell .main .nd-stat-link:hover{background-color:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface))!important}}
+html body #appView .shell .main .nd-stat-link:active{background-color:color-mix(in srgb,var(--nd-fill) 60%,var(--nd-surface))!important}
+html body #appView .nd-stat-link:focus{outline:none}
+html body #appView .nd-stat-link:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+@media screen and (max-width:780px){
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) :is(.stats>.stat>.v,.ops-summary .stat>.v,.ops-summary>.scr-hero>.big){font-family:var(--nd-number-font,inherit)!important;font-size:var(--nd-stat-size,20px)!important;font-weight:var(--nd-stat-weight,600)!important;letter-spacing:var(--nd-stat-spacing,normal)!important}
+ html body #appView .shell .main :is(#view-ar,#view-stock,#view-payments) .nd-cur{font:400 12px/1.5 var(--sans)!important;letter-spacing:0!important;margin-left:3px;color:inherit!important}
+}
+/* 업체 제공 자재 헤더 도구(PC): 헤더 아래 줄 오른쪽 정렬 = [조회 기준일 날짜][재고내역서], 높이 36(왼쪽 패널 도구와 같음) */
+@media screen and (min-width:1024px){
+ html body #appView .shell .main #view-materials .material-detail-head{position:relative}
+ html body #appView .shell .main #view-materials .material-detail-head>.nd-mh-tools{position:absolute;right:var(--panel-inset,28px);left:auto;bottom:14px;justify-content:flex-end;display:flex!important;align-items:center;gap:8px;margin:0!important;padding:0!important;border:0!important;background:none!important;width:auto!important}
+ html body #appView .shell .main #view-materials .nd-mh-tools>.field{display:flex!important;align-items:center;gap:8px;margin:0!important}
+ html body #appView .shell .main #view-materials .nd-mh-tools>.field>label{margin:0!important;font:400 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important;white-space:nowrap}
+ html body #appView .shell .main #view-materials .nd-mh-tools .date-control{width:150px!important;height:36px!important;min-height:36px!important;box-sizing:border-box}
+ html body #appView .shell .main #view-materials .nd-mh-tools .date-control>*{height:36px!important;min-height:36px!important;box-sizing:border-box}
+ html body #appView .shell .main #view-materials .nd-mh-tools>#mm_statement{height:36px!important;min-height:36px!important;padding:0 14px!important;font:600 13px/1 var(--sans)!important;border-radius:10px!important;white-space:nowrap}
+}
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head>.nd-mh-tools>.field>.date-control{flex:0 0 150px!important;width:150px!important;max-width:none!important;min-width:150px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head>.nd-mh-tools>.field>label{padding:0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head>.nd-mh-tools>.field{flex:none!important;width:auto!important;min-width:0!important;padding:0!important}
+}
