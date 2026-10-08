@@ -37,7 +37,8 @@ export function validateBusinessChange(key,before,next,snapshot){
    rows(row.deliveries);
    for(const d of row.deliveries){valid(Array.isArray(d.lines));for(const l of d.lines)valid(lineIds.has(l.line_id)&&number(l.qty)&&l.qty>0);}
    const old=prior.get(row.id);
-   if(old)for(const d of old.deliveries||[])valid(row.deliveries.some(n=>canonical(n)===canonical(d))); // Correction is a separate feature.
+   // 저장된 납품 기록은 지우거나 고칠 수 없다. 바로잡기는 '취소됨' 표시(void_at, 선택 void_reason)만 더하고 새 기록을 추가한다(기록은 남는다).
+   if(old)for(const d of old.deliveries||[])valid(row.deliveries.some(n=>canonical(n)===canonical(d)||(!d.void_at&&n.id===d.id&&typeof n.void_at==='string'&&Number.isFinite(Date.parse(n.void_at))&&(n.void_reason===undefined||string(n.void_reason))&&canonical({...n,void_at:undefined,void_reason:undefined})===canonical(d))));
   }
   if(key==='payments'){
    if(prior.has(row.id))throw fault('WRITE_BLOCKED');

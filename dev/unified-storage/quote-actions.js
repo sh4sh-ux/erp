@@ -47,6 +47,7 @@
   const q=current();const anchor=f.querySelector('[role="tabpanel"]');
   f.dataset.ndSt=q?q.status:'new';
   editMode(f,q);
+  recs(f,q);
   const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 견적서를 취소(재고 되돌림)할 수 있어요.';
   if(note&&q&&(q.deliveries||[]).length&&note.textContent!==NOTE)note.textContent=NOTE;
   let el=f.querySelector(':scope .nd-next');
@@ -80,9 +81,9 @@
   return sheet;
  }
  /* ── 납품 처리 ── */
- function deliver(){
+ function deliver(start='all'){
   const q0=current();if(!q0||!guard())return;const q=work(q0);const s=state(q);if(!s.left)return;
-  const qty=Object.fromEntries(s.rest.map(r=>[r.l.id,r.left]));let mode='all';
+  const qty=Object.fromEntries(s.rest.map(r=>[r.l.id,r.left]));let mode=start,date=localDate(),memo='';
   const label=l=>`${e(l.name||'')}`,sub=(l,left)=>[l.color,l.spec].filter(Boolean).map(e).join(' · ')+(l.color||l.spec?' · ':'')+`남음 ${won(left)}`;
   const paint=()=>{
    const total=Object.values(qty).reduce((a,b)=>a+b,0);
@@ -90,15 +91,16 @@
     <div class="nd-qa-body">
      <div class="nd-qa-seg" role="tablist"><button type="button" role="tab" aria-selected="${mode==='all'}" data-m="all">남은 수량 전부 (${won(s.left)}개)</button><button type="button" role="tab" aria-selected="${mode==='part'}" data-m="part">일부만</button></div>
      ${mode==='part'?`<div class="nd-qa-lines">${s.rest.map(r=>`<div class="nd-qa-ln"><div><span>${label(r.l)}</span><small>${sub(r.l,r.left)}</small></div><span class="nd-qa-step"><button type="button" data-d="${e(r.l.id)}" data-v="-1" aria-label="줄이기">−</button><input inputmode="numeric" data-q="${e(r.l.id)}" value="${qty[r.l.id]}" aria-label="납품 수량"><button type="button" data-d="${e(r.l.id)}" data-v="1" aria-label="늘리기">+</button></span></div>`).join('')}</div><p class="nd-qa-note">처음엔 남은 수량이 다 채워져 있어요. 이번에 못 보내는 것만 줄이세요.</p>`:''}
-     <div class="nd-qa-fields"><label>납품일<input type="date" id="ndQaDate" value="${localDate()}"></label><label>메모 (선택)<input id="ndQaMemo" placeholder="예: 택배 1박스"></label></div>
+     <div class="nd-qa-fields"><label>납품일<input type="date" id="ndQaDate" value="${e(date)}"></label><label>메모 (선택)<input id="ndQaMemo" value="${e(memo)}" placeholder="예: 택배 1박스"></label></div>
      <p class="nd-qa-after">확인하면 납품이 기록되고 <b>재고가 ${won(total)}개 빠져요</b>. 상태는 ${total>=s.left?'<b>납품</b>':'<b>부분납품</b>'}이 돼요.</p>
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${total>0?'':'disabled'}>${won(total)}개 납품 확인</button></div>`);
+   d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#ndQaMemo').oninput=ev=>{memo=ev.target.value;};
    d.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;if(mode==='all')s.rest.forEach(r=>qty[r.l.id]=r.left);paint();});
    d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const r=s.rest.find(x=>x.l.id===b.dataset.d);qty[r.l.id]=Math.max(0,Math.min(r.left,qty[r.l.id]+Number(b.dataset.v)));paint();});
    d.querySelectorAll('[data-q]').forEach(inp=>inp.onchange=()=>{const r=s.rest.find(x=>x.l.id===inp.dataset.q);const v=Math.floor(Number(String(inp.value).replace(/[^\d]/g,''))||0);qty[r.l.id]=Math.max(0,Math.min(r.left,v));paint();});
    d.querySelector('.nd-qa-go').onclick=async ev=>{
-    const btn=ev.currentTarget,date=d.querySelector('#ndQaDate').value||localDate(),memo=d.querySelector('#ndQaMemo').value.trim();
+    const btn=ev.currentTarget;date=d.querySelector('#ndQaDate').value||localDate();memo=d.querySelector('#ndQaMemo').value.trim();
     const lines=s.rest.map(r=>({line_id:r.l.id,qty:qty[r.l.id]})).filter(x=>x.qty>0);if(!lines.length)return;
     btn.disabled=true;btn.textContent='저장 중…';
     const nq=JSON.parse(JSON.stringify(q));
@@ -114,37 +116,172 @@
   paint();
  }
  /* ── 입금 받기 ── */
- function pay(){
-  const q=current();if(!q||!guard())return;const s=state(work(q));
-  let amount=Math.max(0,s.balance),method='계좌이체',preset='all';
+ function pay(edit=null){
+  const q=current();if(!q||!guard())return;const s0=state(work(q));
+  // 고치기: 이 입금을 뺀 남은 금액 기준. 저장은 새 입금 추가 → 원래 입금 지우기(입금은 고칠 수 없는 장부 — 지우기는 된다)
+  const s=edit?{...s0,balance:s0.balance+(Number(edit.amount)||0)}:s0;
+  let amount=edit?Number(edit.amount)||0:Math.max(0,s.balance),method=edit?.method||'계좌이체',preset=edit?'custom':'all',date=edit?.date||localDate(),memo=edit?.memo||'';
   const paint=()=>{
    const over=amount>s.balance&&s.balance>=0;
-   const d=open(`<div class="nd-ps-hd"><b>입금 받기</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>${edit?'입금 고치기':'입금 받기'}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
     <div class="nd-qa-body">
      <label class="nd-qa-money">받은 금액<input id="ndQaAmt" inputmode="numeric" value="${amount?won(amount):''}" placeholder="0"><span>원</span></label>
      <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,t])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${t}</button>`).join('')}</div>
      <div class="nd-qa-chips" role="group" aria-label="입금 방법">${METHODS.map(m=>`<button type="button" data-me="${m}" aria-pressed="${method===m}">${m}</button>`).join('')}</div>
-     <div class="nd-qa-fields"><label>입금일<input type="date" id="ndQaDate" value="${localDate()}"></label><label>메모 (선택)<input id="ndQaMemo" placeholder="예: 잔금"></label></div>
+     <div class="nd-qa-fields"><label>입금일<input type="date" id="ndQaDate" value="${e(date)}"></label><label>메모 (선택)<input id="ndQaMemo" value="${e(memo)}" placeholder="예: 잔금"></label></div>
      ${over?`<p class="nd-qa-warn">남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.</p>`:''}
     </div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+'원 입금 확인':'금액을 넣어 주세요'}</button></div>`);
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
+   d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#ndQaMemo').oninput=ev=>{memo=ev.target.value;};
    const inp=d.querySelector('#ndQaAmt');
-   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+'원 입금 확인':'금액을 넣어 주세요';};
+   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요';};
    inp.onblur=()=>paint();
    d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=Math.max(0,s.balance);else if(preset==='half')amount=Math.max(0,Math.round(s.balance/2));paint();if(preset==='custom'){const i=sheet.querySelector('#ndQaAmt');i.focus();i.select();}});
    d.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{method=b.dataset.me;paint();});
    d.querySelector('.nd-qa-go').onclick=async ev=>{
     const btn=ev.currentTarget;if(!(amount>0))return;
-    const date=d.querySelector('#ndQaDate').value||localDate(),memo=d.querySelector('#ndQaMemo').value.trim();
+    date=d.querySelector('#ndQaDate').value||localDate();memo=d.querySelector('#ndQaMemo').value.trim();
     btn.disabled=true;btn.textContent='저장 중…';
     const next=[...db.payments,{id:crypto.randomUUID(),date,company_id:q.company_id,quote_id:q.id,kind:'수금',method,amount,memo,created_at:new Date().toISOString()}];
     if(!await saveTable('payments',next)){btn.disabled=false;btn.textContent='다시 시도';return;}
-    db.payments=next;d.close();renderQtDetail();
-    say(`${won(amount)}원 입금을 기록했어요`);
+    db.payments=next;
+    if(edit){const rest=db.payments.filter(x=>x.id!==edit.id);if(!await saveTable('payments',rest)){d.close();renderQtDetail();say('새 입금은 저장했지만 원래 입금을 지우지 못했어요. 원래 입금의 ··· → 지우기를 눌러 주세요.');return;}db.payments=rest;}
+    d.close();renderQtDetail();
+    say(edit?`입금을 ${won(amount)}원으로 고쳤어요`:`${won(amount)}원 입금을 기록했어요`);
    };
   };
   paint();
  }
+ /* ── 진행 탭 기록(10/8 시안 ⑥⑦): 납품 [부분 납품][남은 N개 전체 납품] · 줄마다 ···(고치기·이 납품 취소)
+      입금 [입금 추가] · 줄마다 ···(고치기·지우기) · 계산서 [발행] → 날짜 창. 옛 칸(.quote-flow)은 숨긴다.
+      납품 고치기 = 원래 기록에 '취소됨'(void_at) 표시 + 새 기록 추가를 견적 저장 한 번에(저장소 규칙이 이것만 허용, 기록은 남는다). */
+ const md=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?`${Number(m[2])}.${m[3]}`:'';};
+ const dots='<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="12.5" cy="8" r="1.4"/></svg>';
+ const recLabel=(q,d)=>{try{return typeof deliveryRecordLabel==='function'?deliveryRecordLabel(q,d):'';}catch{return '';}};
+ const recQty=d=>(d.lines||[]).reduce((a,l)=>a+(Number(l.qty)||0),0);
+ function recs(f,q){
+  const panel=f.querySelector('#qp-panel-flow');let box=panel?.querySelector(':scope>.nd-rec');
+  if(!panel||!q){box?.remove();panel?.classList.remove('nd-rec-on');return;}
+  const w=work(q),s=state(w),pays=typeof quotePayments==='function'?quotePayments(q.id):(db.payments||[]).filter(p=>p.kind==='수금'&&p.quote_id===q.id);
+  const dels=(w.deliveries||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
+  const taxed=taxedOf(q),nt=noTaxOf(q),can=committed(q);
+  const key=JSON.stringify([q.id,q.status,q.tax_at,q.no_tax,nt,s.left,s.balance,dels.map(d=>[d.id,d.void_at,d.date,recQty(d)]),pays.map(p=>[p.id,p.amount,p.date,p.method,p.memo])]);
+  if(box&&box.dataset.key===key)return;
+  if(!box){box=document.createElement('div');box.className='nd-rec';panel.prepend(box);}
+  panel.classList.add('nd-rec-on');box.dataset.key=key;
+  const pct=(a,b)=>b>0?Math.min(100,Math.round(a/b*100)):0;
+  const dRows=dels.map(d=>d.void_at?`<div class="nd-rec-row void"><span class="d">${md(d.date)}</span><span class="n">${e(recLabel(w,d)||'납품')}</span><span class="a">${won(recQty(d))}개</span><span class="t">${d.void_reason==='고침'?'고침':'취소됨'}</span></div>`
+   :`<div class="nd-rec-row"><span class="d">${md(d.date)}</span><span class="n">${e(recLabel(w,d)||'납품')}${d.memo?` <small>· ${e(d.memo)}</small>`:''}</span><span class="a">${won(recQty(d))}개</span><button type="button" class="nd-rec-more" data-rm-d="${e(d.id)}" aria-label="이 납품 기록 메뉴" aria-expanded="false">${dots}</button></div>`).join('');
+  const pRows=pays.map(p=>`<div class="nd-rec-row"><span class="d">${md(p.date)}</span><span class="n">${e([p.memo,p.method].filter(Boolean).join(' · ')||'입금')}</span><span class="a">${won(p.amount)}원</span><button type="button" class="nd-rec-more" data-rm-p="${e(p.id)}" aria-label="이 입금 기록 메뉴" aria-expanded="false">${dots}</button></div>`).join('');
+  box.innerHTML=`<section class="nd-rec-card">
+    <div class="nd-rec-hd"><div><h3>납품</h3><span>${won(s.ordered)}개 중 ${won(s.delivered)}개${s.left?` · ${won(s.left)}개 남음`:s.delivered?' · 완료':''}</span></div>
+     <div class="nd-rec-act">${can&&s.left?`<button type="button" class="nd-next-b" data-rec="part">부분 납품</button><button type="button" class="nd-next-b pri" data-rec="all">남은 ${won(s.left)}개 전체 납품</button>`:''}</div></div>
+    <i class="nd-rec-bar" style="--p:${pct(s.delivered,s.ordered)}%"></i>
+    ${dRows||`<p class="nd-rec-empty">${can?'아직 납품 기록이 없어요.':'수주 확정 후 납품을 기록할 수 있어요.'}</p>`}
+   </section>
+   <section class="nd-rec-card">
+    <div class="nd-rec-hd"><div><h3>입금</h3><span>${won(s.amount)}원 중 ${won(s.paid)}원${s.balance>0?` · <b class="amber">${won(s.balance)}원 남음</b>`:s.balance<0?` · ${won(-s.balance)}원 초과`:s.paid?' · 완료':''}</span></div>
+     <div class="nd-rec-act"><button type="button" class="nd-next-b ${s.balance>0?'pri':''}" data-rec="pay">입금 추가</button></div></div>
+    <i class="nd-rec-bar" style="--p:${pct(s.paid,s.amount)}%"></i>
+    ${pRows||'<p class="nd-rec-empty">아직 입금 기록이 없어요.</p>'}
+   </section>
+   <section class="nd-rec-card nd-rec-tax">
+    <div class="nd-rec-hd"><div><h3>계산서</h3><span>${nt?(q.no_tax?'이 거래는 발행하지 않아요':'네이버·쿠팡·거래처 설정으로 발행하지 않아요'):taxed?`${e(String(q.tax_at).replaceAll('-','.'))} 발행`:'아직 발행하지 않았어요'}</span></div>
+     <div class="nd-rec-act">${nt?'<b class="nd-rec-st">발행 안 함</b>':''}${!nt&&!taxed?'<b class="nd-rec-st amber">미발행</b>':''}<button type="button" class="nd-next-b" data-rec="tax">${taxed?'바꾸기':nt?(q.no_tax?'바꾸기':''):'발행'}</button></div></div>
+   </section>`;
+  if(nt&&!q.no_tax)box.querySelector('[data-rec="tax"]')?.remove();
+ }
+ // ··· 메뉴: 바깥을 누르거나 같은 ···을 다시 누르면 닫힌다
+ let menu=null;
+ const closeMenu=()=>{if(!menu)return;menu.btn.setAttribute('aria-expanded','false');menu.el.remove();menu=null;};
+ function openMenu(btn,items){
+  const same=menu&&menu.btn===btn;closeMenu();if(same)return;
+  const el=document.createElement('div');el.className='nd-rec-menu';el.setAttribute('role','menu');
+  el.innerHTML=items.map((it,i)=>`<button type="button" role="menuitem" data-i="${i}" class="${it.danger?'danger':''}">${e(it.t)}</button>`).join('');
+  el.addEventListener('click',ev=>{const b=ev.target.closest('[data-i]');if(!b)return;const it=items[Number(b.dataset.i)];closeMenu();it.fn();});
+  btn.closest('.nd-rec-row').append(el);btn.setAttribute('aria-expanded','true');menu={btn,el};
+ }
+ document.addEventListener('click',ev=>{if(menu&&!ev.target.closest?.('.nd-rec-menu')&&!ev.target.closest?.('.nd-rec-more'))closeMenu();},true);
+ async function saveDeliveries(q,mutate,ok){
+  const orig=(db.quotes||[]).find(x=>x.id===q.id);const nq=work(orig);mutate(nq);normalizeDeliveryStatus(nq);
+  const next=db.quotes.map(x=>x.id===nq.id?nq:x);
+  if(!await saveTable('quotes',next))return false;
+  db.quotes=next;qtEditing=null;qtBaseline='';renderQtList();renderQtDetail();
+  if(stockDeltaForQuote(nq).moves.length&&!await syncStockForQuote(nq,{ask:false})){window.dispatchEvent(new Event('naro-incomplete-stock'));return true;}
+  say(ok);return true;
+ }
+ function editDelivery(id){
+  const q0=current();if(!q0||!guard())return;const q=work(q0);const d0=(q.deliveries||[]).find(x=>x.id===id&&!x.void_at);if(!d0)return;
+  const done=quoteDeliveryQtyMap(q);
+  const rows=(d0.lines||[]).map(dl=>{const l=q.lines.find(x=>x.id===dl.line_id)||{};const was=Number(dl.qty)||0;return {l,id:dl.line_id,was,max:Math.max(was,(Number(l.qty)||0)-(done[dl.line_id]||0)+was)};});
+  const qty=Object.fromEntries(rows.map(r=>[r.id,r.was]));let date=d0.date||localDate();
+  const paint=()=>{
+   const was=rows.reduce((a,r)=>a+r.was,0),now=rows.reduce((a,r)=>a+qty[r.id],0),same=now===was&&rows.every(r=>qty[r.id]===r.was)&&date===d0.date;
+   const d=open(`<div class="nd-ps-hd"><b>납품 기록 고치기</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'')}</span></div>
+    <div class="nd-qa-body"><div class="nd-qa-lines">${rows.map(r=>`<div class="nd-qa-ln"><div><span>${e(r.l.name||'품목')}</span><small>${[r.l.color,r.l.spec].filter(Boolean).map(e).join(' · ')}${r.l.color||r.l.spec?' · ':''}원래 ${won(r.was)}개</small></div><span class="nd-qa-step"><button type="button" data-d="${e(r.id)}" data-v="-1" aria-label="줄이기">−</button><input inputmode="numeric" data-q="${e(r.id)}" value="${qty[r.id]}" aria-label="납품 수량"><button type="button" data-d="${e(r.id)}" data-v="1" aria-label="늘리기">+</button></span></div>`).join('')}</div>
+     <div class="nd-qa-fields"><label>납품일<input type="date" id="ndQaDate" value="${e(date)}"></label></div>
+     <p class="nd-qa-after">${same?'바꾼 내용이 없어요.':now?`확인하면 <b>원래 ${won(was)}개 기록은 '고침'으로 남고 ${won(now)}개 기록이 새로 생겨요.</b> 재고는 차이(${now>was?'+':''}${won(now-was)}개)만큼 반영돼요.`:`0개면 <b>이 납품을 취소</b>하는 것과 같아요. 재고 ${won(was)}개가 되돌아와요.`}</p></div>
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${same?'disabled':''}>${now?`${won(now)}개로 고치기`:'이 납품 취소'}</button></div>`);
+   d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value||date;paint();};
+   d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const r=rows.find(x=>x.id===b.dataset.d);qty[r.id]=Math.max(0,Math.min(r.max,qty[r.id]+Number(b.dataset.v)));paint();});
+   d.querySelectorAll('[data-q]').forEach(inp=>inp.onchange=()=>{const r=rows.find(x=>x.id===inp.dataset.q);qty[r.id]=Math.max(0,Math.min(r.max,Math.floor(Number(String(inp.value).replace(/[^\d]/g,''))||0)));paint();});
+   d.querySelector('.nd-qa-go').onclick=async ev=>{
+    const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';const at=new Date().toISOString(),lines=rows.map(r=>({line_id:r.id,qty:qty[r.id]})).filter(x=>x.qty>0);
+    const ok=await saveDeliveries(q0,nq=>{nq.deliveries=nq.deliveries.map(x=>x.id===id?{...x,void_at:at,void_reason:lines.length?'고침':'취소'}:x);if(lines.length)nq.deliveries.push({id:crypto.randomUUID(),date,lines,memo:d0.memo||'',created_at:at,corrects:id});},lines.length?'납품 기록을 고쳤어요 · 재고 반영 완료':'납품을 취소했어요 · 재고 되돌림 완료');
+    if(ok)d.close();else{btn.disabled=false;btn.textContent='다시 시도';}
+   };
+  };
+  paint();
+ }
+ function cancelDelivery(id){
+  const q0=current();if(!q0||!guard())return;const q=work(q0);const d0=(q.deliveries||[]).find(x=>x.id===id&&!x.void_at);if(!d0)return;
+  const d=open(`<div class="nd-ps-hd"><b>이 납품을 취소할까요?</b><span class="nd-qa-sub">${md(d0.date)} · ${e(recLabel(q,d0)||'')} · ${won(recQty(d0))}개</span></div>
+   <div class="nd-qa-body"><p class="nd-qa-note">기록은 '취소됨'으로 남고 재고 ${won(recQty(d0))}개가 되돌아와요. 매출·받을 금액에서도 빠져요.</p></div>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">납품 취소</button></div>`);
+  d.querySelector('.nd-qa-del').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';
+   const at=new Date().toISOString();const ok=await saveDeliveries(q0,nq=>{nq.deliveries=nq.deliveries.map(x=>x.id===id?{...x,void_at:at,void_reason:'취소'}:x);},'납품을 취소했어요 · 재고 되돌림 완료');
+   if(ok)d.close();else{btn.disabled=false;btn.textContent='다시 시도';}};
+ }
+ function deletePayment(id){
+  const q=current();if(!q||!guard())return;const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
+  const d=open(`<div class="nd-ps-hd"><b>이 입금을 지울까요?</b><span class="nd-qa-sub">${md(p.date)} · ${e([p.memo,p.method].filter(Boolean).join(' · ')||'입금')} · ${won(p.amount)}원</span></div>
+   <div class="nd-qa-body"><p class="nd-qa-note">잘못 넣은 입금일 때만 지워 주세요. 지우면 받을 금액이 ${won(p.amount)}원 늘어나요.</p></div>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">지우기</button></div>`);
+  d.querySelector('.nd-qa-del').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='지우는 중…';
+   const next=db.payments.filter(x=>x.id!==id);if(!await saveTable('payments',next)){btn.disabled=false;btn.textContent='다시 시도';return;}
+   db.payments=next;d.close();renderQtDetail();say('입금을 지웠어요');};
+ }
+ function taxSheet(){
+  const q=current();if(!q||!guard())return;const auto=noTaxOf(q)&&!q.no_tax;
+  let date=q.tax_at||localDate(),off=!!q.no_tax;
+  const t=new Date();t.setDate(t.getDate()-1);const yday=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  const paint=()=>{
+   const d=open(`<div class="nd-ps-hd"><b>계산서 발행</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
+    <div class="nd-qa-body">
+     ${off?'':`<div class="nd-qa-fields"><label>발행일<input type="date" id="ndQaDate" value="${e(date)}"></label></div>
+     <div class="nd-qa-chips" role="group" aria-label="빠른 날짜"><button type="button" data-day="${localDate()}" aria-pressed="${date===localDate()}">오늘</button><button type="button" data-day="${yday}" aria-pressed="${date===yday}">어제</button></div>`}
+     ${auto?'':`<label class="nd-qa-check"><input type="checkbox" id="ndQaOff" ${off?'checked':''}> 이 거래는 계산서를 발행하지 않아요 <small>(현금·카드 판매 등)</small></label>`}
+    </div>
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go">${off?'발행 안 함으로 저장':q.tax_at?'발행일 저장':'발행 저장'}</button></div>`);
+   d.querySelector('#ndQaDate')?.addEventListener('change',ev=>{date=ev.target.value||date;paint();});
+   d.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{date=b.dataset.day;paint();});
+   d.querySelector('#ndQaOff')?.addEventListener('change',ev=>{off=ev.target.checked;paint();});
+   d.querySelector('.nd-qa-go').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';
+    const nq=JSON.parse(JSON.stringify((db.quotes||[]).find(x=>x.id===q.id)));
+    if(off){nq.no_tax=true;nq.tax_at='';}else{delete nq.no_tax;nq.tax_at=date;}
+    const next=db.quotes.map(x=>x.id===nq.id?nq:x);
+    if(!await saveTable('quotes',next)){btn.disabled=false;btn.textContent='다시 시도';return;}
+    db.quotes=next;qtEditing=null;qtBaseline='';d.close();renderQtList();renderQtDetail();say(off?'계산서 발행 안 함으로 저장했어요':`계산서 발행일 ${date.replaceAll('-','.')} 저장했어요`);};
+  };
+  paint();
+ }
+ document.addEventListener('click',ev=>{
+  const b=ev.target.closest?.('#qtForm .nd-rec [data-rec],#qtForm .nd-rec .nd-rec-more');if(!b)return;ev.preventDefault();
+  if(b.dataset.rec==='part')return deliver('part');if(b.dataset.rec==='all')return deliver('all');
+  if(b.dataset.rec==='pay')return pay();if(b.dataset.rec==='tax')return taxSheet();
+  if(b.dataset.rmD){const id=b.dataset.rmD;return openMenu(b,[{t:'수량·날짜 고치기',fn:()=>editDelivery(id)},{t:'이 납품 취소 (재고 되돌림)',danger:true,fn:()=>cancelDelivery(id)}]);}
+  if(b.dataset.rmP){const p=(db.payments||[]).find(x=>x.id===b.dataset.rmP);if(!p)return;return openMenu(b,[{t:'고치기',fn:()=>pay(p)},{t:'지우기',danger:true,fn:()=>deletePayment(p.id)}]);}
+ });
  document.addEventListener('click',ev=>{
   const t=ev.target.closest?.('#qtForm .nd-next [data-qa],#qtForm .nd-next [data-st],#qtForm .nd-next [data-tab],#qtForm .nd-edit-b');if(!t)return;ev.preventDefault();
   if(t.dataset.qa){t.dataset.qa==='deliver'?deliver():pay();return;}

@@ -10,7 +10,7 @@ const NaroCompanyLedger=(()=>{
   for(const q of quotes)if(q.id)counts.set(q.id,(counts.get(q.id)||0)+1);
   quotes.forEach((q,index)=>{
    if(q.company_id!==cid)return;
-   const deliveries=(q.deliveries||[]).map(d=>{
+   const deliveries=(q.deliveries||[]).filter(d=>!d.void_at).map(d=>{
     const lines=helpers.deliveredLines(q,d),names=lines.map(l=>l.name).filter(Boolean);
     return {date:d.date||q.delivered_at||'',ts:d.created_at||'',kind:'납품',amount:helpers.total(lines),description:names.length?names[0]+(names.length>1?` 외 ${names.length-1}건`:''):'납품',memo:d.memo||''};
    });
@@ -1032,7 +1032,7 @@ const NaroCompanyLedger=(()=>{
   const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const co=id=>(db.companies||[]).find(c=>c.id===id)?.name||'거래처 없음',won=v=>Math.round(v).toLocaleString('ko-KR');
   let rows=[];
-  if(kind==='sale'){for(const q of db.quotes||[])for(const d of q.deliveries||[])if(hit(d.date)){let amt=0;try{amt=quoteTotals({lines:deliveredLines(q,d)}).total;}catch{}rows.push({date:d.date,name:co(q.company_id),sub:q.no||'',amt,open:()=>{if(switchView('quotes')===false)return;if(typeof clearQtFilters==='function')clearQtFilters();qtSel=q.id;renderQtList();renderQtDetail();}});}}
+  if(kind==='sale'){for(const q of db.quotes||[])for(const d of q.deliveries||[])if(!d.void_at&&hit(d.date)){let amt=0;try{amt=quoteTotals({lines:deliveredLines(q,d)}).total;}catch{}rows.push({date:d.date,name:co(q.company_id),sub:q.no||'',amt,open:()=>{if(switchView('quotes')===false)return;if(typeof clearQtFilters==='function')clearQtFilters();qtSel=q.id;renderQtList();renderQtDetail();}});}}
   else for(const p of db.payments||[])if(p.kind==='수금'&&!p.void_at&&hit(p.date))rows.push({date:p.date,name:co(p.company_id),sub:[p.method,p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no:''].filter(Boolean).join(' · '),amt:Number(p.amount)||0,open:()=>{if(switchView('payments')===false)return;openPaySheet(p.id);}});
   rows.sort((a,b)=>b.date.localeCompare(a.date));
   const sum=rows.reduce((s,r)=>s+r.amt,0),label=kind==='sale'?'매출':'입금';

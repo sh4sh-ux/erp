@@ -276,6 +276,14 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
  P(`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };`,`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
   const fqNoTax=document.getElementById("fq_notax"); if(fqNoTax) fqNoTax.onchange=ev=>{ if(ev.target.checked) e.no_tax=true; else delete e.no_tax; renderQtDetail(); };`,'NOTAX_BIND');
 }
+// 납품 기록 바로잡기(10/8): '취소됨'(void_at) 납품 기록은 기록으로만 남고 수량·금액·매출·재고·원장 계산에서 빠진다.
+{
+ const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
+ P('function quoteDeliveryQtyMap(q){','function liveDeliveries(q){ return ((q&&q.deliveries)||[]).filter(d=>!d.void_at); }\nfunction quoteDeliveryQtyMap(q){','VOID_DEF');
+ P('(q.deliveries||[])','liveDeliveries(q)','VOID_ALL',true);
+ P('const records=q.deliveries||[], at=','const records=liveDeliveries(q), at=','VOID_RECORDS');
+ if(html.includes('(q.deliveries||[])'))throw Error('VOID_LEFT');
+}
 // 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
 {
  const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],

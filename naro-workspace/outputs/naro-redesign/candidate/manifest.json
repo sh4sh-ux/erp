@@ -27,7 +27,7 @@
     },
     {
       "path": "business-contract.mjs",
-      "sha256": "bd108ab525e09b73cf9797e0c8a16a51c9c73cd92677dde44a1d128f9b665e52"
+      "sha256": "75b9f8a9b1163a4d1afa1411b247dac918ed532d72969eba5507785d9bc0d736"
     },
     {
       "path": "client-config.mjs",
@@ -111,7 +111,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "b6272b307460b84a644b2b65444743820406c27cdd1ca120a496e4f7bebba1be"
+      "sha256": "6403c4ef5e83ee5b3fc4fc71e3bab19182eedace37b9d67fbb121545cdffbf33"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -270,7 +270,7 @@
       "sha256": "7192f0b4d219f7089da580a22a46e5c2c2afc64965a3c2beabd7427dc6bafb9e"
     }
   ],
-  "aggregate": "ac1830c724eed4013f01c3fb86358d766aa1528a15ddc78ebbaa5081d9c4861a",
+  "aggregate": "826614429a092c08b8b75036febafe4b5dddd3ecf7313bb130d27907c0f1dd70",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

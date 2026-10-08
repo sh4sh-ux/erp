@@ -53,7 +53,7 @@
   const inRange=date=>parseDay(date)&&date>=bounds.from&&date<=bounds.to;
   // The same deliveredLines + quoteTotals helpers used by monthSales include
   // partial delivery and final-delivery service/discount recognition.
-  for(const q of data.quotes||[])for(const d of q.deliveries||[]){
+  for(const q of data.quotes||[])for(const d of q.deliveries||[]){if(d.void_at)continue;
    if(!inRange(d.date))continue;
    const r=byKey.get(String(d.date||'').slice(0,size));if(r)r.sale+=deliveryTotal(q,d);
   }
