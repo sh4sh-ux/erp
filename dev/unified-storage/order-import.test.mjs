@@ -36,6 +36,6 @@ test('이미 가져온 주문은 표시되고, 고른 색은 기억된다',()=>{
  assert.equal(M.matchColor('퍼플',items[0],{}).ok,false);assert.equal(M.matchSize('XXL',items[0]).spec,'2XL');
 });
 test('index.html에 String.replace로 끼워 넣는 파일에는 치환 특수 문자열이 없다',async()=>{
- for(const f of ['order-import.js','naro-design.js','sales-analysis.js','order-import.css','naro-design.css','sales-analysis.css'])
+ for(const f of ['order-import.js','quote-actions.js','quote-actions.css','naro-design.js','sales-analysis.js','order-import.css','naro-design.css','sales-analysis.css'])
   assert.doesNotMatch(await readFile(new URL('./'+f,import.meta.url),'utf8'),/\$[&'`]/,f);
 });
