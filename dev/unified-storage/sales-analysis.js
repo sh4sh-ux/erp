@@ -23,7 +23,7 @@ const NaroSalesAnalysis=(()=>{
  function rows(groups,items,companies){
   const im=new Map(items.map(i=>[i.id,i])),cm=new Map(companies.map(c=>[c.id,c.name]));
   return Object.entries(groups).flatMap(([cid,group])=>Object.values(group).map(r=>{
-   const it=im.get(r.item_id),qty=number(r.qty),price=number(r.price),supply=qty*price,vat=Math.round(supply*.1);
+   const it=im.get(r.item_id),qty=number(r.qty),price=number(r.price),gross=Math.round(qty*price*100)/100,supply=r.vat_inc?Math.round(gross/1.1):gross,vat=r.vat_inc?Math.round(gross)-supply:Math.round(supply*.1); // 부가세 포함 단가 줄(쇼핑몰 주문)은 결제액을 거꾸로 나눈다
    const category=text(it?.category).trim()||'미분류',buy=unitCost(it,r.spec,im);
    const identity=text(r.name).match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
    return {cid,company:cm.get(cid)||'거래처 정보 없음',itemKey:it?JSON.stringify(['id',it.id]):JSON.stringify(['name',r.name]),

@@ -88,15 +88,16 @@ const NaroOrderImport=(()=>{
   }
   return {kind,label:KINDS[kind].label,orders:[...map.values()].map(o=>({...o,total:o.lines.reduce((s,l)=>s+l.gross,0)+o.ship,ready:o.lines.every(l=>l.item&&l.colorOk&&l.sizeOk)}))};
  }
- // 주문 → 수주 견적서. 쇼핑몰 금액은 부가세 포함이라 단가는 ÷1.1(견적서는 공급가 + 부가세 10%).
+ // 주문 → 수주 견적서. 쇼핑몰 금액은 부가세 포함 결제액 그대로 '부가세 포함 단가' 줄(vat_inc)로 넣는다 —
+ // 공급가·부가세는 앱이 결제액을 거꾸로 나눠 계산하므로 몇 건을 더해도 합계 = 결제액(1원 차이 없음).
  function quote(order,{companyId,no,uuid,now,shipItem}){
-  const supply=g=>Math.round(g/1.1);
-  const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:supply(l.gross/l.qty)}));
-  if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:supply(order.ship)});
+  const unit=(g,q)=>Math.round(g/q*1e6)/1e6;
+  const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:unit(l.gross,l.qty),vat_inc:true}));
+  if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'__free__',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:order.ship,vat_inc:true});
   return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',created_at:now,order_ref:order.ref};
  }
- // 견적서로 만들었을 때 합계(공급가 반올림 때문에 결제액과 몇 원 다를 수 있다)
- function quoteTotal(order){const sup=order.lines.reduce((s,l)=>s+l.qty*Math.round(l.gross/l.qty/1.1),0)+(order.ship>0?Math.round(order.ship/1.1):0);return sup+Math.round(sup*.1);}
+ // 견적서로 만들었을 때 합계 = 결제액(부가세 포함 단가 줄이라 반올림 차이가 없다)
+ function quoteTotal(order){return order.lines.reduce((s,l)=>s+l.gross,0)+order.ship;}
  return {detect,day,option,findItem,matchColor,matchSize,orders,quote,quoteTotal,memKey,KINDS};
 })();
 
@@ -148,7 +149,7 @@ const NaroOrderImport=(()=>{
    sheet.addEventListener('click',ev=>{if(ev.target===sheet)sheet.close();});(document.getElementById('appView')||document.body).append(sheet);}
   const s=state,picked=s.orders.filter(o=>o.pick),blocked=picked.some(o=>!o.lines.every(l=>l.item&&l.colorOk&&l.sizeOk));
   sheet.innerHTML=`<div class="nd-ps-hd"><b id="ndOiTtl">${e(s.label)} 주문 가져오기</b><span class="nd-oi-cnt">${s.orders.length}건</span></div>
-   <p class="nd-oi-note">수주 견적서로 만들어요. 구매자 이름·연락처·주소는 가져오지 않아요. 금액은 부가세 포함 결제액 기준이에요.</p>
+   <p class="nd-oi-note">수주 견적서로 만들어요. 금액은 결제액 그대로(부가세 포함 단가)라 견적서 합계가 결제액과 같아요. 구매자 이름·연락처·주소는 가져오지 않아요.</p>
    <div class="nd-oi-list">${s.orders.map((o,i)=>`<section class="nd-oi-ord${o.exists?' done':''}">
     <label class="nd-oi-hd"><input type="checkbox" data-o="${i}" ${o.pick?'checked':''} ${o.exists?'disabled':''}><span class="nd-oi-t"><b>${e(o.date||'날짜 없음')}</b><small>주문 ${e(o.no)}${o.exists?' · 이미 가져왔어요':''}${!o.exists&&M.quoteTotal(o)!==o.total?` · 견적서 ${won(M.quoteTotal(o))}원(반올림 ${won(Math.abs(M.quoteTotal(o)-o.total))}원 차이)`:''}</small></span><strong>${won(o.total)}원</strong></label>
     ${o.lines.map((l,j)=>{const bad=issue(l);return `<div class="nd-oi-ln${bad?' bad':''}">

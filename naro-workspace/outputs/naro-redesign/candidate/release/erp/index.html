@@ -3634,7 +3634,7 @@ function quoteMargin(q){
     const it = (l.item_id && l.item_id!=="__free__") ? db.items.find(x=>x.id===l.item_id) : null;
     const buy = it ? itemBuy(it,l.spec) : 0;
     if(!buy){ unknown++; return; }          // 매입단가 미상 — 마진 계산에서 제외
-    supply += qty*(Number(l.price)||0);
+    supply += qty*(Number(l.price)||0)/(l.vat_inc?1.1:1);
     cost   += qty*buy;
   });
   return { ...marginOf(supply,cost), unknown };
@@ -4312,11 +4312,16 @@ function quoteMarginText(q){
   return fmtMargin(m,m.unknown);
 }
 function quoteTotals(q){
-  const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
+  let ex=0,inc=0;
+  q.lines.forEach(l=>{const g=(Number(l.qty)||0)*(Number(l.price)||0);if(l.vat_inc)inc+=g;else ex+=g;});
+  inc=Math.round(inc*100)/100;
+  const incSupply=Math.round(inc/1.1);
   const qty=q.lines.reduce((s,l)=>s+((l.name||"").trim()?(Number(l.qty)||0):0),0);
-  const vat=Math.round(supply*0.1);
+  const supply=ex+incSupply, vat=Math.round(ex*0.1)+(inc-incSupply);
   return { supply, vat, total:supply+vat, qty };
 }
+/* 한 줄의 공급가·세액(인쇄·이미지 표): 부가세 포함 줄은 결제액을 거꾸로 나눈다 */
+function lineSupplyVat(l){const g=(Number(l.qty)||0)*(Number(l.price)||0);if(!l.vat_inc)return {supply:g,vat:Math.round(g*0.1),price:Number(l.price)||0};const s=Math.round(g/1.1);return {supply:s,vat:Math.round(g)-s,price:(Number(l.qty)||0)?Math.round(s/(Number(l.qty)||1)):0};}
 
 /* 검색어가 적용된 견적서 목록 — 화면 표시와 CSV 내보내기가 같은 결과를 쓰도록 공유 */
 function filteredQuotes(){
@@ -4886,7 +4891,7 @@ function qtLineHtml(l,idx){
     ? `<div class="dual"><select data-f="lcolor" data-idx="${idx}">${it.colors.map(cn=>`<option ${cn===l.color?"selected":""}>${escapeHtml(cn)}</option>`).join("")}</select>${sizeCell}</div>`
     : sizeCell;
   const amt=(Number(l.qty)||0)*(Number(l.price)||0);
-  return `<div class="qline" data-idx="${idx}">
+  return `<div class="qline" data-idx="${idx}"${l.vat_inc?' data-vinc':''}>
     ${nameCell}
     ${specCell}
     <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${idx}" value="${l.qty?fmt(l.qty):""}">
@@ -5273,16 +5278,16 @@ function printQuote(q,docType){
   const t=quoteTotals({lines});
   const colgroup=`<colgroup><col><col style="width:46px"><col style="width:112px"><col style="width:58px"><col style="width:88px"><col style="width:100px"><col style="width:82px"></colgroup>`;
   const rows=lines.map((l,li)=>{const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""},pn=`<span class="nd-pn"><b>${escapeHtml(sp.name)}</b>${sp.code?`<small>${escapeHtml(sp.code)}</small>`:""}</span>`;const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);
-    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    const lv=lineSupplyVat(l), supply=lv.supply;
     return `
     <tr${ph&&nx&&!nx.first?' class="nd-pq-grp"':''}>
       <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:'<i></i>'}${pn}</div>`:pn}</td>
       <td>${escapeHtml(l.color||"")}</td>
       <td class="ctr">${escapeHtml(l.spec||"")}</td>
       <td class="ctr">${fmtb(l.qty)}</td>
-      <td class="num">${fmtb(l.price)}</td>
+      <td class="num">${fmtb(lv.price)}</td>
       <td class="num">${fmtb(supply)}</td>
-      <td class="num">${fmtb(Math.round(supply*0.1))}</td>
+      <td class="num">${fmtb(lv.vat)}</td>
     </tr>`;}).join("");
   document.getElementById("printArea").innerHTML=`
   <div class="p-wrap">
@@ -5523,13 +5528,13 @@ function drawQuoteCanvas(q,docType){
   ty+=30;
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
-    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    const lv=lineSupplyVat(l), supply=lv.supply;
     const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
     if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}
     r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
     r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
-    [fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))].forEach((v,i)=>cell(v,i+3,baseY));
+    [fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)].forEach((v,i)=>cell(v,i+3,baseY));
     ty+=r.h;
     ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
     if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}
@@ -6512,9 +6517,9 @@ function salesData(){
   const groups={};   // company_id → { key → {name,color,spec,price,qty} }
   quotes.forEach(q=>{
     (q.lines||[]).forEach(l=>{
-      const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0].join("|");
+      const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0,l.vat_inc?"inc":""].join("|");
       const g=groups[q.company_id] ?? (groups[q.company_id]={});
-      const r=g[key] ?? (g[key]={item_id:l.item_id||"",name:l.name,color:l.color||"",spec:l.spec||"",price:Number(l.price)||0,qty:0});
+      const r=g[key] ?? (g[key]={item_id:l.item_id||"",name:l.name,color:l.color||"",spec:l.spec||"",price:Number(l.price)||0,qty:0,vat_inc:!!l.vat_inc});
       r.qty+=Number(l.qty)||0;
     });
   });
@@ -6541,7 +6546,7 @@ function renderSales(){
       let sQty=0, sSupply=0, sVat=0;
       let sMargin=0, sMarginUnknown=0;
       const trs=rows.map(r=>{
-        const supply=r.qty*r.price, vat=Math.round(supply*0.1);
+        const g0=Math.round(r.qty*r.price*100)/100, supply=r.vat_inc?Math.round(g0/1.1):g0, vat=r.vat_inc?Math.round(g0)-supply:Math.round(supply*0.1);
         sQty+=r.qty; sSupply+=supply; sVat+=vat;
         const it=r.item_id && r.item_id!=="__free__" ? db.items.find(x=>x.id===r.item_id) : null;
         const buy=it ? itemBuy(it,r.spec) : 0;
@@ -6623,7 +6628,7 @@ function exportSalesCsv(){
     .sort((a,b)=>coName(a[0]).localeCompare(coName(b[0]),"ko"))
     .forEach(([cid,g])=>{
       Object.values(g).forEach(r=>{
-        const supply=r.qty*r.price, vat=Math.round(supply*0.1);
+        const g0=Math.round(r.qty*r.price*100)/100, supply=r.vat_inc?Math.round(g0/1.1):g0, vat=r.vat_inc?Math.round(g0)-supply:Math.round(supply*0.1);
         const it=r.item_id && r.item_id!=="__free__" ? db.items.find(x=>x.id===r.item_id) : null;
         const buy=it ? itemBuy(it,r.spec) : 0;
         lines.push([csvEsc(coName(cid)),csvEsc(r.name),csvEsc(r.color),csvEsc(r.spec),r.qty,r.price,supply,
@@ -9921,6 +9926,8 @@ html body #appView #view-quotes .list-head:has(.nd-oi-btn){flex-wrap:nowrap!impo
 html body #appView #view-quotes .list-head:has(.nd-oi-btn)>.search{flex:1 1 0!important;min-width:0!important;width:auto!important}
 html body #appView #view-quotes .list-head>.nd-oi-btn{flex:none}
 html body #appView[data-layout-system] #view-quotes .list-head:has(.nd-oi-btn){grid-template-columns:minmax(0,1fr) repeat(3,auto)!important}
+/* 부가세 포함 단가 줄(쇼핑몰 주문 등): 견적서 편집 줄의 금액 옆에 작은 표시 */
+html body #appView #qtForm .qline[data-vinc] .amt::after{content:'부가세 포함';display:block;font:400 10.5px/14px var(--sans);color:var(--nd-ink-3);text-align:right;white-space:nowrap}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -11342,7 +11349,7 @@ const NaroSalesAnalysis=(()=>{
  function rows(groups,items,companies){
   const im=new Map(items.map(i=>[i.id,i])),cm=new Map(companies.map(c=>[c.id,c.name]));
   return Object.entries(groups).flatMap(([cid,group])=>Object.values(group).map(r=>{
-   const it=im.get(r.item_id),qty=number(r.qty),price=number(r.price),supply=qty*price,vat=Math.round(supply*.1);
+   const it=im.get(r.item_id),qty=number(r.qty),price=number(r.price),gross=Math.round(qty*price*100)/100,supply=r.vat_inc?Math.round(gross/1.1):gross,vat=r.vat_inc?Math.round(gross)-supply:Math.round(supply*.1); // 부가세 포함 단가 줄(쇼핑몰 주문)은 결제액을 거꾸로 나눈다
    const category=text(it?.category).trim()||'미분류',buy=unitCost(it,r.spec,im);
    const identity=text(r.name).match(/^(.*?)\s*\[([^\]]+)\]\s*$/);
    return {cid,company:cm.get(cid)||'거래처 정보 없음',itemKey:it?JSON.stringify(['id',it.id]):JSON.stringify(['name',r.name]),
@@ -11554,15 +11561,16 @@ const NaroOrderImport=(()=>{
   }
   return {kind,label:KINDS[kind].label,orders:[...map.values()].map(o=>({...o,total:o.lines.reduce((s,l)=>s+l.gross,0)+o.ship,ready:o.lines.every(l=>l.item&&l.colorOk&&l.sizeOk)}))};
  }
- // 주문 → 수주 견적서. 쇼핑몰 금액은 부가세 포함이라 단가는 ÷1.1(견적서는 공급가 + 부가세 10%).
+ // 주문 → 수주 견적서. 쇼핑몰 금액은 부가세 포함 결제액 그대로 '부가세 포함 단가' 줄(vat_inc)로 넣는다 —
+ // 공급가·부가세는 앱이 결제액을 거꾸로 나눠 계산하므로 몇 건을 더해도 합계 = 결제액(1원 차이 없음).
  function quote(order,{companyId,no,uuid,now,shipItem}){
-  const supply=g=>Math.round(g/1.1);
-  const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:supply(l.gross/l.qty)}));
-  if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:supply(order.ship)});
+  const unit=(g,q)=>Math.round(g/q*1e6)/1e6;
+  const lines=order.lines.map(l=>({id:uuid(),item_id:l.item.id,name:l.item.name||l.product,color:l.color||'',spec:l.spec||'',unit:l.item.unit||'EA',qty:l.qty,price:unit(l.gross,l.qty),vat_inc:true}));
+  if(order.ship>0)lines.push({id:uuid(),item_id:shipItem?.id||'__free__',name:shipItem?.name||'배송비',color:'',spec:'',unit:shipItem?.unit||'',qty:1,price:order.ship,vat_inc:true});
   return {id:uuid(),no,date:order.date,company_id:companyId,status:'수주',valid:'',lines,deliveries:[],memo:`${order.label} 주문 ${order.no}`,sent_at:'',delivered_at:'',tax_at:'',created_at:now,order_ref:order.ref};
  }
- // 견적서로 만들었을 때 합계(공급가 반올림 때문에 결제액과 몇 원 다를 수 있다)
- function quoteTotal(order){const sup=order.lines.reduce((s,l)=>s+l.qty*Math.round(l.gross/l.qty/1.1),0)+(order.ship>0?Math.round(order.ship/1.1):0);return sup+Math.round(sup*.1);}
+ // 견적서로 만들었을 때 합계 = 결제액(부가세 포함 단가 줄이라 반올림 차이가 없다)
+ function quoteTotal(order){return order.lines.reduce((s,l)=>s+l.gross,0)+order.ship;}
  return {detect,day,option,findItem,matchColor,matchSize,orders,quote,quoteTotal,memKey,KINDS};
 })();
 
@@ -11614,7 +11622,7 @@ const NaroOrderImport=(()=>{
    sheet.addEventListener('click',ev=>{if(ev.target===sheet)sheet.close();});(document.getElementById('appView')||document.body).append(sheet);}
   const s=state,picked=s.orders.filter(o=>o.pick),blocked=picked.some(o=>!o.lines.every(l=>l.item&&l.colorOk&&l.sizeOk));
   sheet.innerHTML=`<div class="nd-ps-hd"><b id="ndOiTtl">${e(s.label)} 주문 가져오기</b><span class="nd-oi-cnt">${s.orders.length}건</span></div>
-   <p class="nd-oi-note">수주 견적서로 만들어요. 구매자 이름·연락처·주소는 가져오지 않아요. 금액은 부가세 포함 결제액 기준이에요.</p>
+   <p class="nd-oi-note">수주 견적서로 만들어요. 금액은 결제액 그대로(부가세 포함 단가)라 견적서 합계가 결제액과 같아요. 구매자 이름·연락처·주소는 가져오지 않아요.</p>
    <div class="nd-oi-list">${s.orders.map((o,i)=>`<section class="nd-oi-ord${o.exists?' done':''}">
     <label class="nd-oi-hd"><input type="checkbox" data-o="${i}" ${o.pick?'checked':''} ${o.exists?'disabled':''}><span class="nd-oi-t"><b>${e(o.date||'날짜 없음')}</b><small>주문 ${e(o.no)}${o.exists?' · 이미 가져왔어요':''}${!o.exists&&M.quoteTotal(o)!==o.total?` · 견적서 ${won(M.quoteTotal(o))}원(반올림 ${won(Math.abs(M.quoteTotal(o)-o.total))}원 차이)`:''}</small></span><strong>${won(o.total)}원</strong></label>
     ${o.lines.map((l,j)=>{const bad=issue(l);return `<div class="nd-oi-ln${bad?' bad':''}">

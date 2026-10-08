@@ -24,11 +24,11 @@ test('견적서: 수주 · 부가세 뺀 단가 · 배송비 줄 · 주문번호
  const o=M.orders(naver,{items}).orders[0];let i=0;
  const q=M.quote(o,{companyId:'co',no:'Q-1',uuid:()=>'id'+(i++),now:'t',shipItem:items[2]});
  assert.equal(q.status,'수주');assert.equal(q.order_ref,'naver:N1');assert.deepEqual(plain(q.deliveries),[]);
- assert.deepEqual(plain(q.lines.map(l=>[l.qty,l.price])),[[1,20000],[4,20000],[1,2727]]);assert.equal(q.lines[2].item_id,'w');
+ assert.deepEqual(plain(q.lines.map(l=>[l.qty,l.price,l.vat_inc])),[[1,22000,true],[4,22000,true],[1,3000,true]]);assert.equal(q.lines[2].item_id,'w');
  assert.equal(new Set(q.lines.map(l=>l.id)).size,q.lines.length);
  const json=JSON.stringify(q);for(const p of ['홍길동','010-0000-0000','서울시'])assert.ok(!json.includes(p));
- assert.equal(M.quoteTotal(o),113000); // 22,000·3,000원처럼 11의 배수는 결제액과 정확히 같다
- const odd={lines:[{qty:2,gross:19600},{qty:1,gross:9800}],ship:3000,total:32400};assert.equal(M.quoteTotal(odd),32399); // 9,800÷1.1 반올림이 쌓여 1원 차이(미리보기에 표시)
+ assert.equal(M.quoteTotal(o),113000);
+ const odd={lines:[{qty:2,gross:19600},{qty:1,gross:9800}],ship:3000,total:32400};assert.equal(M.quoteTotal(odd),32400); // 부가세 포함 단가라 반올림 차이 없음
 });
 test('이미 가져온 주문은 표시되고, 고른 색은 기억된다',()=>{
  const n=M.orders(naver,{items,quotes:[{order_ref:'naver:N1'}]});assert.equal(n.orders[0].exists,true);

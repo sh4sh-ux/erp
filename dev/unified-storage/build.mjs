@@ -180,6 +180,53 @@ for(const name of await readdir(resolve(erp,'icons')))await copyFile(resolve(erp
 for(const name of await readdir(resolve(here,'naro-icons')))await copyFile(resolve(here,'naro-icons',name),resolve(release,'erp/icons',name));
 await writeFile(resolve(release,'erp/manifest.webmanifest'),(await readFile(resolve(release,'erp/manifest.webmanifest'),'utf8')).replace('"ERP · 업무 관리"','"NARO Biz · 업무 관리"').replace('"short_name": "ERP"','"short_name": "NARO Biz"').replace('"#0A84FF"','"#2F5BFF"'));
 let html=await readFile(resolve(erp,'index.html'),'utf8');
+// 부가세 포함 단가 줄(line.vat_inc, 10/8): 쇼핑몰 주문처럼 결제액이 정해진 줄은 단가를 결제액 그대로 두고
+// 공급가 = 결제액÷1.1(반올림), 부가세 = 결제액 − 공급가로 거꾸로 나눈다 → 몇 건을 더해도 합계 = 결제액(1원 차이 없음).
+// 표시가 없는 줄(일반 견적서)은 계산이 그대로다.
+{
+ const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
+ P(`function quoteTotals(q){
+  const supply=q.lines.reduce((s,l)=>s+(Number(l.qty)||0)*(Number(l.price)||0),0);
+  const qty=q.lines.reduce((s,l)=>s+((l.name||"").trim()?(Number(l.qty)||0):0),0);
+  const vat=Math.round(supply*0.1);
+  return { supply, vat, total:supply+vat, qty };
+}`,`function quoteTotals(q){
+  let ex=0,inc=0;
+  q.lines.forEach(l=>{const g=(Number(l.qty)||0)*(Number(l.price)||0);if(l.vat_inc)inc+=g;else ex+=g;});
+  inc=Math.round(inc*100)/100;
+  const incSupply=Math.round(inc/1.1);
+  const qty=q.lines.reduce((s,l)=>s+((l.name||"").trim()?(Number(l.qty)||0):0),0);
+  const supply=ex+incSupply, vat=Math.round(ex*0.1)+(inc-incSupply);
+  return { supply, vat, total:supply+vat, qty };
+}
+/* 한 줄의 공급가·세액(인쇄·이미지 표): 부가세 포함 줄은 결제액을 거꾸로 나눈다 */
+function lineSupplyVat(l){const g=(Number(l.qty)||0)*(Number(l.price)||0);if(!l.vat_inc)return {supply:g,vat:Math.round(g*0.1),price:Number(l.price)||0};const s=Math.round(g/1.1);return {supply:s,vat:Math.round(g)-s,price:(Number(l.qty)||0)?Math.round(s/(Number(l.qty)||1)):0};}`,'VATINC_TOTALS');
+ P(`    supply += qty*(Number(l.price)||0);
+    cost   += qty*buy;`,`    supply += qty*(Number(l.price)||0)/(l.vat_inc?1.1:1);
+    cost   += qty*buy;`,'VATINC_MARGIN');
+ // 인쇄 표
+ P(`    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    return \`
+    <tr`,`    const lv=lineSupplyVat(l), supply=lv.supply;
+    return \`
+    <tr`,'VATINC_PRINT');
+ P(`<td class="num">\${fmtb(l.price)}</td>
+      <td class="num">\${fmtb(supply)}</td>
+      <td class="num">\${fmtb(Math.round(supply*0.1))}</td>`,`<td class="num">\${fmtb(lv.price)}</td>
+      <td class="num">\${fmtb(supply)}</td>
+      <td class="num">\${fmtb(lv.vat)}</td>`,'VATINC_PRINT_CELLS');
+ // 이미지 견적서
+ P(`    const supply=(Number(l.qty)||0)*(Number(l.price)||0);
+    const baseY=`,`    const lv=lineSupplyVat(l), supply=lv.supply;
+    const baseY=`,'VATINC_CANVAS');
+ P(`[fmtb(l.qty),fmtb(l.price),fmtb(supply),fmtb(Math.round(supply*0.1))]`,`[fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)]`,'VATINC_CANVAS_CELLS');
+ // 매출 집계(옛 화면·CSV·친구 매출 분석이 쓰는 salesData): 부가세 포함 줄은 따로 묶고 표시를 넘긴다
+ P(`      const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0].join("|");`,`      const key=[l.name,l.color||"",l.spec||"",Number(l.price)||0,l.vat_inc?"inc":""].join("|");`,'VATINC_SALES_KEY');
+ P(`price:Number(l.price)||0,qty:0});`,`price:Number(l.price)||0,qty:0,vat_inc:!!l.vat_inc});`,'VATINC_SALES_ROW');
+ P(`const supply=r.qty*r.price, vat=Math.round(supply*0.1);`,`const g0=Math.round(r.qty*r.price*100)/100, supply=r.vat_inc?Math.round(g0/1.1):g0, vat=r.vat_inc?Math.round(g0)-supply:Math.round(supply*0.1);`,'VATINC_SALES_SUM',true);
+ // 견적서 편집 줄: 부가세 포함 줄은 금액 옆에 표시
+ P(`  return \`<div class="qline" data-idx="\${idx}">`,`  return \`<div class="qline" data-idx="\${idx}"\${l.vat_inc?' data-vinc':''}>`,'VATINC_QLINE');
+}
 // 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
 {
  const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],
