@@ -1,20 +1,45 @@
-/* 견적서 '다음 할 일' 줄(탭 아래, 내용 맨 위) + 납품·입금 창. 작은 창 규칙은 .nd-pay-sheet 공통. */
-html body #appView #qtForm .nd-next{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px 16px;margin:0 0 16px;padding:12px 16px;border:1px solid var(--nd-blue-line);border-radius:12px;background:var(--nd-blue-soft)}
-html body #appView #qtForm .nd-next.done{background:var(--nd-fill);border-color:var(--nd-line)}
-html body #appView #qtForm .nd-next-t{display:flex;flex-direction:column;min-width:0}
-html body #appView #qtForm .nd-next-t b{font:600 14px/20px var(--sans);color:var(--nd-ink)}
-html body #appView #qtForm .nd-next-t span{font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
-html body #appView #qtForm .nd-next-prog{display:flex;gap:14px;font:400 11.5px/16px var(--sans);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-next-prog span{display:flex;align-items:center;gap:6px;white-space:nowrap}
-html body #appView #qtForm .nd-next-prog i{display:block;width:56px;height:5px;border-radius:3px;background:linear-gradient(var(--nd-blue),var(--nd-blue)) 0 0/var(--p) 100% no-repeat,color-mix(in srgb,var(--nd-ink) 14%,transparent)}
-html body #appView #qtForm .nd-next-act{display:flex;gap:8px}
+/* 견적서 머리 단계 줄(탭 아래, 내용 맨 위 — PC·폰 같은 자리). 상자 없이 한 줄: 단계 · 선 · 단계 … + 오른쪽에 지금 할 일 버튼. */
+html body #appView #qtForm .nd-next{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin:0 0 18px;padding:0 0 14px;border-bottom:1px solid var(--nd-line)}
+html body #appView #qtForm .nd-steps{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;flex-wrap:wrap}
+html body #appView #qtForm .nd-step>:is(button,span){display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;font:400 13px/20px var(--sans);color:var(--nd-ink-3);white-space:nowrap}
+html body #appView #qtForm .nd-step>button{cursor:pointer}
+html body #appView #qtForm .nd-step>button:hover{color:var(--nd-ink)}
+html body #appView #qtForm .nd-step i{flex:none;width:18px;height:18px;box-sizing:border-box;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--nd-ink) 24%,transparent);display:grid;place-items:center;color:#fff}
+html body #appView #qtForm .nd-step.done>*{color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-step.done i{background:var(--nd-blue);border-color:var(--nd-blue)}
+html body #appView #qtForm .nd-step.cur>*{color:var(--nd-ink);font-weight:600}
+html body #appView #qtForm .nd-step.cur i{border:2px solid var(--nd-blue);background:radial-gradient(circle,var(--nd-blue) 3px,transparent 3.5px)}
+html body #appView #qtForm .nd-step-ln{flex:0 1 24px;min-width:10px;height:1px;background:color-mix(in srgb,var(--nd-ink) 18%,transparent)}
+html body #appView #qtForm .nd-step-ln.on{background:var(--nd-blue)}
+html body #appView #qtForm .nd-next-act{display:flex;gap:8px;margin-left:auto}
 html body #appView #qtForm .nd-next-b{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 13.5px/1 var(--sans);white-space:nowrap;cursor:pointer}
 html body #appView #qtForm .nd-next-b.pri{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+/* 진행 탭: 납품 · 입금 · 계산서 칸 사이 간격, 계산서 칸 제목 */
+html body #appView #qtForm .qp-flow{display:flex;flex-direction:column;gap:16px}
+html body #appView #qtForm .qp-flow>.quote-flow{margin:0}
+html body #appView #qtForm .qp-tax{border:1px solid var(--nd-line);border-radius:12px;padding:16px}
+html body #appView #qtForm .qp-tax>.qt-sec-t{margin:0 0 10px}
+html body #appView #qtForm .qp-status-manual{margin-top:18px;padding-top:16px;border-top:1px solid var(--nd-line)}
+html body #appView #qtForm .qp-status-manual label{color:var(--nd-ink-3)}
+/* 품목 [편집]·[완료] */
+html body #appView #qtForm .nd-edit-b{margin-left:auto;height:30px;padding:0 12px;border-radius:9px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
+html body #appView #qtForm #qp-panel-items>.qt-sec-t,html body #appView #qtForm #qp-panel-items .qp-cards>section:first-child>h3{display:flex;align-items:center;gap:8px}
+/* 보기 모드: 입력칸을 글자처럼 · 행 삭제/추가/옵션 한번에/안내 숨김 · 폰 −/+·편집 › 숨김 */
+html body #appView #qtForm.nd-view .qlines .qline:not(.head) :is(input,select,.ip-btn){border-color:transparent!important;background:transparent!important;box-shadow:none!important;pointer-events:none;-webkit-appearance:none;appearance:none;background-image:none!important}
+html body #appView #qtForm.nd-view .qlines .qline .ip-btn::after{display:none!important}
+html body #appView #qtForm.nd-view .qlines .qline .rm,html body #appView #qtForm.nd-view #qp-panel-items :is(.line-btns,#fq_sizePanel,.qp-add,#fq_sizeBtn),html body #appView #qtForm.nd-view #qp-panel-items>.hint:not([style]){display:none!important}
+html body #appView #qtForm.nd-view .qp-stepper>button,html body #appView #qtForm.nd-view .qp-card-edit>.qp-muted{display:none!important}
+html body #appView #qtForm.nd-view .qp-card-edit{pointer-events:none}
+html body #appView #qtForm.nd-view .qp-stepper{border:0!important;background:none!important}
+html body #appView #qtForm.nd-view .qp-stepper>span::after{content:'개'}
+/* 재고 부족: 납품 전에만 */
+html body #appView #qtForm:is([data-nd-st="부분납품"],[data-nd-st="납품"],[data-nd-st="취소"]) #fq_short{display:none!important}
 @media (max-width:780px){
- html body #appView #qtForm .nd-next{grid-template-columns:minmax(0,1fr);gap:10px;margin:4px 0 16px;padding:12px 14px}
- html body #appView #qtForm .nd-next-prog{gap:16px}
- html body #appView #qtForm .nd-next-prog span{flex:1}
- html body #appView #qtForm .nd-next-prog i{flex:1;width:auto}
+ html body #appView #qtForm .nd-next{gap:12px;margin:4px 0 16px}
+ html body #appView #qtForm .nd-steps{flex:1 1 100%;gap:6px}
+ html body #appView #qtForm .nd-step>:is(button,span){font-size:12.5px}
+ html body #appView #qtForm .nd-step-ln{flex-basis:12px}
+ html body #appView #qtForm .nd-next-act{flex:1 1 100%;margin:0}
  html body #appView #qtForm .nd-next-b{flex:1;height:42px}
 }
 /* 창 */
@@ -47,5 +72,24 @@ html body #appView #qtForm .nd-next-b.pri{background:var(--nd-blue);border-color
 .nd-qa-sheet .nd-qa-chips button[aria-pressed="true"]{border-color:var(--nd-ink);color:var(--nd-ink);box-shadow:inset 0 0 0 1px var(--nd-ink)}
 .nd-qa-sheet .nd-ps-act{grid-template-columns:1fr 2fr;position:sticky;bottom:0;z-index:1;background:var(--nd-raised,var(--nd-surface))}
 .nd-qa-sheet .nd-ps-act .nd-qa-go{height:44px;border-radius:10px;border:0;background:var(--nd-blue);color:#fff;font:600 14px/1 var(--sans);cursor:pointer}
+.nd-qa-sheet .nd-ps-act .nd-qa-go.nd-qa-del{background:var(--nd-red,#D93636)}
+.nd-qa-sheet .nd-qa-tag{font:600 12.5px/18px var(--sans);color:var(--nd-blue);white-space:nowrap}
+.nd-qa-sheet .nd-qa-tag.mute{color:var(--nd-ink-3)}
 .nd-qa-sheet .nd-ps-act .nd-qa-go:disabled{background:var(--nd-fill-2,#E9EBF0);color:var(--nd-ink-3);cursor:default}
 @media (max-width:600px){.nd-qa-sheet .nd-qa-body{padding-left:16px;padding-right:16px}.nd-qa-sheet .nd-qa-fields{grid-template-columns:1fr}}
+/* 재고 부족(납품 전): 처음엔 제목 한 줄만 — 누르면 펼침 */
+html body #appView #qtForm #fq_short:not(.nd-open)>div>:not(.hd){display:none!important}
+html body #appView #qtForm #fq_short>div>.hd{cursor:pointer;position:relative;padding-right:64px}
+html body #appView #qtForm #fq_short>div>.hd::after{content:'보기 ›';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
+html body #appView #qtForm #fq_short.nd-open>div>.hd::after{content:'접기'}
+html body #appView #qtForm #fq_short:not(.nd-open)>div>.hd{border-bottom:0!important;margin-bottom:0!important;padding-bottom:0!important}
+/* 폰: 단계 줄 = 얇은 막대 4칸(글자는 막대 아래) */
+@media (max-width:780px){
+ html body #appView #qtForm .nd-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:start}
+ html body #appView #qtForm .nd-step-ln{display:none}
+ html body #appView #qtForm .nd-step>:is(button,span){display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;font-size:11.5px;line-height:15px;white-space:normal;text-align:left;word-break:keep-all}
+ html body #appView #qtForm .nd-step i{width:100%;height:4px;border:0!important;border-radius:2px;background:color-mix(in srgb,var(--nd-ink) 12%,transparent)!important}
+ html body #appView #qtForm .nd-step i svg{display:none}
+ html body #appView #qtForm .nd-step.done i{background:var(--nd-blue)!important}
+ html body #appView #qtForm .nd-step.cur i{background:color-mix(in srgb,var(--nd-blue) 35%,transparent)!important}
+}

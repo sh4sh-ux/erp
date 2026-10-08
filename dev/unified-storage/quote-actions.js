@@ -22,23 +22,50 @@
   return {rest,left:rest.reduce((s,r)=>s+r.left,0),ordered,delivered,amount,paid,balance};
  }
  const committed=q=>typeof QT_COMMITTED!=='undefined'?QT_COMMITTED.includes(q.status):['수주','부분납품','납품'].includes(q.status);
+ const editing=new Map();   // 견적 id → 품목 편집 중인지(이 화면에서만 기억)
+ const isEditing=q=>!q||q.status==='작성중'||editing.get(q.id)===true||(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges());
+ const taxedOf=q=>typeof isTaxed==='function'?isTaxed(q):!!q.tax_at;
+ const noTaxOf=q=>typeof noTax==='function'?noTax(q):!!q.no_tax;
+ const ok='<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5 4.5-6"/></svg>';
+ // 머리 단계 줄(10/8 시안): 작성중·발송 = [발송함][수주 확정], 수주 뒤 = 수주 · 납품 · 입금 · 계산서 + 지금 할 일 버튼 하나
+ function steps(q){
+  if(!committed(q)){
+   const sent=q.status==='발송',days=sent&&q.sent_at&&typeof daysSince==='function'?daysSince(q.sent_at):0;
+   return {key:q.status+'|'+days,list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
+    acts:(sent?'':'<button type="button" class="nd-next-b" data-st="발송">발송함</button>')+'<button type="button" class="nd-next-b pri" data-st="수주">수주 확정</button>'};
+  }
+  const s=state(work(q)),dDone=s.left<=0,pDone=s.balance<=0,taxed=taxedOf(q),nt=noTaxOf(q);
+  const list=[{t:'수주',st:'done'},{t:`납품 ${won(s.delivered)}/${won(s.ordered)}개`,st:dDone?'done':'cur',tab:'flow'},
+   {t:pDone?`입금 ${won(s.paid)}원`:`입금 ${won(s.paid)} / ${won(s.amount)}원`,st:pDone?'done':dDone?'cur':'todo',tab:'flow'},
+   {t:nt?'계산서 발행 안 함':taxed?'계산서 발행':'계산서 미발행',st:nt||taxed?'done':'todo',tab:'flow'}];
+  const acts=!dDone?(pDone?'':'<button type="button" class="nd-next-b" data-qa="pay">입금 받기</button>')+'<button type="button" class="nd-next-b pri" data-qa="deliver">납품 처리</button>'
+   :!pDone?'<button type="button" class="nd-next-b pri" data-qa="pay">입금 받기</button>':'';
+  return {key:[s.left,s.delivered,s.balance,taxed,nt].join('|'),list,acts};
+ }
  function bar(){
   const f=document.getElementById('qtForm');if(!f)return;
-  const anchor=f.querySelector('#qp-panel-basic');const q=current();
+  const q=current();const anchor=f.querySelector('[role="tabpanel"]');
+  f.dataset.ndSt=q?q.status:'new';
+  editMode(f,q);
   let el=f.querySelector(':scope .nd-next');
-  if(!q||!anchor||!committed(q)){el?.remove();return;}
-  const s=state(work(q)),canDeliver=s.left>0,canPay=s.balance>0;
-  const key=[q.id,s.left,s.delivered,s.balance,q.status].join('|');
+  if(!q||!anchor||q.status==='취소'){el?.remove();return;}
+  const S=steps(q),key=q.id+'|'+q.status+'|'+S.key;
   if(el&&el.dataset.key===key&&el.nextElementSibling===anchor)return;
   if(!el){el=document.createElement('div');el.className='nd-next';}
   el.dataset.key=key;
-  const pct=(a,b)=>b>0?Math.min(100,Math.round(a/b*100)):0;
-  const title=canDeliver?`<b>다음 할 일: 납품</b><span>${won(s.delivered)} / ${won(s.ordered)}개 납품</span>`:canPay?`<b>다음 할 일: 입금</b><span>남은 금액 ${won(s.balance)}원</span>`:`<b>납품·입금 완료</b><span>할 일이 없어요</span>`;
-  el.classList.toggle('done',!canDeliver&&!canPay);
-  el.innerHTML=`<div class="nd-next-t">${title}</div>
-   <div class="nd-next-prog"><span>납품 <i style="--p:${pct(s.delivered,s.ordered)}%"></i></span><span>입금 <i style="--p:${pct(s.paid,s.amount)}%"></i></span></div>
-   <div class="nd-next-act">${canPay&&canDeliver?'<button type="button" class="nd-next-b" data-qa="pay">입금 받기</button>':''}${canDeliver?'<button type="button" class="nd-next-b pri" data-qa="deliver">납품 처리</button>':canPay?'<button type="button" class="nd-next-b pri" data-qa="pay">입금 받기</button>':''}</div>`;
+  el.innerHTML=`<ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
   if(el.nextElementSibling!==anchor)anchor.before(el);
+ }
+ // 품목: 작성중이 아니면 보기 모드(입력칸 테두리·행 삭제·행 추가 숨김) + [편집]
+ function editMode(f,q){
+  const on=isEditing(q);f.classList.toggle('nd-view',!on);
+  const host=f.querySelector('#qp-panel-items>.qt-sec-t')||null,mob=f.querySelector('#qp-panel-items .qp-cards>section:first-child>h3');
+  let b=f.querySelector('.nd-edit-b');
+  if(!q||q.status==='작성중'){b?.remove();return;}
+  const where=mob&&mob.getClientRects().length?mob:host;if(!where)return;
+  if(!b){b=document.createElement('button');b.type='button';b.className='nd-edit-b';}
+  const t=on?'완료':'편집';if(b.textContent!==t)b.textContent=t;
+  if(b.parentNode!==where)where.append(b);
  }
  function guard(){
   if(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 먼저 저장해 주세요. 저장한 뒤 다시 눌러 주세요.');return false;}
@@ -116,6 +143,66 @@
   };
   paint();
  }
- document.addEventListener('click',ev=>{const b=ev.target.closest?.('#qtForm .nd-next [data-qa]');if(!b)return;ev.preventDefault();b.dataset.qa==='deliver'?deliver():pay();});
- window.NaroQuoteActions={bar,deliver,pay};
+ document.addEventListener('click',ev=>{
+  const t=ev.target.closest?.('#qtForm .nd-next [data-qa],#qtForm .nd-next [data-st],#qtForm .nd-next [data-tab],#qtForm .nd-edit-b');if(!t)return;ev.preventDefault();
+  if(t.dataset.qa){t.dataset.qa==='deliver'?deliver():pay();return;}
+  if(t.dataset.tab){document.getElementById('qp-tab-'+t.dataset.tab)?.click();return;}
+  if(t.dataset.st){if(typeof qtEditing==='undefined'||!qtEditing)return;qtEditing.status=t.dataset.st;const sel=document.getElementById('fq_status');if(sel)sel.value=t.dataset.st;document.getElementById('qtSaveBtn')?.click();return;}
+  const q=current();if(!q)return;
+  if(isEditing(q)&&typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 저장하면 보기 화면으로 돌아가요');return;}
+  editing.set(q.id,!isEditing(q));bar();
+ });
+ document.addEventListener('click',ev=>{const h=ev.target.closest?.('#qtForm #fq_short>div>.hd');if(h)h.closest('#fq_short').classList.toggle('nd-open');});
+ // 진행 탭의 '+ 납품 기록 추가' · '+ 입금 추가'도 같은 창으로(바로 저장 — 견적서 저장을 따로 누를 필요 없음)
+ document.addEventListener('click',ev=>{
+  const b=ev.target.closest?.('#qtForm #fd_open,#qtForm #fp_open');const q=b&&current();if(!q)return;
+  if(b.id==='fd_open'&&!(committed(q)&&state(work(q)).left>0))return;
+  ev.preventDefault();ev.stopImmediatePropagation();b.id==='fd_open'?deliver():pay();
+ },true);
+ // 저장이 끝나면 품목은 다시 보기 화면으로
+ document.addEventListener('click',ev=>{if(!ev.target.closest?.('#qtSaveBtn'))return;const id=typeof qtSel!=='undefined'?qtSel:null;setTimeout(function chk(n=0){if(typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()){editing.delete(id);bar();}else if(n<20)setTimeout(()=>chk(n+1),300);},300);},true);
+
+ /* ── 지우기: 납품·입금이 있어도 창 하나로(10/8 시안) ──
+    순서: ① 견적을 '취소' + 납품 기록 비움으로 저장 → ② 재고 되돌림 → ③ 연결된 입금은 견적 연결만 풀기(거래처 입금으로 남김, 한 건씩) → ④ 견적 삭제.
+    중간에 멈춰도 다시 [삭제]를 누르면 남은 단계부터 이어진다(①이 끝난 견적은 납품 0 · 취소 상태). */
+ const legacyDelete=typeof deleteQuote==='function'?deleteQuote:null;
+ async function removeQuote(id){
+  const q=(db.quotes||[]).find(x=>x.id===id);
+  if(!q||!legacyDelete){return legacyDelete?.(id);}
+  const pays=(db.payments||[]).filter(p=>p.quote_id===id),dq=quoteDeliveredQty(q),back=stockDeltaForQuote({...q,status:'취소',deliveries:[]});
+  if(!pays.length&&!dq&&!back.moves.length)return legacyDelete(id);
+  const backQty=back.moves.reduce((a,m)=>a+(m.kind==='입고'?m.qty:-m.qty),0);
+  const paid=pays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const d=open(`<div class="nd-ps-hd"><b>견적서를 지울까요?</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')} · ${won(quoteAmount(q))}원</span></div>
+   <div class="nd-qa-body"><span class="nd-qa-note">지우면 아래도 함께 정리돼요</span>
+    <div class="nd-qa-lines">
+     ${dq||back.moves.length?`<div class="nd-qa-ln"><div><span>납품 기록 ${(q.deliveries||[]).length}건 · ${won(dq)}개</span></div><b class="nd-qa-tag">${backQty>0?`재고 ${won(backQty)}개 되돌림`:'재고 되돌림'}</b></div>`:''}
+     ${pays.length?`<div class="nd-qa-ln"><div><span>입금 ${pays.length}건 · ${won(paid)}원</span></div><b class="nd-qa-tag mute">거래처 입금으로 남김</b></div>`:''}
+    </div>
+    <p class="nd-qa-note">입금은 돈을 받은 사실이라 지우지 않고, 견적 연결만 풀어 거래처 입금으로 남겨요. 되돌릴 수 없어요.</p></div>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">지우기</button></div>`);
+  d.querySelector('.nd-qa-del').onclick=async ev=>{
+   const btn=ev.currentTarget;btn.disabled=true;btn.textContent='정리하는 중…';
+   const fail=t=>{btn.disabled=false;btn.textContent='다시 시도';say(t);};
+   let cur=(db.quotes||[]).find(x=>x.id===id);
+   if(cur.status!=='취소'||(cur.deliveries||[]).length){
+    const nq={...JSON.parse(JSON.stringify(cur)),status:'취소',deliveries:[],delivered_at:''};
+    const next=db.quotes.map(x=>x.id===id?nq:x);
+    if(!await saveTable('quotes',next))return fail('견적 정리에 실패했어요. 잠시 뒤 다시 눌러 주세요.');
+    db.quotes=next;cur=nq;
+   }
+   if(stockDeltaForQuote(cur).moves.length&&!await syncStockForQuote(cur,{ask:false}))return fail('재고 되돌리기에 실패했어요. 다시 누르면 이어서 해요.');
+   for(const p of (db.payments||[]).filter(x=>x.quote_id===id)){
+    const next=db.payments.map(x=>x.id===p.id?{...x,quote_id:''}:x);
+    if(!await saveTable('payments',next))return fail('입금 연결 풀기에 실패했어요. 다시 누르면 이어서 해요.');
+    db.payments=next;
+   }
+   const next=db.quotes.filter(x=>x.id!==id);
+   if(!await saveTable('quotes',next))return fail('견적 삭제에 실패했어요. 다시 누르면 이어서 해요.');
+   db.quotes=next;qtSel=null;qtEditing=null;qtBaseline='';d.close();renderQtList();renderQtDetail();
+   say('견적서를 지웠어요');
+  };
+ }
+ if(legacyDelete)window.deleteQuote=removeQuote;
+ window.NaroQuoteActions={bar,deliver,pay,removeQuote};
 })();

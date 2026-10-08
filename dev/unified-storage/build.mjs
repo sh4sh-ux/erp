@@ -172,7 +172,36 @@ for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name)
  const from="const name = item ? `${item.name || ''} ${item.code || ''}` : line.name || '품목 선택';\n        edit.append(el('strong', '', name), el('span', 'qp-muted', '편집 ›'));";
  const to="const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');\n        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));\n        edit.append(title, el('span', 'qp-muted', '편집 ›'));";
  if(!qp.includes(from))throw Error('QP_CARD_NAME_BOUNDARY');
- await writeFile(qpPath,qp.replace(from,to));
+ qp=qp.replace(from,to);
+ // 견적서 탭 = 품목 · 진행 · 정보(10/8 시안 — 사용자 확정). 진행 = 납품 기록 · 입금 · 계산서(발행일·발행 안 함)를 한 곳에,
+ // 정보 = 견적일자·거래처·유효기간·비고(+ 맨 아래 '상태 직접 바꾸기'). 상태는 머리 단계 줄 버튼(quote-actions.js)이 주로 바꾼다.
+ const tabsFrom=`    const sections = Array.from(form.querySelectorAll(':scope > .qt-sec'));
+    const panels = [sections[0], sections[1], sections[2]];
+    const tabs = el('div', 'qp-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', '견적 상세');
+    const ids = ['basic', 'items', 'memo'];
+    ['기본정보', '품목', '메모'].forEach((name, i) => {`;
+ const tabsTo=`    const sections = Array.from(form.querySelectorAll(':scope > .qt-sec'));
+    const flow = el('div', 'qt-sec qp-flow');
+    form.querySelectorAll(':scope > .quote-flow').forEach(node => flow.append(node));
+    const taxField = $('#fq_tax', sections[0])?.closest('.field');
+    if (taxField) { const tax = el('section', 'quote-flow qp-tax'); tax.append(el('div', 'qt-sec-t', '계산서'), taxField); flow.append(tax); }
+    sections[1].after(flow);
+    sections[0].append(sections[2]);
+    const statusField = $('#fq_status', sections[0])?.closest('.field');
+    if (statusField && qtSel !== '__new__') { statusField.classList.add('qp-status-manual'); const lb = $('label', statusField); if (lb) lb.textContent = '상태 직접 바꾸기 (취소·되돌리기)'; sections[0].append(statusField); }
+    const panels = [sections[1], flow, sections[0]];
+    const tabs = el('div', 'qp-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', '견적 상세');
+    const ids = ['items', 'flow', 'basic'];
+    ['품목', '진행', '정보'].forEach((name, i) => {`;
+ if(!qp.includes(tabsFrom))throw Error('QP_TABS_BOUNDARY');
+ qp=qp.replace(tabsFrom,()=>tabsTo);
+ const flowFrom=`    form.querySelectorAll(':scope > .quote-flow').forEach(node => panels[0].append(node));
+    panels[0].before(tabs);`;
+ if(!qp.includes(flowFrom))throw Error('QP_FLOW_BOUNDARY');
+ qp=qp.replace(flowFrom,()=>`    sections[0].before(tabs);`);
+ if(!qp.includes('cards(q, panels[1]);'))throw Error('QP_CARDS_BOUNDARY');
+ qp=qp.replace('cards(q, panels[1]);',()=>'cards(q, panels[0]);');
+ await writeFile(qpPath,qp);
 }
 await mkdir(resolve(release,'erp/icons'),{recursive:true});
 for(const name of await readdir(resolve(erp,'icons')))await copyFile(resolve(erp,'icons',name),resolve(release,'erp/icons',name));

@@ -178,17 +178,24 @@
     const form = $('#qtForm');
     if (key !== qtSel) { key = qtSel; sheet = null; tab = qtSel === '__new__' ? 'basic' : 'items'; }
     const sections = Array.from(form.querySelectorAll(':scope > .qt-sec'));
-    const panels = [sections[0], sections[1], sections[2]];
+    const flow = el('div', 'qt-sec qp-flow');
+    form.querySelectorAll(':scope > .quote-flow').forEach(node => flow.append(node));
+    const taxField = $('#fq_tax', sections[0])?.closest('.field');
+    if (taxField) { const tax = el('section', 'quote-flow qp-tax'); tax.append(el('div', 'qt-sec-t', '계산서'), taxField); flow.append(tax); }
+    sections[1].after(flow);
+    sections[0].append(sections[2]);
+    const statusField = $('#fq_status', sections[0])?.closest('.field');
+    if (statusField && qtSel !== '__new__') { statusField.classList.add('qp-status-manual'); const lb = $('label', statusField); if (lb) lb.textContent = '상태 직접 바꾸기 (취소·되돌리기)'; sections[0].append(statusField); }
+    const panels = [sections[1], flow, sections[0]];
     const tabs = el('div', 'qp-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', '견적 상세');
-    const ids = ['basic', 'items', 'memo'];
-    ['기본정보', '품목', '메모'].forEach((name, i) => {
+    const ids = ['items', 'flow', 'basic'];
+    ['품목', '진행', '정보'].forEach((name, i) => {
       const b = button(name, () => select(ids[i])); b.id = `qp-tab-${ids[i]}`;
       b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', `qp-panel-${ids[i]}`); tabs.append(b);
       panels[i].id = `qp-panel-${ids[i]}`; panels[i].setAttribute('role', 'tabpanel'); panels[i].setAttribute('aria-labelledby', b.id);
     });
     // Delivery/payment stay reachable with the unchanged basic-information controls.
-    form.querySelectorAll(':scope > .quote-flow').forEach(node => panels[0].append(node));
-    panels[0].before(tabs);
+    sections[0].before(tabs);
     function select(next) {
       tab = next;
       panels.forEach((panel, i) => { panel.hidden = ids[i] !== tab; });
@@ -214,7 +221,7 @@
       const nav = el('div', 'qp-mobile-actions');
       nav.append(button('‹ 견적서', closeQuoteDetail), button('저장', () => $('#qtSaveBtn').click(), 'qp-primary naro-compact-action'));
       hero.before(nav);
-      cards(q, panels[1]);
+      cards(q, panels[0]);
       const actions = $('.form-actions', form), more = el('details', 'qp-more'); more.append(el('summary', '', '··· 더보기'));
       ['fq_doc', 'qtCopyBtn', 'qtPrintBtn', 'qtImgBtn', 'qtShareBtn', 'qtMailBtn', 'qtDelBtn'].forEach(id => { const node = $('#'+id); if (node) more.append(node); });
       if (more.children.length > 1) actions.append(more);

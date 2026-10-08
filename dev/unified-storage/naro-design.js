@@ -919,7 +919,7 @@ const NaroCompanyLedger=(()=>{
  async function jTaxOpen(id){
   if(!jOpenQuote(id))return;await jWait(120);
   const q=db.quotes.find(x=>x.id===id);
-  const tab=document.getElementById('qp-tab-basic');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();
+  const tab=document.getElementById('qp-tab-flow');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();
   await jWait(60);
   jBanner(null,`<b>계산서 발행일</b>을 넣고 저장하세요 · ${jEsc(coName(q.company_id))} ${jEsc(jWon(deliveredAmount(q)))}`,document.getElementById('fq_tax')?.closest('.field'));
   jFocus(document.getElementById('fq_tax'));
@@ -993,7 +993,7 @@ const NaroCompanyLedger=(()=>{
  }
  /* ④ 미납품 → 납품 기록  ⑤ 회신 대기 → 견적서 '발송' */
  function jPendingQuotes(cid){return db.quotes.filter(q=>QT_COMMITTED.includes(q.status)&&quoteOrderedQty(q)>quoteDeliveredQty(q)&&(!cid||q.company_id===cid)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));}
- function jBasicTab(){const tab=document.getElementById('qp-tab-basic');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();}
+ function jBasicTab(){const tab=document.getElementById('qp-tab-flow');if(tab&&tab.getClientRects().length&&tab.getAttribute('aria-selected')!=='true')tab.click();}
  async function jDeliverOpen(id){if(!jOpenQuote(id))return;await jWait(150);jBasicTab();await jWait(60);const b=document.getElementById('fd_open');if(b&&b.getClientRects().length)b.click();await jWait(120);const f=document.getElementById('fq_delivery_form');jBanner(f,'<b>남은 수량 전체 입력</b>을 누르거나 수량을 넣고 [납품 기록 추가] 뒤 견적서를 저장하세요');jFocus(document.getElementById('fd_fill_all'));}
  function jPendingList(cid){
   const qs=jPendingQuotes(cid);if(qs.length===1&&cid){jDeliverOpen(qs[0].id);return;}
