@@ -284,6 +284,25 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
  P('const records=q.deliveries||[], at=','const records=liveDeliveries(q), at=','VOID_RECORDS');
  if(html.includes('(q.deliveries||[])'))throw Error('VOID_LEFT');
 }
+// 견적 취소 정리(10/8): 환불 = 출금(지급) 기록 + refund:true + quote_id → 그 견적의 입금·거래처 받은 돈에서 뺀다.
+// 취소된 견적은 목록 기본에서 숨김('취소된 견적 N건 보기'는 quote-actions.js), 상태 필터로 고르면 보인다. 개수도 취소 제외.
+{
+ const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
+ P(`function quotePaid(qid){
+  return (db.payments||[]).filter(p=>p.kind==="수금" && p.quote_id===qid)
+    .reduce((s,p)=>s+(Number(p.amount)||0),0);
+}`,`function quotePaid(qid){
+  return (db.payments||[]).filter(p=>p.quote_id===qid&&(p.kind==="수금"||(p.kind==="지급"&&p.refund)))
+    .reduce((s,p)=>s+(p.kind==="수금"?1:-1)*(Number(p.amount)||0),0);
+}`,'REFUND_PAID');
+ P(`    if(p.kind!=="수금") return;
+    const r=row(p.company_id);`,`    if(p.kind==="지급"&&p.refund){ row(p.company_id).paid-=Number(p.amount)||0; return; }
+    if(p.kind!=="수금") return;
+    const r=row(p.company_id);`,'REFUND_AR');
+ P(`    .filter(x=>!status || x.status===status)`,`    .filter(x=>status ? x.status===status : (x.status!=="취소"||window.ndShowCancelled))`,'CANCEL_HIDE');
+ P('document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${db.quotes.length}건`:db.quotes.length+"건";','const liveN=db.quotes.filter(x=>x.status!=="취소").length;\n  document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${liveN}건`:liveN+"건";','CANCEL_COUNT');
+ P('document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${db.quotes.length}건`;','document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${liveN}건`;','CANCEL_SUMMARY');
+}
 // 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
 {
  const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],
