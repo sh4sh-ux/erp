@@ -1093,7 +1093,8 @@ const NaroCompanyLedger=(()=>{
    r.addedNodes.forEach(n=>{if(n.nodeType===1)n.querySelectorAll?.('.qp-results,.ip-list').forEach(l=>lists.add(l));});}
   if(!lists.size)return;lists.forEach(groupPickRows);pickMo.takeRecords(); // 우리가 넣은 머리 줄 변화는 버린다
  });
- pickMo.observe(document.body,{childList:true,subtree:true});
+ // 10/8 사용자 요청: 묶지 않고 모두 한 줄씩 나열(모자처럼). 묶음 코드는 남겨 두되 켜지 않는다.
+ // pickMo.observe(document.body,{childList:true,subtree:true});
 
  /* 부가세 포함 단가 줄 범례: 견적서 품목 제목 줄 오른쪽에 한 번(금액 칸은 숫자만). 같으면 손대지 않는다. */
  function vatIncLegend(){
