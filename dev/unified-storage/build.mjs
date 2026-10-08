@@ -180,6 +180,12 @@ for(const name of await readdir(resolve(erp,'icons')))await copyFile(resolve(erp
 for(const name of await readdir(resolve(here,'naro-icons')))await copyFile(resolve(here,'naro-icons',name),resolve(release,'erp/icons',name));
 await writeFile(resolve(release,'erp/manifest.webmanifest'),(await readFile(resolve(release,'erp/manifest.webmanifest'),'utf8')).replace('"ERP · 업무 관리"','"NARO Biz · 업무 관리"').replace('"short_name": "ERP"','"short_name": "NARO Biz"').replace('"#0A84FF"','"#2F5BFF"'));
 let html=await readFile(resolve(erp,'index.html'),'utf8');
+// 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
+{
+ const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],
+  ['if(heroEl) heroEl.textContent=won(t.supply);','if(heroEl) heroEl.textContent=won(t.total);']];
+ for(const [from,to] of pairs){if(!html.includes(from))throw Error('QT_HERO_TOTAL_BOUNDARY');html=html.replace(from,()=>to);}
+}
 html=html.replace('<title>ERP · 업무 관리</title>','<title>NARO Biz · 업무 관리</title>').replace('href="favicon.png"','href="../naro-symbol.png"');
 // Personal-cloud rail branding only; keep the legacy production source untouched.
 const railMark=/<span class="rail-mark"><svg[\s\S]*?<\/svg><\/span>/;
