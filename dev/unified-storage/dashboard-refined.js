@@ -156,7 +156,8 @@
    };
   }
   let preview=null;
-  const show=()=>{const i=preview??initialIndex();values.innerHTML=valueHtml(i>=0?rows[i]:sum);barsEl.classList.toggle('picked',i>=0);groups.forEach((g,j)=>{g.classList.toggle('is-active',j===i);g.setAttribute('aria-pressed',String(j===i&&preview===null));});uls.forEach((u,j)=>u.classList.toggle('on',j===i));};
+  // 내용이 같으면 위 줄을 다시 그리지 않는다: 막대 초점이 빠질 때(blur) 다시 그리면 누르는 도중 금액 글자가 바뀌어 첫 클릭이 금액으로 안 잡혔다(10/9).
+  const show=()=>{const i=preview??initialIndex(),html=valueHtml(i>=0?rows[i]:sum);if(values.dataset.html!==html){values.innerHTML=html;values.dataset.html=html;}barsEl.classList.toggle('picked',i>=0);groups.forEach((g,j)=>{g.classList.toggle('is-active',j===i);g.setAttribute('aria-pressed',String(j===i&&preview===null));});uls.forEach((u,j)=>u.classList.toggle('on',j===i));};
   const initialIndex=()=>rows.findIndex(r=>r.key===selectedKey);
   groups.forEach((b,i)=>{
    b.onpointerenter=e=>{if(e.pointerType==='mouse'){preview=i;show();}};

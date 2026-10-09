@@ -1026,7 +1026,8 @@ const NaroCompanyLedger=(()=>{
  let periodSheetEl=null;
  function periodSheet(kind,values){
   if(typeof db==='undefined')return;
-  const key=values?.querySelector('b')?.textContent.trim()||'';if(!/^\d{4}(-\d\d){0,2}$/.test(key))return;
+  // 아무 칸도 안 고른 '기간 합계'(sum)면 고른 기간 전체(10/9).
+  const raw=values?.querySelector('b')?.textContent.trim()||'',key=raw==='sum'?'':raw;if(raw!=='sum'&&!/^\d{4}(-\d\d){0,2}$/.test(raw))return;
   const meta=values.closest('#view-dash')?.querySelector('.nd-db-chart-meta>span')?.textContent.match(/(\d{4}-\d\d-\d\d)\s*—\s*(\d{4}-\d\d-\d\d)/);
   const from=meta?.[1]||'0000-00-00',to=meta?.[2]||'9999-99-99',hit=d=>typeof d==='string'&&d.startsWith(key)&&d>=from&&d<=to;
   const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1039,7 +1040,7 @@ const NaroCompanyLedger=(()=>{
   if(!periodSheetEl){periodSheetEl=document.createElement('dialog');periodSheetEl.className='nd-pay-sheet nd-period-sheet';periodSheetEl.setAttribute('aria-labelledby','ndPerTtl');
    periodSheetEl.addEventListener('click',ev=>{if(ev.target===periodSheetEl)periodSheetEl.close();});(document.getElementById('appView')||document.body).append(periodSheetEl);}
   const d=periodSheetEl;
-  d.innerHTML=`<div class="nd-ps-hd"><b id="ndPerTtl">${e(key)} ${label}</b><span class="nd-per-sum ${kind}">${won(sum)}원 · ${rows.length}건</span></div>
+  d.innerHTML=`<div class="nd-ps-hd"><b id="ndPerTtl">${e(key||'기간 합계')} ${label}</b><span class="nd-per-sum ${kind}">${won(sum)}원 · ${rows.length}건</span></div>
    <p class="nd-per-note">${kind==='sale'?'납품일 기준 · 부가세 포함 · 줄을 누르면 견적서로':'입금일 기준 · 줄을 누르면 입금 기록으로'}</p>
    <div class="nd-per-list">${rows.length?rows.map((r,i)=>`<button type="button" class="nd-per-row" data-i="${i}"><span class="nd-per-nm">${e(r.name)}</span><span class="nd-per-amt">${won(r.amt)}원</span><span class="nd-per-sub">${e(r.date)}${r.sub?' · '+e(r.sub):''}</span></button>`).join(''):`<p class="nd-per-empty">이 기간의 ${label} 내역이 없습니다.</p>`}</div>
    <div class="nd-ps-act nd-per-act"><button type="button" class="nd-ps-close" data-ps="close">닫기</button></div>`;
