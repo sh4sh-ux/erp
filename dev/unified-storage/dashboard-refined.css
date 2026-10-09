@@ -181,41 +181,56 @@
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){color:var(--nd-ink-2);display:inline-flex;align-items:center;gap:5px}
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):before{content:"";width:7px;height:7px;border-radius:2px;background:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-values .nd-db-receipt:before{background:var(--nd-green)}
-/* 매출·입금 그래프 — 영수증 앱 '지출 추이'처럼(10/9): 왼쪽 금액 눈금 + 점선, 모든 칸이 한 화면, 밀어서 짚어 보기(세로선) */
-#appView #view-dash.nd-dashboard{--db-pair-h:126px}
-#appView #view-dash.nd-dashboard .nd-db-plot{display:grid;grid-template-columns:minmax(0,1fr);padding:14px 24px 0}
-#appView #view-dash.nd-dashboard .nd-db-plot.has-axis{grid-template-columns:auto minmax(0,1fr);column-gap:8px}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-chart-scroll{overflow:visible}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bars{padding:0}
-#appView #view-dash.nd-dashboard .nd-db-pair{height:var(--db-pair-h)}
-#appView #view-dash.nd-dashboard .nd-db-yaxis{list-style:none;margin:0;padding:0;height:var(--db-pair-h);display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end}
-#appView #view-dash.nd-dashboard .nd-db-yaxis li{font-size:10.5px;line-height:1;color:var(--nd-ink-3);font-variant-numeric:tabular-nums;transform:translateY(0);white-space:nowrap}
-#appView #view-dash.nd-dashboard .nd-db-yaxis li:first-child{transform:translateY(-4px)}
-#appView #view-dash.nd-dashboard .nd-db-yaxis li:last-child{transform:translateY(4px)}
-#appView #view-dash.nd-dashboard .nd-db-canvas{position:relative}
-#appView #view-dash.nd-dashboard .nd-db-grid{position:absolute;left:0;right:0;top:0;height:var(--db-pair-h);display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;z-index:0}
-#appView #view-dash.nd-dashboard .nd-db-grid span{display:block;height:0;border-top:1px dashed color-mix(in srgb,var(--nd-ink) 12%,transparent)}
-#appView #view-dash.nd-dashboard .nd-db-grid span:last-child{border-top-style:solid;border-top-color:var(--nd-line)}
-#appView #view-dash.nd-dashboard .nd-db-bars{position:relative;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense{gap:3px}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-pair{gap:2px}
-#appView #view-dash.nd-dashboard .nd-db-bar-label{white-space:nowrap;overflow:visible;text-align:center}
-#appView #view-dash.nd-dashboard .nd-db-bar-group.no-label .nd-db-bar-label{color:transparent}
-#appView #view-dash.nd-dashboard .nd-db-cursor{position:absolute;top:0;height:var(--db-pair-h);left:0;width:1px;margin-left:-.5px;background:var(--nd-ink-2);opacity:.45;pointer-events:none;z-index:2}
+/* 매출·입금 그래프 — 영수증 앱 '지출 추이'와 같은 모양(10/9 다시): 연한 상자 · 왼쪽 금액 눈금 4줄 + 점선 · 칸을 꽉 채우는 굵은 연한 막대
+   · 아래 날짜는 띄엄띄엄 · 위 줄 오른쪽에 짚은 값. 폰에서 칸이 많으면(13칸 이상) 옆으로 스크롤(눈금은 고정, 최근 칸이 보이게 오른쪽 끝에서 시작). */
+#appView #view-dash.nd-dashboard{--db-h:176px;--db-sale:color-mix(in srgb,var(--nd-blue) 58%,var(--nd-surface));--db-receipt:color-mix(in srgb,var(--nd-green) 58%,var(--nd-surface))}
+#appView #view-dash.nd-dashboard .nd-db-chart-meta{display:flex;justify-content:space-between;align-items:center;gap:6px 16px;flex-wrap:wrap;padding:16px 24px 12px}
+#appView #view-dash.nd-dashboard .nd-db-chart-meta>span:first-child{font-size:12.5px;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-values{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;white-space:nowrap}
+#appView #view-dash.nd-dashboard .nd-db-values .nd-db-when{font-size:12px;font-weight:500;color:var(--nd-ink-2)}
+#appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){font-size:12px;font-weight:500;color:var(--nd-ink-2);display:inline-flex;align-items:baseline;gap:5px;cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt) strong{font-size:14px;font-weight:700;color:var(--nd-ink);font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):before{content:"";width:8px;height:8px;border-radius:2px;background:var(--db-sale);align-self:center}
+#appView #view-dash.nd-dashboard .nd-db-values .nd-db-receipt:before{background:var(--db-receipt)}
+#appView #view-dash.nd-dashboard .nd-db-trend{margin:0 24px;padding:16px 16px 12px;background:var(--nd-fill);border:1px solid var(--nd-line);border-radius:12px}
+#appView #view-dash.nd-dashboard .nd-db-plot{display:flex;gap:10px}
+#appView #view-dash.nd-dashboard .nd-db-yaxis{list-style:none;margin:0;padding:0;flex:none;height:var(--db-h);display:flex;flex-direction:column;justify-content:space-between;text-align:right;font-size:11px;line-height:1;color:var(--nd-ink-3);font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-chart-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-chart-scroll::-webkit-scrollbar{display:none}
+#appView #view-dash.nd-dashboard .nd-db-inner{min-width:100%}
+#appView #view-dash.nd-dashboard .nd-db-canvas{position:relative;height:var(--db-h)}
+#appView #view-dash.nd-dashboard .nd-db-grid{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+#appView #view-dash.nd-dashboard .nd-db-grid span{display:block;height:0;border-top:1px dashed var(--nd-line)}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bars{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--db-bars),minmax(0,1fr));gap:3px;padding:0;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:crosshair}
+#appView #view-dash.nd-dashboard .nd-db-trend.is-scroll .nd-db-bars{touch-action:auto;cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bar-group{display:flex;align-items:flex-end;min-width:0!important;min-height:0!important;height:100%;padding:0;border:0;border-radius:0;background:transparent;gap:0}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-pair{display:flex;align-items:flex-end;gap:1px;width:100%;height:100%;position:static}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bar{flex:1 1 0;width:auto;max-width:none;border-radius:3px 3px 0 0;background:var(--db-sale);opacity:.92;transition:opacity .12s}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bar.receipt{background:var(--db-receipt)}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bar-group:is(.is-active,.is-default) .nd-db-bar{opacity:.92}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bars.scrub .nd-db-bar{opacity:.4}
+#appView #view-dash.nd-dashboard .nd-db-trend .nd-db-bars.scrub .nd-db-bar-group.is-active .nd-db-bar{opacity:1}
+#appView #view-dash.nd-dashboard .nd-db-cursor{position:absolute;top:0;bottom:0;left:0;width:1px;margin-left:-.5px;background:var(--nd-ink-2);opacity:.4;pointer-events:none;z-index:6}
 @media (min-resolution:2dppx){#appView #view-dash.nd-dashboard .nd-db-cursor{transform:scaleX(.5)}}
+#appView #view-dash.nd-dashboard .nd-db-xaxis{display:grid;grid-template-columns:repeat(var(--db-bars),minmax(0,1fr));gap:3px;margin-top:8px;font-size:12px;line-height:1.2;color:var(--nd-ink-2);font-variant-numeric:tabular-nums}
+#appView #view-dash.nd-dashboard .nd-db-xaxis span{display:flex;justify-content:center;white-space:nowrap;visibility:hidden;min-width:0}
+#appView #view-dash.nd-dashboard .nd-db-xaxis span.lf{visibility:visible}
+#appView #view-dash.nd-dashboard .nd-db-xaxis span:first-child{justify-content:flex-start}
+#appView #view-dash.nd-dashboard .nd-db-xaxis span:last-child{justify-content:flex-end}
+#appView #view-dash.nd-dashboard .nd-db-trend.has-negative .nd-db-bar.negative{align-self:flex-start}
+#appView #view-dash.nd-dashboard .nd-db-chart-note{padding:10px 24px 16px}
 @media (max-width:780px){
- #appView #view-dash.nd-dashboard{--db-pair-h:105px}
- #appView #view-dash.nd-dashboard .nd-db-plot{padding:14px 12px 0}
- #appView #view-dash.nd-dashboard .nd-db-bars.is-dense{gap:1px}
- #appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-pair{gap:1px}
+ #appView #view-dash.nd-dashboard{--db-h:146px}
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta{padding:14px 16px 10px}
+ #appView #view-dash.nd-dashboard .nd-db-trend{margin:0 16px;padding:14px 12px 10px}
+ #appView #view-dash.nd-dashboard .nd-db-yaxis{font-size:10px}
+ #appView #view-dash.nd-dashboard .nd-db-xaxis{font-size:10.5px}
+ #appView #view-dash.nd-dashboard .nd-db-trend.many .nd-db-inner{min-width:max(100%,calc(var(--db-bars) * 26px))}
+ #appView #view-dash.nd-dashboard .nd-db-trend.is-scroll .nd-db-xaxis span{visibility:hidden}
+ #appView #view-dash.nd-dashboard .nd-db-trend.is-scroll .nd-db-xaxis span.ls{visibility:visible}
+ #appView #view-dash.nd-dashboard .nd-db-chart-note{padding:10px 16px 14px}
 }
-/* 막대는 또렷하게, 짚는 동안만 나머지를 흐리게(영수증 앱과 같음) · 촘촘한 일별은 버튼 최소 폭 해제 */
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar{opacity:.9}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-group.is-default .nd-db-bar{opacity:.9}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bars:has(.is-active) .nd-db-bar-group:not(.is-active) .nd-db-bar{opacity:.28}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-group{min-width:0!important;min-height:0!important}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-label{border-bottom-color:transparent!important}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group.no-label .nd-db-bar-label{visibility:hidden}
-#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-label{display:flex;justify-content:center}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group:last-child .nd-db-bar-label{justify-content:flex-end}
-#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group:first-child .nd-db-bar-label{justify-content:flex-start}
+@media (max-width:780px){
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta{flex-direction:row;align-items:flex-start;justify-content:flex-start;text-align:left}
+ #appView #view-dash.nd-dashboard .nd-db-chart-meta>span:first-child{flex:1 1 100%;text-align:left!important;display:block}
+}

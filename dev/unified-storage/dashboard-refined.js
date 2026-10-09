@@ -117,16 +117,21 @@
   chartPage=Math.min(chartPage,pageCount-1);
   const rows=allRows.slice(chartPage*31,(chartPage+1)*31);
   if(!rows.some(r=>r.key===selectedKey))selectedKey=null;
-  const initial=chartEmphasis(rows,selectedKey);
+  const todayKey=rows.find(r=>today.startsWith(r.key))?.key||null; // 아무것도 안 골랐으면 오늘(이번 달·올해) 값을 위 줄에
+  const initial=chartEmphasis(rows,selectedKey||todayKey);
   // 영수증 앱 '지출 추이'처럼(10/9): 왼쪽 금액 눈금 + 점선 · 모든 칸이 한 화면(옆으로 스크롤 없음) · 손가락으로 밀면 세로선과 값
   const peak=Math.max(1,...allRows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]));
   const negative=allRows.some(r=>r.sale<0||r.receipt<0);
-  const stepRaw=peak/3,mag=10**Math.floor(Math.log10(stepRaw)),step=[1,2,2.5,5,10].map(m=>m*mag).find(v=>v>=stepRaw)||10*mag;
+  const stepRaw=peak/3,mag=10**Math.floor(Math.log10(stepRaw)),step=[1,2,3,4,5,6,8,10].map(m=>m*mag).find(v=>v>=stepRaw)||10*mag;
   const ticks=negative?[]:Array.from({length:Math.ceil(peak/step)+1},(_,i)=>i*step);
   const max=negative?peak*1.12:ticks.at(-1)||1;
   const axis=v=>v===0?'0':v>=1e8?`${+(v/1e8).toFixed(1)}억`:v>=1e4?`${+(v/1e4).toFixed(v>=1e5?0:1)}만`:Math.round(v).toLocaleString('ko-KR');
-  const every=rows.length>12?Math.ceil(rows.length/7):1;
-  const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
+  // 아래 날짜 글자: 한 화면이면 처음·끝 포함 5개(영수증 앱처럼 띄엄띄엄), 폰에서 옆으로 스크롤할 때는 5칸마다.
+  const n=rows.length,fitLab=new Set(n<=12?rows.map((_,k)=>k):[0,1,2,3,4].map(k=>Math.round(k*(n-1)/4))),scrollLab=k=>n<=12||k%5===0||k===n-1;
+  const cross=n>1&&rows[0].key.slice(0,7)!==rows[n-1].key.slice(0,7);
+  const xl=(r,k)=>chartMode==='day'?(cross&&(k===0||r.key.endsWith('-01'))?`${+r.key.slice(5,7)}/${+r.key.slice(8)}`:`${+r.key.slice(8)}일`):chartMode==='month'?`${+r.key.slice(5,7)}월`:r.label;
+  const when=r=>chartMode==='day'?`${+r.key.slice(5,7)}월 ${+r.key.slice(8)}일`:chartMode==='month'?`${r.key.slice(0,4)}년 ${+r.key.slice(5,7)}월`:`${r.key}년`;
+  const valueHtml=r=>`<b hidden>${esc(r.key)}</b><span class="nd-db-when">${esc(when(r))}</span><span class="nd-db-sale">매출<strong>${money(r.sale)}</strong></span><span class="nd-db-receipt">입금<strong>${money(r.receipt)}</strong></span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
   host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-chart-tools"><div class="nd-db-range-group"><button type="button" class="nd-db-range-trigger" aria-label="조회 기간 변경" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('calendar')}<span>${esc(range.from.replaceAll('-','.'))} – ${esc(range.to.replaceAll('-','.'))}</span></button><button type="button" class="nd-db-range-filter${chartRange?' is-filtered':''}" aria-label="기간 필터${chartRange?' · 적용됨':''}" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('filter')}</button>
    <form id="nd-db-range-form" class="nd-db-range-form" role="dialog" aria-modal="false" aria-labelledby="nd-db-range-title" aria-describedby="nd-db-range-help" hidden novalidate>
@@ -137,7 +142,7 @@
     <div class="nd-db-range-actions"><button type="button" data-range-reset>초기화</button><button type="submit" class="nd-db-range-apply">적용</button></div></div>
    </form></div><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
    <div class="nd-db-chart-meta"><span>${esc(range.from)} — ${esc(range.to)}${chartRange?' · 선택 기간':''}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
-   <div class="nd-db-plot${ticks.length?' has-axis':''}">${ticks.length?`<ul class="nd-db-yaxis" aria-hidden="true">${ticks.slice().reverse().map(v=>`<li>${axis(v)}</li>`).join('')}</ul>`:''}<div class="nd-db-chart-scroll"><div class="nd-db-canvas">${ticks.length?`<div class="nd-db-grid" aria-hidden="true">${ticks.map(()=>'<span></span>').join('')}</div>`:''}<div class="nd-db-bars${negative?' has-negative':''}${rows.length>12?' is-dense':''}" role="group" aria-label="기간별 매출과 입금 — 그래프를 누른 채 옆으로 밀면 값이 보여요" style="--db-bars:${rows.length};--db-bar-min:0px">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group${i%every===0||(i===rows.length-1&&i%every>=every*0.6)?'':' no-label'}" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div><div class="nd-db-cursor" hidden></div></div></div></div>
+   <div class="nd-db-trend${negative?' has-negative':''}${n>12?' many':''}" style="--db-bars:${n}"><div class="nd-db-plot">${ticks.length?`<ul class="nd-db-yaxis" aria-hidden="true">${ticks.slice().reverse().map(v=>`<li>${axis(v)}</li>`).join('')}</ul>`:''}<div class="nd-db-chart-scroll"><div class="nd-db-inner"><div class="nd-db-canvas">${ticks.length?`<div class="nd-db-grid" aria-hidden="true">${ticks.map(()=>'<span></span>').join('')}</div>`:''}<div class="nd-db-bars" role="group" aria-label="기간별 매출과 입금 — 막대를 누르거나 밀면 값이 보여요">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span></button>`).join('')}</div><div class="nd-db-cursor" hidden></div></div><div class="nd-db-xaxis" aria-hidden="true">${rows.map((r,i)=>`<span class="${fitLab.has(i)?'lf':''}${scrollLab(i)?' ls':''}">${esc(xl(r,i))}</span>`).join('')}</div></div></div></div></div>
    <div class="nd-db-chart-note">매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values');
   if(pageCount>1){
@@ -149,23 +154,29 @@
     const next=host.querySelector(selector);(next.disabled?host.querySelector('.nd-db-chart-scroll'):next).focus({preventScroll:true});
    };
   }
-  const show=preview=>{const state=chartEmphasis(rows,selectedKey,preview);values.innerHTML=valueHtml(rows[state.shown]);groups.forEach((b,j)=>{b.classList.toggle('is-active',state.active===j);b.classList.toggle('is-default',state.active<0&&state.shown===j);});};
+  const show=preview=>{const state=chartEmphasis(rows,selectedKey||todayKey,preview);values.innerHTML=valueHtml(rows[state.shown]);groups.forEach((b,j)=>{b.classList.toggle('is-active',state.active===j);b.classList.toggle('is-default',state.active<0&&state.shown===j);});};
   groups.forEach((b,i)=>{
    b.onpointerenter=e=>{if(e.pointerType!=='touch')show(i);};b.onfocus=()=>show(i);
    b.onblur=()=>show(null);
    b.onclick=()=>{selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(null);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
   });
-  // 짚어 보기: 그래프에 손가락을 대고 옆으로 밀면 가장 가까운 칸에 세로선 + 위 값 줄이 그 칸으로(손을 떼도 남고, 다른 곳을 누르면 원래대로).
-  // 위아래로 밀면 화면 스크롤(touch-action:pan-y). 마우스는 올리면 보이고 벗어나면 원래대로. 값 줄의 금액을 누르면 그 기간 목록 창.
-  const barsEl=host.querySelector('.nd-db-bars'),canvas=host.querySelector('.nd-db-canvas'),cursor=host.querySelector('.nd-db-cursor');
+  // 짚어 보기(영수증 앱): 한 화면에 다 들어오면 손가락을 대고 옆으로 밀어 칸을 고르고(세로선 + 위 값 줄), 폰에서 칸이 많아
+  // 옆으로 스크롤되는 그래프는 밀면 스크롤, 막대를 누르면 그 칸. 손을 떼도 남고 다른 곳을 누르면 원래대로. PC는 마우스를 올리면.
+  const barsEl=host.querySelector('.nd-db-bars'),canvas=host.querySelector('.nd-db-canvas'),cursor=host.querySelector('.nd-db-cursor'),scroller=host.querySelector('.nd-db-chart-scroll');
   let scrubbing=null,held=false;
-  const at=x=>{const r=barsEl.getBoundingClientRect();const i=Math.max(0,Math.min(groups.length-1,Math.floor((x-r.left)/r.width*groups.length)));const g=groups[i].querySelector('.nd-db-pair').getBoundingClientRect(),c=canvas.getBoundingClientRect();cursor.style.left=(g.left+g.width/2-c.left)+'px';cursor.hidden=false;show(i);};
-  const off=()=>{cursor.hidden=true;held=false;show(null);};
-  barsEl.onpointerdown=e=>{if(e.pointerType==='mouse')return;scrubbing=e.pointerId;held=true;try{barsEl.setPointerCapture(e.pointerId);}catch{}at(e.clientX);};
+  const scrolls=()=>scroller.scrollWidth>scroller.clientWidth+1;
+  const pick=i=>{const g=groups[i].getBoundingClientRect(),c=canvas.getBoundingClientRect();cursor.style.left=(g.left+g.width/2-c.left)+'px';cursor.hidden=false;barsEl.classList.add('scrub');show(i);};
+  const at=x=>{const r=barsEl.getBoundingClientRect();pick(Math.max(0,Math.min(groups.length-1,Math.floor((x-r.left)/r.width*groups.length))));};
+  const off=()=>{cursor.hidden=true;held=false;barsEl.classList.remove('scrub');show(null);};
+  host.querySelector('.nd-db-trend').classList.toggle('is-scroll',scrolls());
+  barsEl.onpointerdown=e=>{if(e.pointerType==='mouse'||scrolls())return;scrubbing=e.pointerId;held=true;try{barsEl.setPointerCapture(e.pointerId);}catch{}at(e.clientX);};
   barsEl.onpointermove=e=>{if(scrubbing===e.pointerId||e.pointerType==='mouse')at(e.clientX);};
   barsEl.onpointerup=e=>{if(scrubbing===e.pointerId)scrubbing=null;};
   barsEl.onpointercancel=e=>{if(scrubbing===e.pointerId){scrubbing=null;off();}};
   barsEl.onpointerleave=e=>{if(e.pointerType==='mouse'&&!held)off();};
+  groups.forEach((b,i)=>b.addEventListener('click',()=>{held=true;pick(i);}));
+  // 처음 위치: 오늘(이번 달) 칸이 오른쪽에 보이게, 없으면 맨 끝(가장 최근).
+  if(scrolls()){const ti=rows.findIndex(r=>today.startsWith(r.key)),g=groups[ti];const left=g?g.offsetLeft+g.offsetWidth-scroller.clientWidth*0.85:scroller.scrollWidth;scroller.scrollLeft=left<60?0:left;}
   const outside=new AbortController();host._ndScrubOff?.abort();host._ndScrubOff=outside;
   document.addEventListener('pointerdown',e=>{if(!host.isConnected){outside.abort();return;}if(held&&!barsEl.contains(e.target)&&!values.contains(e.target))off();},{signal:outside.signal,capture:true});
   show(null);
