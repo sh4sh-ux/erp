@@ -11,7 +11,7 @@
     },
     {
       "path": "access-control.mjs",
-      "sha256": "d2e60eeffe2d3c225e146546592162a6c87cca698365d6da2361bbcbc563f5bd"
+      "sha256": "6052998adaccd33bf7e884aa24adde6e6c02a8952f8d8b47af1afed7a2611721"
     },
     {
       "path": "app.mjs",
@@ -28,6 +28,10 @@
     {
       "path": "business-contract.mjs",
       "sha256": "75b9f8a9b1163a4d1afa1411b247dac918ed532d72969eba5507785d9bc0d736"
+    },
+    {
+      "path": "change-log.mjs",
+      "sha256": "3b4fc39e6080f63851dcb3f5e9bf0f7582dced99442f9ee98edcd47f7e2b77c0"
     },
     {
       "path": "client-config.mjs",
@@ -59,7 +63,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "e5caf0d3e6e648794b2ff0bc8ead02f568d14f1272c086086ccd51e173b3d901"
+      "sha256": "9bb65ed4c19afc4915394fda2effe2361b6350fdd609589147e9b636333bff10"
     },
     {
       "path": "dropbox-callback.html",
@@ -95,7 +99,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "56c83b167f146e4f730481844f0df7088b01c407a536afc06d7612cd9b4fc75b"
+      "sha256": "88f7b3500f82057cb29864bc364670a20df72d575b4b044a26dfc7e9cb40df9e"
     },
     {
       "path": "erp/favicon.png",
@@ -115,7 +119,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "880cf49433fc02b1104c0829649518b8c882933276a5fcf76284cb6760bb38e2"
+      "sha256": "84a5212990b281b8ce7c84885bd46826cc588287ca3bda9c00db6be5c2e723a3"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -128,6 +132,10 @@
     {
       "path": "erp/jszip.min.js",
       "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+    },
+    {
+      "path": "erp/log-ui.mjs",
+      "sha256": "eda3ab4134191994bd5c479ebd907c26203e47e47a0a8e906efea3ec8bd86241"
     },
     {
       "path": "erp/mail-ui.mjs",
@@ -203,7 +211,7 @@
     },
     {
       "path": "index.html",
-      "sha256": "cbfd3b99d653b0c9b14cc5443e7f8575d093639bf540adcee0a4cde27798ca4b"
+      "sha256": "b618640500250d38f12f11f0b61d3c6a8b54d34ea25391219d3a71970558aecb"
     },
     {
       "path": "manifest.webmanifest",
@@ -259,7 +267,7 @@
     },
     {
       "path": "storage.mjs",
-      "sha256": "71fe8d1f0c0abc84d8d91cbd2c26a7df52f683b550f1c520c02141ada6aaa377"
+      "sha256": "60ac44a77cd46dd04545fb05c05a623c1e2975b376dd021e4e01d2ce49b5dab0"
     },
     {
       "path": "style.css",
@@ -271,10 +279,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "7192f0b4d219f7089da580a22a46e5c2c2afc64965a3c2beabd7427dc6bafb9e"
+      "sha256": "738a731e0ecb66660b4af89fb5e7e688740c46a859efb3a187259beeb0c8e356"
     }
   ],
-  "aggregate": "bf5ddf943315ffa750d5857913b639d4c78a120eab4c37a8951123c8979a14e2",
+  "aggregate": "b65a824b5cd1362aaf4cfa90813f257e30cffd91263848f16bc429a4e4c08f9b",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

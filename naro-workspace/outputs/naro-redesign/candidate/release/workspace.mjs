@@ -1,6 +1,7 @@
 import {createMergeImport} from './merge-import.mjs';
 import {createGmailSender} from './gmail-send.mjs';
 import {activeAccess,FEATURES,ACCENTS} from './access-control.mjs';
+import {logEntry} from './change-log.mjs';
 let gmail=null;
 // Only fixed diagnostic labels cross into the UI; never forward provider messages.
 export function safeStorageFailure(error){
@@ -34,6 +35,7 @@ export function openWorkspace(data,logout,repository){
   window.removeEventListener('message',ready);ready=null;
   const channel=new MessageChannel();port=channel.port1;const current=port;let busy=false;
   const importer=createMergeImport(repository);
+  let logQueue=Promise.resolve();
   port.onmessage=async e=>{
    const m=e.data;
    if(m?.type==='WORKSPACE_RENDERED'){document.documentElement.dataset.workspaceRenderMs=String(Math.round(performance.now()-workspaceStarted));return;}
@@ -81,8 +83,15 @@ export function openWorkspace(data,logout,repository){
     catch(error){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
     finally{busy=false;}return;
    }
+   // 변경 기록 읽기(10/9): 저장과 따로, 저장 중에도 읽기만 한다.
+   if(m?.type==='LOG_READ'){
+    const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
+    try{reply({type:'LOG_ROWS',month:m.month,rows:await repository.readLog(m.month),provider});}catch(error){reply({type:'LOG_ERROR',...safeStorageDiagnostic(error)});}
+    return;
+   }
    if(m?.type!=='SAVE_TABLE'||busy||!repository)return;
    busy=true;
+   const before=structuredClone(data[m.key]);
    try{
     let result;
     try{result=await repository.saveTable(m.key,m.rows,{recover:m.recover===true});}
@@ -93,6 +102,8 @@ export function openWorkspace(data,logout,repository){
     }
     data[result.key]=structuredClone(result.rows);
     if(port===current)current.postMessage({type:'TABLE_SAVED',requestId:m.requestId,...result});
+    // 저장이 확인된 뒤에만 기록 한 줄(실패해도 저장은 그대로 — 기록은 따로 다시 시도하지 않는다).
+    if(!m.recover){const entry=logEntry(result.key,before,result.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});}
    }catch(error){if(port===current)current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
    finally{busy=false;}
   };

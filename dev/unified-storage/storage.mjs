@@ -71,6 +71,9 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const g=generation;check(g);if(!businessWrite||!extendedWrite||!snapshot||!Object.values(snapshot.settings.assets||{}).includes(path))throw fault('WRITE_BLOCKED');
    const bytes=await provider.backend.downloadAsset(path);check(g);return bytes;
   },
+  // 변경 기록(10/9): 데이터 저장과 따로(실패해도 저장은 그대로). Dropbox만 지원 — Drive는 UNAVAILABLE.
+  async readLog(month){const g=generation;check(g);if(!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.readLog)throw fault('UNAVAILABLE');const rows=await provider.backend.readLog(month);check(g);return rows;},
+  async appendLog(entry){const g=generation;check(g);if(!businessWrite||!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.appendLog)throw fault('UNAVAILABLE');await provider.backend.appendLog(entry);check(g);return true;},
   async loadAll(discoveredPaths){
    if(saving||pending)throw fault('BUSY');
    const g=++generation;check(g);

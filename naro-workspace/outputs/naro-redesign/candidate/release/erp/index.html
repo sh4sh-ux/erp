@@ -10107,6 +10107,33 @@ html body #appView #qtList>.nd-cancel-toggle{display:block;width:calc(100% - 32p
  html body #appView #view-quotes #qtForm>.qt-hero .qs-row .qs-k,html body #appView #view-quotes #qtForm>.qt-hero .qs-amt-k{margin-bottom:4px!important}
  html body #appView #view-quotes #qtForm>.qp-tabs{padding-top:0!important;margin-top:0!important}
 }
+/* 변경 기록(10/9) */
+html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:0;border:0;background:none;color:var(--nd-blue);font:500 13px/20px var(--sans);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+@media (min-width:781px){.nd-log-sheet{width:min(760px,calc(100vw - 48px))!important}}
+.nd-log-sheet .nd-log-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nd-log-sheet .nd-log-hd>div:first-child{display:flex;flex-direction:column;gap:2px}
+.nd-log-sheet .nd-log-sub{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+.nd-log-sheet .nd-log-month{display:flex;align-items:center;gap:6px;font:600 14px/1 var(--sans);color:var(--nd-ink)}
+.nd-log-sheet .nd-log-month button{width:34px;height:34px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink);font:600 16px/1 var(--sans);cursor:pointer}
+.nd-log-sheet .nd-log-month button:disabled{opacity:.35;cursor:default}
+.nd-log-sheet .nd-log-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:0 24px 12px}
+.nd-log-sheet .nd-log-tabs button{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12.5px/1 var(--sans);cursor:pointer}
+.nd-log-sheet .nd-log-tabs button[aria-pressed="true"]{border-color:var(--nd-ink);color:var(--nd-ink);box-shadow:inset 0 0 0 1px var(--nd-ink)}
+.nd-log-sheet .nd-log-list{padding:0 24px 16px;max-height:min(60vh,560px);overflow:auto}
+.nd-log-sheet .nd-log-day{position:sticky;top:0;z-index:1;padding:10px 0 6px;background:var(--nd-raised,var(--nd-surface));font:600 12px/16px var(--sans);color:var(--nd-ink-3);border-bottom:1px solid var(--nd-line)}
+.nd-log-sheet .nd-log-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px solid var(--nd-line);align-items:start}
+.nd-log-sheet .nd-log-row .t{font:500 12.5px/20px var(--sans);color:var(--nd-ink-3);font-variant-numeric:tabular-nums}
+.nd-log-sheet .nd-log-row .l{display:flex;gap:8px;align-items:baseline;min-width:0;font:500 14px/20px var(--sans);color:var(--nd-ink)}
+.nd-log-sheet .nd-log-row .l span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nd-log-sheet .nd-log-row .a{flex:none;padding:1px 7px;border-radius:6px;font:600 11.5px/18px var(--sans);background:var(--nd-fill);color:var(--nd-ink-2)}
+.nd-log-sheet .nd-log-row .a-추가{background:var(--nd-blue-soft);color:var(--nd-blue)}
+.nd-log-sheet .nd-log-row .a-삭제,.nd-log-sheet .nd-log-row .a-취소{background:var(--nd-red-soft);color:var(--nd-red)}
+.nd-log-sheet .nd-log-row ul{margin:4px 0 0;padding:0 0 0 14px;font:400 12.5px/19px var(--sans);color:var(--nd-ink-2)}
+.nd-log-sheet .nd-log-row .w{font:400 12px/20px var(--sans);color:var(--nd-ink-3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nd-log-sheet .nd-log-empty{margin:0;padding:32px 0;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3)}
+.nd-log-sheet .nd-log-empty small{font-size:12px}
+@media (max-width:600px){.nd-log-sheet .nd-log-tabs,.nd-log-sheet .nd-log-list{padding-left:16px;padding-right:16px}.nd-log-sheet .nd-log-row{grid-template-columns:40px minmax(0,1fr)}.nd-log-sheet .nd-log-row .w{grid-column:2;grid-row:2}}
+.nd-log-sheet .nd-ps-act{grid-template-columns:1fr}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -11927,6 +11954,8 @@ const NaroOrderImport=(()=>{
   const q=current();const anchor=f.querySelector('[role="tabpanel"]');
   f.dataset.ndSt=q?q.status:'new';
   editMode(f,q);
+  {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector(':scope>.nd-log-link');
+   if(!q||!window.NaroChangeLog){lk?.remove();}else if(info&&!lk){lk=document.createElement('button');lk.type='button';lk.className='nd-log-link';lk.textContent='이 견적서의 변경 기록 보기';lk.onclick=()=>{const c=current();if(c)window.NaroChangeLog.open({ref:c.id,title:`${c.no||''} · ${coName(c.company_id)}`});};info.append(lk);}}
   recs(f,q);
   const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 견적서를 취소(재고 되돌림)할 수 있어요.';
   if(note&&q&&(q.deliveries||[]).length&&note.textContent!==NOTE)note.textContent=NOTE;

@@ -173,6 +173,7 @@ if(business){
 await writeFile(resolve(release,'app.mjs'),app);
 await copyFile(resolve(here,'access-control.mjs'),resolve(release,'access-control.mjs'));
 if(business)await copyFile(resolve(here,'business-workspace.mjs'),resolve(release,'workspace.mjs'));
+if(business)await copyFile(resolve(here,'change-log.mjs'),resolve(release,'change-log.mjs'));
 // Reuse sanitized v1.186 renderers, not the original private-data artifact.
 const erp=resolve(root,'outputs/privacy-safe-companies-pilot/source/app');
 for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name))await copyFile(resolve(erp,name),resolve(release,'erp',name));
@@ -419,6 +420,7 @@ if(business){
  await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
+ await copyFile(resolve(here,'log-ui.mjs'),resolve(release,'erp/log-ui.mjs'));
 }
 if(extended){
  await copyFile(resolve(here,'vendor/jszip-3.10.1.min.js'),resolve(release,'erp/jszip.min.js'));

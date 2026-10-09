@@ -2,6 +2,8 @@ import {fault,folders,tables,boundedRead} from './core.mjs';
 import {canonical} from './company-contract.mjs';
 import {createAssetStore} from './asset-store.mjs';
 const paths=new Set([...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`));
+// 변경 기록(10/9): 달마다 한 파일. 7개 데이터 파일 목록(paths)에는 넣지 않는다 — 목록·구조 확인은 그대로.
+const logPath=month=>`NARO Biz/Logs/${month}.json`,isLog=path=>/^NARO Biz\/Logs\/\d{4}-\d{2}\.json$/.test(path);
 const api='https://api.dropboxapi.com/2/files/';
 const content='https://content.dropboxapi.com/2/files/';
 // Dropbox content_hash: 4MB 블록마다 SHA-256, 이어 붙여 다시 SHA-256 (hex). 저장 응답과 비교해 다시 내려받지 않고 확인한다.
@@ -23,7 +25,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  const onVisible=()=>{if(globalThis.document?.visibilityState==='visible'&&token&&now()>=expires-300000)renewNow();};
  const fresh=async()=>{if(oauth.renew&&token&&!disposed&&now()>=expires-60000)await renewNow();};
  const assets=createAssetStore({provider:'dropbox',auth:()=>{check();return token;},fetcher,signal,enabled:businessWrite,now});
- const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path))throw fault('WRITE_BLOCKED');return '/'+path;};
+ const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path))throw fault('WRITE_BLOCKED');return '/'+path;};
  async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch}={}){
   await fresh();check();let response;
   if(now()-windowStart>=60000){windowStart=now();requests=0;}if(++requests>120)throw fault('QUOTA_LIMIT');
@@ -58,6 +60,28 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   async disconnect(){disposed=true;token=null;expires=0;prepared=false;clearTimeout(timer);globalThis.document?.removeEventListener('visibilitychange',onVisible);oauth.close();},
   async exists(path){return !!await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});},
   load,identity,metrics:()=>({...metrics}),
+  // 변경 기록: 읽기(없으면 빈 목록) · 한 줄 더하기(그 달 파일을 rev 조건으로 다시 올림, 겹치면 다시 읽어 최대 3번).
+  async readLog(month){
+   if(!/^\d{4}-\d{2}$/.test(String(month)))throw fault('VALIDATION');
+   const path=logPath(month),meta=await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});
+   if(!meta)return [];
+   const rows=await request(content+'download',{path:pathArg(path)},{download:true});return Array.isArray(rows)?rows:[];
+  },
+  async appendLog(entry){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');
+   const month=String(entry?.at||'').slice(0,7);if(!/^\d{4}-\d{2}$/.test(month))throw fault('VALIDATION');
+   const path=logPath(month),run=async()=>{
+    for(let attempt=0;;attempt++){
+     const meta=await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});
+     const rows=meta?await request(content+'download',{path:pathArg(path)},{download:true}):[];
+     const list=Array.isArray(rows)?rows:[];if(list.some(r=>r?.id===entry.id))return;
+     const next=[...list,entry];if(JSON.stringify(next).length>1048576)throw fault('QUOTA_LIMIT');
+     try{await request(content+'upload',{path:pathArg(path),mode:meta?{'.tag':'update',update:meta.rev}:{'.tag':'add'},autorename:false,strict_conflict:true,mute:true},{upload:next});return;}
+     catch(error){if(error.code!=='STORAGE_CONFLICT'||attempt>=2)throw error;}
+    }
+   };
+   return locks?.request?locks.request('naro-dropbox-log',{mode:'exclusive'},run):run();
+  },
   async updateDataset(key,before,next,expected,{recoveryOnly=false}={}){
    const path=`NARO Biz/Data/${key}.json`;
    if(!businessWrite||!paths.has(path))throw fault('WRITE_BLOCKED');

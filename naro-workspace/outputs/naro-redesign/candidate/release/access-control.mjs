@@ -41,6 +41,8 @@ export function createAccess({auth,fetcher=(...a)=>globalThis.fetch(...a),now=()
  let mine={features:[],accent:''};
  return {
   isAdmin,
+  // 변경 기록에 남길 '누가'(로그인 이메일). 저장소·Firestore 어디에도 따로 보내지 않는다.
+  who(){try{return auth.email()||'';}catch{return '';}},
   // 마지막 확인의 내 맞춤 정보(관리자는 모든 기능 '*').
   profile:()=>({features:[...mine.features],accent:mine.accent}),
   // {status:'approved'|'pending'|'rejected', admin, setup, email, requestedAt}
