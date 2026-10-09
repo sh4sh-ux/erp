@@ -181,3 +181,41 @@
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){color:var(--nd-ink-2);display:inline-flex;align-items:center;gap:5px}
 #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):before{content:"";width:7px;height:7px;border-radius:2px;background:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-values .nd-db-receipt:before{background:var(--nd-green)}
+/* 매출·입금 그래프 — 영수증 앱 '지출 추이'처럼(10/9): 왼쪽 금액 눈금 + 점선, 모든 칸이 한 화면, 밀어서 짚어 보기(세로선) */
+#appView #view-dash.nd-dashboard{--db-pair-h:126px}
+#appView #view-dash.nd-dashboard .nd-db-plot{display:grid;grid-template-columns:minmax(0,1fr);padding:14px 24px 0}
+#appView #view-dash.nd-dashboard .nd-db-plot.has-axis{grid-template-columns:auto minmax(0,1fr);column-gap:8px}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-chart-scroll{overflow:visible}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bars{padding:0}
+#appView #view-dash.nd-dashboard .nd-db-pair{height:var(--db-pair-h)}
+#appView #view-dash.nd-dashboard .nd-db-yaxis{list-style:none;margin:0;padding:0;height:var(--db-pair-h);display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end}
+#appView #view-dash.nd-dashboard .nd-db-yaxis li{font-size:10.5px;line-height:1;color:var(--nd-ink-3);font-variant-numeric:tabular-nums;transform:translateY(0);white-space:nowrap}
+#appView #view-dash.nd-dashboard .nd-db-yaxis li:first-child{transform:translateY(-4px)}
+#appView #view-dash.nd-dashboard .nd-db-yaxis li:last-child{transform:translateY(4px)}
+#appView #view-dash.nd-dashboard .nd-db-canvas{position:relative}
+#appView #view-dash.nd-dashboard .nd-db-grid{position:absolute;left:0;right:0;top:0;height:var(--db-pair-h);display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;z-index:0}
+#appView #view-dash.nd-dashboard .nd-db-grid span{display:block;height:0;border-top:1px dashed color-mix(in srgb,var(--nd-ink) 12%,transparent)}
+#appView #view-dash.nd-dashboard .nd-db-grid span:last-child{border-top-style:solid;border-top-color:var(--nd-line)}
+#appView #view-dash.nd-dashboard .nd-db-bars{position:relative;z-index:1;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense{gap:3px}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-pair{gap:2px}
+#appView #view-dash.nd-dashboard .nd-db-bar-label{white-space:nowrap;overflow:visible;text-align:center}
+#appView #view-dash.nd-dashboard .nd-db-bar-group.no-label .nd-db-bar-label{color:transparent}
+#appView #view-dash.nd-dashboard .nd-db-cursor{position:absolute;top:0;height:var(--db-pair-h);left:0;width:1px;margin-left:-.5px;background:var(--nd-ink-2);opacity:.45;pointer-events:none;z-index:2}
+@media (min-resolution:2dppx){#appView #view-dash.nd-dashboard .nd-db-cursor{transform:scaleX(.5)}}
+@media (max-width:780px){
+ #appView #view-dash.nd-dashboard{--db-pair-h:105px}
+ #appView #view-dash.nd-dashboard .nd-db-plot{padding:14px 12px 0}
+ #appView #view-dash.nd-dashboard .nd-db-bars.is-dense{gap:1px}
+ #appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-pair{gap:1px}
+}
+/* 막대는 또렷하게, 짚는 동안만 나머지를 흐리게(영수증 앱과 같음) · 촘촘한 일별은 버튼 최소 폭 해제 */
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar{opacity:.9}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-group.is-default .nd-db-bar{opacity:.9}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bars:has(.is-active) .nd-db-bar-group:not(.is-active) .nd-db-bar{opacity:.28}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-group{min-width:0!important;min-height:0!important}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-label{border-bottom-color:transparent!important}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group.no-label .nd-db-bar-label{visibility:hidden}
+#appView #view-dash.nd-dashboard .nd-db-plot .nd-db-bar-label{display:flex;justify-content:center}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group:last-child .nd-db-bar-label{justify-content:flex-end}
+#appView #view-dash.nd-dashboard .nd-db-bars.is-dense .nd-db-bar-group:first-child .nd-db-bar-label{justify-content:flex-start}

@@ -118,8 +118,14 @@
   const rows=allRows.slice(chartPage*31,(chartPage+1)*31);
   if(!rows.some(r=>r.key===selectedKey))selectedKey=null;
   const initial=chartEmphasis(rows,selectedKey);
-  const max=Math.max(1,...allRows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]))*1.12;
+  // 영수증 앱 '지출 추이'처럼(10/9): 왼쪽 금액 눈금 + 점선 · 모든 칸이 한 화면(옆으로 스크롤 없음) · 손가락으로 밀면 세로선과 값
+  const peak=Math.max(1,...allRows.flatMap(r=>[Math.abs(r.sale),Math.abs(r.receipt)]));
   const negative=allRows.some(r=>r.sale<0||r.receipt<0);
+  const stepRaw=peak/3,mag=10**Math.floor(Math.log10(stepRaw)),step=[1,2,2.5,5,10].map(m=>m*mag).find(v=>v>=stepRaw)||10*mag;
+  const ticks=negative?[]:Array.from({length:Math.ceil(peak/step)+1},(_,i)=>i*step);
+  const max=negative?peak*1.12:ticks.at(-1)||1;
+  const axis=v=>v===0?'0':v>=1e8?`${+(v/1e8).toFixed(1)}억`:v>=1e4?`${+(v/1e4).toFixed(v>=1e5?0:1)}만`:Math.round(v).toLocaleString('ko-KR');
+  const every=rows.length>12?Math.ceil(rows.length/7):1;
   const valueHtml=r=>`<b>${esc(r.key)}</b><span class="nd-db-sale">매출 ${money(r.sale)}</span><span class="nd-db-receipt">입금 ${money(r.receipt)}</span>`;
   const mark=(value,kind)=>`<span class="nd-db-bar ${kind}${value<0?' negative':''}" style="height:${Math.abs(value)/max*100}%"></span>`;
   host.innerHTML=`<header class="nd-db-head"><h3>매출·입금 현황</h3><div class="nd-db-chart-tools"><div class="nd-db-range-group"><button type="button" class="nd-db-range-trigger" aria-label="조회 기간 변경" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('calendar')}<span>${esc(range.from.replaceAll('-','.'))} – ${esc(range.to.replaceAll('-','.'))}</span></button><button type="button" class="nd-db-range-filter${chartRange?' is-filtered':''}" aria-label="기간 필터${chartRange?' · 적용됨':''}" aria-haspopup="dialog" aria-expanded="false" aria-controls="nd-db-range-form">${icon('filter')}</button>
@@ -131,8 +137,8 @@
     <div class="nd-db-range-actions"><button type="button" data-range-reset>초기화</button><button type="submit" class="nd-db-range-apply">적용</button></div></div>
    </form></div><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
    <div class="nd-db-chart-meta"><span>${esc(range.from)} — ${esc(range.to)}${chartRange?' · 선택 기간':''}</span><div class="nd-db-values">${valueHtml(rows[initial.shown])}</div></div>
-   <div class="nd-db-chart-scroll" tabindex="0" aria-label="기간별 그래프 가로 스크롤"><div class="nd-db-bars${negative?' has-negative':''}" role="group" aria-label="기간별 매출과 입금" style="--db-bars:${rows.length};--db-bar-min:${rows.length>12?'48px':'0px'}">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div></div>
-   <div class="nd-db-chart-note">${rows.length>12?'좌우로 스크롤하여 다른 기간을 볼 수 있습니다. · ':''}매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
+   <div class="nd-db-plot${ticks.length?' has-axis':''}">${ticks.length?`<ul class="nd-db-yaxis" aria-hidden="true">${ticks.slice().reverse().map(v=>`<li>${axis(v)}</li>`).join('')}</ul>`:''}<div class="nd-db-chart-scroll"><div class="nd-db-canvas">${ticks.length?`<div class="nd-db-grid" aria-hidden="true">${ticks.map(()=>'<span></span>').join('')}</div>`:''}<div class="nd-db-bars${negative?' has-negative':''}${rows.length>12?' is-dense':''}" role="group" aria-label="기간별 매출과 입금 — 그래프를 누른 채 옆으로 밀면 값이 보여요" style="--db-bars:${rows.length};--db-bar-min:0px">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group${i%every===0||(i===rows.length-1&&i%every>=every*0.6)?'':' no-label'}" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}"><span class="nd-db-pair" aria-hidden="true">${mark(r.sale,'sale')}${mark(r.receipt,'receipt')}</span><span class="nd-db-bar-label">${r.label}</span></button>`).join('')}</div><div class="nd-db-cursor" hidden></div></div></div></div>
+   <div class="nd-db-chart-note">매출: 납품일 기준 · 부가세 포함 / 입금: 입금일 기준${negative?' · 음수는 기준선 아래 표시':''}</div><span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values');
   if(pageCount>1){
    const pager=document.createElement('div');pager.className='nd-db-chart-pager';
@@ -149,7 +155,19 @@
    b.onblur=()=>show(null);
    b.onclick=()=>{selectedKey=rows[i].key;groups.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));show(null);host.querySelector('[data-chart-announcement]').textContent=b.getAttribute('aria-label');};
   });
-  host.querySelector('.nd-db-bars').onpointerleave=()=>show(null);
+  // 짚어 보기: 그래프에 손가락을 대고 옆으로 밀면 가장 가까운 칸에 세로선 + 위 값 줄이 그 칸으로(손을 떼도 남고, 다른 곳을 누르면 원래대로).
+  // 위아래로 밀면 화면 스크롤(touch-action:pan-y). 마우스는 올리면 보이고 벗어나면 원래대로. 값 줄의 금액을 누르면 그 기간 목록 창.
+  const barsEl=host.querySelector('.nd-db-bars'),canvas=host.querySelector('.nd-db-canvas'),cursor=host.querySelector('.nd-db-cursor');
+  let scrubbing=null,held=false;
+  const at=x=>{const r=barsEl.getBoundingClientRect();const i=Math.max(0,Math.min(groups.length-1,Math.floor((x-r.left)/r.width*groups.length)));const g=groups[i].querySelector('.nd-db-pair').getBoundingClientRect(),c=canvas.getBoundingClientRect();cursor.style.left=(g.left+g.width/2-c.left)+'px';cursor.hidden=false;show(i);};
+  const off=()=>{cursor.hidden=true;held=false;show(null);};
+  barsEl.onpointerdown=e=>{if(e.pointerType==='mouse')return;scrubbing=e.pointerId;held=true;try{barsEl.setPointerCapture(e.pointerId);}catch{}at(e.clientX);};
+  barsEl.onpointermove=e=>{if(scrubbing===e.pointerId||e.pointerType==='mouse')at(e.clientX);};
+  barsEl.onpointerup=e=>{if(scrubbing===e.pointerId)scrubbing=null;};
+  barsEl.onpointercancel=e=>{if(scrubbing===e.pointerId){scrubbing=null;off();}};
+  barsEl.onpointerleave=e=>{if(e.pointerType==='mouse'&&!held)off();};
+  const outside=new AbortController();host._ndScrubOff?.abort();host._ndScrubOff=outside;
+  document.addEventListener('pointerdown',e=>{if(!host.isConnected){outside.abort();return;}if(held&&!barsEl.contains(e.target)&&!values.contains(e.target))off();},{signal:outside.signal,capture:true});
   show(null);
   const group=host.querySelector('.nd-db-range-group'),triggers=[...group.querySelectorAll('[aria-controls="nd-db-range-form"]')],form=group.querySelector('.nd-db-range-form');
   let opener=triggers[1],resetDraft=false;
