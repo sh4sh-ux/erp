@@ -99,6 +99,10 @@ test('recent quotes only, sorted without modifying the original collection',()=>
  const quotes=[1,3,2,5,4].map(n=>({id:n,date:`2026-10-0${n}`})),before=JSON.stringify(quotes);
  assert.deepEqual(plain(recent(quotes).map(q=>q.id)),[5,4,3,2]);assert.equal(JSON.stringify(quotes),before);
 });
+test('recent quotes leave out cancelled ones (same as the quote list)',()=>{
+ const quotes=[{id:1,date:'2026-10-01'},{id:2,date:'2026-10-03',status:'취소'},{id:3,date:'2026-10-02'}];
+ assert.deepEqual(plain(recent(quotes).map(q=>q.id)),[3,1]);
+});
 test('presentation has no persistence, provider calls or dataset mutations',()=>{
  assert.doesNotMatch(source,/\b(?:fetch|localStorage|sessionStorage|indexedDB|saveTable|postMessage)\b\s*[.(]/);
  assert.doesNotMatch(source,/db\.\w+\s*=|db\.\w+\.(?:push|splice|sort)\(/);
