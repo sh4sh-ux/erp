@@ -239,3 +239,9 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){disp
  #appView #view-dash.nd-dashboard .nd-db-chart-pager{margin:10px 16px 0}
  #appView #view-dash.nd-dashboard .nd-db-chart{padding-bottom:16px}
 }
+/* 10/9: 회색이 짙다(사용자) — 그래프 상자·기간 버튼 묶음은 더 옅은 바탕, 매출/입금 금액은 올렸을 때만 아주 옅은 파랑. */
+#appView #view-dash.nd-dashboard{--nd-db-soft:color-mix(in srgb,var(--nd-fill) 50%,var(--nd-surface))}
+#appView #view-dash.nd-dashboard .nd-db-trend{background:var(--nd-db-soft);border-color:var(--nd-line-2)}
+#appView #view-dash.nd-dashboard .nd-db-tabs{background:var(--nd-db-soft);box-shadow:inset 0 0 0 1px var(--nd-line-2)}
+html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){border-radius:6px}
+@media (hover:hover){html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):hover{background:color-mix(in srgb,var(--nd-blue) 6%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--nd-blue) 6%,transparent)}}

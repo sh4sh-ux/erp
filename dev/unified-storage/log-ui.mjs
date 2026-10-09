@@ -47,8 +47,9 @@ export function installLogUI({port}){
  function open(opts={}){
   ref=opts.ref||null;refTitle=opts.title||'';tab='';if(!ref)month=local();
   cache.clear();
-  if(!sheet){sheet=document.createElement('dialog');sheet.className='nd-pay-sheet nd-log-sheet';sheet.setAttribute('aria-labelledby','ndLogTtl');sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});(document.getElementById('appView')||document.body).append(sheet);}
+  if(!sheet){sheet=document.createElement('dialog');sheet.className='nd-pay-sheet nd-log-sheet';sheet.setAttribute('aria-labelledby','ndLogTtl');sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});sheet.addEventListener('close',()=>entry.removeAttribute('aria-expanded'));(document.getElementById('appView')||document.body).append(sheet);}
   if(!sheet.open){sheet.tabIndex=-1;sheet.showModal();sheet.focus({preventScroll:true});}
+  if(!ref)entry.setAttribute('aria-expanded','true'); // 창이 열려 있는 동안 왼쪽 메뉴의 '변경 기록'을 선택된 모양으로
   refresh();
  }
  entry.onclick=()=>{if(sheet?.open&&!ref){sheet.close();return;}open();};

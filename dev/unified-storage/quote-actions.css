@@ -185,3 +185,7 @@ html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:
 .nd-log-sheet .nd-log-empty small{font-size:12px}
 @media (max-width:600px){.nd-log-sheet .nd-log-tabs,.nd-log-sheet .nd-log-list{padding-left:16px;padding-right:16px}.nd-log-sheet .nd-log-row{grid-template-columns:40px minmax(0,1fr)}.nd-log-sheet .nd-log-row .w{grid-column:2;grid-row:2}}
 .nd-log-sheet .nd-ps-act{grid-template-columns:1fr}
+/* 변경 기록 창이 열려 있는 동안 왼쪽 메뉴 '변경 기록'도 선택된 모양(10/9) */
+#appView .shell .rail-nav .nd-nav-act.nd-log-nav[aria-expanded="true"]{background:var(--nd-blue-soft);color:var(--nd-blue-ink);font-weight:650}
+#appView .shell .rail-nav .nd-nav-act.nd-log-nav[aria-expanded="true"]>svg{opacity:1}
+#appView[data-layout-system] .shell .rail-nav:has(.nd-log-nav[aria-expanded="true"]) .nav-item.on{background:transparent;color:var(--nd-ink-2);font-weight:500}

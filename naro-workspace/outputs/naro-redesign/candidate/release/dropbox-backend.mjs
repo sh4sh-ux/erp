@@ -63,9 +63,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   // 변경 기록: 읽기(없으면 빈 목록) · 한 줄 더하기(그 달 파일을 rev 조건으로 다시 올림, 겹치면 다시 읽어 최대 3번).
   async readLog(month){
    if(!/^\d{4}-\d{2}$/.test(String(month)))throw fault('VALIDATION');
-   const path=logPath(month),meta=await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});
-   if(!meta)return [];
-   const rows=await request(content+'download',{path:pathArg(path)},{download:true});return Array.isArray(rows)?rows:[];
+   // 한 번에 내려받는다(없으면 Dropbox가 409 not_found → 빈 목록). 확인 요청을 따로 하지 않아 창이 빨리 뜬다.
+   const rows=await request(content+'download',{path:pathArg(logPath(month))},{download:true,allowMissing:true});return Array.isArray(rows)?rows:[];
   },
   async appendLog(entry){
    if(!businessWrite)throw fault('WRITE_BLOCKED');
