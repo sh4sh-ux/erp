@@ -10138,6 +10138,11 @@ html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:
 #appView .shell .rail-nav .nd-nav-act.nd-log-nav[aria-expanded="true"]{background:var(--nd-blue-soft);color:var(--nd-blue-ink);font-weight:650}
 #appView .shell .rail-nav .nd-nav-act.nd-log-nav[aria-expanded="true"]>svg{opacity:1}
 #appView[data-layout-system] .shell .rail-nav:has(.nd-log-nav[aria-expanded="true"]) .nav-item.on{background:transparent;color:var(--nd-ink-2);font-weight:500}
+/* 견적서 필터 버튼: 걸린 필터가 있으면 숫자 대신 파란 점(대시보드 기간 필터와 같은 표시, 10/9 사용자).
+   옛 배지는 var(--primary)를 써서 새 디자인에서 바탕이 사라지고 '1'만 보였다. 개수는 화면 읽기용 이름으로만 남긴다. */
+html body #appView #view-quotes .qfilter-btn>#qtFilterBadge:not([hidden]){position:absolute!important;top:6px!important;right:6px!important;left:auto!important;bottom:auto!important;width:7px!important;min-width:7px!important;height:7px!important;padding:0!important;border-radius:50%!important;background:var(--nd-blue)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden;box-shadow:0 0 0 2px var(--nd-surface)}
+/* 선택·올린 줄은 바탕이 회색이라 회색 '작성중' 배지가 묻힌다 → 그 줄에서는 배지를 흰 바탕으로(10/9) */
+#appView #view-quotes .list-item:is(:hover,.on) .pill.st-draft{background:var(--nd-surface)!important}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
