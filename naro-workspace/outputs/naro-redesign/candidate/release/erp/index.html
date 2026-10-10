@@ -10159,6 +10159,14 @@ html body #appView #view-quotes .qfilter-btn>#qtFilterBadge:not([hidden]){positi
 /* 단계 표시 줄 높이는 견적서마다 같게(10/10 사용자): 다음 할 일 버튼(36px)이 없는 견적서(다 끝난 견적 등)도
    버튼이 있을 때와 같은 높이 → 단계 글자·구분선·아래 '품목' 제목과 표가 어느 견적서에서나 같은 자리. */
 @media (min-width:1024px){html body #appView #qtForm .nd-next{min-height:51px}}
+/* [행 추가][옵션별 한번에](10/10 사용자): 글자는 둘 다 가운데. 아이콘 자동 처리(nd-gi-i/f)가 숨겨진 상태에서 판단하면
+   [행 추가]가 inline이 되어 글자가 왼쪽에 붙었다 → 직접 지정. 두 버튼 줄과 안내 글은 위 표의 입력 칸과 같은 안쪽선(17px)에서 시작·끝. */
+html body #appView #qtForm #qp-panel-items .line-btns>:is(#fq_addLine,#fq_sizeBtn){display:flex!important;align-items:center;justify-content:center!important;gap:6px;text-align:center}
+@media (min-width:1024px){
+ html body #appView #qtForm #qp-panel-items .line-btns{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
+ html body #appView #qtForm #qp-panel-items>.hint{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
+ html body #appView #qtForm .qlines .qline:not(.head) .rm{justify-self:end;max-width:24px}
+}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
