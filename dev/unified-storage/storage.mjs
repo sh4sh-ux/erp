@@ -1,6 +1,8 @@
 import {tables,validateData,fault,boundedRead,folders,emptyData,parallelRead} from '../personal-cloud-onboarding/core.mjs';
 import {validateBusinessChange} from '../personal-cloud-onboarding/business-contract.mjs';
 import {validateExtendedChange} from '../personal-cloud-onboarding/extended-contract.mjs';
+import {validatePurchasesChange,validatePurchaseLinks,validatePurchase,emptyPurchases,capacity,PURCHASES_SCHEMA} from '../personal-cloud-onboarding/purchase-contract.mjs';
+import {costLedger,runIssues} from './purchase-ledger.mjs';
 export const keys=Object.freeze([...tables,'settings']);
 export const datasetPath=key=>{if(!keys.includes(key))throw fault('STORAGE_INVALID');return `NARO Biz/Data/${key}.json`;};
 export const denyWrite=()=>{throw fault('WRITE_BLOCKED');};
@@ -56,10 +58,34 @@ export function dropboxIdentity(logicalKey,metadata){
  if(metadata?.['.tag']!=='file'||!metadata.id||!metadata.rev||metadata.path_lower!==('/'+datasetPath(logicalKey)).toLowerCase())throw fault('STORAGE_CONFLICT');
  return Object.freeze({provider:'dropbox',logicalKey,fileId:metadata.id,path:metadata.path_lower,revision:metadata.rev,revisionKind:'dropbox.rev',etag:null});
 }
+// 읽어 온 매입 파일 전체 검사(구조 + 줄마다 규칙). 문제 있으면 매입만 'error' — 7개 데이터는 그대로.
+export function validatePurchasesDoc(doc,snapshot){
+ if(!doc||doc.schema!==PURCHASES_SCHEMA||!Array.isArray(doc.rows)||!Array.isArray(doc.archives))throw fault('STORAGE_INVALID');
+ validatePurchasesChange(null,{...doc,rows:[],archives:[]},snapshot);
+ for(const p of doc.rows)validatePurchase(p,snapshot);
+ if(new Set(doc.rows.map(p=>p.id)).size!==doc.rows.length)throw fault('STORAGE_INVALID');
+ return true;
+}
+// 새 원가 확정은 '지금' 시점에만(지난 출고 원가를 바꾸지 않게) + 음수·원가 모르는 재고는 확인 표시가 있어야 한다.
+export function checkNewRuns(before,next,snapshot){
+ const prev=new Map((before?.rows||[]).map(p=>[p.id,p]));
+ for(const p of next.rows){
+  const old=prev.get(p.id)?.cost_runs||[],runs=p.cost_runs||[];
+  for(const run of runs.slice(old.length)){
+   if(run.after_move_count!==snapshot.stock_moves.length)throw fault('VALIDATION');
+   const issues=runIssues(costLedger({stock_moves:snapshot.stock_moves,purchases:before}),p);
+   if(issues.some(code=>!(run.acknowledged_issues||[]).includes(code)))throw fault('VALIDATION');
+  }
+ }
+}
 export function createStorageRepository(provider,{companiesCreate=false,businessWrite=false,extendedWrite=false}={}){
  let snapshot=null,identities=null,closed=false,generation=0;
  let saving=false;
  let pending=null;
+ // 매입 파일(10/10, 1단계): 7개 데이터와 따로 있는 선택 파일. 상태: unknown · unsupported(Drive 등) · absent(시작 전) · ready · error.
+ // 이 상태는 7개 데이터 읽기·저장에 영향을 주지 않는다(실패해도 기존 기능은 그대로).
+ let purchases={status:'unknown',doc:null,identity:null,pending:null,error:null};
+ const purchaseState=()=>({status:purchases.status,count:purchases.doc?.rows.length??0,capacity:purchases.doc?capacity(purchases.doc):null,unfinishedSave:!!purchases.pending,error:purchases.error});
  const check=g=>{if(closed||g!==generation)throw fault('CANCELLED');};
  return Object.freeze({
   capabilities:Object.freeze({merge:businessWrite&&extendedWrite}),
@@ -77,7 +103,7 @@ export function createStorageRepository(provider,{companiesCreate=false,business
   async loadAll(discoveredPaths){
    if(saving||pending)throw fault('BUSY');
    const g=++generation;check(g);
-   snapshot=null;identities=null;
+   snapshot=null;identities=null;purchases={status:'unknown',doc:null,identity:null,pending:null,error:null};
    const before=await provider.discover(discoveredPaths);check(g);
    const draft={};
    await parallelRead(keys,async key=>{draft[key]=await provider.read(key);check(g);},Math.min(7,provider.backend.readConcurrency||3));
@@ -113,6 +139,8 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    if(pending&&!recover)throw fault('SAVE_UNCONFIRMED');
    if(recover&&!pending)throw fault('STORAGE_INVALID');
    const intent=pending||{key,before:structuredClone(snapshot[key]),next:(extendedWrite?validateExtendedChange:validateBusinessChange)(key,snapshot[key],value,snapshot),identity:structuredClone(identities.find(i=>i.logicalKey===key))};
+   // 매입과 연결된 새 줄(purchase_id)만 추가 검사 — 연결 없는 기존 저장은 지금과 똑같다.
+   if(!pending)validatePurchaseLinks(key,intent.before,intent.next,purchases.status==='ready'?purchases.doc:null);
    saving=true;
    try{
     const result=await provider.updateDataset(intent.key,intent.before,intent.next,intent.identity,{recoveryOnly:recover});check(g);
@@ -122,7 +150,56 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    }catch(e){if(e.code==='SAVE_UNCONFIRMED')pending=intent;throw e;}
    finally{saving=false;}
   },
-  dispose(){closed=true;generation++;snapshot=null;identities=null;}
+  // ── 매입 파일 ──
+  purchasesState:()=>purchaseState(),
+  loadPurchasesDoc(){if(purchases.status!=='ready'||closed)throw fault('STORAGE_INVALID');return structuredClone(purchases.doc);},
+  // 7개 데이터를 읽은 뒤 따로 부른다. 어떤 실패도 7개 데이터 상태를 바꾸지 않는다.
+  async loadPurchases(){
+   const g=generation;check(g);if(!snapshot)throw fault('BUSY');
+   const b=provider.backend;
+   if(!b?.purchasesIdentity||!b?.loadPurchases){purchases={status:'unsupported',doc:null,identity:null,pending:null,error:null};return purchaseState();}
+   try{
+    const before=await b.purchasesIdentity();check(g);
+    if(!before){purchases={status:'absent',doc:null,identity:null,pending:null,error:null};return purchaseState();}
+    const doc=await b.loadPurchases();check(g);
+    const after=await b.purchasesIdentity();check(g);
+    if(!after||!same(before,after))throw fault('STORAGE_CONFLICT');
+    validatePurchasesDoc(doc,snapshot);
+    purchases={status:'ready',doc,identity:after,pending:null,error:null};
+   }catch(e){if(e.code==='CANCELLED')throw e;purchases={status:'error',doc:null,identity:null,pending:null,error:e.code||'INTERNAL_ERROR'};}
+   return purchaseState();
+  },
+  // [매입 시작하기]: 빈 매입 파일 만들기(이미 있으면 덮지 않고 읽기).
+  async startPurchases(){
+   const g=generation;check(g);
+   if(!businessWrite||!extendedWrite||!snapshot)throw fault('WRITE_BLOCKED');
+   if(purchases.status!=='absent')throw fault(purchases.status==='ready'?'STORAGE_CONFLICT':'UNAVAILABLE');
+   if(saving)throw fault('BUSY');saving=true;
+   try{
+    const result=await provider.backend.createPurchases(validatePurchasesChange(null,emptyPurchases(),snapshot));check(g);
+    validatePurchasesDoc(result.value,snapshot);
+    purchases={status:'ready',doc:result.value,identity:result.identity,pending:null,error:null};
+    return {created:result.created,...purchaseState()};
+   }finally{saving=false;}
+  },
+  // 매입 저장(1번에 매입 1건). 원가 확정을 더할 때는 확정 시점 = 지금 재고 기록 수, 음수·원가 모르는 재고는 확인 표시 필수.
+  async savePurchases(next,{recover=false}={}){
+   const g=generation;check(g);
+   if(!businessWrite||!extendedWrite||!snapshot||purchases.status!=='ready')throw fault('WRITE_BLOCKED');
+   if(saving)throw fault('BUSY');
+   if(purchases.pending&&!recover)throw fault('SAVE_UNCONFIRMED');
+   if(recover&&!purchases.pending)throw fault('STORAGE_INVALID');
+   const intent=purchases.pending||{before:structuredClone(purchases.doc),next:validatePurchasesChange(purchases.doc,next,snapshot,{stock_moves:snapshot.stock_moves,payments:snapshot.payments}),identity:structuredClone(purchases.identity)};
+   if(!purchases.pending)checkNewRuns(intent.before,intent.next,snapshot);
+   saving=true;
+   try{
+    const result=await provider.backend.updateDataset('purchases',intent.before,intent.next,intent.identity,{recoveryOnly:recover});check(g);
+    purchases={...purchases,doc:structuredClone(result.rows),identity:result.identity,pending:null};
+    return structuredClone(result.rows);
+   }catch(e){if(e.code==='SAVE_UNCONFIRMED')purchases={...purchases,pending:intent};throw e;}
+   finally{saving=false;}
+  },
+  dispose(){closed=true;generation++;snapshot=null;identities=null;purchases={status:'unknown',doc:null,identity:null,pending:null,error:null};}
  });
 }
 // Existing Table contract; provider details never enter business modules.

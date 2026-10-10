@@ -43,6 +43,9 @@ for(const name of ['workspace.mjs'])await copyFile(resolve(here,name),resolve(re
 await writeFile(resolve(release,'merge-import.mjs'),(await readFile(resolve(here,'merge-import.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
 await writeFile(resolve(release,'gmail-send.mjs'),(await readFile(resolve(here,'gmail-send.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
 await writeFile(resolve(release,'storage.mjs'),(await readFile(resolve(here,'storage.mjs'),'utf8')).replaceAll('../personal-cloud-onboarding/','./'));
+// 매입 1단계(10/10): storage.mjs가 쓰는 저장 규칙·원가 계산(화면에서는 아직 쓰지 않음)
+await copyFile(resolve(onboarding,'purchase-contract.mjs'),resolve(release,'purchase-contract.mjs'));
+await copyFile(resolve(here,'purchase-ledger.mjs'),resolve(release,'purchase-ledger.mjs'));
 let runtime=await readFile(resolve(onboarding,'runtime-live.mjs'),'utf8');
 runtime=runtime.replace(/^import .*Dropbox.*\n/gm,'').replace("const oauth=createDropboxOAuth({clientId:'ehmn2pd14wm98im'});",'const oauth={close(){}};');
 runtime=runtime.replace("kind==='dropbox'?oauth:kind==='drive'&&drive?drive:null","kind==='drive'&&drive?drive:null");
