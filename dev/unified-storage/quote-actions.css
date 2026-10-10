@@ -194,3 +194,16 @@ html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:
 html body #appView #view-quotes .qfilter-btn>#qtFilterBadge:not([hidden]){position:absolute!important;top:6px!important;right:6px!important;left:auto!important;bottom:auto!important;width:7px!important;min-width:7px!important;height:7px!important;padding:0!important;border-radius:50%!important;background:var(--nd-blue)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden;box-shadow:0 0 0 2px var(--nd-surface)}
 /* 선택·올린 줄은 바탕이 회색이라 회색 '작성중' 배지가 묻힌다 → 그 줄에서는 배지를 흰 바탕으로(10/9) */
 #appView #view-quotes .list-item:is(:hover,.on) .pill.st-draft{background:var(--nd-surface)!important}
+/* 끝선 규칙(10/10 사용자 — 사진의 검은선·빨간선): 견적서 상세는 두 개의 세로선으로 맞춘다.
+   검은선 = 내용 영역 끝: 단계 표시·[입금 받기][납품 처리]·품목 제목·[편집]·카드 테두리·표 구분선·아래 버튼 줄.
+   빨간선 = 검은선에서 17px 안쪽(카드 테두리 1px + 안쪽 16px와 같은 자리): 표 머리·표 글자·금액·합계·카드 안 글자.
+   표는 줄 안쪽 여백 17px, 보기 모드에서는 품목 글자가 빨간선에서 시작·금액이 빨간선에서 끝나게(숨겨진 삭제 칸 자리는 뺀다). */
+@media (min-width:1024px){
+ html body #appView #qtForm{--nd-in:17px}
+ html body #appView #qtForm .qlines .qline{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
+ html body #appView #qtForm .qtotals{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
+ html body #appView #qtForm .qlines{border-radius:0!important} /* 둥근 모서리가 마지막 구분선 양끝을 잘랐다 — 구분선은 끝까지 곧게 */
+ html body #appView #qtForm.nd-view .qlines .qline{grid-template-columns:minmax(0,1fr) minmax(112px,176px) 56px minmax(76px,100px) minmax(80px,100px)!important}
+ html body #appView #qtForm.nd-view .qlines .qline>:is(.rm,:nth-child(6)){display:none!important}
+ html body #appView #qtForm.nd-view .qlines .qline:not(.head) .ip-btn{padding-left:0!important;border-left-width:0!important}
+}
