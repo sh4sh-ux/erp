@@ -10156,6 +10156,9 @@ html body #appView #view-quotes .qfilter-btn>#qtFilterBadge:not([hidden]){positi
  html body #appView #qtForm.nd-view .qlines .qline>:is(.rm,:nth-child(6)){display:none!important}
  html body #appView #qtForm.nd-view .qlines .qline:not(.head) .ip-btn{padding-left:0!important;border-left-width:0!important}
 }
+/* 단계 표시 줄 높이는 견적서마다 같게(10/10 사용자): 다음 할 일 버튼(36px)이 없는 견적서(다 끝난 견적 등)도
+   버튼이 있을 때와 같은 높이 → 단계 글자·구분선·아래 '품목' 제목과 표가 어느 견적서에서나 같은 자리. */
+@media (min-width:1024px){html body #appView #qtForm .nd-next{min-height:51px}}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
