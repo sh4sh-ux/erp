@@ -6,7 +6,7 @@ const num=v=>Math.round(Number(v)||0).toLocaleString('ko-KR');
 const short=v=>{const t=String(v??'').replace(/\s+/g,' ').trim();return t.length>40?t.slice(0,39)+'…':t||'(빈칸)';};
 const md=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?`${Number(m[2])}.${m[3]}`:'';};
 const same=(a,b)=>JSON.stringify(a??null)===JSON.stringify(b??null);
-const TABLE={quotes:'견적서',companies:'거래처',items:'품목',payments:'입금·출금',stock_moves:'재고',material_moves:'업체 제공 자재',settings:'공급자 정보'};
+const TABLE={purchases:'매입',quotes:'견적서',companies:'거래처',items:'품목',payments:'입금·출금',stock_moves:'재고',material_moves:'업체 제공 자재',settings:'공급자 정보'};
 const FIELDS={
  quotes:{status:'상태',date:'견적일자',valid:'유효기간',memo:'비고',tax_at:'계산서 발행일',no_tax:'계산서 발행 안 함',cancel_reason:'취소 사유'},
  companies:{name:'이름',type:'구분',biz_no:'사업자번호',contact:'담당자',phone:'전화',email:'이메일',address:'주소',address_base:'주소',address_detail:'상세 주소',memo:'메모',quote_memo:'견적 메모',no_tax:'계산서 발행 안 함'},
@@ -21,6 +21,7 @@ export function describeChange(key,before,after,ref={}){
   const b=before||{},a=after||{},keys=[...new Set([...Object.keys(b),...Object.keys(a)])].filter(k=>k!=='assets'&&k!=='schema'&&!same(b[k],a[k]));
   return keys.length?{key,table,action:'수정',ref:'settings',label:'공급자 정보',changes:keys.slice(0,12).map(k=>`${k} 변경`)}:null;
  }
+ if(key==='purchases')return describePurchase(before,after,co);
  const B=new Map((before||[]).map(r=>[r.id,r])),A=new Map((after||[]).map(r=>[r.id,r]));
  const added=[...A.values()].filter(r=>!B.has(r.id)),removed=[...B.values()].filter(r=>!A.has(r.id));
  const changed=[...A.values()].filter(r=>B.has(r.id)&&!same(r,B.get(r.id)));
@@ -78,4 +79,32 @@ function addedDetail(key,r){
 export function logEntry(key,before,after,{who='',ref={},at=new Date().toISOString(),id=crypto.randomUUID()}={}){
  const d=describeChange(key,before,after,ref);
  return d?{id,at,by:String(who||''),...d}:null;
+}
+
+// 매입(2단계): 매입 1건의 변화를 한 줄로. 금액·수량·상태처럼 화면에 보이는 값만.
+function describePurchase(before,after,co){
+ const B=new Map((before||[]).map(r=>[r.id,r])),A=new Map((after||[]).map(r=>[r.id,r]));
+ const added=[...A.values()].find(r=>!B.has(r.id)),removed=[...B.values()].find(r=>!A.has(r.id)),changed=[...A.values()].find(r=>B.has(r.id)&&!same(r,B.get(r.id)));
+ const row=added||changed||removed;if(!row)return null;
+ const label=`매입 ${row.no||''} · ${row.vendor_id?co(row.vendor_id):'기초 재고'}`;
+ const qty=list=>list.reduce((n,x)=>n+(Number(x.qty)||0),0);
+ const base={key:'purchases',table:'매입',ref:row.id,label};
+ if(added)return {...base,action:'추가',changes:[`${row.kind} · 품목 ${(row.lines||[]).length}건 · ${row.status}`]};
+ if(removed)return {...base,action:'삭제',changes:[]};
+ const b=B.get(row.id),a=row,changes=[];
+ if(a.status!==b.status)changes.push(`상태 ${b.status} → ${a.status}`);
+ for(const r of a.receipts||[]){const o=(b.receipts||[]).find(x=>x.id===r.id);
+  if(!o)changes.push(`입고 계획 ${md(r.date)} ${num(qty(r.lines))}개`);
+  else{if(r.posted_at&&!o.posted_at)changes.push(`입고 확정 ${md(r.date)} ${num(qty(r.lines))}개`);if(r.void_at&&!o.void_at)changes.push(`입고 취소 ${md(r.date)} ${num(qty(r.lines))}개${r.void_reason?` · ${short(r.void_reason)}`:''}`);}
+ }
+ for(const t of a.returns||[]){const o=(b.returns||[]).find(x=>x.id===t.id);if(!o)changes.push(`반품 ${md(t.date)} ${num(qty(t.lines))}개${t.reason?` · ${short(t.reason)}`:''}`);}
+ for(const c of a.costs||[]){const o=(b.costs||[]).find(x=>x.id===c.id);if(!o)changes.push(`비용 추가: ${c.type} ${won(c.amount_krw)}`);else if(c.void_at&&!o.void_at)changes.push(`비용 취소: ${c.type} ${won(c.amount_krw)}`);}
+ if((a.cost_runs||[]).length>(b.cost_runs||[]).length)changes.push('원가 확정');
+ if(!same(a.lines,b.lines))changes.push(`품목 ${(b.lines||[]).length}건 → ${(a.lines||[]).length}건 · 수량 ${num(qty(b.lines||[]))} → ${num(qty(a.lines||[]))}`);
+ if(a.vendor_id!==b.vendor_id)changes.push(`매입처 ${co(b.vendor_id)} → ${co(a.vendor_id)}`);
+ if(a.date!==b.date)changes.push(`매입일 ${b.date} → ${a.date}`);
+ if(!same(a.tax_invoice,b.tax_invoice))changes.push(`세금계산서 ${a.tax_invoice?.received?'받음':'안 받음'}`);
+ if((a.memo||'')!==(b.memo||''))changes.push(`메모 ${short(b.memo)} → ${short(a.memo)}`);
+ if(!changes.length)changes.push('세부 내용 변경');
+ return {...base,action:a.status==='취소'&&b.status!=='취소'?'취소':'수정',changes:changes.slice(0,12)};
 }

@@ -1,6 +1,6 @@
 // 변경 기록 화면(10/9): 왼쪽 메뉴 '설정' 묶음에 한 줄 + 창 하나. 기록은 저장할 때 위 페이지가 저장소에 남기고(change-log.mjs),
 // 이 창은 달마다 읽어 보여 준다(LOG_READ). 견적서 정보 탭의 '이 견적서의 변경 기록'은 같은 창을 그 견적서로 걸러 연다.
-const TABS=[['','전체'],['quotes','견적서'],['companies','거래처'],['items','품목'],['payments','입금·출금'],['stock_moves','재고'],['material_moves','자재']];
+const TABS=[['','전체'],['quotes','견적서'],['purchases','매입'],['companies','거래처'],['items','품목'],['payments','입금·출금'],['stock_moves','재고'],['material_moves','자재']];
 const MSG={UNAVAILABLE:'Google Drive에서는 아직 변경 기록을 지원하지 않아요. Dropbox에서 쓸 수 있어요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',RATE_LIMIT:'잠시 후 다시 시도해 주세요.'};
 const ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 2"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 4v5h5"/></svg>';
 export function installLogUI({port}){

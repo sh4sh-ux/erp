@@ -83,6 +83,28 @@ export function openWorkspace(data,logout,repository){
     catch(error){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
     finally{busy=false;}return;
    }
+   // 매입(2단계): 7개 데이터와 따로 있는 매입 파일. 저장 중이면 바로 BUSY로 답해 화면이 기다리며 멈추지 않게.
+   if(typeof m?.type==='string'&&m.type.startsWith('PURCHASE_')){
+    const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
+    const fail=error=>reply({type:'PURCHASE_ERROR',...safeStorageDiagnostic(error)});
+    const state=()=>{const st=repository.purchasesState();return {type:'PURCHASE_STATE',state:st,doc:st.status==='ready'?repository.loadPurchasesDoc():null};};
+    if(!repository?.loadPurchases){reply({type:'PURCHASE_STATE',state:{status:'unsupported'},doc:null});return;}
+    if(busy){reply({type:'PURCHASE_ERROR',code:'BUSY'});return;}
+    busy=true;
+    try{
+     if(m.type==='PURCHASE_STATE'){if(m.reload||repository.purchasesState().status==='unknown')await repository.loadPurchases();reply(state());}
+     else if(m.type==='PURCHASE_START'){await repository.startPurchases();reply(state());}
+     else if(m.type==='PURCHASE_SAVE'){
+      const before=repository.purchasesState().status==='ready'?repository.loadPurchasesDoc():null;
+      await repository.savePurchases(m.recover?null:m.doc,{recover:m.recover===true});
+      const after=repository.loadPurchasesDoc();reply({type:'PURCHASE_SAVED',doc:after});
+      const entry=logEntry('purchases',before?.rows||[],after.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});
+     }
+     else fail({code:'VALIDATION'});
+    }catch(error){fail(error);}
+    finally{busy=false;}
+    return;
+   }
    // 변경 기록 읽기(10/9): 저장과 따로, 저장 중에도 읽기만 한다.
    if(m?.type==='LOG_READ'){
     const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};

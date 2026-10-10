@@ -359,7 +359,7 @@ if(business){
 }
 // NARO design layer (theme tokens, wide rail, panels) loads last; theme is set before first paint.
 html=html.replace('</head>',`<script>try{const p=localStorage.getItem('naroTheme');document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}</script><style>html[data-theme="dark"]{background:#0B0C0E;color-scheme:dark}</style></head>`);
-html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script></body>`);
 // Strip legacy OAuth/network transport and snapshot writes from the business bundle.
 const begin=html.indexOf('/* ---------- PKCE 유틸'),end=html.indexOf('const db =',begin);
@@ -424,6 +424,9 @@ if(business){
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
  await copyFile(resolve(here,'log-ui.mjs'),resolve(release,'erp/log-ui.mjs'));
+ // 매입 화면(2단계): 업무 화면 모듈은 erp/ 안, 규칙·원가 계산은 저장소와 같은 파일(release 맨 위)을 함께 쓴다.
+ await writeFile(resolve(release,'erp/purchase-ui.mjs'),(await readFile(resolve(here,'purchase-ui.mjs'),'utf8')).replace("from './purchase-ledger.mjs'","from '../purchase-ledger.mjs'"));
+ await writeFile(resolve(release,'erp/purchase-saga.mjs'),(await readFile(resolve(here,'purchase-saga.mjs'),'utf8')).replace("from '../personal-cloud-onboarding/purchase-contract.mjs'","from '../purchase-contract.mjs'").replace("from './purchase-ledger.mjs'","from '../purchase-ledger.mjs'"));
 }
 if(extended){
  await copyFile(resolve(here,'vendor/jszip-3.10.1.min.js'),resolve(release,'erp/jszip.min.js'));

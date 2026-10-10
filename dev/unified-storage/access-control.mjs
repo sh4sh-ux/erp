@@ -11,7 +11,7 @@ const STATUSES=['pending','approved','rejected'];
 // 새 기능을 특정 사람에게만 주려면: ① 여기 FEATURES에 {key,label,desc}를 한 줄 더하고
 // ② 앱 코드에서 window.ndHas('key')로 감싸거나 CSS로 html:not([data-nd-f~="key"]) .그요소{display:none}.
 // 화면에서 숨기는 것일 뿐이라 보안(다른 사람 데이터 접근 막기)에는 쓰지 말 것.
-export const FEATURES=[];
+export const FEATURES=[{key:'purchases',label:'매입',desc:'매입 등록·입고 확정·지급·반품(매입 파일은 Dropbox에서만)'}];
 // 강조 색: 버튼·선택 표시 등 파란색(--nd-blue) 자리를 바꾼다. ''=기본 파랑.
 export const ACCENTS=[['','기본 파랑'],['green','초록'],['teal','청록'],['violet','보라'],['pink','분홍']];
 const FEATURE_KEY=/^[a-z0-9-]{1,32}$/;

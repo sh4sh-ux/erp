@@ -28,3 +28,14 @@ test('입금·환불·재고·변화 없음',()=>{
  const e=logEntry('payments',[],[p],{who:'a@b.c',ref:{companies},at:'2026-10-09T01:00:00.000Z',id:'x'});
  assert.equal(e.by,'a@b.c');assert.equal(e.at,'2026-10-09T01:00:00.000Z');assert.equal(e.key,'payments');
 });
+test('매입 변경 기록: 추가·입고 확정·반품·취소를 한 줄로',()=>{
+ const ref={companies:[{id:'v1',name:'대한원단'}]};
+ const p={id:'p1',no:'PO-1',kind:'국내',vendor_id:'v1',date:'2026-10-10',status:'작성중',lines:[{id:'l1',qty:20}],receipts:[]};
+ assert.deepEqual(describeChange('purchases',[],[p],ref).changes,['국내 · 품목 1건 · 작성중']);
+ const r={id:'r1',date:'2026-10-10',lines:[{line_id:'l1',qty:20}]};
+ const d=describeChange('purchases',[{...p,receipts:[r]}],[{...p,status:'입고 완료',receipts:[{...r,posted_at:'2026-10-10T00:00:00Z'}]}],ref);
+ assert.equal(d.label,'매입 PO-1 · 대한원단');assert.deepEqual(d.changes,['상태 작성중 → 입고 완료','입고 확정 10.10 20개']);
+ const t=describeChange('purchases',[p],[{...p,returns:[{id:'t1',date:'2026-10-11',lines:[{line_id:'l1',qty:5}],reason:'불량'}]}],ref);
+ assert.deepEqual(t.changes,['반품 10.11 5개 · 불량']);
+ assert.equal(describeChange('purchases',[p],[{...p,status:'취소'}],ref).action,'취소');
+});

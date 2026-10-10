@@ -4,8 +4,9 @@ import {installAssets} from './asset-ui.mjs';
 import {installMailUI} from './mail-ui.mjs';
 import {installAccessUI} from './access-ui.mjs';
 import {installLogUI} from './log-ui.mjs';
+import {installPurchaseUI} from './purchase-ui.mjs';
 export function start(bridge,build){
- let mail=null,accessUI=null,logUI=null;
+ let mail=null,accessUI=null,logUI=null,purchaseUI=null;
  let snapshot=null,port=null,pending=null,locked=false,recovering=false,uncertainKey=null,lastFailure='',providerLabel='개인 클라우드';
  const messages={VALIDATION:'입력값과 연결된 거래처·품목을 확인해 주세요.',WRITE_BLOCKED:'이 작업은 아직 지원하지 않습니다.',BUSY:'저장이 진행 중입니다.',STORAGE_CONFLICT:'다른 변경이 발견되어 덮어쓰지 않았습니다.',CONCURRENCY_UNAVAILABLE:'안전한 저장 버전을 확인할 수 없습니다.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했습니다. 다른 저장을 중단했습니다.',QUOTA_LIMIT:'무료 사용 한도에 도달했습니다. 잠시 후 다시 시도해주세요.',RECONNECT_REQUIRED:'저장소 연결이 만료되었습니다.'};
  const status=document.createElement('div');status.setAttribute('role','status');status.style.cssText='position:fixed;bottom:12px;left:24px;z-index:9999;background:white;padding:10px;border:1px solid #d6def0;border-radius:8px;max-width:85vw';status.hidden=true;document.body.append(status);
@@ -84,7 +85,7 @@ export function start(bridge,build){
     document.documentElement.dataset.ndF=f.join(' ');if(accent)document.documentElement.dataset.ndAccent=accent;else delete document.documentElement.dataset.ndAccent;
     window.ndHas=key=>f.includes('*')||f.includes(key);}
    port.onmessage=async e=>{
-    const m=e.data;if(mail?.onMessage(m)||accessUI?.onMessage(m)||logUI?.onMessage(m))return;
+    const m=e.data;if(mail?.onMessage(m)||accessUI?.onMessage(m)||logUI?.onMessage(m)||purchaseUI?.onMessage(m))return;
     if(!pending||m?.requestId!==pending.requestId)return;
     // Each record is saved and read back one by one; show where it is so a long import doesn't look frozen.
     if(m.type==='MERGE_PROGRESS'){status.hidden=false;status.textContent=`가져오는 중… ${m.done} / ${m.total}건 저장 (창을 닫지 마세요)`;return;}
@@ -118,6 +119,8 @@ export function start(bridge,build){
     installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>{status.hidden=false;status.textContent=text;}});
     mail=installMailUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});
     logUI=installLogUI({port:()=>port});
+    // 매입(2단계): '매입' 권한이 있는 사람만 메뉴가 보인다(관리자는 모든 기능).
+    purchaseUI=installPurchaseUI({port:()=>port,features:()=>typeof window.ndHas==='function'&&window.ndHas('purchases')});
     if(e.data.admin===true)accessUI=installAccessUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});
     // 명함·사업자등록증 보내기: the image saved under 공급자 정보 → 개인 클라우드 이미지 (settings.assets).
     // Phone: share sheet. Desktop: copy the image, else download it. The file is kept after the first read,
