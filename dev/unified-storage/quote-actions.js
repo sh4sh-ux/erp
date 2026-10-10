@@ -146,8 +146,9 @@
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
    d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#ndQaMemo').oninput=ev=>{memo=ev.target.value;};
    const inp=d.querySelector('#ndQaAmt');
-   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요';};
-   inp.onblur=()=>paint();
+   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요';};
+   // 손을 뗄 때 창을 다시 그리면 같이 누른 [입금 확인]이 사라져 두 번 눌러야 했다 — 숫자 모양과 초과 안내만 고친다
+   inp.onblur=()=>{inp.value=amount?won(amount):'';const over=amount>s.balance&&s.balance>=0;let w=d.querySelector('.nd-qa-warn');if(over){if(!w){w=document.createElement('p');w.className='nd-qa-warn';d.querySelector('.nd-qa-body').append(w);}w.textContent=`남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.`;}else w?.remove();};
    d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=Math.max(0,s.balance);else if(preset==='half')amount=Math.max(0,Math.round(s.balance/2));paint();if(preset==='custom'){const i=sheet.querySelector('#ndQaAmt');i.focus();i.select();}});
    d.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{method=b.dataset.me;paint();});
    d.querySelector('.nd-qa-go').onclick=async ev=>{
@@ -376,7 +377,7 @@
    d.querySelectorAll('[data-refund]').forEach(b=>b.onclick=()=>{refund=b.dataset.refund;paint();});
    d.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{method=b.dataset.me;paint();});
    d.querySelector('#ndQaDate')?.addEventListener('change',ev=>{rdate=ev.target.value||rdate;});
-   const ai=d.querySelector('#ndQaAmt');if(ai){ai.oninput=()=>{amt=Math.min(net,Math.floor(Number(ai.value.replace(/[^\d]/g,''))||0));const go=d.querySelector('.nd-qa-del');go.disabled=!(amt>0);};ai.onblur=()=>paint();}
+   const ai=d.querySelector('#ndQaAmt');if(ai){ai.oninput=()=>{amt=Math.min(net,Math.floor(Number(ai.value.replace(/[^\d]/g,''))||0));const go=d.querySelector('.nd-qa-del');go.disabled=!(amt>0);};ai.onblur=()=>{ai.value=amt?won(amt):'';};} // 다시 그리면 같이 누른 버튼이 사라진다 — 숫자 모양만
    d.querySelector('.nd-qa-del').onclick=async ev=>{
     const btn=ev.currentTarget;btn.disabled=true;btn.textContent='정리하는 중…';
     const fail=t=>{btn.disabled=false;btn.textContent='다시 시도';say(t);};
