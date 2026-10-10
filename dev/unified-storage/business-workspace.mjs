@@ -16,6 +16,18 @@ export function safeStorageDiagnostic(error){
 let frame=null,port=null,ready=null;
 let preparedFrame=null,preparedListener=null,preparedReady=false;
 function detachPreparation(){if(preparedListener)window.removeEventListener('message',preparedListener);preparedListener=null;}
+// 매입 저장(응답을 잃은 저장 복구 포함). 표 저장(SAVE_TABLE)과 같은 원칙: 결과를 모르면 읽기만으로 한 번 확인하고, 다시 쓰지 않는다.
+//  - 확인해 보니 올라가 있음 → 끝(앞선 다른 저장이 확인된 것이면 applied=false — 화면이 맞춘 뒤 다시 누르게)
+//  - 저장 전 내용 그대로(SAVE_NOT_OBSERVED) → 올라가지 않은 것이 확실하므로 다시 불러와 이번 내용으로 한 번만 저장
+export async function savePurchasesSafely(repository,doc,recover=false){
+ const earlier=repository.purchasesState().unfinishedSave;
+ try{await repository.savePurchases(recover?null:doc,{recover});return !recover;}
+ catch(error){
+  if(error.code!=='SAVE_UNCONFIRMED'||recover)throw error;
+  try{await repository.savePurchases(null,{recover:true});return !earlier;}
+  catch(e){if(e.code!=='SAVE_NOT_OBSERVED'||!doc)throw e;await repository.loadPurchases();await repository.savePurchases(doc);return true;}
+ }
+}
 export function prepareWorkspace(){
  if(frame||preparedFrame)return;
  const target=document.createElement('iframe');preparedFrame=target;preparedReady=false;
@@ -96,8 +108,8 @@ export function openWorkspace(data,logout,repository){
      else if(m.type==='PURCHASE_START'){await repository.startPurchases();reply(state());}
      else if(m.type==='PURCHASE_SAVE'){
       const before=repository.purchasesState().status==='ready'?repository.loadPurchasesDoc():null;
-      await repository.savePurchases(m.recover?null:m.doc,{recover:m.recover===true});
-      const after=repository.loadPurchasesDoc();reply({type:'PURCHASE_SAVED',doc:after});
+      const applied=await savePurchasesSafely(repository,m.doc,m.recover===true);
+      const after=repository.loadPurchasesDoc();reply({type:'PURCHASE_SAVED',doc:after,applied});
       const entry=logEntry('purchases',before?.rows||[],after.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});
      }
      else fail({code:'VALIDATION'});

@@ -23,8 +23,9 @@ export function fakeDropbox(seed){
  for(const k of keys)put(`/NARO Biz/Data/${k}.json`,seed[k]);
  const meta=f=>({'.tag':'file',id:f.id,rev:f.rev,path_lower:f.path.toLowerCase(),path_display:f.path});
  const nf=()=>Response.json({error:{'.tag':'path',path:{'.tag':'not_found'}}},{status:409});
- let breakNext=null;const writes=[];
+ let breakNext=null,dropNext=null,offline=false;const writes=[];
  const fetcher=async(url,o)=>{
+  if(offline)throw Error('synthetic offline');
   const arg=JSON.parse(o.headers['Dropbox-API-Arg']||o.body),p=String(arg.path||'').toLowerCase(),f=files.get(p);
   if(url.endsWith('get_metadata')){if(arg.path==='/NARO Biz')return Response.json({'.tag':'folder'});return f?Response.json(meta(f)):nf();}
   if(url.endsWith('list_folder'))return Response.json({entries:[...files.values()].map(meta),has_more:false});
@@ -33,13 +34,14 @@ export function fakeDropbox(seed){
    const mode=arg.mode?.['.tag']||arg.mode;writes.push(arg.path);
    if(mode==='add'&&f)return Response.json({error:{'.tag':'path',reason:{'.tag':'conflict'}}},{status:409});
    if(mode==='update'&&(!f||f.rev!==arg.mode.update))return Response.json({error:{'.tag':'path',reason:{'.tag':'conflict'}}},{status:409});
+   if(dropNext&&dropNext(arg.path)){dropNext=null;throw Error('synthetic loss before write');}
    put(arg.path,JSON.parse(o.body));
    if(breakNext&&breakNext(arg.path)){breakNext=null;throw Error('synthetic response loss');}
    return Response.json(meta(files.get(p)));
   }
   throw Error('unexpected '+url);
  };
- return {files,fetcher,writes,loseNextResponse:fn=>{breakNext=fn;}};
+ return {files,fetcher,writes,loseNextResponse:fn=>{breakNext=fn;},dropNextWrite:fn=>{dropNext=fn;},setOffline:v=>{offline=v;}};
 }
 export async function open(fake,{drive=false}={}){
  const backend=createDropboxBackend({oauth:{authorize:async()=>({accessToken:'t',expiresAt:Date.now()+3600e3}),close(){}},businessWrite:true,fetcher:fake.fetcher,locks:{request:async(_n,_o,fn)=>fn({})}});

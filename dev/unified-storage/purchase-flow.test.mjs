@@ -103,3 +103,41 @@ test('입고·반품·취소를 거쳐도 7개 파일 중 재고·입출금만 �
  assert.deepEqual(impact(L1,L2).changedOutflows,[]);
  const s1=snap7(x.fake);['companies','items','quotes','payments','material_moves','settings'].forEach(k=>{const i=['companies','items','quotes','payments','stock_moves','material_moves','settings'].indexOf(k);assert.equal(s1[i],s0[i],k);});
 });
+
+// ── 응답을 잃은 매입 저장 복구(business-workspace savePurchasesSafely) — 표 저장과 같이 읽기로만 확인, 두 번 쓰지 않음 ──
+import {savePurchasesSafely} from './business-workspace.mjs';
+const P=/purchases\.json/i;
+const withPlan=(x,id='r1')=>{const d=x.repo.loadPurchasesDoc();return {...d,rows:d.rows.map(p=>planReceipt(p,{receiptId:id,date:'2026-10-10',lines:[{line_id:'l1',qty:20}],at:AT}))};};
+test('저장은 됐는데 응답만 잃음: 같은 요청 안에서 읽어 확인 → 한 번만 반영',async()=>{
+ const x=await ready();const plan=withPlan(x);
+ x.fake.loseNextResponse(p=>P.test(p));
+ assert.equal(await savePurchasesSafely(x.repo,plan),true);
+ assert.equal(x.repo.loadPurchasesDoc().rows[0].receipts.length,1);
+ assert.equal(x.repo.purchasesState().unfinishedSave,false);
+});
+test('보냈지만 저장 안 됨: 저장 전 내용 그대로 확인되면 다시 불러와 한 번만 저장',async()=>{
+ const x=await ready();const plan=withPlan(x);const n0=x.fake.writes.filter(w=>P.test(w)).length;
+ x.fake.dropNextWrite(p=>P.test(p));
+ assert.equal(await savePurchasesSafely(x.repo,plan),true);
+ assert.equal(x.repo.loadPurchasesDoc().rows[0].receipts.length,1);
+ assert.equal(x.fake.writes.filter(w=>P.test(w)).length-n0,2); // 잃은 1번 + 다시 1번
+});
+test('확인 중에도 끊김 → 기다리는 상태로 남고, 연결 뒤 다음 저장에서 앞선 것이 확인되면 applied=false(다시 누르게)',async()=>{
+ const x=await ready();const plan=withPlan(x);
+ x.fake.loseNextResponse(p=>{if(P.test(p)){x.fake.setOffline(true);return true;}return false;});
+ await assert.rejects(savePurchasesSafely(x.repo,plan));
+ assert.equal(x.repo.purchasesState().unfinishedSave,true);
+ x.fake.setOffline(false);
+ const other=withPlan(x,'r2'); // 화면은 옛 내용으로 다른 입고를 다시 시도
+ assert.equal(await savePurchasesSafely(x.repo,other),false);
+ assert.deepEqual(x.repo.loadPurchasesDoc().rows[0].receipts.map(r=>r.id),['r1']); // 앞선 것 하나만, 덮어쓰지 않음
+ assert.equal(x.repo.purchasesState().unfinishedSave,false);
+});
+test('끊긴 채로 다시 눌러도(확인 불가) 아무것도 더 쓰지 않는다',async()=>{
+ const x=await ready();const plan=withPlan(x);
+ x.fake.loseNextResponse(p=>{if(P.test(p)){x.fake.setOffline(true);return true;}return false;});
+ await assert.rejects(savePurchasesSafely(x.repo,plan));
+ const n=x.fake.writes.length;
+ await assert.rejects(savePurchasesSafely(x.repo,plan));
+ assert.equal(x.fake.writes.length,n);
+});

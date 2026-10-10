@@ -100,7 +100,10 @@ export function installPurchaseUI({port,features=()=>true}){
   render();
  }
  const fail=async e=>{const t=MSG[e?.code]||e?.message||'저장하지 못했어요.';toast(t);if(e?.code==='STORAGE_CONFLICT'){st.draft=null;st.dirty=false;st.editing=false;await load(true);return;}render();};
- async function savePurchase(next){const r=await ask('PURCHASE_SAVE',{doc:next});st.doc=r.doc;return r.doc;}
+ async function savePurchase(next){const r=await ask('PURCHASE_SAVE',{doc:next});st.doc=r.doc;
+  // 앞서 끊긴 저장이 먼저 확인돼 반영된 경우: 그 내용이 이번 것과 같으면 그대로 진행, 다르면 화면을 맞추고 다시 누르게 한다
+  if(r.applied===false&&JSON.stringify(r.doc?.rows)!==JSON.stringify(next.rows))throw Object.assign(Error('앞서 끊긴 저장을 먼저 확인해 반영했어요. 내용을 확인하고 다시 눌러 주세요.'),{code:'RETRY'});
+  return r.doc;}
  const io={getDoc:()=>structuredClone(st.doc),getStock:()=>structuredClone(D().stock_moves||[]),savePurchases:savePurchase,saveStock:rows=>app.Table.save('stock_moves',rows)};
 
  // ── 그리기: 견적서와 같은 뼈대(머리·목록 카드·상세 카드) ──
@@ -345,20 +348,22 @@ export function installPurchaseUI({port,features=()=>true}){
  }
  function receiveSheet(start='all'){
   const p=cur();if(!p)return;const rest=p.lines.map(l=>({id:l.id,l,max:l.qty-received(p,l)})).filter(r=>r.max>0).map(r=>({...r,sub:`${optOf(r.l)}${optOf(r.l)?' · ':''}남음 ${n0(r.max)}`}));if(!rest.length)return;
+  const rid='r'+uid(); // [다시 시도]해도 같은 입고 번호 — 끊겼다 이어져도 두 번 생기지 않는다
   qtyPicker({title:'입고 처리',sub:`${esc(coName(p.vendor_id))} · ${esc(p.no)}`,rowsIn:rest,start,unit:'개',segAll:'남은 수량 전부',goLabel:'입고 확인',
    note:'처음엔 남은 수량이 다 채워져 있어요. 이번에 안 들어온 것만 줄이세요.',
    fields:`<label>입고일<input type="date" id="puQaDate" data-keep value="${today()}"></label><label>메모 (선택)<input id="puQaMemo" data-keep placeholder="예: 박스 3개"></label>`,
    after:n=>`확인하면 입고가 기록되고 <b>재고에 ${n0(n)}개 더해져요</b>.`,
-   onGo:async(d,lines)=>{if(!lines.length)throw Error('수량을 넣어 주세요.');await postReceipt(io,p.id,{receiptId:'r'+uid(),date:d.querySelector('#puQaDate').value||today(),lines,at:nowIso()});toast(`${n0(lines.reduce((a,x)=>a+x.qty,0))}개 입고를 기록했어요 · 재고 반영 완료`);}});
+   onGo:async(d,lines)=>{if(!lines.length)throw Error('수량을 넣어 주세요.');await postReceipt(io,p.id,{receiptId:rid,date:d.querySelector('#puQaDate').value||today(),lines,at:nowIso()});toast(`${n0(lines.reduce((a,x)=>a+x.qty,0))}개 입고를 기록했어요 · 재고 반영 완료`);}});
  }
  function returnSheet(){
   const p=cur();if(!p)return;const rest=p.lines.map(l=>({id:l.id,l,max:received(p,l)-returned(p,l)})).filter(r=>r.max>0).map(r=>({...r,sub:`${optOf(r.l)}${optOf(r.l)?' · ':''}입고 ${n0(r.max)}`}));if(!rest.length)return;
   const unit=Object.fromEntries(p.lines.map(l=>[l.id,l.unit_price||0]));
+  const tid='t'+uid();
   qtyPicker({title:'반품',sub:`${esc(coName(p.vendor_id))} · 입고된 것만`,rowsIn:rest,start:'zero',unit:'개',goLabel:'반품 확인',danger:true,
    note:'돌려보낸 수량만 늘리세요.',
    fields:`<label>반품일<input type="date" id="puQaDate" data-keep value="${today()}"></label><label>사유<input id="puQaMemo" data-keep placeholder="예: 불량"></label>`,
    after:n=>n?`확인하면 <b>재고에서 ${n0(n)}개 빠지고</b>, 줄 돈이 줄어요.`:'반품할 수량을 넣어 주세요.',
-   onGo:async(d,lines)=>{if(!lines.length)throw Error('반품할 수량을 넣어 주세요.');void unit;await postReturn(io,p.id,{returnId:'t'+uid(),date:d.querySelector('#puQaDate').value||today(),lines,reason:d.querySelector('#puQaMemo').value.trim(),at:nowIso()});toast('반품을 기록했어요 · 재고에서 뺐어요');}});
+   onGo:async(d,lines)=>{if(!lines.length)throw Error('반품할 수량을 넣어 주세요.');void unit;await postReturn(io,p.id,{returnId:tid,date:d.querySelector('#puQaDate').value||today(),lines,reason:d.querySelector('#puQaMemo').value.trim(),at:nowIso()});toast('반품을 기록했어요 · 재고에서 뺐어요');}});
  }
  const METHODS=['계좌이체','카드','현금','기타'];
  function paySheet(){
