@@ -28,6 +28,9 @@ const without=(o,keys)=>{const c={...o};for(const k of keys)delete c[k];return c
 
 // 입고 차수 + 줄 → 재고 기록 번호(결정적). 다시 시도해도 같은 번호라 같은 입고가 두 번 생길 수 없다.
 export const stockMoveId=(receiptId,lineId)=>`pm_${receiptId}_${lineId}`;
+// 입고 취소(반대 기록)와 반품(매입처로 돌려보냄)도 번호가 정해져 있다 → 두 번 기록되지 않는다.
+export const voidMoveId=(receiptId,lineId)=>`pv_${receiptId}_${lineId}`;
+export const returnMoveId=(returnId,lineId)=>`pr_${returnId}_${lineId}`;
 export const emptyPurchases=()=>({schema:PURCHASES_SCHEMA,rows:[],archives:[]});
 export function purchasesBytes(doc){return new TextEncoder().encode(JSON.stringify(doc)).length;}
 export function capacity(doc){const bytes=purchasesBytes(doc);return {bytes,limit:MAX_BYTES,ratio:bytes/MAX_BYTES,warn:bytes/MAX_BYTES>=WARN_RATIO};}
@@ -63,6 +66,13 @@ function receipt(r,p){
  valid(r.posted_at===undefined||iso(r.posted_at));
  if(r.void_at!==undefined)valid(iso(r.void_at)&&str(r.void_reason||'',500));
 }
+function ret(r,p){
+ valid(r&&typeof r==='object'&&id(r.id)&&day(r.date)&&Array.isArray(r.lines)&&r.lines.length>0&&iso(r.planned_at)&&str(r.reason||'',500));
+ const seen=new Set();
+ for(const rl of r.lines){valid(p.lines.some(l=>l.id===rl.line_id)&&!seen.has(rl.line_id)&&int(rl.qty)&&rl.qty>0);seen.add(rl.line_id);}
+ valid(Array.isArray(r.stock_move_ids)&&same(r.stock_move_ids,r.lines.map(rl=>returnMoveId(r.id,rl.line_id))));
+ valid(r.posted_at===undefined||iso(r.posted_at));
+}
 function run(cr,p,prior){
  valid(cr&&typeof cr==='object'&&id(cr.id)&&iso(cr.at)&&ALLOC.includes(cr.basis)&&int(cr.after_move_count)&&cr.after_move_count>=0);
  valid(['최초','추가 비용','수정'].includes(cr.reason));
@@ -84,13 +94,18 @@ export function validatePurchase(p,snapshot){
  valid(p.receipts===undefined||Array.isArray(p.receipts));unique(p.receipts||[]);for(const r of p.receipts||[])receipt(r,p);
  valid(p.cost_runs===undefined||Array.isArray(p.cost_runs));unique(p.cost_runs||[]);
  (p.cost_runs||[]).forEach((cr,i)=>run(cr,p,p.cost_runs.slice(0,i)));
+ valid(p.returns===undefined||Array.isArray(p.returns));unique(p.returns||[]);for(const r of p.returns||[])ret(r,p);
  valid(p.import_vat===undefined||p.import_vat&&num(p.import_vat.amount)&&p.import_vat.amount>=0);
  valid(p.tax_invoice===undefined||p.tax_invoice&&typeof p.tax_invoice.received==='boolean'&&(p.tax_invoice.date===undefined||day(p.tax_invoice.date)));
  valid(p.attachments===undefined||Array.isArray(p.attachments)&&p.attachments.every(a=>str(a,500)&&/^NARO Biz\/Documents\//.test(a)&&!a.includes('..')));
  // 입고 수량은 주문 수량을 넘을 수 없다(취소된 차수 제외) — 같은 물건을 두 번 입고하는 실수를 막는다.
- for(const l of p.lines){const got=(p.receipts||[]).filter(r=>!r.void_at).reduce((s,r)=>s+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);valid(got<=l.qty);}
+ for(const l of p.lines){
+  const got=(p.receipts||[]).filter(r=>!r.void_at).reduce((s,r)=>s+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);valid(got<=l.qty);
+  // 반품은 입고된 수량까지만(입고를 취소하면 그만큼 반품 여유도 줄어든다)
+  const back=(p.returns||[]).reduce((s,r)=>s+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);valid(back<=got);
+ }
  if(p.status==='취소')valid((p.receipts||[]).every(r=>r.void_at));
- if(p.kind==='기초재고')valid(!(p.receipts||[]).length);
+ if(p.kind==='기초재고')valid(!(p.receipts||[]).length&&!(p.returns||[]).length);
  return true;
 }
 // 지난 기록은 고치지 않는다: 바뀐 매입 1건을 이전 모습과 비교한다.
@@ -107,6 +122,8 @@ function frozen(prev,next){
  }
  const nc=new Map((next.costs||[]).map(c=>[c.id,c]));
  for(const c of prev.costs||[]){const n=nc.get(c.id);valid(n);valid(same(without(n,['void_at','void_reason']),without(c,['void_at','void_reason'])));if(c.void_at!==undefined)valid(n.void_at===c.void_at&&n.void_reason===c.void_reason);}
+ const nt=new Map((next.returns||[]).map(r=>[r.id,r]));
+ for(const r of prev.returns||[]){const n=nt.get(r.id);valid(n);valid(same(without(n,['posted_at']),without(r,['posted_at'])));if(r.posted_at!==undefined)valid(n.posted_at===r.posted_at);}
  const runs=next.cost_runs||[],old=prev.cost_runs||[];
  valid(runs.length>=old.length&&old.every((r,i)=>same(r,runs[i])));
 }
@@ -125,7 +142,7 @@ export function validatePurchasesChange(before,next,snapshot,links={stock_moves:
  valid(removed.length+changed.length<=1);
  if(removed.length){
   const r=removed[0];
-  valid(!(r.receipts||[]).length&&!(r.cost_runs||[]).length);
+  valid(!(r.receipts||[]).length&&!(r.cost_runs||[]).length&&!(r.returns||[]).length);
   valid(!links.stock_moves.some(m=>m.purchase_id===r.id)&&!links.payments.some(x=>x.purchase_id===r.id));
  }
  for(const r of changed){validatePurchase(r,snapshot);if(prev.has(r.id))frozen(prev.get(r.id),r);}
@@ -144,9 +161,17 @@ export function validatePurchaseLinks(key,before,next,purchasesDoc){
   const p=find(row.purchase_id);valid(p);
   if(key==='stock_moves'){
    if(row.reversal_of){
-    // 매입 입고의 취소(반대 기록)는 그 입고 차수에 취소 표시가 먼저 있어야 한다.
+    // 매입 입고의 취소(반대 기록)는 그 입고 차수에 취소 표시가 먼저 있어야 하고, 번호가 정해져 있다.
     const r=(p.receipts||[]).find(x=>x.id===row.receipt_id);valid(r&&r.void_at&&row.kind==='출고');
-    valid(r.stock_move_ids.includes(row.reversal_of));
+    valid(r.stock_move_ids.includes(row.reversal_of)&&row.id===voidMoveId(r.id,row.purchase_line_id)&&row.reversal_of===stockMoveId(r.id,row.purchase_line_id));
+    continue;
+   }
+   if(row.return_id!==undefined){
+    // 반품 출고: 반품 계획과 정확히 같아야 한다.
+    const r=(p.returns||[]).find(x=>x.id===row.return_id);valid(r);
+    const rl=r.lines.find(x=>x.line_id===row.purchase_line_id);valid(rl);
+    const l=p.lines.find(x=>x.id===rl.line_id);
+    valid(row.id===returnMoveId(r.id,rl.line_id)&&row.kind==='출고'&&row.item_id===l.item_id&&(row.color||'')===(l.color||'')&&(row.spec||'')===(l.spec||'')&&row.qty===rl.qty&&!row.quote_id);
     continue;
    }
    const r=(p.receipts||[]).find(x=>x.id===row.receipt_id);valid(r&&!r.void_at);

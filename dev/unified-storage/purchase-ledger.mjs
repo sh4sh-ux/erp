@@ -51,6 +51,7 @@ export function costLedger({stock_moves=[],purchases=null}={}){
  const byMove=new Map(),runsAt=new Map();
  for(const p of rows){
   for(const r of p.receipts||[])r.lines.forEach(rl=>byMove.set(`pm_${r.id}_${rl.line_id}`,{p,r,rl}));
+  for(const t of p.returns||[])t.lines.forEach(rl=>byMove.set(`pr_${t.id}_${rl.line_id}`,{p,ret:t,rl}));
   for(const run of p.cost_runs||[]){const n=run.after_move_count;if(!runsAt.has(n))runsAt.set(n,[]);runsAt.get(n).push({p,run});}
  }
  const opts=new Map(),outflows=[],adjustments=[],issues=[],entries=[];
@@ -97,7 +98,13 @@ export function costLedger({stock_moves=[],purchases=null}={}){
    }
   }else{
    const rev=m.reversal_of&&byMove.get(m.reversal_of);
-   if(rev){ // 매입 입고 취소: 그 입고 원가로 빼낸다(평균 아님)
+   if(link?.ret){ // 반품(매입처로 돌려보냄): 매출 원가가 아니다. 그 줄에 마지막으로 반영된 입고 원가로 빼낸다.
+    let u=null;for(const r of link.p.receipts||[]){const k=`${link.p.id}|${r.id}|${link.rl.line_id}`;if(unitApplied.has(k))u=unitApplied.get(k);}
+    if(u===null){issue(s,'return_without_receipt',i,{move_id:m.id});u=0;}
+    if(s.qty-q<0)issue(s,'negative',i,{move_id:m.id});
+    s.qty-=q;s.value=Math.max(0,s.value-q*u);if(s.qty<=0)s.value=0;
+    entries.push({at:i,option:s.key,type:'return',move_id:m.id,qty:q,unit:u,purchase_id:link.p.id});
+   }else if(rev){ // 매입 입고 취소: 그 입고 원가로 빼낸다(평균 아님)
     const u=unitApplied.get(`${rev.p.id}|${rev.r.id}|${rev.rl.line_id}`)??rev.r.unit_costs[rev.rl.line_id];
     s.qty-=q;s.value-=q*u;entries.push({at:i,option:s.key,type:'receipt_void',move_id:m.id,qty:q,unit:u});
    }else{
@@ -138,11 +145,13 @@ export function paymentStatus(p,payments=[]){
  const linked=payments.filter(x=>x.purchase_id===p.id),sign=x=>x.kind==='지급'?1:-1;
  const vendorPays=linked.filter(x=>x.company_id===p.vendor_id);
  const krwLines=Object.values(lineBase(p)).reduce((s,v)=>s+v,0);
- const vat=p.currency==='KRW'?(p.vat?.tax??0):0;
+ const returnedQty=l=>(p.returns||[]).reduce((n,r)=>n+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);
+ const krwReturned=p.lines.reduce((s,l)=>s+returnedQty(l)*l.unit_price*(p.currency==='KRW'?1:0),0);
+ const vat=p.currency==='KRW'?(p.vat?.tax??0)*(krwLines?1-krwReturned/krwLines:1):0;
  let due,paid,fxGain=0;
- if(p.currency==='KRW'){due=krwLines+vat;paid=vendorPays.reduce((s,x)=>s+sign(x)*x.amount,0);}
+ if(p.currency==='KRW'){due=krwLines-krwReturned+vat;paid=vendorPays.reduce((s,x)=>s+sign(x)*x.amount,0);}
  else{
-  due=p.lines.reduce((s,l)=>s+l.qty*l.unit_price,0);paid=vendorPays.reduce((s,x)=>s+sign(x)*(Number(x.amount_fx)||0),0);
+  due=p.lines.reduce((s,l)=>s+(l.qty-returnedQty(l))*l.unit_price,0);paid=vendorPays.reduce((s,x)=>s+sign(x)*(Number(x.amount_fx)||0),0);
   fxGain=vendorPays.filter(x=>x.amount_fx).reduce((s,x)=>s+sign(x)*(x.amount_fx*p.fx.booking_rate-x.amount),0); // +면 환차익
  }
  const firstReceipt=(p.receipts||[]).filter(r=>!r.void_at).map(r=>r.date).sort()[0];
