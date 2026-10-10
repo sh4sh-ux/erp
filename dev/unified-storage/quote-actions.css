@@ -250,3 +250,6 @@ html body #appView .btn-line-add[hidden]{display:none!important}
  html body #appView#appView #view-materials .nd-mat{padding-left:17px!important;padding-right:17px!important}
  html body #appView#appView #view-payments .ops-summary>.scr-hero{padding-left:16px!important;padding-right:16px!important}
 }
+/* 목록이 길어도 빠르게(10/10 점검: 견적서 2,000건이면 목록 열기·견적서 고르기가 2초): 화면 밖 줄은 브라우저가 계산을 건너뛴다.
+   줄 높이는 처음 그릴 때 잰 값을 기억(auto)해서 스크롤 막대가 흔들리지 않는다. */
+html body #appView .list-item{content-visibility:auto;contain-intrinsic-size:auto 96px}

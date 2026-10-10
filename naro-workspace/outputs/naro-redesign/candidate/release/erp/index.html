@@ -10199,6 +10199,17 @@ html body #appView #qtForm #qp-panel-items>.qt-sec-t{min-height:30px;display:fle
 /* 점선 추가 버튼은 어디서나 글자 가운데([옵션 추가]·[구성품 추가] 등 — 숨겨진 상태에서 아이콘 처리되면 왼쪽에 붙었다) */
 html body #appView .btn-line-add{display:flex!important;align-items:center;justify-content:center!important;gap:6px;text-align:center}
 html body #appView .btn-line-add[hidden]{display:none!important}
+/* 숫자 카드·요약 상자도 안쪽선(10/10 사용자 "숫자, 카드도 맞춰줘", PC 오른쪽 패널): 칸 안 글자·↗가 바깥선에서 17px.
+   테두리 카드 = 테두리 1 + 안쪽 16, 테두리 없는 회색 상자 = 안쪽 17. 대시보드 카드는 대시보드 자체 규칙(24) 그대로. */
+@media (min-width:1024px){
+ html body #appView#appView :is(#view-companies,#view-payments,#view-stock,#view-ar,#view-materials,#view-items,#view-sales) .stats>.stat{padding-left:16px!important;padding-right:16px!important}
+ html body #appView#appView #view-companies .stats>.stat{padding-left:17px!important;padding-right:17px!important}
+ html body #appView#appView #view-materials .nd-mat{padding-left:17px!important;padding-right:17px!important}
+ html body #appView#appView #view-payments .ops-summary>.scr-hero{padding-left:16px!important;padding-right:16px!important}
+}
+/* 목록이 길어도 빠르게(10/10 점검: 견적서 2,000건이면 목록 열기·견적서 고르기가 2초): 화면 밖 줄은 브라우저가 계산을 건너뛴다.
+   줄 높이는 처음 그릴 때 잰 값을 기억(auto)해서 스크롤 막대가 흔들리지 않는다. */
+html body #appView .list-item{content-visibility:auto;contain-intrinsic-size:auto 96px}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -11435,6 +11446,18 @@ const NaroCompanyLedger=(()=>{
    t.nodeValue=t.nodeValue.slice(m[0].length);
    const kind=m[1]==='‹'?'nd-gi-back':'nd-gi-plus';if(!b.classList.contains(kind))b.classList.add(kind);
    const d=getComputedStyle(b).display;const f=/^inline/.test(d)?'nd-gi-i':'nd-gi-f';if(!b.classList.contains(f))b.classList.add(f);
+  }
+  // 칸 이름(label)을 입력 칸과 잇는다(10/10 점검): 칸 이름을 눌러도 입력 칸으로 가고, 화면 읽기가 칸 이름을 읽는다.
+  for(const l of root.querySelectorAll(':is(.field,.pf)>label:not([for])')){
+   const c=l.parentElement.querySelector('input:not([type=hidden]),select,textarea');if(c?.id)l.htmlFor=c.id;
+  }
+  // 검색 칸은 안내 글을 이름으로
+  for(const i of root.querySelectorAll('.search input:not([aria-label])'))if(i.placeholder)i.setAttribute('aria-label',i.placeholder);
+  // 견적서 품목 줄의 입력 칸 이름(표 머리와 같은 말)
+  const QL=['품목','색상','규격/옵션','수량','단가'];
+  for(const row of root.querySelectorAll('#qtForm .qlines .qline:not(.head)')){
+   const n=(row.querySelector('.ip-btn')?.textContent||'').trim().split(/\s+/)[0]||'품목';
+   [...row.querySelectorAll(':scope>.ip-btn,:scope>.dual>select,:scope>.dual>input,:scope>input')].forEach((c,i)=>{const want=`${n} ${QL[i]||''}`.trim();if(c.getAttribute('aria-label')!==want)c.setAttribute('aria-label',want);});
   }
  }
  // 재고 입력(A안 확정): 입고·출고는 입력 칸 맨 위 탭으로 고른다(구분 = 탭, 버튼 아님). 확인 버튼 글자·색이 구분을 따라간다.
@@ -12875,14 +12898,15 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   view.classList.add('nd-dashboard');
   const today=localDate(),month=today.slice(0,7),sales=monthSales(month);
   const receipt=(db.payments||[]).filter(p=>p.kind==='수금'&&!p.void_at&&String(p.date||'').startsWith(month)).reduce((s,p)=>s+(Number(p.amount)||0),0);
-  const ar=arData(),open=ar.reduce((s,r)=>s+r.open,0);
+  // 받을 금액은 '받을 금액' 화면과 같은 계산(10/10 점검): 거래처마다 남은 돈(양수)만 더하고, 미리 받은 돈(음수)은 따로 — 예전엔 합쳐서 −40,000,000원처럼 보였다.
+  const ar=arData(),open=ar.reduce((s,r)=>s+Math.max(0,r.open),0),prepaid=ar.reduce((s,r)=>s+Math.max(0,-r.open),0);
   const aged=ar.filter(r=>r.open>0&&(daysSince(r.lastDeliver)||0)>=30),tax=db.quotes.filter(needsTax);
   const short=Object.values(currentStocks()).filter(n=>n<=0).length;
   const qs=recent(db.quotes),stagesNow=progress(db.quotes);
   const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
   const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
-  root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,'전체 납품 − 입금 · 선입금 포함','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
+  root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,prepaid>0?`미리 받은 돈 ${Math.round(prepaid).toLocaleString('ko-KR')}원`:'전체 납품 − 입금','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
    +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
    +`<div class="nd-db-work">${panel('최근 견적',quoteRows,'<button type="button" class="nd-db-link" data-all-quotes>전체 보기 '+icon('arrow')+'</button>')}${panel('견적 진행',stageRows,'<span>상태별 견적 수</span>')}</div>`

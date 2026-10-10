@@ -1235,6 +1235,18 @@ const NaroCompanyLedger=(()=>{
    const kind=m[1]==='‹'?'nd-gi-back':'nd-gi-plus';if(!b.classList.contains(kind))b.classList.add(kind);
    const d=getComputedStyle(b).display;const f=/^inline/.test(d)?'nd-gi-i':'nd-gi-f';if(!b.classList.contains(f))b.classList.add(f);
   }
+  // 칸 이름(label)을 입력 칸과 잇는다(10/10 점검): 칸 이름을 눌러도 입력 칸으로 가고, 화면 읽기가 칸 이름을 읽는다.
+  for(const l of root.querySelectorAll(':is(.field,.pf)>label:not([for])')){
+   const c=l.parentElement.querySelector('input:not([type=hidden]),select,textarea');if(c?.id)l.htmlFor=c.id;
+  }
+  // 검색 칸은 안내 글을 이름으로
+  for(const i of root.querySelectorAll('.search input:not([aria-label])'))if(i.placeholder)i.setAttribute('aria-label',i.placeholder);
+  // 견적서 품목 줄의 입력 칸 이름(표 머리와 같은 말)
+  const QL=['품목','색상','규격/옵션','수량','단가'];
+  for(const row of root.querySelectorAll('#qtForm .qlines .qline:not(.head)')){
+   const n=(row.querySelector('.ip-btn')?.textContent||'').trim().split(/\s+/)[0]||'품목';
+   [...row.querySelectorAll(':scope>.ip-btn,:scope>.dual>select,:scope>.dual>input,:scope>input')].forEach((c,i)=>{const want=`${n} ${QL[i]||''}`.trim();if(c.getAttribute('aria-label')!==want)c.setAttribute('aria-label',want);});
+  }
  }
  // 재고 입력(A안 확정): 입고·출고는 입력 칸 맨 위 탭으로 고른다(구분 = 탭, 버튼 아님). 확인 버튼 글자·색이 구분을 따라간다.
  // 재고 조정(시안 확정): 실제로 센 수량을 적으면 사이즈마다 차이만큼 입고(+)/출고(−) 기록을 '재고 조정' 표시와 사유로 남긴다.
