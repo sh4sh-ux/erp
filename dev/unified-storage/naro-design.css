@@ -2012,10 +2012,10 @@ html body #appView #view-stock #ivAddBtn[data-kind="out"]{background:var(--nd-re
  html body #appView #view-stock .nd-sk-tl>button{height:48px;font-size:15px}
 }
 /* 아래 품목 표: 제목·설명 글자 시작 = 표 첫 칸 글자 시작(16px) — 입고·출고 어느 화면에서도 같은 자리 */
-html body #appView #view-stock #stockOverview>.stock-overview-heading{margin:0!important;padding:0 16px 12px!important;text-indent:0}
+html body #appView #view-stock #stockOverview>.stock-overview-heading{margin:0!important;padding:0 0 12px!important;text-indent:0} /* 제목 = 바깥선(10/10) */
 html body #appView #view-stock #stockOverview>.stock-overview-heading>h3{margin:0 0 6px!important;padding:0!important}
-html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):first-child{padding-left:16px!important}
-html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):last-child{padding-right:16px!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):first-child{padding-left:17px!important}
+html body #appView #view-stock #stockOverview .stock-option-table :is(th,td):last-child{padding-right:17px!important}
 html body #appView #stockOverview>.stock-overview-heading>h3>.nd-code{color:var(--nd-ink-3);font-weight:400;font-size:13px;margin-left:2px}
 /* 폰 재고 입력 창: 손잡이(회색 막대)는 탭 위 가운데 한 줄, 탭 줄과 아래 선은 창 끝까지 */
 html body #appView #view-stock .stock-add>.nd-sk-tabs{grid-column:1/-1!important}
@@ -2162,13 +2162,21 @@ html body #appView #view-stock .stock-add.stock-entry-empty>.nd-sk-act>#ivAddBtn
 /* 거래처 상세(PC): '거래 내역'·'거래처 정보' 제목 글자 시작 = 표 첫 칸 글자 = 칸 이름 = 입력 글자(12px 안쪽) */
 @media screen and (min-width:781px){
  html body #appView #coForm h3.co-ledger-h{padding-left:12px!important}
- html body #appView #coForm .tbl :is(th,td):first-child{padding-left:12px!important}
- html body #appView #coForm .field>label{padding-left:12px!important}
+ html body #appView #coForm .tbl :is(th,td):first-child{padding-left:17px!important}
+ html body #appView #coForm .field>label{padding-left:17px!important}
 }
-/* 폼 제목 규칙(PC): 섹션 제목 글자 시작 = 칸 이름 = 입력 글자(12px 안쪽) — 거래처·품목·공급자 정보 공통 */
+/* 폼 끝선 규칙(PC, 10/10 사용자 — 견적서와 같은 두 선): 섹션 제목 = 바깥선(내용 끝, 0),
+   칸 이름 = 입력 글자 = 표 글자 = 안쪽선(17px — 입력 칸 테두리 1 + 안쪽 16). 거래처·품목·공급자 정보·입금 입력·견적서 정보 공통.
+   (예전에는 제목·칸 이름·입력 글자를 12px에 맞췄는데, 표 글자 17px과 5px 어긋나 세 번째 선이 생겼다) */
 @media screen and (min-width:781px){
- html body #appView .workspace-right :is(h3.ops-section-title,.nd-photo-ttl,.sup-sec-t,.nd-sec-t,h3.co-ledger-h){padding-left:12px!important}
- html body #appView #view-settings .workspace-right .card>h3:first-child{padding-left:12px!important}
+ html body #appView .workspace-right :is(h3.ops-section-title,.nd-photo-ttl,.sup-sec-t,.nd-sec-t,h3.co-ledger-h){padding-left:0!important}
+ html body #appView #view-settings .workspace-right .card>h3:first-child{padding-left:0!important}
+}
+@media screen and (min-width:1024px){
+ html body #appView#appView :is(.workspace-right,.workspace-form,#qtForm) :is(.field,.pf)>label{padding-left:17px!important}
+ html body #appView#appView :is(.workspace-right,.workspace-form,#qtForm) :is(.field,.pf) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){padding-left:16px!important;padding-right:16px!important}
+ /* 입력 칸 아래 안내 글도 안쪽선(섹션 설명 글은 제목처럼 바깥선 그대로) */
+ html body #appView#appView :is(.workspace-right,.workspace-form,#qtForm) :is(.field>.hint,.workspace-form-body>.hint){padding-left:17px!important}
 }
 @media screen and (min-width:781px){html body #appView #itForm :is(h3.ops-section-title,.nd-photo-ttl){padding-left:12px!important}}
 /* Quote item actions are secondary controls: one neutral tone and center alignment.

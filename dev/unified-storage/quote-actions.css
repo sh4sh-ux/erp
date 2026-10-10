@@ -221,3 +221,24 @@ html body #appView #qtForm #qp-panel-items .line-btns>:is(#fq_addLine,#fq_sizeBt
 /* '품목 N건 · 총 N개' 줄도 견적서마다 같은 높이(10/10 사용자): [편집](30px)이 없는 작성 중 견적서도 30px →
    제목 글자와 아래 표 머리(품목·색상·규격·수량·단가·금액)가 어느 견적서에서나 같은 자리. */
 html body #appView #qtForm #qp-panel-items>.qt-sec-t{min-height:30px;display:flex;align-items:center}
+/* 끝선 규칙을 다른 화면에도(10/10 사용자 "같은 형태면 다 같이"): 견적서와 같은 두 선.
+   바깥선 = 오른쪽 패널 내용 끝: 섹션 제목('거래 내역'·'기본 정보'·'입출고 내역'·'품목별 재고 확인'·'거래처별 집계'·설정 묶음 제목 등)과 그 줄 오른쪽 설명, 목록 구분선.
+   안쪽선 = 바깥선에서 17px: 목록·표 안의 글자, 테두리 카드 안 글자(테두리 1 + 안쪽 16). */
+@media (min-width:1024px){
+ /* 섹션 제목 → 바깥선 */
+ html body #appView#appView :is(.co-ledger-h,.ops-section-title,.sup-sec-t,.nd-sec-t,.nd-assets>h3){padding-left:0!important;padding-right:0!important}
+ html body #appView#appView :is(.material-section-head,.stock-overview-heading){padding-left:0!important;padding-right:0!important}
+ html body #appView#appView :is(#view-payments,#view-ar) .workspace-right>.card>:is(.card-head,.ops-results){padding-left:0!important;padding-right:0!important}
+ /* 목록·표 안 글자 → 안쪽선, 구분선은 바깥선까지 */
+ html body #appView#appView .nd-cl-list{padding-left:0!important;padding-right:0!important}
+ html body #appView#appView .nd-cl-list>.nd-cl-row{padding-left:17px!important;padding-right:17px!important}
+ html body #appView#appView .material-history{padding-left:0!important;padding-right:0!important}
+ html body #appView#appView .material-history .material-record{padding-left:17px!important;padding-right:17px!important}
+ html body #appView#appView .stock-option-table :is(th,td):first-child{padding-left:17px!important}
+ html body #appView#appView .stock-option-table :is(th,td):last-child{padding-right:17px!important}
+ /* 테두리 카드 안 → 안쪽선(17) */
+ html body #appView#appView section.quote-flow{padding-left:16px!important;padding-right:16px!important}
+}
+/* 점선 추가 버튼은 어디서나 글자 가운데([옵션 추가]·[구성품 추가] 등 — 숨겨진 상태에서 아이콘 처리되면 왼쪽에 붙었다) */
+html body #appView .btn-line-add{display:flex!important;align-items:center;justify-content:center!important;gap:6px;text-align:center}
+html body #appView .btn-line-add[hidden]{display:none!important}
