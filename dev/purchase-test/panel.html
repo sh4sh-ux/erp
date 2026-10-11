@@ -1,0 +1,28 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>매입 시험 도구</title>
+<style>
+body{margin:0;background:#F5F6F9;color:#161A23;font:15px/1.6 system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}.sub{color:#5B6273;margin:0 0 18px;font-size:13.5px}
+section{background:#fff;border:1px solid #E6E8ED;border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 10px}
+button{font:600 14px system-ui,sans-serif;border:1px solid #DADDE5;background:#fff;border-radius:10px;padding:10px 14px;margin:0 6px 8px 0;cursor:pointer;color:#161A23}
+button.pri{background:#4355E8;border-color:#4355E8;color:#fff}button.warn{border-color:#E53E3E;color:#E53E3E}
+p.h{margin:0 0 10px;color:#5B6273;font-size:13.5px}
+#state{font-weight:700}#state.off{color:#E53E3E}
+table{width:100%;border-collapse:collapse;font-size:13px}td{padding:6px 4px;border-bottom:1px solid #EEF0F4}td.n{text-align:right;color:#5B6273}
+ol{margin:0;padding-left:18px;font-size:13px;color:#3A404D}
+</style></head><body><main>
+<h1>매입 시험 도구</h1>
+<p class="sub">가짜 Dropbox를 조종합니다. 운영 Dropbox·운영 데이터와는 연결되지 않아요. 앱 화면은 다른 탭에서 쓰세요.</p>
+<section><h2>연결 상태: <span id="state">…</span></h2>
+ <button data-do="offline" class="warn">연결 끊기</button><button data-do="online">연결 잇기</button>
+ <p class="h">끊으면 앱의 모든 저장이 '연결 끊김'으로 실패합니다(시험 F).</p></section>
+<section><h2>다음 저장 한 번만 실패시키기</h2>
+ <button data-do="drop">보내는 중 끊김 (저장 안 됨)</button><button data-do="lose">저장은 됐는데 응답 잃음</button>
+ <p class="h">버튼을 누른 뒤, 앱에서 저장·입고 처리 등을 한 번 해 보세요. 그 한 번만 실패하고 다음부터는 정상입니다.</p></section>
+<section><h2>처음부터</h2>
+ <button data-do="reset" class="pri">가짜 데이터로 처음부터</button>
+ <p class="h">모든 시험 기록을 지우고 처음 상태로 돌아갑니다. 누른 뒤 앱 탭은 새로고침하세요.</p></section>
+<section><h2>가짜 Dropbox 안의 파일 <span id="pc" style="font-weight:400;color:#5B6273"></span></h2><table id="files"></table></section>
+<section><h2>최근 일</h2><ol id="ev"></ol></section>
+</main><script src="/__fake/panel.js"></script></body></html>
