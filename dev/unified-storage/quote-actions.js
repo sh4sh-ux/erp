@@ -52,14 +52,14 @@
   {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector(':scope>.nd-log-link');
    if(!q||!window.NaroChangeLog){lk?.remove();}else if(info&&!lk){lk=document.createElement('button');lk.type='button';lk.className='nd-log-link';lk.textContent='이 견적서의 변경 기록 보기';lk.onclick=()=>{const c=current();if(c)window.NaroChangeLog.open({ref:c.id,title:`${c.no||''} · ${coName(c.company_id)}`});};info.append(lk);}}
   recs(f,q);
-  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 견적서를 취소(재고 되돌림)할 수 있어요.';
+  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
   if(note&&q&&(q.deliveries||[]).length&&note.textContent!==NOTE)note.textContent=NOTE;
   let el=f.querySelector(':scope .nd-next');
   cancelToggle();
   if(q&&anchor&&q.status==='취소'){
    const key='c|'+q.id+'|'+(q.cancelled_at||'')+'|'+(q.cancel_reason||'');
    if(!el){el=document.createElement('div');}
-   if(el.dataset.key!==key){el.className='nd-next nd-cancelled';el.dataset.key=key;el.innerHTML=`<div class="nd-cx"><b>취소됨</b><span>${[q.cancelled_at?md(q.cancelled_at):'',q.cancel_reason||''].filter(Boolean).map(e).join(' · ')||'매출·받을 금액·재고에서 빠졌어요'}</span></div><div class="nd-next-act"><button type="button" class="nd-next-b" data-restore>되살리기</button></div>`;}
+   if(el.dataset.key!==key){el.className='nd-next nd-cancelled';el.dataset.key=key;el.innerHTML=`<div class="nd-cx"><b>${q.cancel_reason==='삭제'?'삭제됨':'취소됨'}</b><span>${[q.cancelled_at?md(q.cancelled_at):'',q.cancel_reason&&q.cancel_reason!=='삭제'?q.cancel_reason:''].filter(Boolean).map(e).join(' · ')}${q.cancelled_at?' · ':''}매출·받을 금액·재고에서 빠졌어요</span></div><div class="nd-next-act"><button type="button" class="nd-next-b" data-restore>복원</button></div>`;}
    if(el.nextElementSibling!==anchor)anchor.before(el);return;
   }
   if(el?.classList.contains('nd-cancelled')){el.remove();el=null;}
@@ -258,6 +258,7 @@
    if(ok)d.close();else{btn.disabled=false;btn.textContent='다시 시도';}};
  }
  function deletePayment(id){
+  if(window.NaroTrash){if(guard())NaroTrash.deletePayment(id);return;} // 휴지통에 담고 지운다(복원 가능)
   const q=current();if(!q||!guard())return;const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
   const d=open(`<div class="nd-ps-hd"><b>이 입금을 지울까요?</b><span class="nd-qa-sub">${md(p.date)} · ${e([p.memo,p.method].filter(Boolean).join(' · ')||'입금')} · ${won(p.amount)}원</span></div>
    <div class="nd-qa-body"><p class="nd-qa-note">잘못 넣은 입금일 때만 지워 주세요. 지우면 받을 금액이 ${won(p.amount)}원 늘어나요.</p></div>
@@ -325,76 +326,51 @@
     confirm() 대신 창을 쓴다(설치 앱·일부 브라우저에서 confirm이 아무 반응 없이 넘어간다). */
  const legacyDelete=typeof deleteQuote==='function'?deleteQuote:null;
  const linked=q=>({pays:(db.payments||[]).filter(p=>p.quote_id===q.id),moves:(db.stock_moves||[]).filter(m=>m.quote_id===q.id),dq:quoteDeliveredQty(q)});
+ // 한번에 삭제(10/11): 창 하나에 할 일을 보여 주고 [삭제] 한 번에 — 재고 되돌림 · 받은 돈은 돌려줌(출금) 또는 맡겨 둠 · 목록에서 빼기.
+ //  지우지 않고 '취소'(사유 '삭제')로 보관한다 → 목록 맨 아래 '삭제·취소된 견적 보기'에서 [복원]. 끊기면 다시 눌러 이어서 한다.
  async function removeQuote(id){
   const q=(db.quotes||[]).find(x=>x.id===id);if(!q)return legacyDelete?.(id);
-  const L=linked(q),paid=L.pays.reduce((a,p)=>a+(Number(p.amount)||0),0);
+  const L=linked(q);
   const head=t=>`<div class="nd-ps-hd"><b>${t}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')} · ${won(quoteAmount(q))}원</span></div>`;
-  if(!L.pays.length&&!L.moves.length&&!L.dq&&!(q.deliveries||[]).length){
-   const d=open(`${head('견적서를 지울까요?')}<div class="nd-qa-body"><p class="nd-qa-note">납품·입금 기록이 없는 견적서라 바로 지워져요. 되돌릴 수 없어요.</p></div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">지우기</button></div>`);
-   d.querySelector('.nd-qa-del').onclick=async ev=>{
-    const btn=ev.currentTarget;btn.disabled=true;btn.textContent='지우는 중…';
-    const next=db.quotes.filter(x=>x.id!==id);
-    if(!await saveTable('quotes',next)){btn.disabled=false;btn.textContent='다시 시도';return;}
-    db.quotes=next;qtSel=null;qtEditing=null;qtBaseline='';d.close();renderQtList();renderQtDetail();say('견적서를 지웠어요');
-   };
-   return;
-  }
   const back=stockDeltaForQuote({...q,status:'취소'}),backQty=back.moves.reduce((a,m)=>a+(m.kind==='입고'?m.qty:-m.qty),0);
   if(q.status==='취소'&&!back.moves.length){
-   open(`${head('이미 취소된 견적서예요')}<div class="nd-qa-body"><p class="nd-qa-note">납품·재고·입금 기록이 연결돼 있어 지우지 않고 '취소'로 남겨 둬요. 목록에서는 숨겨지고, 매출·받을 금액·재고 계산에 들어가지 않아요. 다시 쓰려면 견적서 위의 [되살리기]를 누르세요.</p></div>
+   open(`${head('이미 삭제된 견적서예요')}<div class="nd-qa-body"><p class="nd-qa-note">목록에서 빠져 있고 매출·받을 금액·재고 계산에 들어가지 않아요. 다시 쓰려면 견적서 위의 [복원]을 누르세요.</p></div>
     <div class="nd-ps-act nd-ps-one"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);
    return;
   }
-  // 사유: 잘못 만듦(목록에서 사라짐) / 거래 취소(받은 돈이 있으면 환불했는지 묻는다)
-  const net=quotePaid(q.id);let why=q.status==='취소'?(q.cancel_reason||'잘못 만듦'):'',refund='',amt=net,method='계좌이체',rdate=localDate();
+  const net=quotePaid(q.id);let refund=net>0?'yes':'';
   const paint=()=>{
-   const deal=why==='거래 취소',askRefund=deal&&net>0,ready=why&&(!askRefund||refund)&&(refund!=='yes'||amt>0);
-   const d=open(`${head(q.status==='취소'?'재고 되돌리기를 마칠까요?':'견적서를 정리할게요')}
+   const d=open(`${head('견적서 삭제')}
     <div class="nd-qa-body">
-     <span class="nd-qa-label">왜 없애나요?</span>
-     <div class="nd-qa-pick" role="radiogroup">
-      <button type="button" role="radio" aria-checked="${why==='잘못 만듦'}" data-why="잘못 만듦"><b>잘못 만들었어요</b><small>중복·시험 입력·거래처 잘못 고름</small></button>
-      <button type="button" role="radio" aria-checked="${deal}" data-why="거래 취소"><b>거래가 취소됐어요</b><small>주문 취소·반품</small></button>
-     </div>
-     ${askRefund?`<span class="nd-qa-label">받은 돈 ${won(net)}원은요?</span>
-     <div class="nd-qa-pick" role="radiogroup">
-      <button type="button" role="radio" aria-checked="${refund==='yes'}" data-refund="yes"><b>돌려줬어요</b><small>출금(환불)으로 기록</small></button>
-      <button type="button" role="radio" aria-checked="${refund==='keep'}" data-refund="keep"><b>다음 거래에 쓸게요</b><small>거래처에 맡긴 돈으로 남김</small></button>
-     </div>
-     ${refund==='yes'?`<label class="nd-qa-money">환불 금액<input id="ndQaAmt" inputmode="numeric" value="${amt?won(amt):''}"><span>원</span></label>
-     <div class="nd-qa-chips" role="group" aria-label="환불 방법">${METHODS.map(m=>`<button type="button" data-me="${m}" aria-pressed="${method===m}">${m}</button>`).join('')}</div>
-     <div class="nd-qa-fields"><label>환불일<input type="date" id="ndQaDate" value="${e(rdate)}"></label></div>`:''}`:''}
+     <p class="nd-qa-note">삭제를 누르면 한 번에 처리돼요.</p>
      <div class="nd-qa-lines">
-      ${L.dq?`<div class="nd-qa-ln"><div><span>납품 기록 ${won(L.dq)}개</span></div><b class="nd-qa-tag mute">기록은 남김</b></div>`:''}
-      ${back.moves.length?`<div class="nd-qa-ln"><div><span>재고</span></div><b class="nd-qa-tag">${backQty>0?`${won(backQty)}개 되돌림`:'되돌림'}</b></div>`:''}
-      ${L.pays.length&&!(askRefund&&refund==='yes')?`<div class="nd-qa-ln"><div><span>입금 ${won(net)}원</span></div><b class="nd-qa-tag mute">거래처에 맡긴 돈으로 남김</b></div>`:''}
+      ${back.moves.length?`<div class="nd-qa-ln"><div><span>납품한 ${won(L.dq||backQty)}개</span></div><b class="nd-qa-tag">${backQty>0?`재고로 ${won(backQty)}개 되돌림`:'재고 되돌림'}</b></div>`:''}
+      ${net>0?`<div class="nd-qa-ln"><div><span>받은 돈 ${won(net)}원</span></div><b class="nd-qa-tag${refund==='yes'?'':' mute'}">${refund==='yes'?'돌려준 것으로(출금) 기록':'거래처에 맡긴 돈으로 남김'}</b></div>`:''}
+      <div class="nd-qa-ln"><div><span>견적서</span></div><b class="nd-qa-tag mute">목록에서 빠짐 · 복원 가능</b></div>
      </div>
-     <p class="nd-qa-note">취소된 견적은 목록에서 숨겨지고 매출·받을 금액·재고에서 빠져요. 기록은 남아서 언제든 [되살리기]할 수 있어요.</p>
+     ${net>0?`<div class="nd-qa-chips" role="group" aria-label="받은 돈"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
+     <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 맨 아래 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
     </div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" ${ready?'':'disabled'}>${q.status==='취소'?'재고 되돌리기':'취소 처리'}</button></div>`);
-   d.querySelectorAll('[data-why]').forEach(b=>b.onclick=()=>{why=b.dataset.why;paint();});
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">삭제</button></div>`);
    d.querySelectorAll('[data-refund]').forEach(b=>b.onclick=()=>{refund=b.dataset.refund;paint();});
-   d.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{method=b.dataset.me;paint();});
-   d.querySelector('#ndQaDate')?.addEventListener('change',ev=>{rdate=ev.target.value||rdate;});
-   const ai=d.querySelector('#ndQaAmt');if(ai){ai.oninput=()=>{amt=Math.min(net,Math.floor(Number(ai.value.replace(/[^\d]/g,''))||0));const go=d.querySelector('.nd-qa-del');go.disabled=!(amt>0);};ai.onblur=()=>{ai.value=amt?won(amt):'';};} // 다시 그리면 같이 누른 버튼이 사라진다 — 숫자 모양만
    d.querySelector('.nd-qa-del').onclick=async ev=>{
-    const btn=ev.currentTarget;btn.disabled=true;btn.textContent='정리하는 중…';
+    const btn=ev.currentTarget;btn.disabled=true;btn.textContent='삭제하는 중…';
     const fail=t=>{btn.disabled=false;btn.textContent='다시 시도';say(t);};
     let cur=(db.quotes||[]).find(x=>x.id===id);
     if(cur.status!=='취소'){
-     const nq={...JSON.parse(JSON.stringify(cur)),status:'취소',cancel_reason:why,cancelled_at:localDate(),cancel_prev:cur.status};
+     const nq={...JSON.parse(JSON.stringify(cur)),status:'취소',cancel_reason:'삭제',cancelled_at:localDate(),cancel_prev:cur.status};
      const next=db.quotes.map(x=>x.id===id?nq:x);
-     if(!await saveTable('quotes',next))return fail('취소로 바꾸지 못했어요. 잠시 뒤 다시 눌러 주세요.');
+     if(!await saveTable('quotes',next))return fail('삭제하지 못했어요. 잠시 뒤 다시 눌러 주세요.');
      db.quotes=next;cur=nq;qtEditing=null;qtBaseline='';renderQtList();renderQtDetail();
     }
     if(stockDeltaForQuote(cur).moves.length&&!await syncStockForQuote(cur,{ask:false}))return fail('재고 되돌리기에 실패했어요. 다시 누르면 이어서 해요.');
-    if(askRefund&&refund==='yes'&&amt>0){
-     const next=[...db.payments,{id:crypto.randomUUID(),date:rdate,company_id:cur.company_id,quote_id:cur.id,kind:'지급',refund:true,method,amount:amt,memo:`환불 · ${cur.no||''}`,created_at:new Date().toISOString()}];
-     if(!await saveTable('payments',next)){d.close();renderQtDetail();say('취소는 됐지만 환불 기록을 저장하지 못했어요. 입금·출금에서 출금으로 넣어 주세요.');return;}
+    const left=quotePaid(cur.id);
+    if(refund==='yes'&&left>0){
+     const next=[...db.payments,{id:crypto.randomUUID(),date:localDate(),company_id:cur.company_id,quote_id:cur.id,kind:'지급',refund:true,method:'계좌이체',amount:left,memo:`환불 · ${cur.no||''}`,created_at:new Date().toISOString()}];
+     if(!await saveTable('payments',next))return fail('견적서는 삭제됐지만 환불 기록을 저장하지 못했어요. 다시 누르면 이어서 해요.');
      db.payments=next;
     }
-    d.close();renderQtList();renderQtDetail();say(askRefund&&refund==='yes'?`취소했어요 · 재고 되돌림 · 환불 ${won(amt)}원 기록`:'취소했어요 · 재고 되돌림 완료');
+    qtSel=null;d.close();renderQtList();renderQtDetail();say(refund==='yes'&&left>0?`견적서를 삭제했어요 · 환불 ${won(left)}원 기록`:'견적서를 삭제했어요');
    };
   };
   paint();
@@ -403,9 +379,9 @@
  async function restoreQuote(){
   const q=current();if(!q||q.status!=='취소')return;
   const refunds=(db.payments||[]).filter(p=>p.quote_id===q.id&&p.kind==='지급'&&p.refund);
-  const d=open(`<div class="nd-ps-hd"><b>견적서를 되살릴까요?</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
+  const d=open(`<div class="nd-ps-hd"><b>견적서를 복원할까요?</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
    <div class="nd-qa-body"><p class="nd-qa-note">취소 전 상태(${e(q.cancel_prev||'수주')})로 돌아가고, 납품 기록이 있으면 재고가 다시 빠져요.${refunds.length?' 환불 기록은 그대로 남아요 — 필요하면 입금·출금에서 정리해 주세요.':''}</p></div>
-   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go">되살리기</button></div>`);
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go">복원</button></div>`);
   d.querySelector('.nd-qa-go').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';
    const nq=work((db.quotes||[]).find(x=>x.id===q.id));nq.status=['작성중','발송','수주','부분납품','납품'].includes(q.cancel_prev)?q.cancel_prev:'수주';
    delete nq.cancel_reason;delete nq.cancelled_at;delete nq.cancel_prev;if(['수주','부분납품','납품'].includes(nq.status))normalizeDeliveryStatus(nq);
@@ -413,7 +389,7 @@
    if(!await saveTable('quotes',next)){btn.disabled=false;btn.textContent='다시 시도';return;}
    db.quotes=next;qtEditing=null;qtBaseline='';d.close();renderQtList();renderQtDetail();
    if(stockDeltaForQuote(nq).moves.length&&!await syncStockForQuote(nq,{ask:false})){window.dispatchEvent(new Event('naro-incomplete-stock'));return;}
-   say('견적서를 되살렸어요');};
+   say('견적서를 복원했어요');};
  }
  // 목록 맨 아래 '취소된 견적 N건 보기'(상태 필터를 고르지 않았을 때만)
  function cancelToggle(){
@@ -421,7 +397,7 @@
   const n=(db.quotes||[]).filter(x=>x.status==='취소').length,st=document.getElementById('qtStatus')?.value||'';
   let b=list.querySelector(':scope>.nd-cancel-toggle');
   if(!n||st){b?.remove();return;}
-  const t=window.ndShowCancelled?`취소된 견적 숨기기`:`취소된 견적 ${n}건 보기`;
+  const t=window.ndShowCancelled?`삭제·취소된 견적 숨기기`:`삭제·취소된 견적 ${n}건 보기`;
   if(b&&b.textContent===t&&b===list.lastElementChild)return;
   if(!b){b=document.createElement('button');b.type='button';b.className='nd-cancel-toggle';b.onclick=()=>{window.ndShowCancelled=!window.ndShowCancelled;renderQtList();};}
   b.textContent=t;list.append(b);
@@ -437,8 +413,8 @@
   }
   const d=open(`<div class="nd-ps-hd"><b>저장된 납품 기록은 지울 수 없어요</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
    <div class="nd-qa-body"><p class="nd-qa-note">납품 기록은 재고와 매출의 근거라서 저장한 뒤에는 고치거나 지울 수 없게 되어 있어요.</p>
-    <p class="nd-qa-note">잘못 넣었다면 <b>견적서를 취소</b>하면 재고가 되돌아오고 매출에서 빠져요. 그다음 새 견적서로 다시 만들면 돼요.</p></div>
-   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 취소하기</button></div>`);
+    <p class="nd-qa-note">잘못 넣었다면 <b>견적서를 삭제</b>하면 재고가 되돌아오고 매출에서 빠져요(나중에 복원 가능). 그다음 새 견적서로 다시 만들면 돼요.</p></div>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);
  },true);
  if(legacyDelete)window.deleteQuote=removeQuote;

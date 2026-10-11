@@ -317,6 +317,12 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
  P('document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${db.quotes.length}건`:db.quotes.length+"건";','const liveN=db.quotes.filter(x=>x.status!=="취소").length;\n  document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${liveN}건`:liveN+"건";','CANCEL_COUNT');
  P('document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${db.quotes.length}건`;','document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${liveN}건`;','CANCEL_SUMMARY');
 }
+// 휴지통(10/11, trash-actions.js): 숨긴 거래처·품목은 새로 고르는 곳(견적 거래처·품목 고르기)에서 뺀다. 이미 고른 값은 그대로 보인다.
+{
+ const P=(from,to,code)=>{if(!html.includes(from))throw Error(code);html=html.replace(from,()=>to);};
+ P('  const coOpts=db.companies.slice().sort(','  const coOpts=db.companies.filter(c=>c.id===e.company_id||!(window.NaroTrash&&NaroTrash.hidden("companies").includes(c.id))).sort(','TRASH_CO_PICK');
+ P('    shown=db.items','    shown=(window.NaroTrash?NaroTrash.visible("items",db.items):db.items)','TRASH_IT_PICK');
+}
 // 견적서 오른쪽 패널 머리 금액 = 부가세 포함 합계(사용자 요청 10/8). 처음 그릴 때와 품목을 고칠 때 둘 다.
 {
  const pairs=[['<div class="qs-amt-k">금액 (부가세 별도)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.supply)}</div>','<div class="qs-amt-k">금액 (부가세 포함)</div>\n        <div class="qs-amt-v" id="fq_heroTotal">${won(t.total)}</div>'],
@@ -359,7 +365,7 @@ if(business){
 }
 // NARO design layer (theme tokens, wide rail, panels) loads last; theme is set before first paint.
 html=html.replace('</head>',`<script>try{const p=localStorage.getItem('naroTheme');document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}</script><style>html[data-theme="dark"]{background:#0B0C0E;color-scheme:dark}</style></head>`);
-html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}\n${await readFile(resolve(here,'trash-actions.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script></body>`);
 // Strip legacy OAuth/network transport and snapshot writes from the business bundle.
 const begin=html.indexOf('/* ---------- PKCE 유틸'),end=html.indexOf('const db =',begin);

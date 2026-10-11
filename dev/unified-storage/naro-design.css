@@ -2409,3 +2409,7 @@ html[data-theme="dark"][data-nd-accent="pink"]{--nd-blue:#FF6B9A;--nd-blue-ink:#
 .nd-acc-cfg-act{display:flex;justify-content:flex-end}
 .nd-acc-cfgsum{color:var(--nd-ink-2)!important}
 @media (max-width:600px){#appView .nd-acc-cfg{margin:0 16px 12px}}
+/* 휴지통 창(trash-actions.js) */
+.nd-qa-sheet.nd-trash .nd-qa-ln small{display:block;font-size:11.5px;color:var(--nd-ink-3,#8A8F99);margin-top:2px}
+.nd-qa-sheet.nd-trash .nd-trash-b{flex:none;height:32px;padding:0 12px;border-radius:9px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
+.nd-qa-sheet.nd-trash .nd-qa-lines{max-height:min(52vh,420px);overflow:auto}
