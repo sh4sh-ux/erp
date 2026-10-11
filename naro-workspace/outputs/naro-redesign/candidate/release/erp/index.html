@@ -2855,7 +2855,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.187";
+const APP_VERSION = "v1.188";
 const LEGACY_BUSINESS_CARD_URL = "";
 const DEFAULT_BUSINESS_CARD_URL = "";
 const BUSINESS_CARD_FILENAME = "business-card.png";
@@ -13668,7 +13668,7 @@ html body #appView .pp-detail .pp-record-name{min-width:0;overflow-wrap:anywhere
 html body #appView .pp-detail .pp-record-top strong{flex-shrink:0;font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
 html body #appView .pp-detail .pp-current{display:inline-block;margin-left:8px;font:400 11px/18px var(--sans);color:var(--nd-blue-ink,var(--nd-blue))}
 html body #appView .pp-detail .pp-record-meta{margin:6px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-selected-record{background:var(--nd-blue-soft);box-shadow:inset 2px 0 0 var(--nd-blue)}
+html body #appView .pp-detail .pp-selected-record{background:none;box-shadow:none}
 html body #appView .pp-detail .pp-note{margin:24px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
 html body #appView #view-payments .pp-overview{display:block;text-align:left;flex:none;margin:0 calc(-1 * var(--panel-inset));padding:20px var(--panel-inset);border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:500 14px/22px var(--sans)}
 html body #appView #view-payments .pp-overview>span{display:flex;justify-content:space-between;gap:10px}
@@ -13719,6 +13719,11 @@ html body #appView .pp-detail .pp-metrics>div{padding:0;min-width:0}
 html body #appView .pp-detail .pp-metrics>div+div{padding-left:24px}
 html body #appView .pp-detail .pp-metrics>div>span{display:flex;justify-content:space-between;gap:8px}
 html body #appView .pp-detail .pp-metrics strong{margin-top:10px;color:var(--nd-ink)}
+/* Desktop: 28px inset + 54px totals + 12px gap + 1px border =
+   the left panel's 47px tabs + 48px scope row. Mobile keeps its own spacing. */
+@media(min-width:1024px){
+ html body #appView .pp-detail .pp-metrics{padding-bottom:12px}
+}
 html body #appView .pp-detail .pp-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 16px}
 html body #appView .pp-detail h4{font-weight:600}
 html body #appView .pp-detail h4 small{margin-left:6px;padding:2px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-3);font:400 11px/18px var(--sans)}
@@ -13741,9 +13746,9 @@ html body #appView .pp-detail .pp-inline-method{display:none}
 html body #appView .pp-detail .pp-record summary>strong{display:flex;justify-content:flex-end;align-items:center;gap:12px;white-space:nowrap;color:var(--nd-ink)}
 html body #appView .pp-detail .pp-chevron{width:6px;height:6px;border-right:1.5px solid var(--nd-ink-3);border-bottom:1.5px solid var(--nd-ink-3);transform:rotate(45deg);margin:0 3px 4px;flex:none}
 html body #appView .pp-detail .pp-record[open] .pp-chevron{transform:rotate(225deg);margin-bottom:0}
-html body #appView .pp-detail .pp-record[open]{background:var(--nd-fill)}
+html body #appView .pp-detail .pp-record[open]{background:none}
 html body #appView .pp-detail .pp-record.pp-selected-record{background:none;box-shadow:none}
-html body #appView .pp-detail .pp-selected-record>summary{background:var(--nd-blue-soft);box-shadow:inset 2px 0 var(--nd-blue)}
+html body #appView .pp-detail .pp-selected-record>summary{background:none;box-shadow:none}
 html body #appView .pp-detail .pp-record-more{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
 html body #appView .pp-detail .pp-record-more dt{color:var(--nd-ink-3)}
 html body #appView .pp-detail .pp-record-more dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -13759,8 +13764,9 @@ html body #appView #view-payments>.pp-mobile-list{display:none}
 html body #appView .nd-pay-filter .pp-pop-close{margin-left:auto;border:0;background:none;box-shadow:none;color:var(--nd-ink-3);font:400 20px/24px var(--sans);width:32px;height:32px}
 html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;justify-content:space-between}
 html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
-html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel)[hidden]{display:flex!important}
-html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){margin-bottom:14px!important}
+/* Native month presets hide these labels; when showing them in the popup,
+   restore the full shared field layout, not only display:flex. */
+html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap;margin:0 0 14px!important;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
 @media(max-width:1023px){
  html body #appView #view-payments>.pp-mobile-list{display:block}

@@ -79,3 +79,19 @@ test('payment search reset syncs from native input on desktop as well as mobile'
 test('responsive layout restores popup controls before tearing down their origin markers',()=>{
  assert.ok(layout.includes('function update(){window.NaroPop?.close();if(desktop.matches)mount();else{const tasks=undo;'));
 });
+test('payment date labels remain above inputs even when native month mode hides labels',()=>{
+ assert.match(css,/:is\(#payFromLabel,#payToLabel\)\{display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap/);
+ assert.doesNotMatch(css,/:is\(#payFromLabel,#payToLabel\)\[hidden\]\{display:flex!important\}/);
+});
+test('desktop totals divider matches tabs plus scope height without changing mobile spacing',()=>{
+ assert.match(css,/@media\(min-width:1024px\)\{\s*html body #appView \.pp-detail \.pp-metrics\{padding-bottom:12px\}/);
+ assert.equal(28+20+10+24+12+1,47+48);
+ assert.match(css,/\.pp-metrics\{grid-template-columns:1fr 1fr;gap:16px;padding-bottom:24px\}/);
+});
+test('detail records have no selected stripe or background while master selection and keyboard focus remain',()=>{
+ assert.match(css,/\.pp-selected-record>summary\{background:none;box-shadow:none\}/);
+ assert.match(css,/\.pp-record\[open\]\{background:none\}/);
+ assert.doesNotMatch(css,/\.pp-selected-record[^\{]*\{[^}]*var\(--nd-blue/);
+ assert.match(css,/\.pp-overview\.on\{background:var\(--nd-blue-soft\);box-shadow:inset 3px 0 0 var\(--nd-blue\)/);
+ assert.match(css,/summary:focus-visible\{outline:2px solid var\(--nd-blue\)/);
+});
