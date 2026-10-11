@@ -1,6 +1,9 @@
 /* v1.151: ERP-wide Dutch Pay typography and control contract.
    Table separators 1.5/1/2 are the user's explicit ERP rule.
    Print documents and tablet/mobile are deliberately outside this stylesheet. */
+/* 구분선 색: 라이트는 그대로 #ebebed, 다크는 앱 선 색(밝은 고정 색이 다크에서 흰 선으로 보이던 것, 10/10) */
+:root{--ws-line:#ebebed}
+html[data-theme="dark"]{--ws-line:var(--nd-line,#26282D)}
 .company-address-controls {display:flex;gap:8px;align-items:stretch;}
 /* Opt-in option grid: available width controls columns, never option values/counts. */
 .option-chip-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,max(3.5rem,var(--option-chip-min,0px))),1fr));grid-auto-rows:1fr;gap:8px;padding:0;min-width:0;}
@@ -81,7 +84,7 @@
 .company-address-controls button {flex:none;white-space:nowrap;}
 .company-address-dialog {position:fixed;inset:0;margin:auto;width:min(500px,calc(100vw - 32px));max-width:100%;max-height:calc(100dvh - 32px);padding:0;border:1px solid #e5e5e9;border-radius:12px;background:#fff;color:#111;font-family:var(--sans);}
 .company-address-dialog::backdrop {background:rgba(0,0,0,.35);}
-.company-address-heading {display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #ebebed;}
+.company-address-heading {display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--ws-line);}
 .company-address-embed {height:min(520px,65dvh);min-height:240px;}
 @media screen and (min-width:1024px) {
   .shell .main {
@@ -122,27 +125,27 @@
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .card {box-shadow:none;border-radius:0;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl-wrap {padding:0 20px;overflow:auto;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl {border-collapse:collapse;width:100%;font:400 13px/1.4 var(--sans);}
-  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl :is(th,td) {padding:12px 12px;border-left:0;border-right:0;border-bottom:1px solid #ebebed;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl :is(th,td) {padding:12px 12px;border-left:0;border-right:0;border-bottom:1px solid var(--ws-line);}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl th {font:400 12px/1.35 var(--sans);color:#b0b0b8;border-bottom:1.5px solid #d4d4d8;background:#f7f7f8;position:sticky;top:0;z-index:1;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl :is(th.num,td.num) {text-align:right;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .tbl tfoot :is(th,td) {border-top:2px solid #d4d4d8;font-weight:700;background:transparent;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qtable {padding:0 16px;border:0;}
-  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qline {border:0;border-bottom:1px solid #ebebed;padding:10px 12px;align-items:center;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qline {border:0;border-bottom:1px solid var(--ws-line);padding:10px 12px;align-items:center;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qline.head {border-bottom:1.5px solid #d4d4d8;color:#b0b0b8;font:400 12px/1.35 var(--sans);}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .qtotals {border-top:2px solid #d4d4d8;margin:0 16px;padding:16px 12px;}
-  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-record {border-bottom:1px solid #ebebed;padding:12px;}
+  .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-record {border-bottom:1px solid var(--ws-line);padding:12px;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-history {padding:0 16px;}
   .shell .main :is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) .material-section-head {border-bottom:1.5px solid #d4d4d8;padding:12px;}
 
   /* Desktop panel geometry shared by every menu. */
   .shell .main>:is(#view-dash,#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings):not(.hidden) {height:100%;min-height:0;max-height:none;padding:0;}
-  .shell .main>.view>.page-head {height:144px;min-height:144px;margin:0;padding:30px 28px 20px;border-bottom:1px solid #ebebed;}
+  .shell .main>.view>.page-head {height:144px;min-height:144px;margin:0;padding:30px 28px 20px;border-bottom:1px solid var(--ws-line);}
   .shell .main>.view>.page-head h2 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;}
   .shell .main>:is(#view-dash,#view-payments,#view-stock,#view-sales,#view-ar,#view-settings).workspace-split:not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr);overflow:hidden;gap:0;}
-  .shell .workspace-split>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid #ebebed;}
-  .shell .workspace-heading {grid-column:2;grid-row:1;padding:28px 34px 21px;border-bottom:1px solid #ebebed;background:#fff;}
+  .shell .workspace-split>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid var(--ws-line);}
+  .shell .workspace-heading {grid-column:2;grid-row:1;padding:28px 34px 21px;border-bottom:1px solid var(--ws-line);background:#fff;}
   .shell .workspace-heading h3 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;margin:8px 0;}
-  .shell .workspace-left {grid-column:1;grid-row:2;background:#fafafa;border-right:1px solid #ebebed;overflow:auto;min-height:0;padding:18px 28px;}
+  .shell .workspace-left {grid-column:1;grid-row:2;background:#fafafa;border-right:1px solid var(--ws-line);overflow:auto;min-height:0;padding:18px 28px;}
   .shell .workspace-right {grid-column:2;grid-row:2;background:#fff;overflow:auto;min-width:0;min-height:0;padding:18px 34px;}
   .shell .workspace-split>.cols,.shell .workspace-split>.dash-grid {display:none;}
   .shell .workspace-left :is(.stats,.filter-bar,.sl-summary,.sl-metrics) {display:flex;flex-direction:column;align-items:stretch;gap:14px;}
@@ -155,7 +158,7 @@
   .shell .workspace-right .stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
   .shell .workspace-right .sup-form {padding:0;}
   .shell .main #view-settings .workspace-left .settings-utils {display:grid;grid-template-columns:minmax(0,1fr);gap:20px;width:100%;max-width:none;}
-  .shell .main #view-settings .workspace-left .settings-util-card {min-width:0;border:0;border-bottom:1px solid #ebebed;}
+  .shell .main #view-settings .workspace-left .settings-util-card {min-width:0;border:0;border-bottom:1px solid var(--ws-line);}
   .shell .main #view-settings .workspace-left .settings-util-card>.detail {padding:0 0 20px;min-width:0;}
   .shell .main #view-settings .workspace-left .settings-util-actions {display:flex;flex-wrap:wrap;margin:0;gap:8px;}
   .shell .main #view-settings .workspace-left .settings-util-actions .btn {white-space:nowrap;flex:0 0 auto;max-width:100%;}
@@ -163,19 +166,19 @@
 
   /* Existing master/detail DOM remains intact; the header seam reaches the top. */
   .shell .main>:is(#view-quotes,#view-companies,#view-items):not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr);}
-  .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head {grid-column:1;grid-row:1;border-right:1px solid #ebebed;background:#fafafa;}
+  .shell .main>:is(#view-quotes,#view-companies,#view-items)>.page-head {grid-column:1;grid-row:1;border-right:1px solid var(--ws-line);background:#fafafa;}
   .shell :is(#view-quotes,#view-companies,#view-items)>.cols {display:contents;}
   .shell :is(#view-quotes,#view-companies,#view-items)>.cols>.card:first-child {grid-column:1;grid-row:2;width:360px;max-width:360px;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
   .shell :is(#view-quotes,#view-companies,#view-items)>.cols>.card:last-child {grid-column:2;grid-row:1/3;overflow:auto;min-height:0;}
   .shell :is(#coList,#itList,#qtList) {flex:1;min-height:0;overflow:auto;}
   .shell .main :is(#coForm,#itForm,#qtForm) {padding:0 34px 26px;}
-  .shell .main :is(#coForm,#itForm)::before {box-sizing:border-box;display:block;position:sticky;top:0;z-index:5;height:144px;margin:0 -34px 26px;padding:46px 34px 20px;background:#fff;border-bottom:1px solid #ebebed;font:700 23px/1.15 var(--sans);}
+  .shell .main :is(#coForm,#itForm)::before {box-sizing:border-box;display:block;position:sticky;top:0;z-index:5;height:144px;margin:0 -34px 26px;padding:46px 34px 20px;background:#fff;border-bottom:1px solid var(--ws-line);font:700 23px/1.15 var(--sans);}
   .shell .main :is(#view-companies,#view-items)>.cols>.card {height:100%;align-self:stretch;position:static;}
-  .shell .main :is(#view-quotes,#view-companies,#view-items)>.page-head {border-bottom:1px solid #ebebed;}
+  .shell .main :is(#view-quotes,#view-companies,#view-items)>.page-head {border-bottom:1px solid var(--ws-line);}
   .shell .main :is(#coList,#itList) {flex:1;min-height:0;overflow:auto;}
   .shell #coForm::before {content:'거래처 정보';}
   .shell #itForm::before {content:'품목 정보';}
-  .shell #qtForm>.quote-summary {position:sticky;top:0;z-index:5;height:144px;min-height:144px;margin:0 -34px 26px;padding:20px 34px;background:#fff;border-bottom:1px solid #ebebed;}
+  .shell #qtForm>.quote-summary {position:sticky;top:0;z-index:5;height:144px;min-height:144px;margin:0 -34px 26px;padding:20px 34px;background:#fff;border-bottom:1px solid var(--ws-line);}
   .shell #qtForm .qs-info {display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;}
   .shell #qtForm .qs-row {gap:3px;}
   .shell #qtForm .qs-amt-v {font-size:24px;}
@@ -186,11 +189,11 @@
 
   .shell .main #view-materials:not(.hidden) {display:flex;flex-direction:column;overflow:hidden;}
   .shell #view-materials>.page-head {background:linear-gradient(to right,#fafafa 360px,#fff 360px);position:relative;}
-  .shell #view-materials>.page-head::after {content:'';position:absolute;left:359px;top:0;bottom:0;border-right:1px solid #ebebed;}
+  .shell #view-materials>.page-head::after {content:'';position:absolute;left:359px;top:0;bottom:0;border-right:1px solid var(--ws-line);}
   .shell #view-materials>.copy-note {margin:0;padding:8px 28px;font-size:11px;flex:none;}
   .shell #materialContent {flex:1;min-height:0;overflow:hidden;}
   .shell #materialContent .material-master {display:grid;grid-template-columns:360px minmax(0,1fr);height:100%;border:0;overflow:hidden;}
-  .shell #materialContent .material-owners {min-width:0;overflow:auto;background:#fafafa;border-right:1px solid #ebebed;padding:0;}
+  .shell #materialContent .material-owners {min-width:0;overflow:auto;background:#fafafa;border-right:1px solid var(--ws-line);padding:0;}
   .shell #materialContent .material-owners-head {padding:18px 28px 14px;}
   .shell #materialContent .material-owner-list {display:flex;flex-direction:column;gap:0;padding:0;}
   .shell .main #view-materials #materialContent .material-owner {width:100%;max-width:none;text-align:left;flex:0 0 auto;height:64px;border:0;border-left:3px solid transparent;border-radius:0;box-shadow:none;padding:12px 28px 12px 25px;}
@@ -213,12 +216,12 @@
   .shell .main #view-stock .workspace-right .stock-add {grid-template-columns:repeat(2,minmax(0,1fr));}
   .shell .main #view-dash .workspace-right .stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
   .shell .main #view-materials:not(.hidden) {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:144px minmax(0,1fr) auto;}
-  .shell .main #view-materials>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid #ebebed;}
+  .shell .main #view-materials>.page-head {grid-column:1;grid-row:1;background:#fafafa;border-right:1px solid var(--ws-line);}
   .shell .main #view-materials>.copy-note {display:none;}
   .shell .main #view-materials #materialContent,.shell .main #view-materials .material-master {display:contents;}
   .shell .main #view-materials .material-owners {grid-column:1;grid-row:2;min-height:0;}
   .shell .main #view-materials .material-detail {grid-column:2;grid-row:1/4;min-height:0;padding-top:0;}
-  .shell .main #view-materials .material-detail-head {top:0;min-height:144px;margin:0 -34px 24px;padding:24px 34px;border-bottom:1px solid #ebebed;}
+  .shell .main #view-materials .material-detail-head {top:0;min-height:144px;margin:0 -34px 24px;padding:24px 34px;border-bottom:1px solid var(--ws-line);}
   .shell .main #view-materials .material-detail-head {height:144px;box-sizing:border-box;padding:30px 34px 20px;align-items:flex-start;flex-wrap:nowrap;}
   .shell .main #view-materials .material-detail-head h3 {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;margin:6px 0 0;color:#111;}
   #appView .shell .main #view-materials .material-detail-head {display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:12px 24px;}
@@ -235,7 +238,7 @@
   .shell .main .workspace-form>.workspace-form-body {overflow:auto;min-height:0;padding:18px 34px 26px;overscroll-behavior:contain;}
   .shell .main :is(#coForm,#itForm).workspace-form::before {position:static;margin:0;height:144px;}
   .shell .main #qtForm.workspace-form>.quote-summary {position:static;box-sizing:border-box;height:144px;min-height:0;margin:0;padding:30px 34px 20px;align-items:flex-start;}
-  .shell .main :is(#qtForm,#coForm,#itForm).workspace-form>.form-actions {position:static;margin:0;padding:16px 34px;background:#fff;border-top:1px solid #ebebed;min-width:0;flex-wrap:wrap;}
+  .shell .main :is(#qtForm,#coForm,#itForm).workspace-form>.form-actions {position:static;margin:0;padding:16px 34px;background:#fff;border-top:1px solid var(--ws-line);min-width:0;flex-wrap:wrap;}
   .shell .main #qtForm .qs-info {grid-template-columns:auto auto;gap:10px 18px;}
   .shell .main #qtForm .qs-row:has(.co) {grid-column:1/-1;grid-row:1;}
   .shell .main #qtForm .qs-val.co {font:700 23px/1.15 var(--sans);color:#111;letter-spacing:-.55px;}
@@ -244,7 +247,7 @@
   .shell .main #view-quotes .qtotals {margin-left:0;margin-right:0;}
   .shell .main #view-settings .workspace-right {display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;}
   .shell .main #view-settings .workspace-right>.card {min-height:0;overflow:auto;padding:18px 34px 26px;}
-  .shell .main #view-settings .workspace-right>.form-actions {margin:0;padding:16px 34px;border-top:1px solid #ebebed;background:#fff;}
+  .shell .main #view-settings .workspace-right>.form-actions {margin:0;padding:16px 34px;border-top:1px solid var(--ws-line);background:#fff;}
   /* Right panes already supply the outer inset. Do not inset tables twice. */
   #appView .shell .main .view :is(.workspace-right,.workspace-form-body) .tbl-wrap {padding:0;}
   .shell .main #view-sales .workspace-left .filter-bar {display:grid;grid-template-columns:minmax(0,1fr) 10px minmax(0,1fr);gap:10px 4px;align-items:center;}
@@ -260,7 +263,7 @@
   .shell .main .workspace-heading h3 {margin:6px 0 0;}
   .shell .main .workspace-heading .workspace-caption {font:400 12px/1.35 var(--sans);color:#666;}
   .shell .main :is(#coForm,#itForm):has(>.workspace-record-heading)::before {display:none;}
-  .shell .main .workspace-record-heading {height:144px;box-sizing:border-box;display:flex;justify-content:space-between;gap:24px;padding:30px 34px 20px;border-bottom:1px solid #ebebed;background:#fff;}
+  .shell .main .workspace-record-heading {height:144px;box-sizing:border-box;display:flex;justify-content:space-between;gap:24px;padding:30px 34px 20px;border-bottom:1px solid var(--ws-line);background:#fff;}
   .shell .main .workspace-record-heading .workspace-caption {font:400 12px/1.35 var(--sans);color:#666;}
   .shell .main .workspace-record-heading .co-title {margin:6px 0 0;}
   .shell .main .workspace-record-heading .co-title-name {font:700 23px/1.15 var(--sans);letter-spacing:-.55px;}
@@ -276,7 +279,7 @@
   #appView .shell .main :is(#view-payments,#view-stock) .workspace-left .tbl-wrap {padding:0;overflow:visible;}
   #appView .shell .main :is(#payByCo,#ivTbl),#appView .shell .main :is(#payByCo,#ivTbl) tbody {display:block;width:100%;min-width:0;}
   #appView .shell .main :is(#payByCo,#ivTbl) thead {display:none;}
-  #appView .shell .main :is(#payByCo,#ivTbl) tr {display:grid;gap:6px 12px;padding:14px 12px;border-bottom:1px solid #ebebed;align-items:center;}
+  #appView .shell .main :is(#payByCo,#ivTbl) tr {display:grid;gap:6px 12px;padding:14px 12px;border-bottom:1px solid var(--ws-line);align-items:center;}
   #appView .shell .main :is(#payByCo,#ivTbl) td {display:block;min-width:0;padding:0;border:0;white-space:normal;overflow-wrap:anywhere;}
   #appView .shell .main #payByCo tr {grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:'name count' 'received received' 'paid paid' 'net net';}
   #appView .shell .main #payByCo td:first-child {grid-area:name;font-weight:600;grid-column:1;}
@@ -308,19 +311,19 @@
   #appView .shell .main :is(#view-payments,#view-ar) .workspace-heading {display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:min-content 1fr;column-gap:24px;}
   #appView .shell .main :is(#view-payments,#view-ar) .workspace-heading .scr-hero {grid-column:2;grid-row:1/3;margin:0;padding:0;border:0;text-align:right;}
   #appView .shell .main :is(#view-payments,#view-ar) .workspace-heading .big {font:700 28px/1.15 var(--sans);margin:3px 0 0;}
-  #appView .shell .main :is(#view-payments,#view-ar) .workspace-right>.stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0 0 24px;padding:0 0 18px;border-bottom:1px solid #ebebed;}
+  #appView .shell .main :is(#view-payments,#view-ar) .workspace-right>.stats {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0 0 24px;padding:0 0 18px;border-bottom:1px solid var(--ws-line);}
   #appView .shell .main #view-ar .workspace-right>.stats {grid-template-columns:repeat(4,minmax(0,1fr));}
   #appView .shell .main :is(#view-payments,#view-ar) .workspace-right>.stats .stat {padding:0;min-width:0;}
   #appView .shell .main .workspace-record-index h3 {font:600 13px/1.4 var(--sans);margin:24px 0 12px;}
-  #appView .shell .main .workspace-record-index button {display:block;width:100%;min-height:48px;padding:12px;text-align:left;font:500 13px/1.4 var(--sans);color:#111;background:transparent;border:0;border-left:3px solid transparent;border-bottom:1px solid #ebebed;cursor:pointer;}
+  #appView .shell .main .workspace-record-index button {display:block;width:100%;min-height:48px;padding:12px;text-align:left;font:500 13px/1.4 var(--sans);color:#111;background:transparent;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--ws-line);cursor:pointer;}
   #appView .shell .main .workspace-record-index button.on {border-left-color:#4355e8;background:#eeeffe;color:#2636b8;}
   #appView .shell .main #view-payments .workspace-left {display:flex;flex-direction:column;overflow:hidden;padding:0;}
-  #appView .shell .main .workspace-list-tools {flex:none;display:grid;gap:10px;padding:18px 28px;border-bottom:1px solid #ebebed;}
+  #appView .shell .main .workspace-list-tools {flex:none;display:grid;gap:10px;padding:18px 28px;border-bottom:1px solid var(--ws-line);}
   #appView .shell .main .workspace-list-tools :is(input,.date-control) {width:100%;min-width:0;max-width:100%;}
   #appView .shell .main #view-payments .workspace-left>.card {margin:0!important;display:flex;flex-direction:column;min-height:0;}
   #appView .shell .main #view-payments .workspace-left .card-head {flex:none;padding:16px 28px;border:0;}
   #appView .shell .main #view-payments .workspace-left .tbl-wrap {overflow:auto;min-height:0;}
-  #appView .shell .main :is(#payByCo,#ivTbl) tr {background:transparent;padding:14px 28px;border-image:linear-gradient(to right,transparent 14px,#ebebed 14px,#ebebed calc(100% - 14px),transparent calc(100% - 14px)) 1;}
+  #appView .shell .main :is(#payByCo,#ivTbl) tr {background:transparent;padding:14px 28px;border-image:linear-gradient(to right,transparent 14px,var(--ws-line) 14px,var(--ws-line) calc(100% - 14px),transparent calc(100% - 14px)) 1;}
   #appView .shell .main #payByCo tr[hidden] {display:none;}
   #appView .shell .main :is(#view-payments,#view-ar) .workspace-right>.stats {background:#f7f7f9;border:0;border-radius:10px;padding:18px 20px;gap:24px;}
   #appView .shell .main .view :is(.workspace-right,.workspace-form-body) .tbl td {padding:8px 12px;}
@@ -347,11 +350,11 @@
   #appView .shell .main :is(#view-stock,#view-dash) .workspace-left .card-head {padding:18px 28px;flex:none;border:0;}
   #appView .shell .main #view-stock .workspace-left .tbl-wrap,#appView .shell .main #dashRecent {overflow:auto;min-height:0;padding:0;}
   #appView .shell .main #view-dash .workspace-left>.head-actions {flex:none;padding:14px 28px;margin:0;}
-  #appView .shell .main #dashRecent .recent-item {display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:14px 28px;text-align:left;border:0;border-bottom:1px solid #ebebed;border-radius:0;background:transparent;cursor:pointer;font:400 13px/1.4 var(--sans);}
+  #appView .shell .main #dashRecent .recent-item {display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:14px 28px;text-align:left;border:0;border-bottom:1px solid var(--ws-line);border-radius:0;background:transparent;cursor:pointer;font:400 13px/1.4 var(--sans);}
   #appView .shell .main #dashRecent .recent-item .ra {text-align:right;}
   #appView .shell .main #dashRecent .recent-item .d {text-align:left;margin-left:0;justify-self:start;}
   #appView .shell .main #dashRecent .recent-item .pill {justify-self:end;}
-  #appView .shell .main #view-ar .filter-bar {flex:none;margin:0;padding:18px 28px;border-bottom:1px solid #ebebed;}
+  #appView .shell .main #view-ar .filter-bar {flex:none;margin:0;padding:18px 28px;border-bottom:1px solid var(--ws-line);}
   #appView .shell .main #view-ar .filter-bar input {grid-column:1/-1;width:100%;}
   #appView .shell .main #view-ar .workspace-record-index {flex:1;min-height:0;overflow:auto;margin:0;}
   #appView .shell .main #view-ar .workspace-record-index button {padding:14px 28px;min-height:64px;}
@@ -446,8 +449,8 @@
   #appView .shell .main #view-sales .workspace-right table :is(th,td):is(:nth-child(2),:nth-child(3)) {text-align:center;}
   #appView .shell .main #arTbl :is(th,td):last-child {text-align:right;white-space:nowrap;}
   .shell .main :is(#qtList,#coList,#itList) .list-item {
-    border-bottom:1px solid #ebebed;
-    border-image:linear-gradient(to right,transparent 14px,#ebebed 14px,#ebebed calc(100% - 14px),transparent calc(100% - 14px)) 1;
+    border-bottom:1px solid var(--ws-line);
+    border-image:linear-gradient(to right,transparent 14px,var(--ws-line) 14px,var(--ws-line) calc(100% - 14px),transparent calc(100% - 14px)) 1;
   }
 }
 
@@ -493,7 +496,7 @@
 #appView .shell .main #dashStats .stat {
   display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;
   gap:4px 16px;padding:16px 0;margin:0;text-align:left;border:0;
-  border-bottom:1px solid #ebebed;border-radius:0;background:transparent;
+  border-bottom:1px solid var(--ws-line);border-radius:0;background:transparent;
 }
 #appView .shell .main #dashStats .stat:nth-last-child(-n+2) {border-bottom:0;}
 #appView .shell .main #dashStats .stat .k {grid-column:1;grid-row:1;margin:0;text-align:left;}
@@ -502,14 +505,14 @@
 #appView .shell .main #dashStats .stat:focus-visible {outline:2px solid var(--accent,#484cf5);outline-offset:2px;}
 @container dashboard-summary (max-width:640px) {
   #appView .shell .main #dashStats .stat {grid-column:1/-1;}
-  #appView .shell .main #dashStats .stat:nth-last-child(2) {border-bottom:1px solid #ebebed;}
+  #appView .shell .main #dashStats .stat:nth-last-child(2) {border-bottom:1px solid var(--ws-line);}
 }
 
 #appView #view-stock .tbl-wrap:has(>#ivTbl) {display:none!important;}
 #view-stock .stock-add[hidden] {display:none!important;}
-#view-stock .stock-tools {display:grid;gap:9px;padding:18px 28px;background:#fafafa;border-bottom:1px solid #ebebed;position:sticky;top:0;z-index:2;}
+#view-stock .stock-tools {display:grid;gap:9px;padding:18px 28px;background:#fafafa;border-bottom:1px solid var(--ws-line);position:sticky;top:0;z-index:2;}
 #view-stock .stock-tools :is(input,select,button) {width:100%;min-width:0;box-sizing:border-box;}
-#view-stock .stock-item {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;width:100%;padding:16px 28px;text-align:left;background:transparent;border:0;border-bottom:1px solid #ebebed;border-left:3px solid transparent;font:500 13.5px var(--sans);cursor:pointer;}
+#view-stock .stock-item {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;width:100%;padding:16px 28px;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--ws-line);border-left:3px solid transparent;font:500 13.5px var(--sans);cursor:pointer;}
 #view-stock .stock-item small {font-size:11px;color:#777;}
 #view-stock .stock-item small:last-child {text-align:right;}
 #view-stock .stock-item.selected {border-left-color:#484cf5;background:#eeeefe;color:#3539c8;}
@@ -529,7 +532,7 @@
   #view-stock .workspace-right>.card {display:flex;flex-direction:column;}
   #view-stock .stock-add {order:-1;margin-bottom:24px;}
   #appView .shell .main #view-dash .workspace-left {display:flex;flex-direction:column;overflow:hidden;}
-  #appView .shell .main #view-dash .workspace-left>.head-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;flex:none;padding:18px 28px;margin:0;border-bottom:1px solid #ebebed;background:#fafafa;}
+  #appView .shell .main #view-dash .workspace-left>.head-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;flex:none;padding:18px 28px;margin:0;border-bottom:1px solid var(--ws-line);background:#fafafa;}
   #appView .shell .main #view-dash .head-actions button {width:100%;min-width:0;white-space:nowrap;}
   #appView .shell .main #view-dash .workspace-left>.card {flex:1;min-height:0;overflow:auto;margin:0;}
 }
