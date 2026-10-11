@@ -77,7 +77,9 @@ export function describeChange(key,before,after,ref={}){
  if(key==='items'&&!same(a.variants,b.variants))changes.push('옵션(색상·규격) 변경');
  let action=key==='quotes'&&a.status==='취소'&&b.status!=='취소'?'취소':key==='quotes'&&b.status==='취소'&&a.status!=='취소'?'되살리기':'수정';
  // 견적서 '삭제'(지우지 않고 보관: 상태 취소 + 사유 '삭제')와 그 복원
+ if(key==='quotes'&&a.status==='취소'&&a.cancel_reason==='삭제'&&b.cancel_reason!=='삭제')action='취소';
  if(key==='quotes'&&action==='취소'&&a.cancel_reason==='삭제'){action='삭제';changes.length=0;changes.push('목록에서 뺌 · 복원 가능');}
+ if(key==='quotes'&&a.status==='취소'&&b.status==='취소'&&b.cancel_reason==='삭제'&&a.cancel_reason!=='삭제'){action='복원';changes.length=0;changes.push('취소된 견적으로 돌아옴');}
  if(key==='quotes'&&action==='되살리기'){action='복원';if(b.cancel_reason==='삭제'){changes.length=0;changes.push(`상태 → ${a.status}`);}}
  if(!changes.length)changes.push('세부 내용 변경');
  return {key,table,action,ref:row.id,label:label(a),changes:changes.slice(0,12).concat(changes.length>12?[`외 ${changes.length-12}건`]:[])};

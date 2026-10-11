@@ -12368,7 +12368,7 @@ const NaroOrderImport=(()=>{
   const L=linked(q);
   const head=t=>`<div class="nd-ps-hd"><b>${t}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')} · ${won(quoteAmount(q))}원</span></div>`;
   const back=stockDeltaForQuote({...q,status:'취소'}),backQty=back.moves.reduce((a,m)=>a+(m.kind==='입고'?m.qty:-m.qty),0);
-  if(q.status==='취소'&&!back.moves.length){
+  if(q.status==='취소'&&q.cancel_reason==='삭제'&&!back.moves.length){
    open(`${head('이미 삭제된 견적서예요')}<div class="nd-qa-body"><p class="nd-qa-note">목록에서 빠져 있고 매출·받을 금액·재고 계산에 들어가지 않아요. 다시 쓰려면 견적서 위의 [복원]을 누르세요.</p></div>
     <div class="nd-ps-act nd-ps-one"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);
    return;
@@ -12392,8 +12392,9 @@ const NaroOrderImport=(()=>{
     const btn=ev.currentTarget;btn.disabled=true;btn.textContent='삭제하는 중…';
     const fail=t=>{btn.disabled=false;btn.textContent='다시 시도';say(t);};
     let cur=(db.quotes||[]).find(x=>x.id===id);
-    if(cur.status!=='취소'){
-     const nq={...JSON.parse(JSON.stringify(cur)),status:'취소',cancel_reason:'삭제',cancelled_at:localDate(),cancel_prev:cur.status};
+    if(cur.status!=='취소'||cur.cancel_reason!=='삭제'){
+     // 이미 '취소'된 견적은 취소 날짜·이전 상태를 그대로 두고 사유만 '삭제'로(목록 표시 '삭제됨')
+     const nq=cur.status==='취소'?{...JSON.parse(JSON.stringify(cur)),cancel_reason:'삭제',cancel_reason_before:cur.cancel_reason||''}:{...JSON.parse(JSON.stringify(cur)),status:'취소',cancel_reason:'삭제',cancelled_at:localDate(),cancel_prev:cur.status};
      const next=db.quotes.map(x=>x.id===id?nq:x);
      if(!await saveTable('quotes',next))return fail('삭제하지 못했어요. 잠시 뒤 다시 눌러 주세요.');
      db.quotes=next;cur=nq;qtEditing=null;qtBaseline='';renderQtList();renderQtDetail();
@@ -12415,9 +12416,12 @@ const NaroOrderImport=(()=>{
   const q=current();if(!q||q.status!=='취소')return;
   const refunds=(db.payments||[]).filter(p=>p.quote_id===q.id&&p.kind==='지급'&&p.refund);
   const d=open(`<div class="nd-ps-hd"><b>견적서를 복원할까요?</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
-   <div class="nd-qa-body"><p class="nd-qa-note">취소 전 상태(${e(q.cancel_prev||'수주')})로 돌아가고, 납품 기록이 있으면 재고가 다시 빠져요.${refunds.length?' 환불 기록은 그대로 남아요 — 필요하면 입금·출금에서 정리해 주세요.':''}</p></div>
+   <div class="nd-qa-body"><p class="nd-qa-note">${q.cancel_reason_before!==undefined?'삭제되기 전처럼 취소된 견적으로 돌아가요(목록 표시 \'삭제됨\' → \'취소\'). 재고·입금은 바뀌지 않아요.':`취소 전 상태(${e(q.cancel_prev||'수주')})로 돌아가고, 납품 기록이 있으면 재고가 다시 빠져요.`}${q.cancel_reason_before===undefined&&refunds.length?' 환불 기록은 그대로 남아요 — 필요하면 입금·출금에서 정리해 주세요.':''}</p></div>
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go">복원</button></div>`);
   d.querySelector('.nd-qa-go').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';
+   const was=(db.quotes||[]).find(x=>x.id===q.id);
+   // 취소된 뒤에 지운 견적: 복원하면 원래의 '취소'(그때 사유)로 돌아간다 — 재고·입금은 그대로.
+   if(was.cancel_reason_before!==undefined){const nq=work(was);nq.cancel_reason=was.cancel_reason_before||'잘못 만듦';delete nq.cancel_reason_before;const next=db.quotes.map(x=>x.id===nq.id?nq:x);if(!await saveTable('quotes',next)){btn.disabled=false;btn.textContent='다시 시도';return;}db.quotes=next;qtEditing=null;qtBaseline='';d.close();renderQtList();renderQtDetail();say('복원했어요 · 취소된 견적으로 돌아왔어요');return;}
    const nq=work((db.quotes||[]).find(x=>x.id===q.id));nq.status=['작성중','발송','수주','부분납품','납품'].includes(q.cancel_prev)?q.cancel_prev:'수주';
    delete nq.cancel_reason;delete nq.cancelled_at;delete nq.cancel_prev;if(['수주','부분납품','납품'].includes(nq.status))normalizeDeliveryStatus(nq);
    const next=db.quotes.map(x=>x.id===nq.id?nq:x);
