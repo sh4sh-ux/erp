@@ -592,6 +592,15 @@ export function installPurchaseUI({port,features=()=>true}){
   const szs=[...f.querySelectorAll('[data-sz]')];szs.forEach(inp=>inp.addEventListener('input',()=>{const s=view.querySelector('#pu_szSum');if(s)s.textContent=`총 ${n0(szs.reduce((a,i)=>a+num(i.value),0))}개`;}));
  }
  function paintList(){const el=view.querySelector('#puList');if(!el)return;el.innerHTML=listHtml(rows().filter(match).sort((a,b)=>b.date.localeCompare(a.date)||b.no.localeCompare(a.no)));el.querySelectorAll('.list-item').forEach(x=>{x.onclick=()=>select(x.dataset.id);});}
- g.NaroPurchases={render,load,state:()=>structuredClone({status:st.status,count:rows().length})};
+ // 거래처 화면(company-panel.js)이 매입처의 매입·남은 돈을 보여 줄 때 쓴다. 읽기만 한다.
+ const vendor=cid=>rows().filter(p=>p.vendor_id===cid&&!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고').map(p=>{
+  const ps=payState(p),[label,cls]=disp(p),names=p.lines.map(l=>itemOf(l.item_id)?.name||l.name||'').filter(Boolean);
+  return {id:p.id,no:p.no,date:p.date,label,cls,cur:p.currency||'KRW',total:p.currency&&p.currency!=='KRW'?ps.due:totals(p).total,due:ps.due,paid:ps.paid,qty:qtyOf(p),got:gotOf(p),
+   title:names.length?names[0]+(names.length>1?` 외 ${names.length-1}건`:''):'매입',
+   receipts:(p.receipts||[]).filter(r=>!r.void_at).map(r=>({date:r.date||'',qty:r.lines.reduce((s,x)=>s+(x.qty||0),0)})),
+   pays:pays(p).map(x=>({date:x.date||'',kind:x.kind,amount:Number(x.amount)||0,method:x.method||'',refund:!!x.refund}))};
+ });
+ const open=id=>{if(typeof g.switchView==='function'&&g.switchView('purchases')===false)return;select(id);};
+ g.NaroPurchases={render,load,vendor,open,state:()=>structuredClone({status:st.status,count:rows().length})};
  return {onMessage};
 }

@@ -1,0 +1,145 @@
+/* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
+html body #appView #coForm.cp{--cp-x:28px}
+html body #appView .shell .main #coForm.cp::before{content:none!important;display:none!important}
+/* PC: 머리(이름 줄 144 + 탭 46) · 본문 스크롤 · 아래 버튼 줄 */
+html body #appView .shell .main #coForm.cp.workspace-form{grid-template-rows:auto minmax(0,1fr) auto!important}
+html body #appView #coForm.cp>.cp-head{display:block!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;background:var(--nd-surface);box-shadow:none!important;grid-template-columns:none!important}
+html body #appView #coForm.cp .cp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;height:var(--panel-head,144px);box-sizing:border-box;padding:30px var(--cp-x) 0;border-bottom:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-id{min-width:0}
+html body #appView #coForm.cp .cp-head .cp-cap{margin:0;font:600 11px/13px var(--sans);letter-spacing:.8px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-head .co-title{display:block;margin:7px 0 0;padding:0}
+html body #appView #coForm.cp .cp-head .co-title-name{display:block;font:700 24px/30px var(--sans);letter-spacing:-.5px;color:var(--nd-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView #coForm.cp .cp-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:10px;font:400 12px/16px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-meta .dot,html body #appView #coForm.cp .cp-meta .none{color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-meta .pill{margin-left:2px}
+html body #appView #coForm.cp .cp-amt{flex:none;text-align:right}
+html body #appView #coForm.cp .cp-amt .k{font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-amt .v{margin-top:6px;font:700 24px/30px var(--sans);letter-spacing:-.4px;color:var(--nd-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #coForm.cp .cp-tabs{display:flex;gap:24px;height:46px;padding:0 var(--cp-x)}
+html body #appView #coForm.cp .cp-tabs>button{flex:0 0 auto;height:46px;min-height:0;padding:0 2px;border:0;border-radius:0;background:none;color:var(--nd-ink-3);font:500 13px/1 var(--sans);cursor:pointer}
+html body #appView #coForm.cp .cp-tabs>button[aria-selected="true"]{color:var(--nd-ink);font-weight:650;box-shadow:inset 0 -2px 0 var(--nd-ink)}
+html body #appView #coForm.cp .cp-tabs>button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-4px}
+html body #appView .shell .main #coForm.cp>.cp-body{padding:28px var(--cp-x) 36px!important;min-height:0}
+html body #appView #coForm.cp .cp-panel[hidden]{display:none!important}
+/* 거래: 요약 */
+html body #appView #coForm.cp .cp-ov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 24px;align-items:end}
+html body #appView #coForm.cp .cp-ov .k{font:400 13px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ov .v{margin-top:6px;font:400 15px/26px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ov .v b{margin-right:4px;font:750 22px/26px var(--sans);letter-spacing:-.3px;color:var(--nd-ink);font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-ov .sep{margin:0 8px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-warn{color:var(--nd-amber);font-weight:600}
+html body #appView #coForm.cp .cp-pre{color:var(--nd-blue);font-weight:600}
+html body #appView #coForm.cp .cp-ov>.btn{height:36px;min-height:0;margin:0;padding:0 14px;font-size:13.5px}
+html body #appView #coForm.cp .cp-track{grid-column:1/-1;height:6px;border-radius:3px;background:var(--nd-fill);overflow:hidden}
+html body #appView #coForm.cp .cp-track>i{display:block;height:100%;border-radius:3px;background:var(--nd-blue)}
+html body #appView #coForm.cp .cp-stats{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 40px;padding-top:4px}
+html body #appView #coForm.cp .cp-stats>div{display:flex;flex-direction:column;gap:3px}
+html body #appView #coForm.cp .cp-stats span{font:400 12px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-stats b{font:600 14.5px/20px var(--sans);color:var(--nd-ink);font-variant-numeric:tabular-nums}
+/* 거래: 목록 칸 */
+html body #appView #coForm.cp .cp-sec{margin-top:40px}
+html body #appView #coForm.cp .cp-sech{display:flex;align-items:center;gap:10px;min-height:34px;margin-bottom:8px}
+html body #appView #coForm.cp .cp-sech h3{margin:0;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-sech .cnt{font:400 13px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-sech .sp{flex:1}
+html body #appView #coForm.cp .cp-link{min-height:0;height:auto;padding:6px 0;border:0;background:none;color:var(--nd-blue);font:600 13px/18px var(--sans);cursor:pointer}
+html body #appView #coForm.cp .cp-new{height:34px;min-height:0;margin:0 0 0 8px;padding:0 12px;font-size:13px;gap:4px}
+html body #appView #coForm.cp .cp-seg{display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--nd-fill)}
+html body #appView #coForm.cp .cp-seg>button{height:28px;min-height:0;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--nd-ink-2);font:500 12.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
+html body #appView #coForm.cp .cp-seg>button[aria-pressed="true"]{background:var(--nd-surface);color:var(--nd-ink);font-weight:600;box-shadow:0 1px 2px rgba(17,22,35,.08)}
+html body #appView #coForm.cp .cp-list{border-bottom:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-pr{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:50px;border-top:1px solid var(--nd-line);font:400 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-pr .d{font-size:13px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-pr .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #coForm.cp .cp-pr .q{margin-left:8px;font-size:12px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-pr .a,html body #appView #coForm.cp .cp-qr .a{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-qr{display:grid;grid-template-columns:64px minmax(0,1fr) auto auto 20px;gap:12px;align-items:center;width:100%;min-height:0;height:auto;margin:0;padding:13px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
+@media(hover:hover){html body #appView #coForm.cp .cp-qr:hover .t{color:var(--nd-blue)}}
+html body #appView #coForm.cp .cp-qr .d{align-self:start;padding-top:1px;font-size:13px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-qr .m{min-width:0}
+html body #appView #coForm.cp .cp-qr .t{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #coForm.cp .cp-qr .s{display:block;margin-top:3px;font-size:12px;line-height:16px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-qr .s>:is(.pm,.sd){display:none}
+html body #appView #coForm.cp .cp-qr .cv{display:flex;color:var(--nd-ink-3);transition:transform .15s}
+html body #appView #coForm.cp .cp-qr[aria-expanded="true"] .cv{transform:rotate(180deg)}
+html body #appView #coForm.cp .cp-tl{margin:0 0 14px 76px;padding:2px 0 4px}
+html body #appView #coForm.cp .cp-ev{position:relative;display:grid;grid-template-columns:48px 40px minmax(0,1fr) auto;gap:8px;padding:6px 0 6px 18px;font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-ev::before{content:"";position:absolute;left:3px;top:13px;width:7px;height:7px;border-radius:50%;background:var(--nd-surface);box-shadow:0 0 0 1.5px var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev::after{content:"";position:absolute;left:6px;top:22px;bottom:-8px;width:1px;background:var(--nd-line)}
+html body #appView #coForm.cp .cp-ev:last-of-type::after{display:none}
+html body #appView #coForm.cp .cp-ev.todo{color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev span{font-size:12px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev b{font-weight:600}
+html body #appView #coForm.cp .cp-ev em{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ev i{font-style:normal;font-weight:600;font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-tls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;padding:8px 0 0 18px;border-top:1px dashed var(--nd-line);font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-tls b{font-weight:600}
+html body #appView #coForm.cp .cp-more{padding-top:10px;text-align:center}
+html body #appView #coForm.cp .cp-none{margin:0;padding:18px 0;border-top:1px solid var(--nd-line);border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:64px 20px;text-align:center;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-empty b{margin-top:8px;font:700 17px/24px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-empty span{font:400 14px/22px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-empty .btn{margin-top:14px;height:40px;min-height:0;padding:0 16px}
+/* 단가 */
+html body #appView #coForm.cp section.cp-prices{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body #appView #coForm.cp section.cp-prices>h3{margin:0 0 6px!important;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp section.cp-prices>.hint{font-size:12.5px;line-height:19px;color:var(--nd-ink-3)}
+/* 정보: 묶음(왼쪽 이름·설명 / 오른쪽 입력 칸) */
+html body #appView #coForm.cp .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-grp:first-child{padding-top:4px;border-top:0}
+html body #appView #coForm.cp .cp-grph h4{margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-grpb{min-width:0}
+html body #appView #coForm.cp .cp-grpb>.field:last-child,html body #appView #coForm.cp .cp-grpb>.grid2:last-child .field{margin-bottom:0}
+html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView #coForm.cp .cp-log{margin-top:8px}
+/* 아래 버튼 줄: PC = [이메일] [거래명세서] … [삭제] [저장] · 폰 = [⋯] [전화] [이메일] [저장] */
+html body #appView #coForm.cp .form-actions>.cp-act{flex:none;height:40px;min-height:0;margin:0;padding:0 14px;gap:6px;font-size:13.5px}
+html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
+@media screen and (max-width:1023px){
+ html body #appView #coForm.cp{--cp-x:16px}
+ html body #appView #coForm.cp>.cp-head{margin-top:-8px!important;border-bottom:0!important;background:none}
+ html body #appView #coForm.cp .cp-meta{margin-top:14px}
+ html body #appView #coForm.cp .cp-top{height:auto;padding:6px 0;border-bottom:0;align-items:flex-start;gap:12px}
+ html body #appView #coForm.cp .cp-head .cp-cap{font:400 12px/18px var(--sans);letter-spacing:0;color:var(--nd-ink-2)}
+ html body #appView #coForm.cp .cp-head .co-title{margin-top:4px}
+ html body #appView #coForm.cp .cp-head .co-title-name{font:700 19px/26.6px var(--sans);letter-spacing:-.4px}
+ html body #appView #coForm.cp .cp-amt .v{margin-top:4px;font:700 19px/26.6px var(--sans)}
+ html body #appView #coForm.cp .cp-top{flex-wrap:wrap}
+ html body #appView #coForm.cp .cp-id{flex:1 1 0}
+ html body #appView #coForm.cp .cp-tabs{margin:0 -16px;padding:0 8px;gap:0;height:45px;border-top:1px solid var(--nd-line);border-bottom:1px solid var(--nd-line)}
+ html body #appView #coForm.cp .cp-tabs>button{flex:1;height:44px;font:500 14px/1 var(--sans)}
+ html body #appView #coForm.cp .cp-tabs>button[aria-selected="true"]{color:var(--nd-blue);font-weight:600;box-shadow:inset 0 -2px 0 var(--nd-blue)}
+ html body #appView .shell .main #coForm.cp>.cp-body{padding:20px 0 24px!important}
+ html body #appView #coForm.cp .cp-ov{gap:12px}
+ html body #appView #coForm.cp .cp-ov .v{font-size:14px}
+ html body #appView #coForm.cp .cp-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+ html body #appView #coForm.cp .cp-stats b{font-size:15px}
+ html body #appView #coForm.cp .cp-sec{margin-top:34px}
+ html body #appView #coForm.cp .cp-sech{flex-wrap:wrap}
+ html body #appView #coForm.cp .cp-sech h3{font-size:16px}
+ html body #appView #coForm.cp .cp-seg{order:5;display:flex;width:100%;margin-top:4px}
+ html body #appView #coForm.cp .cp-seg>button{flex:1;height:32px;font-size:13px}
+ html body #appView #coForm.cp .cp-pr{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n a" "d a";row-gap:2px;min-height:0;padding:11px 0;font-size:15px}
+ html body #appView #coForm.cp .cp-pr .n{grid-area:n}
+ html body #appView #coForm.cp .cp-pr .d{grid-area:d;font-size:12.5px}
+ html body #appView #coForm.cp .cp-pr .a{grid-area:a}
+ html body #appView #coForm.cp .cp-pr .q{display:none}
+ html body #appView #coForm.cp .cp-qr{grid-template-columns:minmax(0,1fr) auto 18px;column-gap:10px;padding:12px 0;font-size:15px}
+ html body #appView #coForm.cp .cp-qr .d,html body #appView #coForm.cp .cp-qr>.pill{display:none}
+ html body #appView #coForm.cp .cp-qr .s{font-size:12.5px}
+ html body #appView #coForm.cp .cp-qr .s>.pm{display:inline-block;margin-right:6px;font-size:11px;padding:1px 6px}
+ html body #appView #coForm.cp .cp-qr .s>.sd{display:inline}
+ html body #appView #coForm.cp .cp-tl{margin:0 0 12px 4px}
+ html body #appView #coForm.cp .cp-ev{grid-template-columns:42px 34px minmax(0,1fr) auto;gap:6px}
+ html body #appView #coForm.cp .cp-grp{display:block;padding:20px 0}
+ html body #appView #coForm.cp .cp-grph{margin-bottom:14px}
+ html body #appView #coForm.cp .cp-grph h4{font-size:15px}
+ html body #appView #coForm.cp .cp-grpb .grid2{grid-template-columns:1fr!important}
+ html body #appView #coForm.cp .form-actions>.cp-tel{display:inline-flex}
+ html body #appView #coForm.cp .form-actions>.cp-act{order:5;flex:1 1 0;height:48px;min-width:0;padding:0 8px;justify-content:center;border-radius:12px;font-size:15px;white-space:nowrap}
+ html body #appView #coForm.cp .form-actions>.panel-b-danger{order:1!important;margin-left:0!important}
+ html body #appView #coForm.cp .form-actions>.panel-b-danger:not(.nd-solo-menu)>.nd-pop{left:0!important;right:auto!important;transform:none!important}
+ html body #appView #coForm.cp .form-actions>.btn.save{order:9;flex:1.3 1 0!important;min-width:0!important}
+}
