@@ -1,0 +1,242 @@
+/* Shared quote/company anatomy. Approved ledger refinements follow below. */
+#view-payments>.pp-detail[hidden]{display:none!important}
+@media all{
+ html body #appView #view-payments.pp-detail-open>.workspace-heading,
+ html body #appView #view-payments.pp-detail-open>.workspace-right{display:none!important}
+ html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) 46px minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
+ html body #appView .pp-detail .pp-head{display:flex;justify-content:space-between;gap:24px;padding:30px 28px 0;min-width:0;border-bottom:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-title{min-width:0}
+ html body #appView .pp-detail .pp-caption{display:block;font:600 11px/13px var(--sans);color:var(--nd-ink-3);letter-spacing:.8px}
+ html body #appView .pp-detail h3{margin:8px 0 0;padding:0;font:700 24px/30px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--nd-ink)}
+ html body #appView .pp-detail .pp-meta{display:flex;align-items:center;gap:10px;margin-top:10px;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+ html body #appView .pp-detail .pp-badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
+ html body #appView .pp-detail .pp-badge.in{color:#16834a;background:#eaf7ef}
+ html body #appView .pp-detail .pp-badge.out{color:#ba403b;background:#fceeed}
+ html body #appView .pp-detail .pp-amount{text-align:right;flex-shrink:0;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+ html body #appView .pp-detail .pp-amount strong{display:block;margin-top:6px;font:700 24px/30px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink)}
+ html body #appView .pp-detail .pp-tabs{display:flex;gap:24px;padding:0 28px;border-bottom:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-tabs button{height:46px;min-height:0;padding:0 2px;border:0;border-radius:0;background:none;box-shadow:none;font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-tabs button[aria-selected=true]{border-bottom:2px solid var(--nd-ink);color:var(--nd-ink);font-weight:700}
+ html body #appView .pp-detail .pp-body{overflow-y:auto;min-height:0;padding:28px 28px 40px}
+ html body #appView .pp-detail .pp-section+.pp-section{margin-top:36px}
+ html body #appView .pp-detail .pp-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px;margin-bottom:12px}
+ html body #appView .pp-detail h4{margin:0;font:700 14px/22px var(--sans);color:var(--nd-ink)}
+ html body #appView .pp-detail h4 span{margin-left:8px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-muted{color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+ html body #appView .pp-detail .pp-fields{margin:0;border-top:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-fields>div{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
+ html body #appView .pp-detail dt{color:var(--nd-ink-2)}
+ html body #appView .pp-detail dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-link{border:0;background:none;padding:0;font:inherit;color:var(--nd-blue)}
+ html body #appView .pp-detail .pp-memo{margin:0;padding:18px 0;border-top:1px solid var(--nd-line);font:400 13px/22px var(--sans);white-space:pre-wrap;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-actions{display:flex;align-items:center;gap:8px;padding:14px 28px;border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+ html body #appView .pp-detail .btn{flex:0 0 auto;white-space:nowrap;height:40px;min-height:0;padding:0 14px;font:500 13px/20px var(--sans);border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink-2);box-shadow:none}
+ html body #appView .pp-detail .pp-delete{color:#d73329}
+ html body #appView .pp-detail .pp-spacer{flex:1}
+ html body #appView .pp-detail .pp-saved{white-space:nowrap;padding:10px 48px;border-radius:9px;background:var(--nd-fill);font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-empty{padding:64px 20px;text-align:center;color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-empty p{font:400 13px/22px var(--sans)}
+ html body #appView .pp-detail .pp-quote-lines{border-top:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-quote-lines>div{display:flex;justify-content:space-between;gap:24px;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
+ html body #appView .pp-detail small{color:var(--nd-ink-3);font:inherit}
+ html body #appView .pp-detail button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:3px}
+}
+html body #appView .pp-detail .pp-back{display:none}
+html body #appView .pp-detail .pp-route{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:20px;align-items:center;padding:22px 0;border-block:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-route div{min-width:0}
+html body #appView .pp-detail .pp-route span:not(.pp-arrow),html body #appView .pp-detail .pp-metrics span{display:block;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-route strong{display:block;margin-top:6px;font:600 17px/26px var(--sans);overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-arrow{color:var(--nd-blue);font-size:24px;text-align:center}
+html body #appView .pp-detail .pp-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:18px 0;border-block:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-metrics>div{padding:0 20px;border-left:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0;border:0}
+html body #appView .pp-detail .pp-metrics strong{display:block;margin-top:8px;font:600 20px/28px var(--sans);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-timeline{margin:0;padding:0;list-style:none}
+html body #appView .pp-detail .pp-timeline li{position:relative;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-dot{width:8px;height:8px;border:2px solid var(--nd-ink-3);border-radius:50%}
+html body #appView .pp-detail .current .pp-dot{border-color:var(--nd-blue);background:var(--nd-blue)}
+html body #appView .pp-detail .pp-event{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:3px 0;font:600 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-current{color:var(--nd-blue);font:500 11px/18px var(--sans)}
+html body #appView .pp-detail .pp-timeline strong{font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-in{color:#16934f}
+@media(min-width:1024px){html body #appView .pp-detail .pp-back{display:none}}
+@media(max-width:1023px){
+ html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
+ html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
+ html body #appView #view-payments.pp-detail-open::after{display:none!important}
+ html body #appView #view-payments>.pp-detail{display:flex;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
+ html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
+ html body #appView .pp-detail .pp-back span{font-size:14px}
+ html body #appView .pp-detail .pp-head{padding:20px 16px;gap:12px;min-height:110px}
+ html body #appView .pp-detail h3{font-size:18px;line-height:26px;margin-top:8px}
+ html body #appView .pp-detail .pp-amount strong{font-size:20px;line-height:26px;margin-top:8px}
+ html body #appView .pp-detail .pp-meta{flex-wrap:wrap;gap:5px;font-size:11px}
+ html body #appView .pp-detail .pp-tabs{padding:0 16px;gap:0}
+ html body #appView .pp-detail .pp-tabs button{flex:1;height:48px;font-size:14px}
+ html body #appView .pp-detail .pp-tabs button[aria-selected=true]{color:var(--nd-blue);border-color:var(--nd-blue)}
+ html body #appView .pp-detail .pp-body{padding:24px 16px 32px;overflow:visible;flex:1}
+ html body #appView .pp-detail .pp-route{gap:10px;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);padding:16px 0}
+ html body #appView .pp-detail .pp-route strong{font-size:15px;line-height:22px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0 10px}
+ html body #appView .pp-detail .pp-metrics strong{font-size:15px;line-height:22px}
+ html body #appView .pp-detail .pp-fields>div{grid-template-columns:90px minmax(0,1fr);gap:12px}
+ html body #appView .pp-detail .pp-actions{position:sticky;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;z-index:5}
+ html body #appView .pp-detail .pp-actions>[data-pp=overview],html body #appView .pp-detail .pp-spacer{display:none}
+ html body #appView .pp-detail .pp-actions .btn{padding:0 12px;height:44px}
+ html body #appView .pp-detail .pp-saved{flex:1;padding:12px 4px;text-align:center;font-size:12px}
+ html body #appView .pp-detail .pp-timeline li{gap:10px;grid-template-columns:10px minmax(0,1fr) auto}
+ html body #appView .pp-detail .pp-timeline strong{font-size:14px}
+}
+@media(max-width:360px){
+ html body #appView .pp-detail .pp-timeline strong{grid-column:2/-1}
+ html body #appView .pp-detail .pp-metrics strong{font-size:13px}
+ html body #appView .pp-detail .pp-amount strong{font-size:17px}
+}
+@media(min-width:1024px) and (max-width:1200px){
+ html body #appView .pp-detail .pp-saved{padding-inline:16px}
+ html body #appView .pp-detail .pp-fields>div{grid-template-columns:140px minmax(0,1fr);gap:20px}
+}
+/* Approved history layout: unobtrusive totals, date groups, selected record. */
+html body #appView .pp-detail .pp-tabs{justify-content:space-between;align-items:center}
+html body #appView .pp-detail .pp-tab-title{align-self:stretch;display:flex;align-items:center;border-bottom:2px solid var(--nd-ink);font:600 14px/20px var(--sans)}
+html body #appView .pp-detail .pp-metrics{border-top:0;padding:0 0 26px;margin-bottom:26px;grid-template-columns:1fr 1fr .65fr}
+html body #appView .pp-detail .pp-metrics strong{font:600 22px/30px var(--sans);letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-metrics small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0}
+html body #appView .pp-detail .pp-in{color:var(--success,#16934f)}
+html body #appView .pp-detail .pp-day+.pp-day{margin-top:28px}
+html body #appView .pp-detail .pp-day-head{display:flex;justify-content:space-between;padding:0 0 12px;border-bottom:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-records{list-style:none;padding:0;margin:0}
+html body #appView .pp-detail .pp-records li{padding:20px 12px;border-bottom:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-record-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;font:600 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-record-name{min-width:0;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-record-top strong{flex-shrink:0;font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-current{display:inline-block;margin-left:8px;font:400 11px/18px var(--sans);color:var(--nd-blue-ink,var(--nd-blue))}
+html body #appView .pp-detail .pp-record-meta{margin:6px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-selected-record{background:var(--nd-blue-soft);box-shadow:inset 2px 0 0 var(--nd-blue)}
+html body #appView .pp-detail .pp-note{margin:24px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-overview{display:block;text-align:left;flex:none;margin:0 calc(-1 * var(--panel-inset));padding:20px var(--panel-inset);border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:500 14px/22px var(--sans)}
+html body #appView #view-payments .pp-overview>span{display:flex;justify-content:space-between;gap:10px}
+html body #appView #view-payments .pp-overview strong{font-weight:600;font-variant-numeric:tabular-nums}
+html body #appView #view-payments .pp-overview small{display:block;margin-top:6px;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-overview.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
+@media(max-width:1023px){
+ html body #appView .pp-detail .pp-tabs button{flex:none;font-size:12px}
+ html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr .6fr;gap:0;padding-bottom:22px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0 10px;min-width:0}
+ html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0}
+ html body #appView .pp-detail .pp-metrics strong{font-size:18px;line-height:26px;letter-spacing:-.4px}
+ html body #appView .pp-detail .pp-metrics small{font-size:11px}
+ html body #appView .pp-detail .pp-records li{padding:18px 10px}
+ html body #appView .pp-detail .pp-record-top{gap:10px}
+ html body #appView .pp-detail .pp-record-top strong{font-size:15px}
+ html body #appView .pp-detail .pp-saved{display:none}
+ html body #appView .pp-detail .pp-actions{justify-content:space-between}
+ html body #appView .pp-detail .pp-head{flex-wrap:wrap}
+ html body #appView .pp-detail .pp-amount{margin-left:auto}
+}
+@media(max-width:360px){html body #appView .pp-detail .pp-metrics strong{font-size:16px}}
+/* Reuse the dashboard number contract, not the body-font shorthand. */
+html body #appView #view-payments :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
+html body #appView #view-payments :is(.pbr-amt,.pp-overview strong,.pp-record-top strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums}
+html body #appView #view-payments .pbr .pbr-amt{color:var(--nd-ink)!important}
+html body #appView #view-payments .workspace-left>.nd-chips{display:flex!important;flex:none}
+html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+/* Keep recovery available, but separate it from search criteria and contain it
+   within the popover's padded area rather than a full-width oversized field. */
+html body #appView .nd-pay-filter>.nd-trash-field{margin:0!important;padding:12px 16px!important;gap:6px;border-top:1px solid var(--nd-line);background:var(--nd-fill)}
+html body #appView .nd-pay-filter>.nd-trash-field .nd-trash-go{height:32px;min-height:32px;padding:0;border:0;background:none;text-align:left;font:400 12px/20px var(--sans);box-shadow:none}
+html body #appView .nd-pay-filter>.nd-trash-field>span{font:500 11px/16px var(--sans)}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter{gap:12px}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter label:not([hidden]){margin:0 0 14px!important}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font:400 14px/20px var(--sans)!important}
+@media(max-width:1023px){
+ html body #appView #view-payments .pp-record-top strong{font-size:15px!important}
+ html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
+}
+/* Approved refined ledger: two quiet totals, one money column, real history. */
+html body #appView #view-payments>.pp-detail{grid-template-rows:var(--panel-head,144px) minmax(0,1fr)}
+html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px}
+html body #appView .pp-detail .pp-meta{grid-column:1/-1;margin-top:3px}
+html body #appView .pp-detail .pp-amount strong{white-space:nowrap}
+html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:24px;margin-bottom:0;padding-bottom:26px}
+html body #appView .pp-detail .pp-metrics>div{padding:0;min-width:0}
+html body #appView .pp-detail .pp-metrics>div+div{padding-left:24px}
+html body #appView .pp-detail .pp-metrics>div>span{display:flex;justify-content:space-between;gap:8px}
+html body #appView .pp-detail .pp-metrics strong{margin-top:10px;color:var(--nd-ink)}
+html body #appView .pp-detail .pp-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 16px}
+html body #appView .pp-detail h4{font-weight:600}
+html body #appView .pp-detail h4 small{margin-left:6px;padding:2px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-3);font:400 11px/18px var(--sans)}
+html body #appView .pp-detail :is(.pp-section-head button,.pp-company-link,.pp-record-delete){padding:4px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-columns{display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;gap:16px;padding:10px 12px;border-block:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
+html body #appView .pp-detail .pp-columns>span:last-child{text-align:right;padding-right:24px}
+html body #appView .pp-detail .pp-day+.pp-day{margin-top:0}
+html body #appView .pp-detail .pp-day-head{padding:22px 12px 8px;border:0}
+html body #appView .pp-detail .pp-records li{padding:0}
+html body #appView .pp-detail .pp-record{margin:0;padding:0;border:0;border-radius:0;background:none}
+html body #appView .pp-detail .pp-record summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;align-items:start;gap:16px;padding:18px 12px;min-height:80px;cursor:pointer;background:none;font:400 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-record summary::-webkit-details-marker{display:none}
+html body #appView .pp-detail .pp-record summary::after{display:none}
+html body #appView .pp-detail .pp-record-name{min-width:0;font-weight:500}
+html body #appView .pp-detail .pp-record-name>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .pp-detail .pp-record-name small{display:flex;align-items:center;gap:6px;min-width:0;margin-top:7px;color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
+html body #appView .pp-detail .pp-preview{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .pp-detail .pp-method{font:400 12px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-inline-method{display:none}
+html body #appView .pp-detail .pp-record summary>strong{display:flex;justify-content:flex-end;align-items:center;gap:12px;white-space:nowrap;color:var(--nd-ink)}
+html body #appView .pp-detail .pp-chevron{width:6px;height:6px;border-right:1.5px solid var(--nd-ink-3);border-bottom:1.5px solid var(--nd-ink-3);transform:rotate(45deg);margin:0 3px 4px;flex:none}
+html body #appView .pp-detail .pp-record[open] .pp-chevron{transform:rotate(225deg);margin-bottom:0}
+html body #appView .pp-detail .pp-record[open]{background:var(--nd-fill)}
+html body #appView .pp-detail .pp-record.pp-selected-record{background:none;box-shadow:none}
+html body #appView .pp-detail .pp-selected-record>summary{background:var(--nd-blue-soft);box-shadow:inset 2px 0 var(--nd-blue)}
+html body #appView .pp-detail .pp-record-more{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-record-more dt{color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-record-more dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-record-delete{color:var(--danger,#d73329)}
+html body #appView .pp-detail .pp-note{margin:24px 0 8px;font-size:11px}
+html body #appView #view-payments .pp-badge{padding:1px 5px;border-radius:4px;background:var(--nd-fill);color:var(--nd-ink-2);font:500 11px/18px var(--sans);font-style:normal;white-space:nowrap}
+html body #appView #view-payments .pp-badge.in{color:var(--success,#16934f);background:color-mix(in srgb,var(--success,#16934f) 10%,transparent)}
+html body #appView .pp-detail summary:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView #view-payments :is(.pp-record summary>strong,.pp-mobile-row strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #view-payments .pp-list-scope{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:none;padding:12px 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-list-scope button{padding:2px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
+html body #appView #view-payments>.pp-mobile-list{display:none}
+html body #appView .nd-pay-filter .pp-pop-close{margin-left:auto;border:0;background:none;box-shadow:none;color:var(--nd-ink-3);font:400 20px/24px var(--sans);width:32px;height:32px}
+html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;justify-content:space-between}
+html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
+html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel)[hidden]{display:flex!important}
+html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){margin-bottom:14px!important}
+html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
+@media(max-width:1023px){
+ html body #appView #view-payments>.pp-mobile-list{display:block}
+ html body #appView #view-payments:not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
+ html body #appView #view-payments.pp-entry-open>.pp-mobile-list{display:none}
+ html body #appView #view-payments .nd-pay-record{display:none!important}
+ html body #appView #view-payments>.page-head h2{padding-right:0}
+ html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px 44px!important}
+ html body #appView #view-payments .nd-tools .nd-tadd{display:flex!important}
+ html body #appView #view-payments>.pp-mobile-list{margin:0 -4px;background:var(--nd-surface)}
+ html body #appView #view-payments .pp-kind-tabs{display:flex;height:46px;padding:0 16px;border-bottom:1px solid var(--nd-line)}
+ html body #appView #view-payments .pp-kind-tabs button{flex:1;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
+ html body #appView #view-payments .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
+ html body #appView #view-payments .pp-list-scope{padding:12px 20px}
+ html body #appView #view-payments .pp-mobile-row{display:block;width:100%;padding:20px;text-align:left;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;box-shadow:none;background:none;color:var(--nd-ink);font:400 14px/22px var(--sans)}
+ html body #appView #view-payments .pp-mobile-row>span{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ html body #appView #view-payments .pp-mobile-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+ html body #appView #view-payments .pp-mobile-row small{display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+ html body #appView .pp-detail .pp-back{margin-left:20px}
+ html body #appView .pp-detail .pp-head{padding:20px;gap:14px 12px;min-height:126px}
+ html body #appView .pp-detail .pp-amount{font-size:11px}
+ html body #appView .pp-detail .pp-meta{font-size:11px;margin-top:0}
+ html body #appView .pp-detail .pp-body{padding:24px 20px 32px}
+ html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:16px;padding-bottom:24px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0}
+ html body #appView .pp-detail .pp-metrics>div+div{padding-left:16px}
+ html body #appView .pp-detail .pp-metrics>div>span>small{display:none}
+ html body #appView .pp-detail .pp-columns,html body #appView .pp-detail .pp-method{display:none}
+ html body #appView .pp-detail .pp-record summary{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:18px 8px;min-height:88px}
+ html body #appView .pp-detail .pp-record-name>span{white-space:normal;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-record-name small{display:flex;flex-wrap:wrap}
+ html body #appView .pp-detail .pp-inline-method{display:inline}
+ html body #appView .pp-detail .pp-record summary>strong{gap:8px}
+ html body #appView .pp-detail .pp-day-head{padding-inline:8px}
+}

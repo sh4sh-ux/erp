@@ -1,0 +1,37 @@
+// Scoped UI derivation: preserve every current release byte except ERP presentation.
+import {readFile,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const root=new URL('../../naro-workspace/outputs/naro-redesign/',import.meta.url);
+const path=s=>new URL(s,root),sha=s=>createHash('sha256').update(s).digest('hex');
+const manifest=JSON.parse(await readFile(path('candidate/manifest.json'),'utf8'));
+for(const f of manifest.files)assert.equal(sha(await readFile(path('candidate/release/'+f.path))),f.sha256,f.path);
+let html=await readFile(path('candidate/release/erp/index.html'),'utf8');
+assert.match(html,/const APP_VERSION = "v1\.(186|187)";/);
+html=html.replace('const APP_VERSION = "v1.186";','const APP_VERSION = "v1.187";');
+// Payment search must follow native reset on desktop as well as mobile.
+const oldSearch="if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}",newSearch="if(view==='payments'){if(o&&o.value!==input.value)input.value=o.value;}";
+assert(html.includes(oldSearch)||html.includes(newSearch),'PAYMENT_SEARCH_CONTRACT');
+html=html.replace(oldSearch,newSearch);
+const oldLayout='function update(){if(desktop.matches)mount();else{const tasks=undo;',newLayout='function update(){window.NaroPop?.close();if(desktop.matches)mount();else{const tasks=undo;';
+assert(html.includes(oldLayout)||html.includes(newLayout),'FILTER_RESTORE_CONTRACT');
+html=html.replace(oldLayout,newLayout);
+const oldFields="querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'))",newFields="querySelectorAll(':scope .ops-category, :scope .ops-filters>label, :scope .ops-filters>#payClear')||[])].filter(l=>(l.id==='payClear'||l.querySelector('select,input'))&&!l.closest('.nd-pop'))";
+assert(html.includes(oldFields)||html.includes(newFields),'MOBILE_RESET_CONTRACT');
+html=html.replace(oldFields,newFields);
+const hook=" function openPaySheet(id){\n",route="  if(window.NaroPaymentPanel?.open(id))return;\n";
+assert.equal(html.split(hook).length,2);
+if(!html.includes(hook+route))html=html.replace(hook,hook+route);
+html=html.replace(/<style id="naro-payment-panel">[\s\S]*?<\/script>/,'');
+const css=await readFile(new URL('./payment-panel.css',import.meta.url),'utf8');
+const js=await readFile(new URL('./payment-panel.js',import.meta.url),'utf8');
+assert.equal(html.split('</body>').length,2);
+html=html.replace('</body>',`<style id="naro-payment-panel">${css}</style><script id="naro-payment-panel-script">${js}</script></body>`);
+manifest.files.find(f=>f.path==='erp/index.html').sha256=sha(html);
+manifest.aggregate=sha(JSON.stringify(manifest.files));
+const deploy=await readFile(path('deploy.mjs'),'utf8');
+assert.match(deploy,new RegExp(`const PIN=\\{files:${manifest.files.length},aggregate:'[a-f0-9]{64}'`));
+await writeFile(path('candidate/release/erp/index.html'),html);
+await writeFile(path('candidate/manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+await writeFile(path('deploy.mjs'),deploy.replace(/(const PIN=\{files:\d+,aggregate:')[a-f0-9]{64}/,'$1'+manifest.aggregate));
+console.log(JSON.stringify({files:manifest.files.length,changed:['erp/index.html'],aggregate:manifest.aggregate}));

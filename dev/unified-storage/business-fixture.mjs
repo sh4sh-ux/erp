@@ -4,6 +4,15 @@ import {openWorkspace,prepareWorkspace} from './workspace.mjs';
 import {assetPath,pngDigest} from './asset-store.mjs';
 // Test-only memory backend. No OAuth, network, persistent storage or production data.
 const data=emptyData(),revisions=Object.fromEntries(keys.map(k=>[k,1]));
+if(new URL(location.href).searchParams.has('payment-detail')){
+ const now=new Date(),date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+ data.companies=[{id:'pp-c',name:'샘플 호텔',type:'매출',prices:[]},{id:'pp-v',name:'샘플 원단 공급사',type:'매입',prices:[]}];
+ data.items=[{id:'pp-i',name:'타월 110g',code:'SAMPLE-01',type:'단품',components:[],variants:[],colors:[],buy_price:1000,sell_price:2450}];
+ data.quotes=[{id:'pp-q',no:'Q-SAMPLE-001',company_id:'pp-c',date,status:'수주',lines:[{id:'pp-l',item_id:'pp-i',name:'타월 110g',code:'SAMPLE-01',qty:100,price:2450}]}];
+ data.payments=[{id:'pp-in',company_id:'pp-c',quote_id:'pp-q',kind:'수금',amount:269500,date,method:'계좌이체',memo:'타월 주문 대금 입금 확인\n연결 견적: Q-SAMPLE-001 · 화면 검증용 합성 자료'},
+  {id:'pp-out',company_id:'pp-v',kind:'지급',amount:125000,date,method:'계좌이체',memo:'원단 구입 대금 · 화면 검증용 합성 자료'},
+  {id:'pp-unlinked',company_id:'pp-c',kind:'수금',amount:50000,date,method:'현금',memo:''}];
+}
 if(new URL(location.href).searchParams.has('layout')){
  data.companies=[{id:'layout-c',name:'시안 거래처',type:'매출',prices:[]}];
  data.items=[{id:'layout-i',name:'시안 품목',code:'LAYOUT-01',type:'단품',components:[],variants:[],colors:[],buy_price:500,sell_price:1000}];

@@ -117,6 +117,6 @@ window.naroReveal=function(el){if(!el)return;let sc=el.parentElement;while(sc&&!
    const label=document.createElement('span'),title=document.createElement('h3');label.className='workspace-caption';label.textContent='NARO BIZ';title.textContent={companies:'거래처 상세',items:'품목 상세',quotes:'견적서 상세'}[id];head.append(label,title);card.prepend(head);undo.push(()=>head.remove());
   });
  }
- function update(){if(desktop.matches)mount();else{const tasks=undo;undo=[];tasks.forEach(fn=>fn());}}
+ function update(){window.NaroPop?.close();if(desktop.matches)mount();else{const tasks=undo;undo=[];tasks.forEach(fn=>fn());}}
  desktop.addEventListener('change',update);update();
 })();
