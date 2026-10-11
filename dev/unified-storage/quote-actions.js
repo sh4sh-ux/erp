@@ -423,6 +423,43 @@
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);
  },true);
+ /* 거래처 고르기(10/11): 새 견적·편집 중이면 머리의 거래처 이름(비어 있으면 '거래처 선택')을 눌러 검색해서 고른다.
+    새 견적을 열면 바로 펼친다. 고르면 정보 탭의 거래처 칸(#fq_co)에 넣고 change — 단가·메모 자동 채움은 원래 동작 그대로. */
+ let coPop=null,coAuto='';
+ const closeCoPop=()=>{coPop?.remove();coPop=null;};
+ function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__'||(typeof qtEditing!=='undefined'&&!!qtEditing);}
+ function openCoPop(anchor){
+  closeCoPop();const sel=document.getElementById('fq_co');if(!sel)return;
+  const hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
+  const all=(db.companies||[]).filter(c=>!hidden.includes(c.id)).sort((a,b)=>((a.type==='매입')-(b.type==='매입'))||(a.name||'').localeCompare(b.name||'','ko'));
+  const pop=document.createElement('div');pop.className='nd-co-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','거래처 고르기');
+  pop.innerHTML='<input type="search" placeholder="거래처 이름·담당자 검색" aria-label="거래처 검색"><div class="nd-co-list" role="listbox"></div><button type="button" class="nd-co-new">+ 새 거래처 등록</button>';
+  const input=pop.querySelector('input'),list=pop.querySelector('.nd-co-list');let hi=0,shown=[];
+  const pick=c=>{closeCoPop();sel.value=c.id;sel.dispatchEvent(new Event('change',{bubbles:true}));};
+  const draw=()=>{const q=input.value.trim().toLowerCase();shown=all.filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q)).slice(0,60);hi=Math.min(hi,Math.max(0,shown.length-1));
+   list.innerHTML=shown.length?shown.map((c,i)=>`<button type="button" role="option" class="nd-co-opt${i===hi?' on':''}" data-i="${i}"><span>${e(c.name||'(이름 없음)')}</span>${c.contact?`<small>${e(c.contact)}</small>`:''}<em>${e(c.type||'매출')}</em></button>`).join(''):'<p class="nd-co-empty">맞는 거래처가 없어요</p>';
+   list.querySelectorAll('[data-i]').forEach(b=>b.onmousedown=ev=>{ev.preventDefault();pick(shown[Number(b.dataset.i)]);});};
+  input.oninput=()=>{hi=0;draw();};
+  input.onkeydown=ev=>{if(ev.isComposing)return;if(ev.key==='ArrowDown'){ev.preventDefault();hi=Math.min(hi+1,shown.length-1);draw();}else if(ev.key==='ArrowUp'){ev.preventDefault();hi=Math.max(hi-1,0);draw();}else if(ev.key==='Enter'){ev.preventDefault();if(shown[hi])pick(shown[hi]);}else if(ev.key==='Escape'){closeCoPop();}};
+  pop.querySelector('.nd-co-new').onclick=()=>{closeCoPop();if(typeof switchView==='function')switchView('companies');document.getElementById('coNewBtn')?.click();};
+  (document.getElementById('appView')||document.body).append(pop);coPop=pop;
+  const r=anchor.getBoundingClientRect(),w=Math.min(380,window.innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,window.innerWidth-w-12))+'px';pop.style.top=(r.bottom+6)+'px';
+  draw();setTimeout(()=>input.focus(),0);
+ }
+ document.addEventListener('click',ev=>{
+  const co=ev.target.closest?.('#qtForm .quote-summary .co');
+  if(co&&editable()){ev.preventDefault();openCoPop(co);return;}
+  if(coPop&&!coPop.contains(ev.target))closeCoPop();
+ },true);
+ window.addEventListener('resize',closeCoPop);
+ // 새 견적: 거래처가 비어 있으면 열자마자 고르기 창
+ if(typeof window.renderQtDetail==='function'){const o=window.renderQtDetail;window.renderQtDetail=function(){const r=o.apply(this,arguments);
+  try{const co=document.querySelector('#qtForm .quote-summary .co');if(co){const ed=editable();co.classList.toggle('nd-co-editable',ed);if(ed){co.setAttribute('role','button');co.tabIndex=0;co.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();openCoPop(co);}};}else{co.removeAttribute('role');co.removeAttribute('tabindex');co.onkeydown=null;}}
+   if(!editable())closeCoPop();
+   const sel=document.getElementById('fq_co');const key=qtSel==='__new__'?'new:'+(document.getElementById('qtList')?.childElementCount||0):'';
+   if(qtSel==='__new__'&&sel&&!sel.value&&co&&coAuto!==key){setTimeout(()=>{const a=document.querySelector('#qtForm .quote-summary .co'),r=a&&a.getBoundingClientRect();if(!r||!r.width||coAuto===key)return;if(document.getElementById('fq_co')&&!document.getElementById('fq_co').value){coAuto=key;openCoPop(a);}},60);}
+   if(qtSel!=='__new__')coAuto='';
+  }catch{}return r;};}
  if(legacyDelete)window.deleteQuote=removeQuote;
  window.NaroQuoteActions={bar,deliver,pay,removeQuote};
 })();

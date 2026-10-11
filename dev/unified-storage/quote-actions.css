@@ -254,3 +254,18 @@ html body #appView .btn-line-add[hidden]{display:none!important}
 /* 목록이 길어도 빠르게(10/10 점검: 견적서 2,000건이면 목록 열기·견적서 고르기가 2초): 화면 밖 줄은 브라우저가 계산을 건너뛴다.
    줄 높이는 처음 그릴 때 잰 값을 기억(auto)해서 스크롤 막대가 흔들리지 않는다. */
 html body #appView .list-item{content-visibility:auto;contain-intrinsic-size:auto 96px}
+/* 거래처 고르기(머리 이름 → 검색 창) */
+#appView #qtForm .quote-summary .co.nd-co-editable{cursor:pointer;border-radius:8px;transition:background .12s}
+#appView #qtForm .quote-summary .co.nd-co-editable:hover{background:var(--nd-fill,#F1F2F6)}
+#appView #qtForm .quote-summary .co.nd-co-editable::after{content:'';display:inline-block;width:7px;height:7px;margin-left:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-4px) rotate(45deg);opacity:.5}
+#appView #qtForm .quote-summary .co[data-empty="1"]{color:var(--nd-blue,#4355E8)}
+.nd-co-pop{position:fixed;z-index:60;background:var(--nd-surface,#fff);border:1px solid var(--nd-line,#E6E8EE);border-radius:14px;box-shadow:0 16px 40px rgba(15,20,40,.18);padding:10px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;font-family:inherit}
+.nd-co-pop input{height:40px;border:1px solid var(--nd-line,#DADDE5);border-radius:10px;padding:0 12px;font:inherit;font-size:14px;background:var(--nd-surface,#fff);color:var(--nd-ink,#161A23);outline:0}
+.nd-co-pop input:focus{border-color:var(--nd-blue,#4355E8);box-shadow:0 0 0 3px rgba(67,85,232,.15)}
+.nd-co-list{max-height:300px;overflow:auto;display:flex;flex-direction:column}
+.nd-co-opt{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 10px;border:0;border-radius:9px;background:none;font:inherit;font-size:13.5px;color:var(--nd-ink,#161A23);text-align:left;cursor:pointer}
+.nd-co-opt span{font-weight:600}.nd-co-opt small{color:var(--nd-ink-3,#8A8F99);font-size:12px}
+.nd-co-opt em{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;color:var(--nd-ink-3,#8A8F99)}
+.nd-co-opt.on,.nd-co-opt:hover{background:var(--nd-fill,#F1F2F6)}
+.nd-co-empty{margin:10px;font-size:13px;color:var(--nd-ink-3,#8A8F99)}
+.nd-co-new{height:38px;border:1px dashed var(--nd-line,#DADDE5);border-radius:10px;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--nd-blue,#4355E8);cursor:pointer}

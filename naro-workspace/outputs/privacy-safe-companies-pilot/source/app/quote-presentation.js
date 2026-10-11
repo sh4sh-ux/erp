@@ -202,7 +202,10 @@
     const companyRow = $('.qs-row:has(.co)', info);
     const metadata = el('div', 'qp-metadata');
     const syncHeader = () => {
-      $('.co', companyRow).textContent = coName(q.company_id) || '거래처 미선택';
+      // 거래처를 아직 안 골랐으면 '(삭제된 거래처)'가 아니라 '거래처 선택'(눌러서 고르기 — quote-actions.js)
+      const cid = document.getElementById('fq_co')?.value || q.company_id || '', coEl = $('.co', companyRow), known = !!cid && db.companies.some(c => c.id === cid);
+      coEl.textContent = known ? coName(cid) : cid ? '(삭제된 거래처)' : '거래처 선택';
+      coEl.dataset.empty = cid ? '' : '1';
       metadata.replaceChildren(el('span', '', q.no || '새 견적'),
         el('span', '', (q.date || '').replaceAll('-', '.')),
         el('span', 'pill ' + (QT_STATUS_CLASS[q.status] || 'st-draft'), q.status || ''));
