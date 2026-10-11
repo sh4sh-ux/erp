@@ -91,6 +91,20 @@ function addedDetail(key,r){
  return [];
 }
 // 저장 직후 한 줄 기록: 누가(이메일)·언제·무엇을. id는 같은 저장이 두 번 기록되지 않게.
+// 고치기 전(10/11 이전)에 이미 저장된 기록을 보여 줄 때만 바로잡는다 — 저장된 기록은 바꾸지 않는다.
+//  · 견적서 '취소' + '취소 사유 … → 삭제' → 삭제 · 매입 '수정 · 세부 내용 변경'(그때는 삭제 표시만 바뀌어 이렇게 적혔다) → 삭제
+//  · 공급자 정보 'trash 변경'만 → 숨김(표 쪽 삭제 기록이 대신 있다) · 'hidden 변경'만 → 거래처·품목 숨김
+export function presentEntry(r){
+ if(!r||typeof r!=='object')return r;
+ const ch=Array.isArray(r.changes)?r.changes:[];
+ if(r.key==='quotes'&&r.action==='취소'&&ch.some(c=>/^취소 사유 .* → 삭제$/.test(c)))return {...r,action:'삭제',changes:['목록에서 뺌 · 복원 가능']};
+ if(r.key==='purchases'&&r.action==='수정'&&ch.length===1&&ch[0]==='세부 내용 변경')return {...r,action:'삭제',changes:['목록에서 뺌 · 복원 가능']};
+ if(r.key==='settings'&&r.action==='수정'&&ch.length&&ch.every(c=>c==='trash 변경'||c==='hidden 변경')){
+  if(ch.includes('hidden 변경'))return {...r,action:'삭제',label:'거래처·품목 숨김',changes:['목록에서 숨김 · 지난 기록은 그대로']};
+  return null;
+ }
+ return r;
+}
 export function logEntry(key,before,after,{who='',ref={},at=new Date().toISOString(),id=crypto.randomUUID()}={}){
  const d=describeChange(key,before,after,ref);
  return d?{id,at,by:String(who||''),...d}:null;

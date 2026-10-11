@@ -59,3 +59,10 @@ test('이미 취소된 견적을 삭제해도 삭제로 적는다',()=>{
  const r=describeChange('quotes',[q],[{...q,cancel_reason:'삭제'}],{companies});
  assert.deepEqual([r.action,r.changes],['삭제',['목록에서 뺌 · 복원 가능']]);
 });
+test('고치기 전 기록은 보여 줄 때만 삭제로 바로잡는다',async()=>{
+ const {presentEntry}=await import('./change-log.mjs');
+ assert.equal(presentEntry({key:'quotes',action:'취소',changes:['상태 작성중 → 취소','취소 사유 (빈칸) → 삭제']}).action,'삭제');
+ assert.equal(presentEntry({key:'quotes',action:'취소',changes:['상태 수주 → 취소','취소 사유 (빈칸) → 거래 취소']}).action,'취소');
+ assert.equal(presentEntry({key:'purchases',action:'수정',changes:['세부 내용 변경']}).action,'삭제');
+ assert.equal(presentEntry({key:'settings',action:'수정',changes:['trash 변경']}),null);
+});
