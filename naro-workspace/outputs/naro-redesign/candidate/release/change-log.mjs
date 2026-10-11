@@ -18,7 +18,17 @@ export function describeChange(key,before,after,ref={}){
  const co=id=>(ref.companies||[]).find(c=>c.id===id)?.name||'거래처 없음';
  const table=TABLE[key]||key;
  if(key==='settings'){
-  const b=before||{},a=after||{},keys=[...new Set([...Object.keys(b),...Object.keys(a)])].filter(k=>k!=='assets'&&k!=='schema'&&!same(b[k],a[k]));
+  const b=before||{},a=after||{},all=[...new Set([...Object.keys(b),...Object.keys(a)])].filter(k=>!same(b[k],a[k]));
+  // 휴지통(trash)은 표 쪽 기록(삭제·추가)이 대신 남는다. 숨김(hidden)은 거래처·품목 '삭제(숨김)'·'복원'으로 적는다.
+  if(all.includes('hidden')&&all.every(k=>k==='hidden'||k==='trash')){
+   const names={companies:id=>(ref.companies||[]).find(c=>c.id===id)?.name,items:id=>(ref.items||[]).find(i=>i.id===id)?.name};
+   for(const k of ['companies','items']){
+    const was=b.hidden?.[k]||[],now=a.hidden?.[k]||[],on=now.filter(x=>!was.includes(x)),off=was.filter(x=>!now.includes(x));
+    const id=on[0]||off[0];if(!id)continue;
+    return {key:k,table:TABLE[k],action:on.length?'삭제':'복원',ref:id,label:`${TABLE[k]} ${names[k](id)||''}`.trim(),changes:[on.length?'목록에서 숨김 · 지난 기록은 그대로':'다시 목록에 보임']};
+   }
+  }
+  const keys=all.filter(k=>k!=='assets'&&k!=='schema'&&k!=='trash'&&k!=='hidden');
   return keys.length?{key,table,action:'수정',ref:'settings',label:'공급자 정보',changes:keys.slice(0,12).map(k=>`${k} 변경`)}:null;
  }
  if(key==='purchases')return describePurchase(before,after,co);
@@ -65,7 +75,10 @@ export function describeChange(key,before,after,ref={}){
  }
  if(key==='companies'&&!same(a.prices,b.prices))changes.push('거래처 단가 변경');
  if(key==='items'&&!same(a.variants,b.variants))changes.push('옵션(색상·규격) 변경');
- const action=key==='quotes'&&a.status==='취소'&&b.status!=='취소'?'취소':key==='quotes'&&b.status==='취소'&&a.status!=='취소'?'되살리기':'수정';
+ let action=key==='quotes'&&a.status==='취소'&&b.status!=='취소'?'취소':key==='quotes'&&b.status==='취소'&&a.status!=='취소'?'되살리기':'수정';
+ // 견적서 '삭제'(지우지 않고 보관: 상태 취소 + 사유 '삭제')와 그 복원
+ if(key==='quotes'&&action==='취소'&&a.cancel_reason==='삭제'){action='삭제';changes.length=0;changes.push('목록에서 뺌 · 복원 가능');}
+ if(key==='quotes'&&action==='되살리기'){action='복원';if(b.cancel_reason==='삭제'){changes.length=0;changes.push(`상태 → ${a.status}`);}}
  if(!changes.length)changes.push('세부 내용 변경');
  return {key,table,action,ref:row.id,label:label(a),changes:changes.slice(0,12).concat(changes.length>12?[`외 ${changes.length-12}건`]:[])};
 }
@@ -106,5 +119,8 @@ function describePurchase(before,after,co){
  if(!same(a.tax_invoice,b.tax_invoice))changes.push(`세금계산서 ${a.tax_invoice?.received?'받음':'안 받음'}`);
  if((a.memo||'')!==(b.memo||''))changes.push(`메모 ${short(b.memo)} → ${short(a.memo)}`);
  if(!changes.length)changes.push('세부 내용 변경');
+ // 매입 '삭제'(보관: removed_at)와 그 복원
+ if(a.removed_at&&!b.removed_at)return {...base,action:'삭제',changes:['목록에서 뺌 · 복원 가능']};
+ if(b.removed_at&&!a.removed_at)return {...base,action:'복원',changes:[`상태 → ${a.status}`]};
  return {...base,action:a.status==='취소'&&b.status!=='취소'?'취소':'수정',changes:changes.slice(0,12)};
 }

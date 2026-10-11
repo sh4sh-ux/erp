@@ -110,7 +110,7 @@ export function openWorkspace(data,logout,repository){
       const before=repository.purchasesState().status==='ready'?repository.loadPurchasesDoc():null;
       const applied=await savePurchasesSafely(repository,m.doc,m.recover===true);
       const after=repository.loadPurchasesDoc();reply({type:'PURCHASE_SAVED',doc:after,applied});
-      const entry=logEntry('purchases',before?.rows||[],after.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});
+      const entry=logEntry('purchases',before?.rows||[],after.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies,items:data.items}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});
      }
      else fail({code:'VALIDATION'});
     }catch(error){fail(error);}
@@ -142,7 +142,7 @@ export function openWorkspace(data,logout,repository){
     data[result.key]=structuredClone(result.rows);
     if(port===current)current.postMessage({type:'TABLE_SAVED',requestId:m.requestId,...result});
     // 저장이 확인된 뒤에만 기록 한 줄(실패해도 저장은 그대로 — 기록은 따로 다시 시도하지 않는다).
-    if(!m.recover){const entry=logEntry(result.key,before,result.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});}
+    if(!m.recover){const entry=logEntry(result.key,before,result.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies,items:data.items}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});}
    }catch(error){if(port===current)current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
    finally{busy=false;}
   };

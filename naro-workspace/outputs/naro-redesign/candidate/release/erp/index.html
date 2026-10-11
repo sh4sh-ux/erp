@@ -9716,6 +9716,16 @@ html[data-theme="dark"][data-nd-accent="pink"]{--nd-blue:#FF6B9A;--nd-blue-ink:#
 .nd-qa-sheet.nd-trash .nd-qa-ln small{display:block;font-size:11.5px;color:var(--nd-ink-3,#8A8F99);margin-top:2px}
 .nd-qa-sheet.nd-trash .nd-trash-b{flex:none;height:32px;padding:0 12px;border-radius:9px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
 .nd-qa-sheet.nd-trash .nd-qa-lines{max-height:min(52vh,420px);overflow:auto}
+/* 삭제된 항목 보기(필터 ≡ 안) · 보는 중 표시 줄 */
+#appView .nd-trash-field{display:flex;flex-direction:column;gap:7px;padding-top:12px;border-top:1px solid var(--nd-line);margin-top:4px}
+#appView .nd-trash-field>span{font:700 11.5px/1.2 var(--sans);color:var(--nd-ink-3,#7A808C)}
+#appView .nd-trash-go{height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 13px/1 var(--sans);text-align:left;cursor:pointer}
+#appView .nd-trash-go:disabled{color:var(--nd-ink-3,#8A8F99);cursor:default}
+#appView .nd-trash-bar{flex:none;height:44px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 12px 0 var(--panel-inset,16px);background:var(--nd-fill,#F1F2F6);border-bottom:1px solid var(--nd-line)}
+#appView .nd-trash-bar b{font:700 13px/1 var(--sans);color:var(--nd-ink)}
+#appView .nd-trash-bar span{font-size:12.5px;color:var(--nd-ink-3,#7A808C)}
+#appView .nd-trash-bar button{margin-left:auto;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
+#appView .nd-trash-field.nd-trash-solo{border-top:0;padding-top:0;margin-top:0}
 
 /* Sales: existing rail + master list + detail. Read-only presentation layer. */
 @media screen{
@@ -10140,6 +10150,7 @@ html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:
 .nd-log-sheet .nd-log-row .a{flex:none;padding:1px 7px;border-radius:6px;font:600 11.5px/18px var(--sans);background:var(--nd-fill);color:var(--nd-ink-2)}
 .nd-log-sheet .nd-log-row .a-추가{background:var(--nd-blue-soft);color:var(--nd-blue)}
 .nd-log-sheet .nd-log-row .a-삭제,.nd-log-sheet .nd-log-row .a-취소{background:var(--nd-red-soft);color:var(--nd-red)}
+.nd-log-sheet .nd-log-row .a-복원{background:var(--nd-green-soft,rgba(29,173,83,.12));color:var(--nd-green,#1DAD53)}
 .nd-log-sheet .nd-log-row ul{margin:4px 0 0;padding:0 0 0 14px;font:400 12.5px/19px var(--sans);color:var(--nd-ink-2)}
 .nd-log-sheet .nd-log-row .w{font:400 12px/20px var(--sans);color:var(--nd-ink-3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nd-log-sheet .nd-log-empty{margin:0;padding:32px 0;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3)}
@@ -10631,6 +10642,8 @@ const NaroCompanyLedger=(()=>{
   closePop();},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
  const toolBtn=(icon,label,cls='')=>{const b=document.createElement('button');b.type='button';b.className='nd-tool '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svgI(icon);return b;};
+ // 다른 화면 부품(휴지통·매입)이 같은 필터 버튼·팝업을 쓰게.
+ window.NaroPop={open:(b,build,restore,title)=>openPop(b,build,restore,title),close:()=>closePop(),filterBtn:(label='필터')=>toolBtn(ICON_FILTER,label)};
  function tools(){
   const hide=[];
   for(const [view,c] of Object.entries(TOOLS)){
@@ -12371,7 +12384,7 @@ const NaroOrderImport=(()=>{
       <div class="nd-qa-ln"><div><span>견적서</span></div><b class="nd-qa-tag mute">목록에서 빠짐 · 복원 가능</b></div>
      </div>
      ${net>0?`<div class="nd-qa-chips" role="group" aria-label="받은 돈"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
-     <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 맨 아래 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
+     <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 위 필터(≡)의 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">삭제</button></div>`);
    d.querySelectorAll('[data-refund]').forEach(b=>b.onclick=()=>{refund=b.dataset.refund;paint();});
@@ -12415,6 +12428,8 @@ const NaroOrderImport=(()=>{
  }
  // 목록 맨 아래 '취소된 견적 N건 보기'(상태 필터를 고르지 않았을 때만)
  function cancelToggle(){
+  // 10/11: '삭제·취소된 견적 보기'는 목록 위 필터 창으로 옮겼다(trash-actions.js). 남은 옛 버튼만 치운다.
+  document.querySelectorAll('#qtList>.nd-cancel-toggle').forEach(x=>x.remove());return;
   const list=document.getElementById('qtList');if(!list)return;
   const n=(db.quotes||[]).filter(x=>x.status==='취소').length,st=document.getElementById('qtStatus')?.value||'';
   let b=list.querySelector(':scope>.nd-cancel-toggle');
@@ -12506,10 +12521,10 @@ const NaroOrderImport=(()=>{
   const effect=p.purchase_id?'연결된 매입의 출금 기록에서 빠져요':out?(p.refund?'환불 기록이 빠져요':`${won(p.amount)}원 출금 기록이 빠져요`):`받을 금액이 ${won(p.amount)}원 늘어나요`;
   const d=open(`${head(`${out?(p.refund?'환불':'출금'):'입금'} 삭제`,label('payments',p))}<div class="nd-qa-body">
    <p class="nd-qa-note">삭제를 누르면 ${effect}.</p>
-   <p class="nd-qa-note">지운 내역은 입금·출금 목록 아래 <b>휴지통</b>에 남아서 [복원]할 수 있어요.</p></div>${acts('삭제')}`);
+   <p class="nd-qa-note">지운 내역은 목록 위 필터(≡)의 <b>삭제된 입금·출금 보기</b>에서 [복원]할 수 있어요.</p></div>${acts('삭제')}`);
   d.querySelector('.nd-qa-go').onclick=ev=>busy(ev.currentTarget,async()=>{
    if(!await trashRow('payments',id))return false;
-   d.close();rerender('payments');try{renderQtDetail?.();}catch{}say('삭제했어요 · 휴지통에서 복원할 수 있어요');return true;},'삭제하는 중…');
+   d.close();rerender('payments');try{renderQtDetail?.();}catch{}say('삭제했어요 · 필터에서 복원할 수 있어요');return true;},'삭제하는 중…');
  }
  // ── 거래처·품목 삭제(연결 있으면 숨김) ──
  const coLinks=id=>{const q=(db.quotes||[]).filter(x=>x.company_id===id).length,p=(db.payments||[]).filter(x=>x.company_id===id).length,m=(db.material_moves||[]).filter(x=>x.company_id===id).length;return [q&&`견적서 ${q}건`,p&&`입금·출금 ${p}건`,m&&`업체 제공 자재 ${m}건`].filter(Boolean);};
@@ -12520,12 +12535,12 @@ const NaroOrderImport=(()=>{
   const keep=links.length>0;
   const d=open(`${head(`${name} 삭제`,label(key,r))}<div class="nd-qa-body">
    ${keep?`<p class="nd-qa-note">연결된 ${links.join(' · ')}이 있어서 지난 기록은 그대로 두고, <b>목록과 고르기에서만 빼요</b>(숨김).</p>`:`<p class="nd-qa-note">연결된 기록이 없는 ${name}이라 목록에서 지워요.</p>`}
-   <p class="nd-qa-note">${name} 목록 아래 <b>휴지통</b>에서 [복원]할 수 있어요.</p></div>${acts('삭제')}`);
+   <p class="nd-qa-note">목록 위 필터(≡)의 <b>삭제된 ${name} 보기</b>에서 [복원]할 수 있어요.</p></div>${acts('삭제')}`);
   d.querySelector('.nd-qa-go').onclick=ev=>busy(ev.currentTarget,async()=>{
    if(!(keep?await setHidden(key,id,true):await trashRow(key,id)))return false;
    if(key==='companies'&&typeof coSel!=='undefined')coSel=null;
    if(key==='items'&&typeof itSel!=='undefined'){itSel=null;if(typeof itEditing!=='undefined')itEditing=null;}
-   d.close();rerender(key);say(keep?`${name}을 숨겼어요 · 복원할 수 있어요`:'삭제했어요 · 휴지통에서 복원할 수 있어요');return true;},'삭제하는 중…');
+   d.close();rerender(key);say(keep?`${name}을 숨겼어요 · 복원할 수 있어요`:'삭제했어요 · 필터에서 복원할 수 있어요');return true;},'삭제하는 중…');
  }
  // ── 휴지통 창 ──
  function openBin(key){
@@ -12533,28 +12548,63 @@ const NaroOrderImport=(()=>{
   const when=at=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(at||'');return m?`${Number(m[2])}.${m[3]} 삭제`:'';};
   const rows=[...h.map(r=>`<div class="nd-qa-ln"><div><span>${e(label(key,r))}</span><small>숨김 · 지난 기록 있음</small></div><button type="button" class="nd-trash-b" data-unhide="${e(r.id)}">복원</button></div>`),
    ...t.map(x=>`<div class="nd-qa-ln"><div><span>${e(x.label)}</span><small>${e(when(x.at))}</small></div><button type="button" class="nd-trash-b" data-restore="${e(x.id)}">복원</button></div>`)];
-  const d=open(`${head(`${NAME[key]} 휴지통`,rows.length?`${rows.length}건`:'')}<div class="nd-qa-body">
+  const d=open(`${head(`삭제된 ${NAME[key]}`,rows.length?`${rows.length}건`:'')}<div class="nd-qa-body">
    ${rows.length?`<div class="nd-qa-lines">${rows.join('')}</div>`:'<p class="nd-qa-note">비어 있어요.</p>'}
    <p class="nd-qa-note">최근 ${MAX}건까지 보관해요.</p></div><div class="nd-ps-act nd-ps-one"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);
   d.querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>busy(b,async()=>{const x=trash().find(y=>y.key===key&&y.id===b.dataset.restore);if(!x||!await restoreEntry(x))return false;rerender(key);say('복원했어요');openBin(key);return true;},'복원 중…'));
   d.querySelectorAll('[data-unhide]').forEach(b=>b.onclick=()=>busy(b,async()=>{if(!await setHidden(key,b.dataset.unhide,false))return false;rerender(key);say('복원했어요');openBin(key);return true;},'복원 중…'));
  }
- function binButton(host,key){
-  if(!host)return;const n=trash().filter(x=>x.key===key).length+(key==='payments'?0:hidden(key).filter(id=>(db[key]||[]).some(r=>r.id===id)).length);
-  let b=host.querySelector(':scope>.nd-trash-open');
-  if(!n){b?.remove();return;}
-  if(!b){b=document.createElement('button');b.type='button';b.className='nd-cancel-toggle nd-trash-open';b.onclick=()=>openBin(key);}
-  b.textContent=`휴지통 ${n}건`;if(b!==host.lastElementChild)host.append(b);
+ // 휴지통 들어가는 곳 = 왼쪽 패널 필터(≡) 안(10/11 사용자 결정 — 목록 맨 아래는 많아지면 스크롤해야 해서). 
+ const binCount=key=>trash().filter(x=>x.key===key).length+(key==='payments'?0:hidden(key).filter(id=>(db[key]||[]).some(r=>r.id===id)).length);
+ function trashField(key,onGo){
+  const n=binCount(key),wrap=document.createElement('div');wrap.className='nd-pop-field nd-trash-field';
+  wrap.innerHTML=`<span>삭제된 항목</span><button type="button" class="nd-trash-go" ${n?'':'disabled'}>${n?`삭제된 ${NAME[key]} 보기 · ${n}건`:`삭제된 ${NAME[key]} 없음`}</button>`;
+  wrap.querySelector('button').onclick=()=>{window.NaroPop?.close();(onGo||(()=>openBin(key)))();};
+  return wrap;
+ }
+ // 품목·입금출금: 이미 있는 필터 팝업 맨 아래에 붙인다.
+ const viewOn=v=>{const el=document.getElementById('view-'+v);return !!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none';};
+ new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(!(n instanceof HTMLElement)||!n.classList.contains('nd-pop-panel')||n.querySelector('.nd-trash-field'))continue;
+  const key=viewOn('items')?'items':viewOn('payments')?'payments':null;if(key)n.append(trashField(key));}}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
+ // 거래처: 필터 버튼이 없어서 같은 모양으로 하나 만든다(검색·＋ 줄).
+ function coFilterBtn(){
+  const add=document.getElementById('coNewBtn');if(!add||!window.NaroPop||add.parentElement.querySelector('.nd-trash-filter'))return;
+  const b=NaroPop.filterBtn('필터');b.classList.add('nd-trash-filter');add.before(b);
+  b.onclick=()=>NaroPop.open(b,el=>{el.classList.add('nd-pop-filter');const t=trashField('companies');t.classList.add('nd-trash-solo');el.append(t);},null,'필터');
+ }
+ // 견적서: 이미 있는 필터 창(.quote-filters)에 — 누르면 '삭제·취소된 견적'만 목록에.
+ // 지운 견적(상태 취소 + 사유 '삭제')은 목록·머리 표시를 '삭제됨'으로(진짜 거래 취소는 '취소' 그대로).
+ function qtPills(){
+  const del=id=>(db.quotes||[]).find(q=>q.id===id)?.cancel_reason==='삭제';
+  document.querySelectorAll('#qtList .list-item[data-id] .pill.st-lost').forEach(el=>{if(del(el.closest('[data-id]').dataset.id)&&el.textContent!=='삭제됨')el.textContent='삭제됨';});
+  const cur=typeof qtSel!=='undefined'?qtSel:null,hp=document.querySelector('#qtForm .qt-hero .pill.st-lost');if(hp&&del(cur)&&hp.textContent!=='삭제됨')hp.textContent='삭제됨';
+ }
+ function qtTrash(){
+  qtPills();
+  const box=document.querySelector('#view-quotes .quote-filters');if(!box)return;
+  let f=box.querySelector('.nd-trash-field');const n=(db.quotes||[]).filter(q=>q.status==='취소').length;
+  const html=`<span>삭제된 항목</span><button type="button" class="nd-trash-go" ${n?'':'disabled'}>${n?`삭제·취소된 견적 보기 · ${n}건`:'삭제·취소된 견적 없음'}</button>`;
+  if(!f){f=document.createElement('div');f.className='nd-pop-field nd-trash-field';box.append(f);}
+  if(f.innerHTML!==html){f.innerHTML=html;f.querySelector('button').onclick=()=>{const sel=document.getElementById('qtStatus');if(sel){sel.value='취소';sel.dispatchEvent(new Event('change',{bubbles:true}));}document.getElementById('qtFilterBackdrop')?.click();};}
+  const o=document.querySelector('#qtStatus option[value="취소"]');if(o&&o.textContent!=='삭제·취소됨')o.textContent='삭제·취소됨';
+  // 삭제·취소된 견적만 보는 중이면 목록 위에 표시 + [전체 목록으로]
+  const list=document.getElementById('qtList'),on=document.getElementById('qtStatus')?.value==='취소';let bar=list?.parentElement?.querySelector(':scope>.nd-trash-bar');
+  if(!on){bar?.remove();return;}
+  const cnt=document.getElementById('qtCount');if(cnt&&cnt.textContent!==`${n}건`)cnt.textContent=`${n}건`;
+  if(list&&!bar){bar=document.createElement('div');bar.className='nd-trash-bar';list.before(bar);}
+  if(bar){const t=`<b>삭제·취소된 견적</b><span>${n}건</span><button type="button">전체 목록으로</button>`;if(bar.innerHTML!==t){bar.innerHTML=t;bar.querySelector('button').onclick=()=>{const sel=document.getElementById('qtStatus');sel.value='';sel.dispatchEvent(new Event('change',{bubbles:true}));};}}
  }
  // 숨긴 거래처·품목은 목록 그릴 때만 빼고 그린다(데이터는 그대로).
  const visible=(key,rows)=>{const h=hidden(key);return h.length?rows.filter(r=>!h.includes(r.id)):rows;};
  function wrapList(fn,key,hostId){
   if(typeof window[fn]!=='function')return;const orig=window[fn];
-  window[fn]=function(){const all=db[key];db[key]=visible(key,all);try{return orig.apply(this,arguments);}finally{db[key]=all;binButton(document.getElementById(hostId),key);}};
+  window[fn]=function(){const all=db[key];db[key]=visible(key,all);try{return orig.apply(this,arguments);}finally{db[key]=all;document.querySelectorAll('#'+hostId+'>.nd-trash-open').forEach(x=>x.remove());if(key==='companies')coFilterBtn();}};
  }
  wrapList('renderCoList','companies','coList');
  wrapList('renderItList','items','itList');
- if(typeof window.renderPay==='function'){const o=window.renderPay;window.renderPay=function(){const r=o.apply(this,arguments);binButton(document.getElementById('payTbl')?.parentElement,'payments');return r;};}
+ if(typeof window.renderQtList==='function'){const o=window.renderQtList;window.renderQtList=function(){const r=o.apply(this,arguments);qtTrash();return r;};}
+ if(typeof window.renderQtDetail==='function'){const o=window.renderQtDetail;window.renderQtDetail=function(){const r=o.apply(this,arguments);try{qtPills();}catch{}return r;};}
+ coFilterBtn();qtTrash();
  if(typeof window.deletePayment==='function')window.deletePayment=deletePayment;
  if(typeof window.deleteCompany==='function')window.deleteCompany=id=>deleteMaster('companies',id);
  if(typeof window.deleteItem==='function')window.deleteItem=id=>deleteMaster('items',id);

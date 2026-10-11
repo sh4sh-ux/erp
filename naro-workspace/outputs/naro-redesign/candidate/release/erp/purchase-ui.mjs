@@ -118,15 +118,17 @@ export function installPurchaseUI({port,features=()=>true}){
   view.dataset.ndPhone=open?'detail':'list';
   const list=ready?rows().filter(match).sort((a,b)=>b.date.localeCompare(a.date)||b.no.localeCompare(a.no)):[];
   const pending=ready?unfinished(st.doc,D().stock_moves||[]):[];
-  const chips=[['','전체'],['작성중','작성중'],['부분 입고','부분 입고'],['미출금','미출금'],['완료','완료'],...(ready&&rows().some(x=>x.removed_at)?[['삭제됨','삭제됨']]:[])];
+  const chips=[['','전체'],['작성중','작성중'],['부분 입고','부분 입고'],['미출금','미출금'],['완료','완료']];
   const count=ready?rows().filter(x=>x.kind!=='기초재고'&&!x.removed_at).length:0;
   // 검색 줄 자리: PC(1024~)는 머리 안, 그보다 좁으면 목록 카드 맨 위 — 견적서(panel-layout-b)와 같다
   const tools=`<div class="list-head naro-search-toolbar"><div class="search">${ICON.search}<input id="puSearch" placeholder="매입처·번호·품목 검색" aria-label="매입처·번호·품목 검색" value="${esc(st.q)}" ${ready?'':'disabled'}></div>
+     <button class="nd-tool${st.filter==='삭제됨'?' on':''}" id="puFilterBtn" type="button" title="필터" aria-label="필터" ${ready?'':'disabled'}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button>
      <button class="btn-add" id="puNewBtn" type="button" title="새 매입" aria-label="새 매입" ${ready?'':'disabled'}>${ICON.plus}</button></div>`;
   view.innerHTML=`<div class="page-head"><h2>매입</h2><span class="count" id="puCount">${ready?count+'건':''}</span><div class="sp"></div>${desk.matches?tools:''}</div>
    <div class="cols quote-cols${open?' detail-open':''}" id="puCols">
     <div class="card quote-list-card">${desk.matches?'':tools}
      <div class="nd-chips" role="group" aria-label="빠른 필터">${chips.map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${st.filter===v}">${t}</button>`).join('')}</div>
+     ${st.filter==='삭제됨'?`<div class="nd-trash-bar"><b>삭제된 매입</b><span>${rows().filter(x=>x.removed_at).length}건</span><button type="button" data-act="trash-off">전체 목록으로</button></div>`:''}
      ${pending.length?`<div class="pu-banner" role="status"><span>마무리 안 된 입고·반품 ${pending.length}건</span><button type="button" data-act="resume">이어서 하기</button></div>`:''}
      ${st.note&&ready?`<div class="pu-banner warn" role="status"><span>${esc(st.note)}</span></div>`:''}
      <div class="list" id="puList">${listHtml(list)}</div>
@@ -441,7 +443,7 @@ export function installPurchaseUI({port,features=()=>true}){
   if((p.returns||[]).length){const d=qa(`${head('반품이 있는 매입',esc(p.no))}<div class="nd-qa-body"><p class="nd-qa-after">반품 기록이 있는 매입은 한번에 지울 수 없어요. <b>매입 취소</b>를 써 주세요.</p></div><div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);return d;}
   const ids=new Set((D().stock_moves||[]).map(m=>m.id)),live=(p.receipts||[]).filter(r=>!r.void_at||receiptState(r,ids)==='voiding');
   const inStock=live.filter(r=>receiptState(r,ids)!=='planned').reduce((a,r)=>a+r.lines.reduce((b,x)=>b+x.qty,0),0),stuck=live.filter(r=>receiptState(r,ids)==='planned').length,paid=netPaid(p);
-  const items=[inStock?`입고된 <b>${n0(inStock)}개는 재고에서 되돌려요</b>`:'',stuck?`마무리 안 된 입고 ${stuck}건은 취소로 정리해요`:'',paid>0?`보낸 <b>${n0(paid)}원은 돌려받은 것으로</b> 기록해요`:'','매입은 목록에서 빠져요 — [삭제됨]에서 복원할 수 있어요'].filter(Boolean);
+  const items=[inStock?`입고된 <b>${n0(inStock)}개는 재고에서 되돌려요</b>`:'',stuck?`마무리 안 된 입고 ${stuck}건은 취소로 정리해요`:'',paid>0?`보낸 <b>${n0(paid)}원은 돌려받은 것으로</b> 기록해요`:'','매입은 목록에서 빠져요 — 필터(≡)의 삭제된 매입 보기에서 복원할 수 있어요'].filter(Boolean);
   const d=qa(`${head('매입 삭제',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body">
     <p class="nd-qa-after">삭제를 누르면 한 번에 처리돼요.</p><ul class="pu-wipe">${items.map(t=>`<li>${t}</li>`).join('')}</ul>
     <p class="nd-qa-after" style="color:var(--nd-ink3,#7A808C)">재고·입출금 기록은 지우지 않고 '취소됨'·'돌려받음'으로 남아요.</p>${negWarn(p,live)}</div>${acts('삭제',true,' danger')}`);
@@ -450,7 +452,7 @@ export function installPurchaseUI({port,features=()=>true}){
    for(const r of live)await voidReceipt(io,p.id,r.id,{reason:r.void_reason||'매입 삭제',at:r.void_at||at});
    const left=netPaid(p);
    if(left>0)await app.Table.save('payments',[...(D().payments||[]),{id:'pay'+uid(),date:today(),company_id:p.vendor_id,kind:'수금',refund:true,method:'계좌이체',amount:left,memo:`매입 삭제 환불 ${p.no}`,purchase_id:p.id,client_ref:'refund_'+uid(),created_at:at}]);
-   // 지우지 않고 '삭제됨'으로 보관 → 목록 [삭제됨]에서 다시 보고 복원할 수 있다.
+   // 지우지 않고 '삭제됨'으로 보관 → 필터(≡)의 '삭제된 매입 보기'에서 다시 보고 복원할 수 있다.
    await savePurchase({...st.doc,rows:st.doc.rows.map(x=>x.id===p.id?{...x,status:'취소',removed_at:at,removed_from:x.removed_from||x.status,updated_at:at}:x)});
    st.sel=null;st.draft=null;st.dirty=false;st.editing=false;toast('매입을 삭제했어요');});
  }
@@ -547,6 +549,7 @@ export function installPurchaseUI({port,features=()=>true}){
    if(a==='start'){b.disabled=true;try{const r=await ask('PURCHASE_START');st.status=r.state.status;st.doc=r.doc;render();}catch(err){b.disabled=false;await fail(err);}return;}
    if(a==='resume')return resumeAll();
    if(a==='restore')return restorePurchase();
+   if(a==='trash-off'){st.filter='';render();return;}
    if(a==='back'){if(st.dirty&&!saved(shown()||{})){st.draft=null;st.dirty=false;}st.sel=st.dirty?st.sel:null;if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}st.editing=false;render();return;}
    if(a==='save')return save();
    if(a==='revert'){st.draft=null;st.dirty=false;st.editing=false;st.sz=null;if(!cur())st.sel=null;render();return;}
@@ -565,7 +568,11 @@ export function installPurchaseUI({port,features=()=>true}){
   }));
   view.querySelector('#puNewBtn')?.addEventListener('click',()=>{if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}newPurchase();});
   view.querySelectorAll('#puList .list-item').forEach(el=>{el.onclick=()=>select(el.dataset.id);el.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(el.dataset.id);}};});
-  view.querySelectorAll('.nd-chips [data-v]').forEach(b=>b.onclick=()=>{st.filter=b.dataset.v;view.querySelectorAll('.nd-chips [data-v]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintList();});
+  // 필터(≡): 다른 화면과 같은 팝업 — 맨 아래 '삭제된 항목'
+  const fb=view.querySelector('#puFilterBtn');if(fb&&window.NaroPop)fb.onclick=()=>window.NaroPop.open(fb,el=>{el.classList.add('nd-pop-filter');const n=rows().filter(x=>x.removed_at).length,w=document.createElement('div');w.className='nd-pop-field nd-trash-field nd-trash-solo';
+   w.innerHTML=`<span>삭제된 항목</span><button type="button" class="nd-trash-go" ${n?'':'disabled'}>${n?`삭제된 매입 보기 · ${n}건`:'삭제된 매입 없음'}</button>`;
+   w.querySelector('button').onclick=()=>{window.NaroPop.close();st.filter='삭제됨';st.sel=null;render();};el.append(w);},null,'필터');
+  view.querySelectorAll('.nd-chips [data-v]').forEach(b=>b.onclick=()=>{if(st.filter==='삭제됨'){st.filter=b.dataset.v;render();return;}st.filter=b.dataset.v;view.querySelectorAll('.nd-chips [data-v]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintList();});
   view.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{st.tab=b.dataset.tab;render();}));
   view.querySelectorAll('[data-menu-r]').forEach(b=>b.onclick=()=>openMenu(b,[{t:'입고 취소',danger:true,fn:()=>voidSheet(b.dataset.menuR)}]));
   const q=view.querySelector('#puSearch');if(q){let comp=false;q.addEventListener('compositionstart',()=>comp=true);q.addEventListener('compositionend',()=>{comp=false;st.q=q.value.trim();paintList();});q.addEventListener('input',()=>{if(comp)return;st.q=q.value.trim();paintList();});}
