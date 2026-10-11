@@ -31,7 +31,7 @@
     },
     {
       "path": "change-log.mjs",
-      "sha256": "2efbcd1893a1689ff8b632935ea59da373b67df7528400f2075a92f7d6e2915d"
+      "sha256": "f55fa82d789c7ad64939cee68e9c20625c6b86c1f3ddcbb1612fbf59c128c0dd"
     },
     {
       "path": "client-config.mjs",
@@ -135,7 +135,7 @@
     },
     {
       "path": "erp/log-ui.mjs",
-      "sha256": "148243b87c45c7ed6cafc3b7285c4012260c52e88a5bda722d43f820a9ef1e3a"
+      "sha256": "93378d137f9eaa18ccb3b39de9abdd098c1eb89cd0958ed3d817d46170ce968b"
     },
     {
       "path": "erp/mail-ui.mjs",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "0a047ca3c79158c08e364f9fe459e782902a96924161fe56f87691ee94a05d9b",
+  "aggregate": "e0e5c7d79661778d8c8776b3315f8ad625a47035212885acc86c292eeeadf876",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

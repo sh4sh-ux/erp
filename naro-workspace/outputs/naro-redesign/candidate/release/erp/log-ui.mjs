@@ -1,3 +1,4 @@
+import {presentEntry} from '../change-log.mjs';
 // 변경 기록 화면(10/9): 왼쪽 메뉴 '설정' 묶음에 한 줄 + 창 하나. 기록은 저장할 때 위 페이지가 저장소에 남기고(change-log.mjs),
 // 이 창은 달마다 읽어 보여 준다(LOG_READ). 견적서 정보 탭의 '이 견적서의 변경 기록'은 같은 창을 그 견적서로 걸러 연다.
 const TABS=[['','전체'],['quotes','견적서'],['purchases','매입'],['companies','거래처'],['items','품목'],['payments','입금·출금'],['stock_moves','재고'],['material_moves','자재']];
@@ -29,7 +30,7 @@ export function installLogUI({port}){
  }
  function paint(){
   if(!sheet)return;
-  const list=rows.filter(r=>(!tab||r.key===tab)&&(!ref||r.ref===ref)).sort((a,b)=>b.at.localeCompare(a.at));
+  const list=rows.map(presentEntry).filter(Boolean).filter(r=>(!tab||r.key===tab)&&(!ref||r.ref===ref)).sort((a,b)=>b.at.localeCompare(a.at));
   const day=iso=>{const d=new Date(iso);return `${d.getMonth()+1}월 ${d.getDate()}일`;},time=iso=>{const d=new Date(iso);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
   let last='',body='';
   for(const r of list){const d=day(r.at);if(d!==last){body+=`<div class="nd-log-day">${esc(d)}</div>`;last=d;}
