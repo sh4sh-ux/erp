@@ -7,8 +7,8 @@ const path=s=>new URL(s,root),sha=s=>createHash('sha256').update(s).digest('hex'
 const manifest=JSON.parse(await readFile(path('candidate/manifest.json'),'utf8'));
 for(const f of manifest.files)assert.equal(sha(await readFile(path('candidate/release/'+f.path))),f.sha256,f.path);
 let html=await readFile(path('candidate/release/erp/index.html'),'utf8');
-assert.match(html,/const APP_VERSION = "v1\.(186|187)";/);
-html=html.replace('const APP_VERSION = "v1.186";','const APP_VERSION = "v1.187";');
+assert.match(html,/const APP_VERSION = "v1\.(187|188)";/);
+html=html.replace('const APP_VERSION = "v1.187";','const APP_VERSION = "v1.188";');
 // Payment search must follow native reset on desktop as well as mobile.
 const oldSearch="if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}",newSearch="if(view==='payments'){if(o&&o.value!==input.value)input.value=o.value;}";
 assert(html.includes(oldSearch)||html.includes(newSearch),'PAYMENT_SEARCH_CONTRACT');
