@@ -75,6 +75,11 @@ export function explainValidation(key,before,next,snapshot,purchasesDoc){
   const prior=new Map(before.map(r=>[r?.id,r]));
   const edited=next.filter(r=>prior.has(r?.id)&&canon(r)!==canon(prior.get(r.id)));
   if(edited.length&&key==='stock_moves'){
+   const added0=next.filter(r=>!prior.has(r?.id));
+   if(edited.length===1&&added0.length===1&&added0[0].reversal_of===edited[0].id){
+    const o=prior.get(edited[0].id),k=r=>[r.item_id,r.color||'',r.spec||''].join('|'),bal=before.filter(r=>k(r)===k(o)).reduce((n,r)=>n+(r.kind==='입고'?r.qty:-r.qty),0);
+    if(bal+(added0[0].kind==='입고'?added0[0].qty:-added0[0].qty)<Math.min(bal,0))return 'NEGATIVE_STOCK';
+   }
    const a=edited[0],b=prior.get(a.id),f=[...new Set([...Object.keys(a),...Object.keys(b)])].find(k=>canon(a[k])!==canon(b[k]));
    return 'EDITED_'+edited.length+(f&&/^[a-z_]{1,24}$/.test(f)?'_'+f:'');
   }

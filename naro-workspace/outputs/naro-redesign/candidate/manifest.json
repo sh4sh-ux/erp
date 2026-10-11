@@ -99,7 +99,7 @@
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "b2c310cfc643335d39fdce480da8f8c8e6d5103803cfdcab080c83349187bdc1"
+      "sha256": "933fc95da91a4676c208b0f056242273677b4c7c6ea2d23306b387cb21149e9f"
     },
     {
       "path": "erp/favicon.png",
@@ -155,11 +155,11 @@
     },
     {
       "path": "erp/purchase-saga.mjs",
-      "sha256": "62bb1e13a1f05a2a95cfa4b04b164b6139617bd960cee71a0d1438824b900681"
+      "sha256": "2317c6d346558ab7372ad591e8b530e3537b7dbb25f82d4da810a0e90aa2c692"
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "307abecce7c729558d34ea34f51eeca789faa2b5a4566f70b414049d2c010f19"
+      "sha256": "4a9093061e641d72f068d6898172a859e3f6da97ab613adeb313d704432745d5"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -199,7 +199,7 @@
     },
     {
       "path": "extended-contract.mjs",
-      "sha256": "a6d6124ce8f483686aa97dd6f8f958fe00bd32deda8f99a75ebe3da08641da49"
+      "sha256": "9829fadc7e5b803fbbb07c9c64bc3e6c6521fb16d3f523cecb102e6e8df4c836"
     },
     {
       "path": "firebase-auth.mjs",
@@ -283,7 +283,7 @@
     },
     {
       "path": "storage.mjs",
-      "sha256": "ec1e5d411985258d4717646ba9e8add4b21ef0b7408cbf7123309f71e3c74fa7"
+      "sha256": "bd9282b7558281599af5b80ca831eb7539b9f0b801856fc98f72e2dcdf9d72e7"
     },
     {
       "path": "style.css",
@@ -298,7 +298,7 @@
       "sha256": "6a8796a16a3dc1b20faaba6bd99ad915c046babd248494b8a3ca3ffb28153470"
     }
   ],
-  "aggregate": "4be2e1f992ba8b951b31e3cdc3e0a75b84fba6705c59c3fcea9dcf0b8a97c90d",
+  "aggregate": "1b4c25587611dda5ea1975ba0c64be8858c8cde569ad7b224e5be4f965d0f300",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

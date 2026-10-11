@@ -57,7 +57,9 @@ export function validateExtendedChange(key,before,next,snapshot){
   valid(reverse.reversal_of===prior.id&&!reverse.quote_id&&reverse.item_id===prior.item_id&&reverse.qty===prior.qty&&reverse.kind===(prior.kind==='입고'?'출고':'입고')&&(reverse.color||'')===(prior.color||'')&&(reverse.spec||'')===(prior.spec||'')&&equal(reverse.audit,[audit]));
   validateBusinessChange(key,before,[...before,reverse],snapshot);
   const balance=before.filter(r=>r.item_id===prior.item_id&&(r.color||'')===(prior.color||'')&&(r.spec||'')===(prior.spec||'')).reduce((n,r)=>n+(r.kind==='입고'?r.qty:-r.qty),0);
-  valid(balance+(reverse.kind==='입고'?reverse.qty:-reverse.qty)>=Math.min(balance,0));
+  // 매입 입고 취소(purchase_id·receipt_id)는 매입 파일에 취소 기록이 함께 남고 validatePurchaseLinks가 그 차수를 확인한다 →
+  // 이미 나간 수량 때문에 재고가 음수가 되어도 사실대로 기록한다(화면이 미리 '재고가 −N개가 돼요'라고 알린다).
+  if(!(reverse.purchase_id&&reverse.receipt_id))valid(balance+(reverse.kind==='입고'?reverse.qty:-reverse.qty)>=Math.min(balance,0));
   return structuredClone(next);
  }
  return validateBusinessChange(key,before,next,snapshot);
