@@ -70,6 +70,7 @@ export function installPurchaseUI({port,features=()=>true}){
  const editable=p=>p.status!=='취소'&&!(p.receipts||[]).length&&!(p.returns||[]).length;
  // 목록·머리의 상태 하나(견적서와 같은 자리, 같은 색 규칙)
  function disp(p){
+  if(p.removed_at)return ['삭제됨','st-lost'];
   if(p.status==='취소')return ['취소','st-lost'];
   const q=qtyOf(p),got=gotOf(p);
   if(!saved(p)||!got)return ['작성중','st-draft'];
@@ -117,8 +118,8 @@ export function installPurchaseUI({port,features=()=>true}){
   view.dataset.ndPhone=open?'detail':'list';
   const list=ready?rows().filter(match).sort((a,b)=>b.date.localeCompare(a.date)||b.no.localeCompare(a.no)):[];
   const pending=ready?unfinished(st.doc,D().stock_moves||[]):[];
-  const chips=[['','전체'],['작성중','작성중'],['부분 입고','부분 입고'],['미출금','미출금'],['완료','완료']];
-  const count=ready?rows().filter(x=>x.kind!=='기초재고').length:0;
+  const chips=[['','전체'],['작성중','작성중'],['부분 입고','부분 입고'],['미출금','미출금'],['완료','완료'],...(ready&&rows().some(x=>x.removed_at)?[['삭제됨','삭제됨']]:[])];
+  const count=ready?rows().filter(x=>x.kind!=='기초재고'&&!x.removed_at).length:0;
   // 검색 줄 자리: PC(1024~)는 머리 안, 그보다 좁으면 목록 카드 맨 위 — 견적서(panel-layout-b)와 같다
   const tools=`<div class="list-head naro-search-toolbar"><div class="search">${ICON.search}<input id="puSearch" placeholder="매입처·번호·품목 검색" aria-label="매입처·번호·품목 검색" value="${esc(st.q)}" ${ready?'':'disabled'}></div>
      <button class="btn-add" id="puNewBtn" type="button" title="새 매입" aria-label="새 매입" ${ready?'':'disabled'}>${ICON.plus}</button></div>`;
@@ -153,7 +154,7 @@ export function installPurchaseUI({port,features=()=>true}){
  }
  function match(p){
   if(p.kind==='기초재고')return false;
-  if(st.filter&&disp(p)[0]!==st.filter)return false;
+  if(st.filter==='삭제됨'){if(!p.removed_at)return false;}else if(p.removed_at||st.filter&&disp(p)[0]!==st.filter)return false;
   if(!st.q)return true;
   const hay=[p.no,coName(p.vendor_id),p.memo,...p.lines.map(l=>itemOf(l.item_id)?.name||'')].join(' ').toLowerCase();
   return hay.includes(st.q.toLowerCase());
@@ -181,12 +182,13 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="form-actions quote-form-actions">
     <button class="btn save${st.dirty?'':' nd-saved'}" id="puSaveBtn" type="button" data-act="save" aria-label="${st.dirty?'저장':'저장됨 — 바뀐 내용 없음'}">${st.dirty?'저장':'저장됨'}</button>
     ${st.dirty?`<button class="btn ghost" id="puCancelBtn" type="button" data-act="revert">${sv?'되돌리기':'취소'}</button>`:''}
-    ${sv?(mob.matches?`<details class="qp-more pu-more"><summary>··· 더보기</summary>${moreBtns(p)}</details>`:`<details class="panel-b-danger pu-more"><summary aria-label="더보기">더보기</summary><div class="nd-pop">${moreBtns(p)}</div></details>`):''}
+    ${sv&&!p.removed_at?(mob.matches?`<details class="qp-more pu-more"><summary>··· 더보기</summary>${moreBtns(p)}</details>`:`<details class="panel-b-danger pu-more"><summary aria-label="더보기">더보기</summary><div class="nd-pop">${moreBtns(p)}</div></details>`):''}
    </div>
   </div>`;
  }
  // 진행 줄: 발주 → 입고 → 출금 → 계산서 + 다음 할 일(견적서: 수주 → 납품 → 입금 → 계산서)
  function next(p,sv){
+  if(p.removed_at)return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>삭제됨</b><span>${mdShort(p.removed_at.slice(0,10))} 삭제 · 재고·줄 돈에서 빠졌어요</span></div><button type="button" class="btn ghost" data-act="restore">복원</button></div>`;
   if(p.status==='취소')return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>취소됨</b><span>재고·줄 돈에서 빠졌어요</span></div></div>`;
   const q=qtyOf(p),got=gotOf(p),ps=sv?payState(p):{due:totals(p).total,paid:0},left=Math.max(0,ps.due-ps.paid),tax=!!p.tax_invoice?.received;
   const allIn=sv&&q>0&&got>=q;
@@ -276,7 +278,7 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="grid2 pair"><div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div></div>
    <div class="qt-sec"><div class="qt-sec-t">비고</div><div class="field" style="margin-bottom:0"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div></div>`;
  }
- const moreBtns=p=>`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}${deletable(p)?'<button class="btn del" type="button" data-act="delete">삭제</button>':''}`;
+ const moreBtns=p=>p.removed_at?'':`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}<button class="btn del" type="button" data-act="delete">삭제</button>`;
  const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 줄 돈 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
  const deletable=p=>!(p.receipts||[]).length&&!(p.returns||[]).length&&!(D().payments||[]).some(x=>x.purchase_id===p.id)&&!(D().stock_moves||[]).some(m=>m.purchase_id===p.id);
 
@@ -423,10 +425,34 @@ export function installPurchaseUI({port,features=()=>true}){
     await savePurchase({...st.doc,rows:st.doc.rows.map(x=>x.id===p.id?{...x,status:'취소',updated_at:nowIso()}:x)});st.draft=null;st.dirty=false;st.editing=false;toast('매입을 취소했어요');});};
   paint();
  }
- function removeSheet(){
-  const p=cur();if(!p||!deletable(p))return;
-  const d=qa(`${head('매입 삭제',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body"><p class="nd-qa-after">입고·출금이 없는 매입이라 <b>완전히 지워요</b>. 되돌릴 수 없어요.</p></div>${acts('삭제',true,' danger')}`);
-  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{await savePurchase({...st.doc,rows:st.doc.rows.filter(x=>x.id!==p.id)});st.sel=null;st.draft=null;st.dirty=false;st.editing=false;toast('매입을 지웠어요');});
+ function removeSheet(){const p=cur();if(p&&!p.removed_at)wipeSheet(p);}
+ // 한번에 삭제: 입고 취소(재고 되돌림) · 마무리 안 된 입고 정리 · 보낸 돈은 돌려받음 기록 · 목록에서 빼기를 버튼 한 번에.
+ // 기록 규칙상 재고·입출금 기록은 지우지 않고 되돌리는 기록을 더한다. 중간에 끊기면 다시 눌러 이어서 한다(같은 번호라 두 번 되지 않음).
+ const netPaid=p=>{const ps=pays(p);return Math.round(ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0)-ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0));};
+ function wipeSheet(p){
+  if((p.returns||[]).length){const d=qa(`${head('반품이 있는 매입',esc(p.no))}<div class="nd-qa-body"><p class="nd-qa-after">반품 기록이 있는 매입은 한번에 지울 수 없어요. <b>매입 취소</b>를 써 주세요.</p></div><div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);return d;}
+  const ids=new Set((D().stock_moves||[]).map(m=>m.id)),live=(p.receipts||[]).filter(r=>!r.void_at||receiptState(r,ids)==='voiding');
+  const inStock=live.filter(r=>receiptState(r,ids)!=='planned').reduce((a,r)=>a+r.lines.reduce((b,x)=>b+x.qty,0),0),stuck=live.filter(r=>receiptState(r,ids)==='planned').length,paid=netPaid(p);
+  const items=[inStock?`입고된 <b>${n0(inStock)}개는 재고에서 되돌려요</b>`:'',stuck?`마무리 안 된 입고 ${stuck}건은 취소로 정리해요`:'',paid>0?`보낸 <b>${n0(paid)}원은 돌려받은 것으로</b> 기록해요`:'','매입은 목록에서 빠져요 — [삭제됨]에서 복원할 수 있어요'].filter(Boolean);
+  const d=qa(`${head('매입 삭제',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body">
+    <p class="nd-qa-after">삭제를 누르면 한 번에 처리돼요.</p><ul class="pu-wipe">${items.map(t=>`<li>${t}</li>`).join('')}</ul>
+    <p class="nd-qa-after" style="color:var(--nd-ink3,#7A808C)">재고·입출금 기록은 지우지 않고 '취소됨'·'돌려받음'으로 남아요.</p></div>${acts('삭제',true,' danger')}`);
+  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
+   const at=nowIso();
+   for(const r of live)await voidReceipt(io,p.id,r.id,{reason:r.void_reason||'매입 삭제',at:r.void_at||at});
+   const left=netPaid(p);
+   if(left>0)await app.Table.save('payments',[...(D().payments||[]),{id:'pay'+uid(),date:today(),company_id:p.vendor_id,kind:'수금',refund:true,method:'계좌이체',amount:left,memo:`매입 삭제 환불 ${p.no}`,purchase_id:p.id,client_ref:'refund_'+uid(),created_at:at}]);
+   // 지우지 않고 '삭제됨'으로 보관 → 목록 [삭제됨]에서 다시 보고 복원할 수 있다.
+   await savePurchase({...st.doc,rows:st.doc.rows.map(x=>x.id===p.id?{...x,status:'취소',removed_at:at,removed_from:x.removed_from||x.status,updated_at:at}:x)});
+   st.sel=null;st.draft=null;st.dirty=false;st.editing=false;toast('매입을 삭제했어요');});
+ }
+ // 복원: 품목·수량·단가가 다시 살아난다. 되돌린 입고·출금은 기록으로 남고, 필요하면 새로 입고·출금한다.
+ async function restorePurchase(){
+  const p=cur();if(!p?.removed_at||st.working)return;st.working=true;
+  const back=p.removed_from==='취소'?'취소':'작성중';
+  try{await savePurchase({...st.doc,rows:st.doc.rows.map(x=>{if(x.id!==p.id)return x;const n={...x,status:back,updated_at:nowIso()};delete n.removed_at;delete n.removed_from;return n;})});
+   st.filter='';toast(back==='취소'?'복원했어요 · 취소된 매입으로 돌아왔어요':'복원했어요 · 입고·출금은 새로 기록해 주세요');}
+  catch(e){st.working=false;await fail(e);return;}st.working=false;render();
  }
  // 폰 품목 편집 창(견적서 qp-sheet와 같은 부품)
  let lineSheet=null;
@@ -512,6 +538,7 @@ export function installPurchaseUI({port,features=()=>true}){
    if(a==='reload')return load(true);
    if(a==='start'){b.disabled=true;try{const r=await ask('PURCHASE_START');st.status=r.state.status;st.doc=r.doc;render();}catch(err){b.disabled=false;await fail(err);}return;}
    if(a==='resume')return resumeAll();
+   if(a==='restore')return restorePurchase();
    if(a==='back'){if(st.dirty&&!saved(shown()||{})){st.draft=null;st.dirty=false;}st.sel=st.dirty?st.sel:null;if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}st.editing=false;render();return;}
    if(a==='save')return save();
    if(a==='revert'){st.draft=null;st.dirty=false;st.editing=false;st.sz=null;if(!cur())st.sel=null;render();return;}

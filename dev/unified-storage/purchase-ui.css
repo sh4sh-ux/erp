@@ -16,3 +16,8 @@ html[data-theme="dark"] #view-purchases .pu-banner.warn{color:var(--nd-amber)}
 /* [편집] 버튼이 없는 매입(입고 시작·취소)도 품목 제목 줄 높이는 견적서와 같게 */
 #view-purchases .qp-products>h3{min-height:44px}
 #view-purchases #pp-panel-items>.qt-sec-t{min-height:32px}
+
+.nd-qa-sheet.pu-qa .pu-wipe{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.5}
+/* [삭제됨] 칩이 생겨 6개가 되면 같은 너비 대신 글자 너비로(넘치면 옆으로 밀기) */
+#appView #view-purchases .nd-chips:has(>button:nth-child(6)){overflow-x:auto;scrollbar-width:none}
+#appView #view-purchases .nd-chips:has(>button:nth-child(6))>button{flex:0 0 auto!important;padding:0 8px!important}
