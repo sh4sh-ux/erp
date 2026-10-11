@@ -10228,7 +10228,6 @@ html body #appView .list-item{content-visibility:auto;contain-intrinsic-size:aut
 /* 거래처 고르기(머리 이름 → 검색 창) */
 #appView #qtForm .quote-summary .co.nd-co-editable{cursor:pointer;border-radius:8px;transition:background .12s}
 #appView #qtForm .quote-summary .co.nd-co-editable:hover{background:var(--nd-fill,#F1F2F6)}
-#appView #qtForm .quote-summary .co.nd-co-editable::after{content:'';display:inline-block;width:7px;height:7px;margin-left:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-4px) rotate(45deg);opacity:.5}
 #appView #qtForm .quote-summary .co[data-empty="1"]{color:var(--nd-blue,#4355E8)}
 .nd-co-pop{position:fixed;z-index:60;background:var(--nd-surface,#fff);border:1px solid var(--nd-line,#E6E8EE);border-radius:14px;box-shadow:0 16px 40px rgba(15,20,40,.18);padding:10px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;font-family:inherit}
 .nd-co-pop input{height:40px;border:1px solid var(--nd-line,#DADDE5);border-radius:10px;padding:0 12px;font:inherit;font-size:14px;background:var(--nd-surface,#fff);color:var(--nd-ink,#161A23);outline:0}
@@ -12473,11 +12472,11 @@ const NaroOrderImport=(()=>{
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);
  },true);
- /* 거래처 고르기(10/11): 새 견적·편집 중이면 머리의 거래처 이름(비어 있으면 '거래처 선택')을 눌러 검색해서 고른다.
+ /* 거래처 고르기(10/11): 새 견적일 때만 머리의 거래처 이름(비어 있으면 '거래처 선택')을 눌러 검색해서 고른다.
     새 견적을 열면 바로 펼친다. 고르면 정보 탭의 거래처 칸(#fq_co)에 넣고 change — 단가·메모 자동 채움은 원래 동작 그대로. */
  let coPop=null,coAuto='';
  const closeCoPop=()=>{coPop?.remove();coPop=null;};
- function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__'||(typeof qtEditing!=='undefined'&&!!qtEditing);}
+ function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__';}
  function openCoPop(anchor){
   closeCoPop();const sel=document.getElementById('fq_co');if(!sel)return;
   const hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
