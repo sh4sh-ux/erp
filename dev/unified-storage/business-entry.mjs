@@ -107,7 +107,7 @@ export function start(bridge,build){
      if(['IDENTITY_READ','CONTENT_READ','VALIDATOR_READ','CONDITIONAL_WRITE','READBACK_CONTENT','READBACK_IDENTITY'].includes(m.stage))lastFailure+=' / '+m.stage;
      if(['FETCH_REJECTED','HTTP_5XX','HTTP_REJECTED'].includes(m.transport))lastFailure+=' / '+m.transport;
      locked=!!uncertainKey||['SAVE_UNCONFIRMED','SAVE_NOT_OBSERVED','STORAGE_CONFLICT'].includes(m.code);
-     status.textContent=messages[m.code]||'저장을 완료하지 못했습니다.';p.reject(Error(status.textContent));
+     status.textContent=(messages[m.code]||'저장을 완료하지 못했습니다.')+(m.code==='VALIDATION'&&typeof m.reason==='string'&&/^[A-Z][A-Z_0-9]{0,30}(_[a-z_]{1,24})?$/.test(m.reason)?` (확인 코드: ${m.reason})`:'');p.reject(Error(status.textContent));
      if(['SAVE_UNCONFIRMED','SAVE_NOT_OBSERVED'].includes(m.code)){uncertainKey=p.key;uncertainRecovery();}
     }
    };
