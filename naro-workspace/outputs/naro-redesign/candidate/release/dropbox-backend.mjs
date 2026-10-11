@@ -4,6 +4,9 @@ import {createAssetStore} from './asset-store.mjs';
 const paths=new Set([...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`));
 // 변경 기록(10/9): 달마다 한 파일. 7개 데이터 파일 목록(paths)에는 넣지 않는다 — 목록·구조 확인은 그대로.
 const logPath=month=>`NARO Biz/Logs/${month}.json`,isLog=path=>/^NARO Biz\/Logs\/\d{4}-\d{2}\.json$/.test(path);
+// 매입 파일(10/10, 1단계): 7개 데이터 파일 목록(paths)에 넣지 않는 '선택' 파일 — 목록·7개 구조 확인·작업 공간 만들기는 그대로.
+export const PURCHASES_PATH='NARO Biz/Data/purchases.json';
+const isSide=path=>path===PURCHASES_PATH;
 const api='https://api.dropboxapi.com/2/files/';
 const content='https://content.dropboxapi.com/2/files/';
 // Dropbox content_hash: 4MB 블록마다 SHA-256, 이어 붙여 다시 SHA-256 (hex). 저장 응답과 비교해 다시 내려받지 않고 확인한다.
@@ -25,7 +28,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  const onVisible=()=>{if(globalThis.document?.visibilityState==='visible'&&token&&now()>=expires-300000)renewNow();};
  const fresh=async()=>{if(oauth.renew&&token&&!disposed&&now()>=expires-60000)await renewNow();};
  const assets=createAssetStore({provider:'dropbox',auth:()=>{check();return token;},fetcher,signal,enabled:businessWrite,now});
- const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path))throw fault('WRITE_BLOCKED');return '/'+path;};
+ const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path)&&!isSide(path))throw fault('WRITE_BLOCKED');return '/'+path;};
  async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch}={}){
   await fresh();check();let response;
   if(now()-windowStart>=60000){windowStart=now();requests=0;}if(++requests>120)throw fault('QUOTA_LIMIT');
@@ -50,7 +53,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  }
  async function load(path){return request(content+'download',{path:pathArg(path)},{download:true});}
  async function identity(path){
-  if(!paths.has(path))throw fault('WRITE_BLOCKED');
+  if(!paths.has(path)&&!isSide(path))throw fault('WRITE_BLOCKED');
   const m=await request(api+'get_metadata',{path:pathArg(path)});
   if(m?.['.tag']!=='file'||!m.id||!m.rev||m.path_lower!==('/'+path).toLowerCase())throw fault('STORAGE_CONFLICT');
   return {provider:'dropbox',logicalKey:path.split('/').pop().replace('.json',''),fileId:m.id,path:m.path_lower,revision:m.rev,revisionKind:'dropbox.rev',etag:null};
@@ -60,6 +63,17 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   async disconnect(){disposed=true;token=null;expires=0;prepared=false;clearTimeout(timer);globalThis.document?.removeEventListener('visibilitychange',onVisible);oauth.close();},
   async exists(path){return !!await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});},
   load,identity,metrics:()=>({...metrics}),
+  // 매입 파일: 있으면 식별 정보, 없으면 null(=매입 시작 전). 7개 파일과 상관없이 따로 확인한다.
+  async purchasesIdentity(){const m=await request(api+'get_metadata',{path:pathArg(PURCHASES_PATH)},{allowMissing:true});if(!m)return null;return identity(PURCHASES_PATH);},
+  loadPurchases:()=>load(PURCHASES_PATH),
+  // [매입 시작하기]: 빈 매입 파일을 '없을 때만' 만든다(add + strict_conflict → 이미 있으면 덮지 않고 그대로 사용).
+  async createPurchases(value){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');
+   const body=JSON.stringify(value);if(body.length>1048576)throw fault('STORAGE_INVALID');
+   const run=async()=>{try{await request(content+'upload',{path:pathArg(PURCHASES_PATH),mode:'add',autorename:false,strict_conflict:true,mute:true},{upload:value});return {created:true};}catch(e){if(e.code==='STORAGE_CONFLICT')return {created:false};throw e;}};
+   const result=locks?.request?await locks.request('naro-dropbox:purchases-create',{mode:'exclusive'},run):await run();
+   return {...result,identity:await identity(PURCHASES_PATH),value:await load(PURCHASES_PATH)};
+  },
   // 변경 기록: 읽기(없으면 빈 목록) · 한 줄 더하기(그 달 파일을 rev 조건으로 다시 올림, 겹치면 다시 읽어 최대 3번).
   async readLog(month){
    if(!/^\d{4}-\d{2}$/.test(String(month)))throw fault('VALIDATION');
@@ -83,7 +97,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   },
   async updateDataset(key,before,next,expected,{recoveryOnly=false}={}){
    const path=`NARO Biz/Data/${key}.json`;
-   if(!businessWrite||!paths.has(path))throw fault('WRITE_BLOCKED');
+   if(!businessWrite||!paths.has(path)&&!isSide(path))throw fault('WRITE_BLOCKED');
    if(expected?.provider!=='dropbox'||expected.logicalKey!==key||!expected.fileId||!expected.revision)throw fault('STORAGE_CONFLICT');
    if(JSON.stringify(next).length>1048576)throw fault('STORAGE_INVALID');
    if(!locks?.request)throw fault('UNAVAILABLE');
