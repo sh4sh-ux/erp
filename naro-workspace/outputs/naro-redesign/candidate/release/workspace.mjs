@@ -11,7 +11,7 @@ export function safeStorageFailure(error){
 export function safeStorageDiagnostic(error){
  const stages=['IDENTITY_READ','CONTENT_READ','VALIDATOR_READ','CONDITIONAL_WRITE','READBACK_CONTENT','READBACK_IDENTITY'];
  const transports=['FETCH_REJECTED','HTTP_5XX','HTTP_REJECTED'];
- return {code:safeStorageFailure(error),stage:stages.includes(error?.stage)?error.stage:'',transport:transports.includes(error?.transport)?error.transport:''};
+ return {code:safeStorageFailure(error),stage:stages.includes(error?.stage)?error.stage:'',transport:transports.includes(error?.transport)?error.transport:'',...(typeof error?.reason==='string'&&/^[A-Z][A-Z_0-9]{0,30}(_[a-z_]{1,24})?$/.test(error.reason)?{reason:error.reason}:{})};
 }
 let frame=null,port=null,ready=null;
 let preparedFrame=null,preparedListener=null,preparedReady=false;
@@ -128,6 +128,11 @@ export function openWorkspace(data,logout,repository){
    const before=structuredClone(data[m.key]);
    try{
     let result;
+    // 매입과 연결된 새 줄이 있는데 매입 파일을 아직 안 읽었으면(다시 불러온 직후 등) 먼저 읽는다 — 안 그러면 규칙 검사가 '매입 없음'으로 막는다.
+    if(['stock_moves','payments'].includes(m.key)&&Array.isArray(m.rows)&&repository.loadPurchases&&repository.purchasesState().status==='unknown'){
+     const known=new Set((data[m.key]||[]).map(r=>r.id));
+     if(m.rows.some(r=>r&&!known.has(r.id)&&r.purchase_id!==undefined))await repository.loadPurchases();
+    }
     try{result=await repository.saveTable(m.key,m.rows,{recover:m.recover===true});}
     catch(error){
      // A lost response gets one READ-only reconciliation, never a second PUT.

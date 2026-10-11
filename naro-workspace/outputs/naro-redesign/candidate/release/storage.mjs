@@ -66,6 +66,39 @@ export function validatePurchasesDoc(doc,snapshot){
  if(new Set(doc.rows.map(p=>p.id)).size!==doc.rows.length)throw fault('STORAGE_INVALID');
  return true;
 }
+// 저장 규칙에 막혔을 때(VALIDATION) 어느 검사에 걸렸는지만 짧은 이름으로 알려 준다 — 값·이름은 담지 않는다.
+export function explainValidation(key,before,next,snapshot,purchasesDoc){
+ try{
+  if(!Array.isArray(next)||!Array.isArray(before))return 'SHAPE';
+  if(JSON.stringify(next).length>1048576)return 'SIZE';
+  const canon=v=>JSON.stringify(v,(_k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
+  const prior=new Map(before.map(r=>[r?.id,r]));
+  const edited=next.filter(r=>prior.has(r?.id)&&canon(r)!==canon(prior.get(r.id)));
+  if(edited.length&&key==='stock_moves'){
+   const a=edited[0],b=prior.get(a.id),f=[...new Set([...Object.keys(a),...Object.keys(b)])].find(k=>canon(a[k])!==canon(b[k]));
+   return 'EDITED_'+edited.length+(f&&/^[a-z_]{1,24}$/.test(f)?'_'+f:'');
+  }
+  const added=next.filter(r=>!prior.has(r?.id));
+  if(key==='stock_moves'||key==='payments'){
+   if(key==='stock_moves'&&added.some(r=>!(snapshot?.items||[]).some(i=>i.id===r.item_id)))return 'ITEM';
+   if(key==='stock_moves'&&added.some(r=>typeof r.qty!=='number'||!(r.qty>0)||!['입고','출고'].includes(r.kind)))return 'ROW';
+   const linked=added.filter(r=>r.purchase_id!==undefined);
+   if(linked.length&&!purchasesDoc)return 'PURCHASE_NOT_READY';
+   if(linked.length){
+    for(const r of linked){
+     const p=purchasesDoc.rows.find(x=>x.id===r.purchase_id);if(!p)return 'PURCHASE_MISSING';
+     if(key==='stock_moves'&&!r.reversal_of&&r.return_id===undefined){
+      const rc=(p.receipts||[]).find(x=>x.id===r.receipt_id);if(!rc)return 'RECEIPT_MISSING';if(rc.void_at)return 'RECEIPT_VOID';
+      const rl=rc.lines.find(x=>x.line_id===r.purchase_line_id),l=rl&&p.lines.find(x=>x.id===rl.line_id);if(!rl||!l)return 'RECEIPT_LINE';
+      if(r.item_id!==l.item_id)return 'RECEIPT_ITEM';if((r.color||'')!==(l.color||''))return 'RECEIPT_COLOR';if((r.spec||'')!==(l.spec||''))return 'RECEIPT_SPEC';if(r.qty!==rl.qty)return 'RECEIPT_QTY';
+     }
+    }
+    return 'PURCHASE_LINK';
+   }
+  }
+  return 'OTHER';
+ }catch{return 'OTHER';}
+}
 // 새 원가 확정은 '지금' 시점에만(지난 출고 원가를 바꾸지 않게) + 음수·원가 모르는 재고는 확인 표시가 있어야 한다.
 export function checkNewRuns(before,next,snapshot){
  const prev=new Map((before?.rows||[]).map(p=>[p.id,p]));
@@ -138,9 +171,12 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const g=generation;check(g);if(!snapshot||saving)throw fault('BUSY');
    if(pending&&!recover)throw fault('SAVE_UNCONFIRMED');
    if(recover&&!pending)throw fault('STORAGE_INVALID');
-   const intent=pending||{key,before:structuredClone(snapshot[key]),next:(extendedWrite?validateExtendedChange:validateBusinessChange)(key,snapshot[key],value,snapshot),identity:structuredClone(identities.find(i=>i.logicalKey===key))};
-   // 매입과 연결된 새 줄(purchase_id)만 추가 검사 — 연결 없는 기존 저장은 지금과 똑같다.
-   if(!pending)validatePurchaseLinks(key,intent.before,intent.next,purchases.status==='ready'?purchases.doc:null);
+   let intent;
+   try{
+    intent=pending||{key,before:structuredClone(snapshot[key]),next:(extendedWrite?validateExtendedChange:validateBusinessChange)(key,snapshot[key],value,snapshot),identity:structuredClone(identities.find(i=>i.logicalKey===key))};
+    // 매입과 연결된 새 줄(purchase_id)만 추가 검사 — 연결 없는 기존 저장은 지금과 똑같다.
+    if(!pending)validatePurchaseLinks(key,intent.before,intent.next,purchases.status==='ready'?purchases.doc:null);
+   }catch(e){if(e?.code==='VALIDATION'&&!pending)e.reason=explainValidation(key,snapshot[key],value,snapshot,purchases.status==='ready'?purchases.doc:null);throw e;}
    saving=true;
    try{
     const result=await provider.updateDataset(intent.key,intent.before,intent.next,intent.identity,{recoveryOnly:recover});check(g);
