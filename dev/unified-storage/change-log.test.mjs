@@ -53,3 +53,9 @@ test('한번에 삭제(보관)·복원은 수정이 아니라 삭제·복원으�
  assert.deepEqual([h.action,h.label],['삭제','거래처 거래처']);
  assert.equal(describeChange('settings',{schema:3},{schema:3,trash:[{key:'payments',id:'x'}]},{companies}),null);
 });
+test('이미 취소된 견적을 삭제해도 삭제로 적는다',()=>{
+ const companies=[{id:'c',name:'거래처'}];
+ const q={id:'q',no:'Q-1',company_id:'c',status:'취소',cancel_reason:'잘못 만듦',lines:[],deliveries:[]};
+ const r=describeChange('quotes',[q],[{...q,cancel_reason:'삭제'}],{companies});
+ assert.deepEqual([r.action,r.changes],['삭제',['목록에서 뺌 · 복원 가능']]);
+});
