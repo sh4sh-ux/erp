@@ -255,12 +255,12 @@ export function installPurchaseUI({port,features=()=>true}){
   const retRows=(p.returns||[]).map(t=>`<div class="nd-rec-row"><span class="d">${mdShort(t.date)}</span><span class="n">반품 · ${esc(lineLabel(t))}${t.reason?` <small>· ${esc(t.reason)}</small>`:''}${t.posted_at?'':' <small>· 마무리 필요</small>'}</span><span class="a">${n0(t.lines.reduce((a,x)=>a+x.qty,0))}개</span></div>`).join('');
   const canReturn=live&&p.lines.some(l=>received(p,l)-returned(p,l)>0),tax=p.tax_invoice||{};
   return `<div class="nd-rec">
-   <section class="nd-rec-card"><div class="nd-rec-hd"><div><h3>입고</h3><span>${n0(q)}개 중 ${n0(got)}개${got<q?` · ${n0(q-got)}개 남음`:got?' · 완료':''}</span></div>
+   <section class="nd-rec-card"><div class="nd-rec-hd"><div><h3>입고</h3><span>${live?`${n0(q)}개 중 ${n0(got)}개${got<q?` · ${n0(q-got)}개 남음`:got?' · 완료':''}`:`취소된 매입 · 더 들어오지 않아요${got?` · 재고에 ${n0(got)}개 남음`:''}`}</span></div>
     <div class="nd-rec-act">${live&&got<q?`<button type="button" class="nd-next-b" data-act="receive-part">부분 입고</button><button type="button" class="nd-next-b pri" data-act="receive">남은 ${n0(q-got)}개 전체 입고</button>`:''}</div></div>
-    <i class="nd-rec-bar" style="--p:${pct(got,q)}%"></i>${recRows||'<p class="nd-rec-empty">아직 입고 기록이 없어요.</p>'}</section>
-   <section class="nd-rec-card"><div class="nd-rec-hd"><div><h3>출금</h3><span>${n0(ps.due)}원 중 ${n0(ps.paid)}원${left>0?` · <b class="amber">${n0(left)}원 남음</b>`:ps.paid>ps.due?` · ${n0(ps.paid-ps.due)}원 초과`:ps.paid?' · 완료':''}</span></div>
+    ${live?`<i class="nd-rec-bar" style="--p:${pct(got,q)}%"></i>`:''}${recRows||'<p class="nd-rec-empty">아직 입고 기록이 없어요.</p>'}</section>
+   <section class="nd-rec-card"><div class="nd-rec-hd"><div><h3>출금</h3><span>${live?`${n0(ps.due)}원 중 ${n0(ps.paid)}원${left>0?` · <b class="amber">${n0(left)}원 남음</b>`:ps.paid>ps.due?` · ${n0(ps.paid-ps.due)}원 초과`:ps.paid?' · 완료':''}`:cancelPaySummary(p)}</span></div>
     <div class="nd-rec-act">${live?`<button type="button" class="nd-next-b${left>0?' pri':''}" data-act="pay">출금 기록</button>`:''}</div></div>
-    <i class="nd-rec-bar" style="--p:${pct(ps.paid,ps.due)}%"></i>${payRows||'<p class="nd-rec-empty">아직 출금 기록이 없어요.</p>'}</section>
+    ${live?`<i class="nd-rec-bar" style="--p:${pct(ps.paid,ps.due)}%"></i>`:''}${payRows||`<p class="nd-rec-empty">${live?'아직 출금 기록이 없어요.':'출금 기록이 없어요.'}</p>`}</section>
    <section class="nd-rec-card"><div class="nd-rec-hd"><div><h3>반품</h3><span>입고된 것 중 매입처로 돌려보낸 수량</span></div>
     <div class="nd-rec-act">${canReturn?'<button type="button" class="nd-next-b" data-act="return">반품</button>':''}</div></div>${retRows}</section>
    <section class="nd-rec-card nd-rec-tax"><div class="nd-rec-hd"><div><h3>계산서</h3><span>${tax.received?`${esc(md(tax.date||''))} 받음`:'아직 받지 않았어요'}</span></div>
@@ -277,6 +277,7 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="qt-sec"><div class="qt-sec-t">비고</div><div class="field" style="margin-bottom:0"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div></div>`;
  }
  const moreBtns=p=>`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}${deletable(p)?'<button class="btn del" type="button" data-act="delete">삭제</button>':''}`;
+ const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 줄 돈 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
  const deletable=p=>!(p.receipts||[]).length&&!(p.returns||[]).length&&!(D().payments||[]).some(x=>x.purchase_id===p.id)&&!(D().stock_moves||[]).some(m=>m.purchase_id===p.id);
 
  // ── 고치기 ──
