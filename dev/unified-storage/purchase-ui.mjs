@@ -2,7 +2,7 @@
 // 데이터: 매입 파일은 PURCHASE_* 메시지로(저장소 쪽 business-workspace), 재고·입출금은 기존 Table.save(SAVE_TABLE) 그대로.
 // 매입 저장(작성)과 재고 입고 확정은 서로 다른 버튼·창. 입고·반품·입고 취소는 purchase-saga 절차(끊겨도 이어서, 두 번 안 됨).
 import {paymentStatus,lineBase} from './purchase-ledger.mjs';
-import {postReceipt,resume,postReturn,voidReceipt,unfinished,receiptState} from './purchase-saga.mjs';
+import {postReceipt,resume,postReturn,voidReceipt,unfinished,receiptState,stockMoveId,voidMoveId} from './purchase-saga.mjs';
 
 const MSG={BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_CONFLICT:'다른 기기에서 먼저 바뀌었어요. 최신 내용으로 다시 불러왔어요.',VALIDATION:'입력 내용을 확인해 주세요(수량·금액·이미 처리된 기록).',WRITE_BLOCKED:'이 작업은 지금 할 수 없어요.',UNAVAILABLE:'Google Drive에서는 아직 매입을 쓸 수 없어요. Dropbox에서 쓸 수 있어요.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했어요. [저장 결과 확인]을 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',QUOTA_LIMIT:'저장 공간이 부족해요.'};
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -396,11 +396,19 @@ export function installPurchaseUI({port,features=()=>true}){
   };
   paint();
  }
+ // 입고 취소로 재고가 음수가 되는 옵션(이미 나간 수량) — 창에서 미리 알린다.
+ function negWarn(p,receipts){
+  const ids=new Set((D().stock_moves||[]).map(m=>m.id)),sum={};
+  for(const r of receipts)for(const rl of r.lines){if(!ids.has(stockMoveId(r.id,rl.line_id))||ids.has(voidMoveId(r.id,rl.line_id)))continue;const l=p.lines.find(x=>x.id===rl.line_id);if(!l)continue;const k=[l.item_id,l.color||'',l.spec||''].join('|');sum[k]=(sum[k]||0)+rl.qty;}
+  const st=typeof window.currentStocks==='function'?window.currentStocks():{};
+  const out=Object.entries(sum).map(([k,q])=>{const [id,c,sp]=k.split('|'),after=(Number(st[k])||0)-q;return after<0?`${esc(itemOf(id)?.name||'품목')} ${esc([c,sp].filter(Boolean).join('·'))} 재고가 <b>${n0(after)}개</b>가 돼요`:'';}).filter(Boolean);
+  return out.length?`<p class="nd-qa-warn">${out.join('<br>')} — 이미 나간 수량이 있어서예요. 그래도 취소는 기록돼요.</p>`:'';
+ }
  function voidSheet(rid){
   const p=cur(),r=p?.receipts.find(x=>x.id===rid);if(!r)return;const n=r.lines.reduce((a,x)=>a+x.qty,0);
   const d=qa(`${head('입고 취소',`${mdShort(r.date)} 입고 ${n0(n)}개`)}<div class="nd-qa-body">
     <div class="nd-qa-fields"><label>사유<input id="puQaMemo" placeholder="예: 수량을 잘못 넣음"></label></div>
-    <p class="nd-qa-after">확인하면 <b>재고에서 ${n0(n)}개가 되돌아가요</b>. 기록은 지우지 않고 '취소됨'으로 남아요.</p></div>${acts('입고 취소 확인',true,' danger')}`);
+    <p class="nd-qa-after">확인하면 <b>재고에서 ${n0(n)}개가 되돌아가요</b>. 기록은 지우지 않고 '취소됨'으로 남아요.</p>${negWarn(p,[r])}</div>${acts('입고 취소 확인',true,' danger')}`);
   d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{await voidReceipt(io,p.id,rid,{reason:d.querySelector('#puQaMemo').value.trim()||'입고 취소',at:nowIso()});toast('입고를 취소했어요 · 재고에서 되돌림');});
  }
  function taxSheet(){
@@ -436,7 +444,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const items=[inStock?`입고된 <b>${n0(inStock)}개는 재고에서 되돌려요</b>`:'',stuck?`마무리 안 된 입고 ${stuck}건은 취소로 정리해요`:'',paid>0?`보낸 <b>${n0(paid)}원은 돌려받은 것으로</b> 기록해요`:'','매입은 목록에서 빠져요 — [삭제됨]에서 복원할 수 있어요'].filter(Boolean);
   const d=qa(`${head('매입 삭제',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body">
     <p class="nd-qa-after">삭제를 누르면 한 번에 처리돼요.</p><ul class="pu-wipe">${items.map(t=>`<li>${t}</li>`).join('')}</ul>
-    <p class="nd-qa-after" style="color:var(--nd-ink3,#7A808C)">재고·입출금 기록은 지우지 않고 '취소됨'·'돌려받음'으로 남아요.</p></div>${acts('삭제',true,' danger')}`);
+    <p class="nd-qa-after" style="color:var(--nd-ink3,#7A808C)">재고·입출금 기록은 지우지 않고 '취소됨'·'돌려받음'으로 남아요.</p>${negWarn(p,live)}</div>${acts('삭제',true,' danger')}`);
   d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
    const at=nowIso();
    for(const r of live)await voidReceipt(io,p.id,r.id,{reason:r.void_reason||'매입 삭제',at:r.void_at||at});

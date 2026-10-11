@@ -42,3 +42,14 @@ test('ambiguous merge recovery is read-only before progressing',async()=>{
  const session=createMergeImport(repo);await assert.rejects(session.run({app:'erp',format:1,companies:[{...c,id:'a'}]}),{code:'SAVE_UNCONFIRMED'});
  await session.run();assert.equal(writes,1);assert.equal(recovered,1);
 });
+test('receipt cancellation may go below zero only for purchase receipts (manual cancels still blocked)',()=>{
+ const snap={...emptyData(),items:[{id:'i',name:'모자',components:[],variants:[]}]};
+ const out={id:'o',item_id:'i',color:'BK',spec:'Free',kind:'출고',qty:10,date:'2026-10-10'};
+ const inn={id:'pm_r_l',item_id:'i',color:'BK',spec:'Free',kind:'입고',qty:10,date:'2026-10-11',purchase_id:'p',receipt_id:'r',purchase_line_id:'l'};
+ const before=[out,inn],at='2026-10-11T00:49:00Z',audit={action:'void',reason:'입고 취소',at};
+ const rev=extra=>({id:'pv_r_l',date:'2026-10-11',item_id:'i',color:'BK',spec:'Free',kind:'출고',qty:10,reversal_of:'pm_r_l',audit:[audit],...extra});
+ const next=extra=>[out,{...inn,cancelled_at:at,audit:[audit]},rev(extra)];
+ assert.equal(validate('stock_moves',before,next({purchase_id:'p',receipt_id:'r',purchase_line_id:'l'}),{...snap,stock_moves:before}).length,3);
+ const manual=[out,{...inn,purchase_id:undefined,receipt_id:undefined,purchase_line_id:undefined}];
+ assert.throws(()=>validate('stock_moves',manual,[out,{...manual[1],cancelled_at:at,audit:[audit]},rev({})],{...snap,stock_moves:manual}),{code:'VALIDATION'});
+});

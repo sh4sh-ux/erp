@@ -3,6 +3,7 @@
 // 순서로 진행한다. 어느 단계에서 끊겨도 다음에 resume()이 같은 번호로 이어서 끝낸다(두 번 입고되지 않음).
 import {stockMoveId,voidMoveId,returnMoveId} from '../personal-cloud-onboarding/purchase-contract.mjs';
 import {unitCosts,currentRun} from './purchase-ledger.mjs';
+export {stockMoveId,voidMoveId};
 
 // 입고 차수 계획: 지금 유효한 원가 확정이 있으면 그 원가, 없으면 임시 원가(매입 처리 환율 + 지금까지 비용)를 고정한다.
 export function planReceipt(p,{receiptId,date,lines,at}){
