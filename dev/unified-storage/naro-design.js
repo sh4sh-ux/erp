@@ -404,7 +404,7 @@ const NaroCompanyLedger=(()=>{
     const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
     const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
     input.addEventListener('input',push);
-    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
     const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
@@ -414,7 +414,7 @@ const NaroCompanyLedger=(()=>{
     b.onclick=()=>{if(pop?.btn===b){closePop();return;}const block=document.querySelector(c.filter);
      if(!block){ // 폰처럼 PC용 필터 묶음이 없는 화면: 원래 고르기 칸(select)을 그대로 꺼내 보여주고 닫으면 제자리로
       const view=document.getElementById('view-'+b.closest('.view')?.id.replace('view-',''))||b.closest('.view');
-      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'));if(!fields.length)return;
+      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label, :scope .ops-filters>#payClear')||[])].filter(l=>(l.id==='payClear'||l.querySelector('select,input'))&&!l.closest('.nd-pop'));if(!fields.length)return;
       const marks=fields.map(f=>{const m=document.createComment('nd-filter');f.before(m);return m;});
       openPop(b,el=>{el.classList.add('nd-pop-filter');fields.forEach(f=>{f.classList.add('nd-pop-field');el.append(f);});},()=>fields.forEach((f,i)=>{f.classList.remove('nd-pop-field');marks[i].replaceWith(f);}),'필터');return;}
      const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
@@ -1382,6 +1382,7 @@ const NaroCompanyLedger=(()=>{
  paymentFocusMode();
  let paySheetEl=null;
  function openPaySheet(id){
+  if(window.NaroPaymentPanel?.open(id))return;
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
   const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const out=p.kind==='지급',co=(db.companies||[]).find(c=>c.id===p.company_id)?.name||'',q=p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no||'':'';
