@@ -10263,6 +10263,152 @@ html[data-theme="dark"] #view-purchases .pu-banner.warn{color:var(--nd-amber)}
 /* [삭제됨] 칩이 생겨 6개가 되면 같은 너비 대신 글자 너비로(넘치면 옆으로 밀기) */
 #appView #view-purchases .nd-chips:has(>button:nth-child(6)){overflow-x:auto;scrollbar-width:none}
 #appView #view-purchases .nd-chips:has(>button:nth-child(6))>button{flex:0 0 auto!important;padding:0 8px!important}
+
+/* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
+html body #appView #coForm.cp{--cp-x:28px}
+html body #appView .shell .main #coForm.cp::before{content:none!important;display:none!important}
+/* PC: 머리(이름 줄 144 + 탭 46) · 본문 스크롤 · 아래 버튼 줄 */
+html body #appView .shell .main #coForm.cp.workspace-form{grid-template-rows:auto minmax(0,1fr) auto!important}
+html body #appView #coForm.cp>.cp-head{display:block!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;background:var(--nd-surface);box-shadow:none!important;grid-template-columns:none!important}
+html body #appView #coForm.cp .cp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;height:var(--panel-head,144px);box-sizing:border-box;padding:30px var(--cp-x) 0;border-bottom:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-id{min-width:0}
+html body #appView #coForm.cp .cp-head .cp-cap{margin:0;font:600 11px/13px var(--sans);letter-spacing:.8px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-head .co-title{display:block;margin:7px 0 0;padding:0}
+html body #appView #coForm.cp .cp-head .co-title-name{display:block;font:700 24px/30px var(--sans);letter-spacing:-.5px;color:var(--nd-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView #coForm.cp .cp-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:10px;font:400 12px/16px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-meta .dot,html body #appView #coForm.cp .cp-meta .none{color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-meta .pill{margin-left:2px}
+html body #appView #coForm.cp .cp-amt{flex:none;text-align:right}
+html body #appView #coForm.cp .cp-amt .k{font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-amt .v{margin-top:6px;font:700 24px/30px var(--sans);letter-spacing:-.4px;color:var(--nd-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #coForm.cp .cp-tabs{display:flex;gap:24px;height:46px;padding:0 var(--cp-x)}
+html body #appView #coForm.cp .cp-tabs>button{flex:0 0 auto;height:46px;min-height:0;padding:0 2px;border:0;border-radius:0;background:none;color:var(--nd-ink-3);font:500 13px/1 var(--sans);cursor:pointer}
+html body #appView #coForm.cp .cp-tabs>button[aria-selected="true"]{color:var(--nd-ink);font-weight:650;box-shadow:inset 0 -2px 0 var(--nd-ink)}
+html body #appView #coForm.cp .cp-tabs>button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-4px}
+html body #appView .shell .main #coForm.cp>.cp-body{padding:28px var(--cp-x) 36px!important;min-height:0}
+html body #appView #coForm.cp .cp-panel[hidden]{display:none!important}
+/* 거래: 요약 */
+html body #appView #coForm.cp .cp-ov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 24px;align-items:end}
+html body #appView #coForm.cp .cp-ov .k{font:400 13px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ov .v{margin-top:6px;font:400 15px/26px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ov .v b{margin-right:4px;font:750 22px/26px var(--sans);letter-spacing:-.3px;color:var(--nd-ink);font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-ov .sep{margin:0 8px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-warn{color:var(--nd-amber);font-weight:600}
+html body #appView #coForm.cp .cp-pre{color:var(--nd-blue);font-weight:600}
+html body #appView #coForm.cp .cp-ov>.btn{height:36px;min-height:0;margin:0;padding:0 14px;font-size:13.5px}
+html body #appView #coForm.cp .cp-track{grid-column:1/-1;height:6px;border-radius:3px;background:var(--nd-fill);overflow:hidden}
+html body #appView #coForm.cp .cp-track>i{display:block;height:100%;border-radius:3px;background:var(--nd-blue)}
+html body #appView #coForm.cp .cp-stats{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 40px;padding-top:4px}
+html body #appView #coForm.cp .cp-stats>div{display:flex;flex-direction:column;gap:3px}
+html body #appView #coForm.cp .cp-stats span{font:400 12px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-stats b{font:600 14.5px/20px var(--sans);color:var(--nd-ink);font-variant-numeric:tabular-nums}
+/* 거래: 목록 칸 */
+html body #appView #coForm.cp .cp-sec{margin-top:40px}
+html body #appView #coForm.cp .cp-sech{display:flex;align-items:center;gap:10px;min-height:34px;margin-bottom:8px}
+html body #appView #coForm.cp .cp-sech h3{margin:0;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-sech .cnt{font:400 13px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-sech .sp{flex:1}
+html body #appView #coForm.cp .cp-link{min-height:0;height:auto;padding:6px 0;border:0;background:none;color:var(--nd-blue);font:600 13px/18px var(--sans);cursor:pointer}
+html body #appView #coForm.cp .cp-new{height:34px;min-height:0;margin:0 0 0 8px;padding:0 12px;font-size:13px;gap:4px}
+html body #appView #coForm.cp .cp-seg{display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--nd-fill)}
+html body #appView #coForm.cp .cp-seg>button{height:28px;min-height:0;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--nd-ink-2);font:500 12.5px/1 var(--sans);cursor:pointer;white-space:nowrap}
+html body #appView #coForm.cp .cp-seg>button[aria-pressed="true"]{background:var(--nd-surface);color:var(--nd-ink);font-weight:600;box-shadow:0 1px 2px rgba(17,22,35,.08)}
+html body #appView #coForm.cp .cp-list{border-bottom:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-pr{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:50px;border-top:1px solid var(--nd-line);font:400 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-pr .d{font-size:13px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-pr .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #coForm.cp .cp-pr .q{margin-left:8px;font-size:12px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-pr .a,html body #appView #coForm.cp .cp-qr .a{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-qr{display:grid;grid-template-columns:64px minmax(0,1fr) auto auto 20px;gap:12px;align-items:center;width:100%;min-height:0;height:auto;margin:0;padding:13px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
+@media(hover:hover){html body #appView #coForm.cp .cp-qr:hover .t{color:var(--nd-blue)}}
+html body #appView #coForm.cp .cp-qr .d{align-self:start;padding-top:1px;font-size:13px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-qr .m{min-width:0}
+html body #appView #coForm.cp .cp-qr .t{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #coForm.cp .cp-qr .s{display:block;margin-top:3px;font-size:12px;line-height:16px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-qr .s>:is(.pm,.sd){display:none}
+html body #appView #coForm.cp .cp-qr .cv{display:flex;color:var(--nd-ink-3);transition:transform .15s}
+html body #appView #coForm.cp .cp-qr[aria-expanded="true"] .cv{transform:rotate(180deg)}
+html body #appView #coForm.cp .cp-tl{margin:0 0 14px 76px;padding:2px 0 4px}
+html body #appView #coForm.cp .cp-ev{position:relative;display:grid;grid-template-columns:48px 40px minmax(0,1fr) auto;gap:8px;padding:6px 0 6px 18px;font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-ev::before{content:"";position:absolute;left:3px;top:13px;width:7px;height:7px;border-radius:50%;background:var(--nd-surface);box-shadow:0 0 0 1.5px var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev::after{content:"";position:absolute;left:6px;top:22px;bottom:-8px;width:1px;background:var(--nd-line)}
+html body #appView #coForm.cp .cp-ev:last-of-type::after{display:none}
+html body #appView #coForm.cp .cp-ev.todo{color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev span{font-size:12px;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-ev b{font-weight:600}
+html body #appView #coForm.cp .cp-ev em{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-ev i{font-style:normal;font-weight:600;font-variant-numeric:tabular-nums}
+html body #appView #coForm.cp .cp-tls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;padding:8px 0 0 18px;border-top:1px dashed var(--nd-line);font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-tls b{font-weight:600}
+html body #appView #coForm.cp .cp-more{padding-top:10px;text-align:center}
+html body #appView #coForm.cp .cp-none{margin:0;padding:18px 0;border-top:1px solid var(--nd-line);border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:64px 20px;text-align:center;color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-empty b{margin-top:8px;font:700 17px/24px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-empty span{font:400 14px/22px var(--sans);color:var(--nd-ink-2)}
+html body #appView #coForm.cp .cp-empty .btn{margin-top:14px;height:40px;min-height:0;padding:0 16px}
+/* 단가 */
+html body #appView #coForm.cp section.cp-prices{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body #appView #coForm.cp section.cp-prices>h3{margin:0 0 6px!important;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp section.cp-prices>.hint{font-size:12.5px;line-height:19px;color:var(--nd-ink-3)}
+/* 정보: 묶음(왼쪽 이름·설명 / 오른쪽 입력 칸) */
+html body #appView #coForm.cp .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
+html body #appView #coForm.cp .cp-grp:first-child{padding-top:4px;border-top:0}
+html body #appView #coForm.cp .cp-grph h4{margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #coForm.cp .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #coForm.cp .cp-grpb{min-width:0}
+html body #appView #coForm.cp .cp-grpb>.field:last-child,html body #appView #coForm.cp .cp-grpb>.grid2:last-child .field{margin-bottom:0}
+html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView #coForm.cp .cp-log{margin-top:8px}
+/* 아래 버튼 줄: PC = [이메일] [거래명세서] … [삭제] [저장] · 폰 = [⋯] [전화] [이메일] [저장] */
+html body #appView #coForm.cp .form-actions>.cp-act{flex:none;height:40px;min-height:0;margin:0;padding:0 14px;gap:6px;font-size:13.5px}
+html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
+@media screen and (max-width:1023px){
+ html body #appView #coForm.cp{--cp-x:16px}
+ html body #appView #coForm.cp>.cp-head{margin-top:-8px!important;border-bottom:0!important;background:none}
+ html body #appView #coForm.cp .cp-meta{margin-top:14px}
+ html body #appView #coForm.cp .cp-top{height:auto;padding:6px 0;border-bottom:0;align-items:flex-start;gap:12px}
+ html body #appView #coForm.cp .cp-head .cp-cap{font:400 12px/18px var(--sans);letter-spacing:0;color:var(--nd-ink-2)}
+ html body #appView #coForm.cp .cp-head .co-title{margin-top:4px}
+ html body #appView #coForm.cp .cp-head .co-title-name{font:700 19px/26.6px var(--sans);letter-spacing:-.4px}
+ html body #appView #coForm.cp .cp-amt .v{margin-top:4px;font:700 19px/26.6px var(--sans)}
+ html body #appView #coForm.cp .cp-top{flex-wrap:wrap}
+ html body #appView #coForm.cp .cp-id{flex:1 1 0}
+ html body #appView #coForm.cp .cp-tabs{margin:0 -16px;padding:0 8px;gap:0;height:45px;border-top:1px solid var(--nd-line);border-bottom:1px solid var(--nd-line)}
+ html body #appView #coForm.cp .cp-tabs>button{flex:1;height:44px;font:500 14px/1 var(--sans)}
+ html body #appView #coForm.cp .cp-tabs>button[aria-selected="true"]{color:var(--nd-blue);font-weight:600;box-shadow:inset 0 -2px 0 var(--nd-blue)}
+ html body #appView .shell .main #coForm.cp>.cp-body{padding:20px 0 24px!important}
+ html body #appView #coForm.cp .cp-ov{gap:12px}
+ html body #appView #coForm.cp .cp-ov .v{font-size:14px}
+ html body #appView #coForm.cp .cp-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+ html body #appView #coForm.cp .cp-stats b{font-size:15px}
+ html body #appView #coForm.cp .cp-sec{margin-top:34px}
+ html body #appView #coForm.cp .cp-sech{flex-wrap:wrap}
+ html body #appView #coForm.cp .cp-sech h3{font-size:16px}
+ html body #appView #coForm.cp .cp-seg{order:5;display:flex;width:100%;margin-top:4px}
+ html body #appView #coForm.cp .cp-seg>button{flex:1;height:32px;font-size:13px}
+ html body #appView #coForm.cp .cp-pr{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n a" "d a";row-gap:2px;min-height:0;padding:11px 0;font-size:15px}
+ html body #appView #coForm.cp .cp-pr .n{grid-area:n}
+ html body #appView #coForm.cp .cp-pr .d{grid-area:d;font-size:12.5px}
+ html body #appView #coForm.cp .cp-pr .a{grid-area:a}
+ html body #appView #coForm.cp .cp-pr .q{display:none}
+ html body #appView #coForm.cp .cp-qr{grid-template-columns:minmax(0,1fr) auto 18px;column-gap:10px;padding:12px 0;font-size:15px}
+ html body #appView #coForm.cp .cp-qr .d,html body #appView #coForm.cp .cp-qr>.pill{display:none}
+ html body #appView #coForm.cp .cp-qr .s{font-size:12.5px}
+ html body #appView #coForm.cp .cp-qr .s>.pm{display:inline-block;margin-right:6px;font-size:11px;padding:1px 6px}
+ html body #appView #coForm.cp .cp-qr .s>.sd{display:inline}
+ html body #appView #coForm.cp .cp-tl{margin:0 0 12px 4px}
+ html body #appView #coForm.cp .cp-ev{grid-template-columns:42px 34px minmax(0,1fr) auto;gap:6px}
+ html body #appView #coForm.cp .cp-grp{display:block;padding:20px 0}
+ html body #appView #coForm.cp .cp-grph{margin-bottom:14px}
+ html body #appView #coForm.cp .cp-grph h4{font-size:15px}
+ html body #appView #coForm.cp .cp-grpb .grid2{grid-template-columns:1fr!important}
+ html body #appView #coForm.cp .form-actions>.cp-tel{display:inline-flex}
+ html body #appView #coForm.cp .form-actions>.cp-act{order:5;flex:1 1 0;height:48px;min-width:0;padding:0 8px;justify-content:center;border-radius:12px;font-size:15px;white-space:nowrap}
+ html body #appView #coForm.cp .form-actions>.panel-b-danger{order:1!important;margin-left:0!important}
+ html body #appView #coForm.cp .form-actions>.panel-b-danger:not(.nd-solo-menu)>.nd-pop{left:0!important;right:auto!important;transform:none!important}
+ html body #appView #coForm.cp .form-actions>.btn.save{order:9;flex:1.3 1 0!important;min-width:0!important}
+}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -12695,6 +12841,222 @@ const NaroOrderImport=(()=>{
  }
  window.NaroTrash={deleteStock,deletePayment,deleteMaster,openBin,visible,hidden,trashRow,restoreEntry};
  void showHidden;
+})();
+
+/* 거래처 오른쪽 패널(10/11, 시안 A '흐름형' 승인). 화면만 바꾼다 — 저장 규칙·필드 id·저장 버튼은 원래 것 그대로.
+   원래 renderCoDetail이 그린 뒤 같은 폼을 다시 짠다: 머리(이름·연락처·받을/줄 금액) + 탭 [거래 · 단가 · 정보].
+   거래 = 받을 금액(매입처는 줄 금액) 요약 · 최근 입금(출금) · 거래 내역(견적, 매입처는 매입)을 줄을 눌러 펼친다.
+   정보 = 원래 입력 칸을 기본 정보 / 연락처 / 메모로 묶어 옮긴다(복사하지 않아 저장·변경 감지가 그대로 동작). */
+(()=>{
+ if(typeof renderCoDetail!=='function')return;
+ const desk=matchMedia('(min-width:1024px)');
+ const ui={cid:null,tab:'deal',seg:'open',allPays:false,allDeals:false,open:null};
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
+ const won=n=>money(n)+'원';
+ const md=d=>{const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||'');return m?`${m[1]}.${m[2]}`:'—';};
+ const fn=(name,...a)=>{try{const f=globalThis[name];return typeof f==='function'?f(...a):undefined;}catch{return undefined;}};
+ const D=()=>{try{return db;}catch{return null;}};
+ const sel=()=>{try{return coSel;}catch{return null;}};
+ const ICON={
+  chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  mail:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>',
+  empty:'<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg>'
+ };
+ const STATUS_CLASS={'작성중':'st-draft','발송':'st-sent','수주':'st-won','부분납품':'st-sent','납품':'st-done'};
+ const names=lines=>{const n=(lines||[]).map(l=>(l.name||'').trim()).filter(Boolean);return n.length?n[0]+(n.length>1?` 외 ${n.length-1}건`:''):'품목 없음';};
+ const qtyOf=lines=>(lines||[]).filter(l=>(l.name||'').trim()).reduce((s,l)=>s+(Number(l.qty)||0),0);
+
+ // ── 매출처: 견적별 납품·입금 ──
+ function quoteRows(cid){
+  const d=D(),pays=d.payments||[];
+  return (d.quotes||[]).filter(q=>q.company_id===cid&&q.status!=='취소').map(q=>{
+   const total=fn('quoteAmount',q)??0;
+   const dels=(q.deliveries||[]).map(x=>{const lines=fn('deliveredLines',q,x)||[];return {date:x.date||q.delivered_at||'',kind:'납품',text:`${money(lines.reduce((s,l)=>s+(Number(l.qty)||0),0))}개`,amount:0};});
+   const delivered=fn('deliveredAmount',q)??0;
+   const linked=pays.filter(p=>p.quote_id===q.id&&(p.kind==='수금'||(p.kind==='지급'&&p.refund)));
+   const paid=linked.reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
+   const full=!!fn('quoteIsFullyDelivered',q);
+   const want=qtyOf(q.lines),got=(q.deliveries||[]).reduce((s,x)=>s+(fn('deliveredLines',q,x)||[]).reduce((a,l)=>a+(Number(l.qty)||0),0),0);
+   const ev=[...dels,...linked.map(p=>({date:p.date||'',kind:p.kind==='수금'?'입금':'환불',text:[p.method,p.memo].filter(Boolean).join(' · ')||'입금',amount:(p.kind==='수금'?1:-1)*(Number(p.amount)||0)}))]
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+   if(!dels.length)ev.unshift({date:'',kind:'납품',text:want?`아직 납품 전 · ${money(want)}개 남음`:'아직 납품 전',amount:0,todo:true});
+   else if(!full&&want>got)ev.push({date:'',kind:'납품',text:`${money(want-got)}개 남음`,amount:0,todo:true});
+   const left=delivered-paid;
+   const done=full&&left<=0;
+   const leftText=!dels.length?(paid>0?`선입금 ${won(paid)}`:'납품 전'):left>0?won(left):left<0?`${won(-left)} 더 받음`:'0원 · 다 받음';
+   return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기 ›',kind:'quote'};
+  }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
+ }
+ // ── 매입처: 매입별 입고·출금(매입 화면이 켜져 있을 때) ──
+ function purchaseRows(cid){
+  const P=globalThis.NaroPurchases;if(!P?.vendor)return null;
+  const st=P.state?.().status;if(st==='unknown'){P.load?.().then(()=>{if(sel()===cid)renderCoDetail();});return null;}
+  if(st!=='ready')return null;
+  return P.vendor(cid).map(p=>{
+   const fx=p.cur!=='KRW',amt=n=>fx?`${p.cur} ${Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2})}`:won(n);
+   const ev=[...p.receipts.map(r=>({date:r.date,kind:'입고',text:`${money(r.qty)}개`,amount:0})),
+    ...p.pays.map(x=>({date:x.date,kind:x.kind==='지급'?'출금':'돌려받음',text:x.method||'출금',amount:(x.kind==='지급'?1:-1)*x.amount}))].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+   if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
+   const left=p.due-p.paid;
+   return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
+    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기 ›',kind:'purchase'};
+  }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
+ }
+ function summary(c){
+  const d=D(),sell=c.type!=='매입';
+  if(sell){
+   const r=(fn('arData')||[]).find(x=>x.cid===c.id)||{delivered:0,paid:0,open:0,orders:0,lastDeliver:'',lastPay:''};
+   const pays=(d.payments||[]).filter(p=>p.company_id===c.id&&p.kind==='수금').sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
+   const deals=quoteRows(c.id),recent=[r.lastDeliver,r.lastPay,deals[0]?.date].filter(Boolean).sort().slice(-1)[0]||'';
+   const pct=r.delivered>0?Math.max(0,Math.min(100,Math.round(r.paid/r.delivered*100))):0;
+   return {sell,amtLabel:'받을 금액',amt:Math.max(0,r.open),left:r.open,pct,verb:'받음',base:r.delivered,paid:r.paid,money:'받을 금액',payTitle:'최근 입금',payBtn:'입금 추가',dealTitle:'거래 내역',dealBtn:'새 견적',openLabel:'진행 중',
+    line:[['최근 거래',md(recent)],['견적',`${deals.length}건`],['납품 누계',won(r.delivered)],['입금 누계',won(r.paid)]],
+    pays:pays.map(p=>({date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'입금',ref:(d.quotes.find(q=>q.id===p.quote_id)||{}).no||'',amount:Number(p.amount)||0})),
+    deals,has:deals.length>0||pays.length>0||r.delivered>0};
+  }
+  const pays=(d.payments||[]).filter(p=>p.company_id===c.id&&p.kind==='지급').sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
+  const deals=purchaseRows(c.id)||[],krw=deals.filter(p=>!/[A-Z]{3} /.test(p.amountText||''));
+  const due=krw.reduce((s,p)=>s+(p.amount||0),0),paidAll=pays.reduce((s,p)=>s+(Number(p.amount)||0),0);
+  const left=Math.max(0,krw.reduce((s,p)=>s+Math.max(0,(p.leftWarn?Number(String(p.leftText).replace(/[^\d]/g,'')):0)),0));
+  const recent=[deals[0]?.date,pays[0]?.date].filter(Boolean).sort().slice(-1)[0]||'';
+  const pct=due>0?Math.max(0,Math.min(100,Math.round((due-left)/due*100))):0;
+  return {sell,amtLabel:'줄 금액',amt:left,left,pct,verb:'지급',base:due,paid:due-left,money:'줄 금액',payTitle:'최근 출금',payBtn:'출금 추가',dealTitle:'매입 내역',dealBtn:'새 매입',openLabel:'남은 일',
+   line:[['최근 거래',md(recent)],['매입',`${deals.length}건`],['매입 누계',won(due)],['출금 누계',won(paidAll)]],
+   pays:pays.map(p=>({date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'출금',ref:'',amount:Number(p.amount)||0})),
+   deals,has:deals.length>0||pays.length>0,noPurchases:!globalThis.NaroPurchases?.vendor};
+ }
+
+ // 요약 한 줄: 82% 받음 · 160,100원 남음 / 납품 전 · 미리 받은 돈 50,000원 / 100% 받음 · 다 받았어요
+ function ovText(s){
+  const sep='<span class="sep">·</span>',pre=s.sell&&s.left<0?`${sep}<span class="cp-pre">미리 받은 돈 ${won(-s.left)}</span>`:'';
+  if(!(s.base>0))return `<b>${s.sell?'납품 전':'입고 전'}</b>${pre}`;
+  if(s.left<=0)return `<b>100%</b>${esc(s.verb)}${sep}<span>${s.sell?'다 받았어요':'다 줬어요'}</span>${pre}`;
+  return `<b>${s.pct}%</b>${esc(s.verb)}${sep}<span class="cp-warn">${won(s.left)} 남음</span>`;
+ }
+ function dealHtml(s){
+  if(!s.has)return `<div class="cp-empty">${ICON.empty}<b>아직 거래가 없어요</b><span>${s.sell?'첫 견적을 만들면 받을 금액과 거래 내역이 여기에 쌓여요':'매입을 등록하면 줄 금액과 매입 내역이 여기에 쌓여요'}</span><button type="button" class="btn primary" data-cp="new">${s.sell?'첫 견적 만들기':'첫 매입 등록'}</button></div>`;
+  const pays=ui.allPays?s.pays:s.pays.slice(0,3);
+  const open=s.deals.filter(r=>!r.done),done=s.deals.filter(r=>r.done);
+  const list=ui.seg==='open'?open:ui.seg==='done'?done:s.deals,shown=ui.allDeals?list:list.slice(0,5);
+  const row=r=>{const on=ui.open===r.id;return `<button type="button" class="cp-qr" data-cp-row="${esc(r.id)}" aria-expanded="${on}"><span class="d">${md(r.date)}</span><span class="m"><span class="t">${esc(r.title)}</span><span class="s"><span class="pill pm ${esc(r.cls)}">${esc(r.st)}</span><span class="sd">${md(r.date)} · </span>${esc(r.sub)}</span></span><span class="pill ${esc(r.cls)}">${esc(r.st)}</span><span class="a">${esc(r.amountText||won(r.amount))}</span><span class="cv">${ICON.chev}</span></button>`+
+   (on?`<div class="cp-tl">${r.ev.map(e=>`<div class="cp-ev${e.todo?' todo':''}"><span>${e.date?md(e.date):'—'}</span><b>${esc(e.kind)}</b><em>${esc(e.text)}</em><i>${e.amount?(e.amount<0?'−':'')+won(Math.abs(e.amount)):''}</i></div>`).join('')}
+    <div class="cp-tls"><span>${r.kind==='quote'?'이 견적':'이 매입'} 남은 금액 <b class="${r.leftWarn?'cp-warn':''}">${esc(r.leftText)}</b></span><button type="button" class="cp-link" data-cp-go="${esc(r.id)}" data-cp-kind="${r.kind}">${esc(r.go)}</button></div></div>`:'');};
+  return `<div class="cp-ov">
+    <div><div class="k">${esc(s.money)}</div><div class="v">${ovText(s)}</div></div>
+    <button type="button" class="btn primary" data-cp="pay">${esc(s.payBtn)}</button>
+    <div class="cp-track"><i style="width:${s.pct}%"></i></div>
+    <div class="cp-stats">${s.line.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
+   </div>
+   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기 ›'}</button>`:''}</div>
+    ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?`<span class="q">${esc(p.ref)}</span>`:''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
+   </section>
+   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>
+     <div class="cp-seg" role="group" aria-label="${esc(s.dealTitle)} 보기">${[['open',`${s.openLabel} ${open.length}`],['done',`끝남 ${done.length}`],['all','전체']].map(([v,t])=>`<button type="button" data-cp-seg="${v}" aria-pressed="${ui.seg===v}">${esc(t)}</button>`).join('')}</div>
+     <button type="button" class="btn ghost cp-new" data-cp="new">${ICON.plus}${esc(s.dealBtn)}</button></div>
+    ${s.noPurchases?'<p class="cp-none">매입 화면을 쓰면 매입 내역이 여기에 나와요</p>':shown.length?`<div class="cp-list">${shown.map(row).join('')}</div>`:`<p class="cp-none">${ui.seg==='open'?'진행 중인 거래가 없어요':ui.seg==='done'?'끝난 거래가 없어요':'거래가 없어요'}</p>`}
+    ${list.length>5?`<div class="cp-more"><button type="button" class="cp-link" data-cp="deals">${ui.allDeals?'접기':`${list.length-5}건 더 보기`}</button></div>`:''}
+   </section>`;
+ }
+ const grp=(title,desc,nodes)=>{const g=document.createElement('section');g.className='cp-grp';g.innerHTML=`<div class="cp-grph"><h4>${esc(title)}</h4>${desc?`<p>${esc(desc)}</p>`:''}</div><div class="cp-grpb"></div>`;const b=g.lastElementChild;nodes.filter(Boolean).forEach(n=>b.append(n));return g;};
+ const unit=id=>{const el=document.getElementById(id);return el?.closest('.grid2')||el?.closest('.field')||null;};
+
+ function enhance(){
+  const form=document.getElementById('coForm');if(!form||form.classList.contains('hidden'))return;
+  const d=D();if(!d)return;
+  const isNew=sel()==='__new__',c=isNew?null:(d.companies||[]).find(x=>x.id===sel());if(!isNew&&!c)return;
+  if(ui.cid!==sel()){ui.cid=sel();ui.tab=isNew?'info':'deal';ui.seg='open';ui.allPays=false;ui.allDeals=false;ui.open=null;}
+  const actions=form.querySelector('.form-actions'),back=document.getElementById('coBackToList');
+  const name=unit('f_name'),typeBiz=unit('f_type'),contact=unit('f_contact'),email=unit('f_email'),addr=unit('f_address'),addr2=unit('f_address_detail'),memo=unit('f_memo'),qmemo=unit('f_qmemo');
+  const prices=document.getElementById('coPriceRules')?.closest('section');
+  if(!actions||!name)return;
+  const s=isNew?null:summary(c);
+  if(s&&!s.sell&&ui.tab==='price')ui.tab='deal';
+  const tabs=isNew?[['info','정보'],['price','단가']]:s.sell?[['deal','거래'],['price','단가'],['info','정보']]:[['deal','거래'],['info','정보']];
+  if(!tabs.some(t=>t[0]===ui.tab))ui.tab=tabs[0][0];
+  const typePill=!c?'':c.type==='매입'?'<span class="pill buy">매입</span>':'<span class="pill sell">매출</span>';
+  const meta=c?[c.contact,c.phone].filter(Boolean).map(esc):[];
+  // 머리
+  const head=document.createElement('div');head.className='cp-head';
+  head.innerHTML=`<div class="cp-top"><div class="cp-id"><div class="cp-cap">거래처</div><div class="co-title"><span class="co-title-name">${esc(c?c.name||'(이름 없음)':'새 거래처')}</span></div>
+    ${c?`<div class="cp-meta">${meta.length?meta.join('<span class="dot">·</span>'):'<span class="none">담당자·연락처 없음</span>'}${typePill}</div>`:'<div class="cp-meta"><span class="none">상호를 입력하고 등록하세요</span></div>'}</div>
+    ${s?`<div class="cp-amt"><div class="k">${esc(s.amtLabel)}</div><div class="v">${won(s.amt)}</div></div>`:''}</div>
+   <div class="cp-tabs" role="tablist" aria-label="거래처 상세">${tabs.map(([v,t])=>`<button type="button" role="tab" data-cp-tab="${v}" aria-selected="${ui.tab===v}">${t}</button>`).join('')}</div>`;
+  // 패널
+  const pDeal=document.createElement('div');pDeal.className='cp-panel';pDeal.dataset.cpPanel='deal';if(s)pDeal.innerHTML=dealHtml(s);
+  const pPrice=document.createElement('div');pPrice.className='cp-panel';pPrice.dataset.cpPanel='price';
+  if(prices){prices.classList.add('cp-prices');const h=prices.querySelector('h3');if(h)h.textContent='약정 판매 단가';pPrice.append(prices);}
+  const pInfo=document.createElement('div');pInfo.className='cp-panel';pInfo.dataset.cpPanel='info';
+  pInfo.append(grp('기본 정보','견적서·거래명세서에 나와요',[name,typeBiz]),grp('연락처','견적서를 보낼 때 써요',[contact,email,addr,addr2]),grp('메모','견적서 기본 비고는 새 견적에 자동으로 들어가요',[memo,qmemo]));
+  if(c&&window.NaroChangeLog)pInfo.insertAdjacentHTML('beforeend','<button type="button" class="cp-link cp-log" data-cp="log">이 거래처의 변경 기록 보기</button>');
+  [pDeal,pPrice,pInfo].forEach(p=>{p.hidden=p.dataset.cpPanel!==ui.tab;});
+  const body=document.createElement('div');body.className=desk.matches?'workspace-form-body cp-body':'cp-body';
+  body.append(pDeal,pPrice,pInfo);
+  // 정리: 원래 머리·요약·액션 줄·옛 거래 내역은 지운다(입력 칸은 위에서 옮겼다)
+  [...form.childNodes].forEach(n=>{if(n!==actions)n.remove();});
+  form.prepend(head,body);
+  if(back){if(desk.matches)body.prepend(back);else form.prepend(back);}
+  form.classList.add('cp');if(desk.matches)form.classList.add('workspace-form');
+  // 아래 버튼 줄: [전화(폰)] [이메일] [거래명세서(매출처·PC)] … [⋯] [저장]
+  actions.querySelectorAll('.cp-act').forEach(b=>b.remove());
+  if(c){
+   const mk=(cls,icon,label,dis)=>{const b=document.createElement('button');b.type='button';b.className='btn ghost cp-act '+cls;b.innerHTML=icon+label;if(dis)b.disabled=true;return b;};
+   const tel=mk('cp-tel',ICON.phone,'전화',!c.phone),mail=mk('cp-mail',ICON.mail,'이메일',!c.email);
+   tel.onclick=()=>{location.href='tel:'+String(c.phone).replace(/[^\d+]/g,'');};
+   mail.onclick=()=>{location.href='mailto:'+encodeURIComponent(c.email);};
+   const btns=[tel,mail];
+   if(c.type!=='매입'){const st=mk('cp-stmt',ICON.doc,'거래명세서',!d.quotes.some(q=>q.company_id===c.id&&q.status!=='취소'));st.onclick=()=>openStatement(c);btns.push(st);}
+   actions.prepend(...btns);
+   const stmt=actions.querySelector('.cp-stmt'),del=actions.querySelector(':scope>.btn.del');
+   if(stmt&&del&&!desk.matches){const menu=document.createElement('details');menu.className='panel-b-danger';menu.innerHTML='<summary>더보기</summary>';del.before(menu);menu.append(stmt,del);}
+  }
+  bind(form,c,s);
+ }
+ function openStatement(c){
+  const q=D().quotes.filter(x=>x.company_id===c.id&&x.status!=='취소').sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.no||'').localeCompare(a.no||''))[0];
+  if(!q)return;
+  try{qtDocType='거래명세서';qtSel=q.id;qtEditing=null;qtBaseline='';}catch{}
+  if(fn('switchView','quotes')===false)return;fn('renderQtList');fn('renderQtDetail');fn('scrollToDetail','qtForm');
+ }
+ function newDeal(c,s){
+  if(s?.sell===false){if(fn('switchView','purchases')===false)return;setTimeout(()=>{document.getElementById('puNewBtn')?.click();setTimeout(()=>{const v=document.getElementById('pu_co');if(v&&!v.value){v.value=c.id;v.dispatchEvent(new Event('change',{bubbles:true}));}},60);},60);return;}
+  if(fn('switchView','quotes')===false)return;
+  document.getElementById('qtNewBtn')?.click();
+  try{if(qtEditing){qtEditing.company_id=c.id;fn('applyCoQuoteMemo',qtEditing,'');fn('renderQtDetail');fn('scrollToDetail','qtForm');}}catch{}
+ }
+ function addPay(c,s){
+  if(fn('switchView','payments')===false)return;
+  const kind=document.getElementById('payKind');
+  if(kind&&s&&!s.sell&&kind.value!=='지급'){kind.value='지급';kind.dispatchEvent(new Event('change',{bubbles:true}));}
+  const el=document.getElementById('payCo');if(el){el.value=c.id;fn('updatePayQuotes');}
+  const box=document.getElementById('payEntry');if(box)box.open=true;
+  setTimeout(()=>document.getElementById('payAmt')?.focus(),40);
+ }
+ function bind(form,c,s){
+  form.querySelectorAll('[data-cp-tab]').forEach(b=>b.onclick=()=>{ui.tab=b.dataset.cpTab;form.querySelectorAll('[data-cp-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));form.querySelectorAll('[data-cp-panel]').forEach(p=>{p.hidden=p.dataset.cpPanel!==ui.tab;});form.querySelector('.cp-body')?.scrollTo?.(0,0);});
+  const deal=form.querySelector('[data-cp-panel="deal"]');if(!deal||!c)return;
+  const repaint=()=>{deal.innerHTML=dealHtml(summary(c));};
+  deal.onclick=ev=>{
+   const t=ev.target.closest('button');if(!t||!deal.contains(t))return;
+   if(t.dataset.cpRow){ui.open=ui.open===t.dataset.cpRow?null:t.dataset.cpRow;repaint();return;}
+   if(t.dataset.cpSeg){ui.seg=t.dataset.cpSeg;ui.allDeals=false;repaint();return;}
+   if(t.dataset.cpGo){if(t.dataset.cpKind==='purchase'){globalThis.NaroPurchases?.open?.(t.dataset.cpGo);return;}
+    try{qtSel=t.dataset.cpGo;qtEditing=null;qtBaseline='';}catch{}if(fn('switchView','quotes')===false)return;fn('renderQtList');fn('renderQtDetail');fn('scrollToDetail','qtForm');return;}
+   const a=t.dataset.cp;
+   if(a==='pays'){ui.allPays=!ui.allPays;repaint();}
+   else if(a==='deals'){ui.allDeals=!ui.allDeals;repaint();}
+   else if(a==='pay')addPay(c,s);
+   else if(a==='new')newDeal(c,s);
+  };
+  form.querySelector('[data-cp="log"]')?.addEventListener('click',()=>window.NaroChangeLog?.open({ref:c.id,title:c.name||'거래처'}));
+ }
+ const orig=renderCoDetail;
+ renderCoDetail=function(){const r=orig.apply(this,arguments);try{enhance();}catch(e){console.error('[company-panel]',e);}return r;};
+ desk.addEventListener('change',()=>{try{if(document.getElementById('coForm')?.classList.contains('cp'))renderCoDetail();}catch{}});
+ window.NaroCompanyPanel={ui,summary:c=>summary(c)};
 })();
 </script><style id="naro-dashboard-style">/* Approved dashboard layout. Scope every rule; use the app's light/dark tokens. */
 #appView #view-dash.nd-dashboard .dash-brief{display:flex!important;flex-direction:column;gap:14px;width:100%;max-width:none;padding:18px 28px 24px;box-sizing:border-box}
