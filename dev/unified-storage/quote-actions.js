@@ -423,11 +423,11 @@
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);
  },true);
- /* 거래처 고르기(10/11): 새 견적·편집 중이면 머리의 거래처 이름(비어 있으면 '거래처 선택')을 눌러 검색해서 고른다.
+ /* 거래처 고르기(10/11): 새 견적일 때만 머리의 거래처 이름(비어 있으면 '거래처 선택')을 눌러 검색해서 고른다.
     새 견적을 열면 바로 펼친다. 고르면 정보 탭의 거래처 칸(#fq_co)에 넣고 change — 단가·메모 자동 채움은 원래 동작 그대로. */
  let coPop=null,coAuto='';
  const closeCoPop=()=>{coPop?.remove();coPop=null;};
- function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__'||(typeof qtEditing!=='undefined'&&!!qtEditing);}
+ function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__';}
  function openCoPop(anchor){
   closeCoPop();const sel=document.getElementById('fq_co');if(!sel)return;
   const hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
