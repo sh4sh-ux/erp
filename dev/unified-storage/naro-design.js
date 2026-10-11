@@ -391,6 +391,8 @@ const NaroCompanyLedger=(()=>{
   closePop();},true);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pop){const b=pop.btn;closePop();b.focus();}});
  const toolBtn=(icon,label,cls='')=>{const b=document.createElement('button');b.type='button';b.className='nd-tool '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svgI(icon);return b;};
+ // 다른 화면 부품(휴지통·매입)이 같은 필터 버튼·팝업을 쓰게.
+ window.NaroPop={open:(b,build,restore,title)=>openPop(b,build,restore,title),close:()=>closePop(),filterBtn:(label='필터')=>toolBtn(ICON_FILTER,label)};
  function tools(){
   const hide=[];
   for(const [view,c] of Object.entries(TOOLS)){

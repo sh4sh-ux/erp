@@ -349,7 +349,7 @@
       <div class="nd-qa-ln"><div><span>견적서</span></div><b class="nd-qa-tag mute">목록에서 빠짐 · 복원 가능</b></div>
      </div>
      ${net>0?`<div class="nd-qa-chips" role="group" aria-label="받은 돈"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
-     <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 맨 아래 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
+     <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 위 필터(≡)의 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">삭제</button></div>`);
    d.querySelectorAll('[data-refund]').forEach(b=>b.onclick=()=>{refund=b.dataset.refund;paint();});
@@ -393,6 +393,8 @@
  }
  // 목록 맨 아래 '취소된 견적 N건 보기'(상태 필터를 고르지 않았을 때만)
  function cancelToggle(){
+  // 10/11: '삭제·취소된 견적 보기'는 목록 위 필터 창으로 옮겼다(trash-actions.js). 남은 옛 버튼만 치운다.
+  document.querySelectorAll('#qtList>.nd-cancel-toggle').forEach(x=>x.remove());return;
   const list=document.getElementById('qtList');if(!list)return;
   const n=(db.quotes||[]).filter(x=>x.status==='취소').length,st=document.getElementById('qtStatus')?.value||'';
   let b=list.querySelector(':scope>.nd-cancel-toggle');

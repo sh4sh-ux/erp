@@ -179,6 +179,7 @@ html body #appView #qtForm .nd-log-link{display:block;margin:20px 0 4px;padding:
 .nd-log-sheet .nd-log-row .a{flex:none;padding:1px 7px;border-radius:6px;font:600 11.5px/18px var(--sans);background:var(--nd-fill);color:var(--nd-ink-2)}
 .nd-log-sheet .nd-log-row .a-추가{background:var(--nd-blue-soft);color:var(--nd-blue)}
 .nd-log-sheet .nd-log-row .a-삭제,.nd-log-sheet .nd-log-row .a-취소{background:var(--nd-red-soft);color:var(--nd-red)}
+.nd-log-sheet .nd-log-row .a-복원{background:var(--nd-green-soft,rgba(29,173,83,.12));color:var(--nd-green,#1DAD53)}
 .nd-log-sheet .nd-log-row ul{margin:4px 0 0;padding:0 0 0 14px;font:400 12.5px/19px var(--sans);color:var(--nd-ink-2)}
 .nd-log-sheet .nd-log-row .w{font:400 12px/20px var(--sans);color:var(--nd-ink-3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nd-log-sheet .nd-log-empty{margin:0;padding:32px 0;text-align:center;font:400 13.5px/20px var(--sans);color:var(--nd-ink-3)}

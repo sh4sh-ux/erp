@@ -12,7 +12,7 @@ test('견적서 수정: 수량·단가·상태·납품 기록',()=>{
 test('취소·되살리기·납품 고침 · 추가·삭제',()=>{
  const cancelled={...q,status:'취소',cancel_reason:'거래 취소'};
  assert.equal(describeChange('quotes',[q],[cancelled],{companies}).action,'취소');
- assert.equal(describeChange('quotes',[cancelled],[q],{companies}).action,'되살리기');
+ assert.equal(describeChange('quotes',[cancelled],[q],{companies}).action,'복원');
  const del={...q,deliveries:[{id:'d1',date:'2026-10-08',lines:[{line_id:'l1',qty:5}]}]};
  assert.ok(describeChange('quotes',[del],[{...del,deliveries:[{...del.deliveries[0],void_at:'x',void_reason:'고침'}]}],{companies}).changes.includes('납품 기록 고침 10.08 5개'));
  assert.equal(describeChange('quotes',[],[q],{companies}).action,'추가');
@@ -38,4 +38,18 @@ test('매입 변경 기록: 추가·입고 확정·반품·취소를 한 줄로'
  const t=describeChange('purchases',[p],[{...p,returns:[{id:'t1',date:'2026-10-11',lines:[{line_id:'l1',qty:5}],reason:'불량'}]}],ref);
  assert.deepEqual(t.changes,['반품 10.11 5개 · 불량']);
  assert.equal(describeChange('purchases',[p],[{...p,status:'취소'}],ref).action,'취소');
+});
+
+test('한번에 삭제(보관)·복원은 수정이 아니라 삭제·복원으로 적는다',()=>{
+ const companies=[{id:'c',name:'거래처'}];
+ const q={id:'q',no:'Q-1',company_id:'c',status:'작성중',lines:[],deliveries:[]};
+ const dq={...q,status:'취소',cancel_reason:'삭제',cancelled_at:'2026-10-11',cancel_prev:'작성중'};
+ assert.deepEqual([describeChange('quotes',[q],[dq],{companies}).action,describeChange('quotes',[q],[dq],{companies}).changes],['삭제',['목록에서 뺌 · 복원 가능']]);
+ assert.equal(describeChange('quotes',[dq],[q],{companies}).action,'복원');
+ const p={id:'p',no:'PO-1',kind:'국내',status:'취소',vendor_id:'c',lines:[],receipts:[]};
+ assert.equal(describeChange('purchases',[p],[{...p,removed_at:'2026-10-11T00:00:00Z',removed_from:'취소'}],{companies}).action,'삭제');
+ assert.equal(describeChange('purchases',[{...p,removed_at:'x'}],[{...p,status:'작성중'}],{companies}).action,'복원');
+ const h=describeChange('settings',{schema:3},{schema:3,hidden:{companies:['c']},trash:[]},{companies});
+ assert.deepEqual([h.action,h.label],['삭제','거래처 거래처']);
+ assert.equal(describeChange('settings',{schema:3},{schema:3,trash:[{key:'payments',id:'x'}]},{companies}),null);
 });
