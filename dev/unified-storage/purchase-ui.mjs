@@ -287,7 +287,8 @@ export function installPurchaseUI({port,features=()=>true}){
 
  // ── 고치기 ──
  const blank=()=>({id:'l'+uid(),item_id:'',qty:1,unit_price:0});
- function edit(fn,redraw=true){const base=st.draft&&st.draft.id===st.sel?st.draft:structuredClone(cur());fn(base);st.draft=base;st.dirty=true;if(redraw)render();}
+ const purchaseSnapshot=p=>JSON.stringify({...p,memo:p.memo||'',vat_on:p.vat_on!==false,lines:p.lines.map(l=>{const v={...l};if(!v.color)delete v.color;if(!v.spec)delete v.spec;return v;})},(_key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+ function edit(fn,redraw=true){const base=st.draft&&st.draft.id===st.sel?st.draft:structuredClone(cur());fn(base);st.draft=base;st.dirty=!cur()||purchaseSnapshot(base)!==purchaseSnapshot(cur());if(redraw)render();}
  function pickItem(i,id){
   if(id==='__free__'){toast('매입은 등록된 품목만 넣을 수 있어요. 품목 화면에서 먼저 등록해 주세요.');return;}
   const it=itemOf(id);if(!it)return;if(isWork(it)){toast('작업 품목은 매입에 넣을 수 없어요.');return;}

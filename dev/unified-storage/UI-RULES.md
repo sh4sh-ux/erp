@@ -102,3 +102,16 @@ Quote and purchase row-delete SVGs both use 14×14px and stroke-width 2. Apply t
 shared `ui-contract.css` selectors for both forms. Check rendered separator endpoints
 against the section bounds and actual SVG rectangles; CSS source equality alone
 is insufficient. Screen rules must not change printed quotation documents.
+
+## Saved button state
+
+Existing records and supplier settings with no pending changes use `nd-saved`,
+neutral `--nd-fill`/`--nd-ink-3`, and the label 저장됨. Changed values restore the
+save label and normal action color; reverting values restores the saved state.
+Supplier dirty checks compare the actual trimmed persisted fields and combined
+base/detail address, ignoring separately auto-saved photo references. Purchase
+comparisons normalize optional empty fields and key order. Stock minimum and
+existing material-edit actions also use this state; material action labels must
+not overwrite an existing edit's 저장됨 state. Keep native write/recovery controls.
+Verify actual field edits, revert, save completion, photo auto-save, and computed
+button colors on mobile/desktop in both themes.

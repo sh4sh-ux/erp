@@ -153,3 +153,10 @@
  html body #appView .nd-photo.warn .nd-photo-name>.nd-photo-state {flex-basis:100%;text-align:left;overflow-wrap:anywhere}
  html body #appView .nd-photo-error-dismiss {border:0;background:none;color:inherit;font:inherit;padding:4px 0;margin-left:8px;text-decoration:underline;cursor:pointer}
 }
+
+@media screen {
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved,
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved:hover {
+  background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important;
+ }
+}
