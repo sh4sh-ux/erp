@@ -368,3 +368,20 @@ test('saved forms share neutral buttons and edits/reverts update save state',asy
   }finally{await page.close();}
  }}finally{await browser.close();}
 });
+
+
+test('summary label and value are horizontally level on each row',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  for(const view of ['quotes','purchases']){
+   await open(page,view);const form=view==='quotes'?'qtForm':'puForm';
+   if(view==='quotes')await page.locator('#fq_margin').evaluate(e=>e.textContent='마진 32,500원 (13.3%)');
+   const rows=await page.locator('#'+form+' .qtotals .row').evaluateAll(es=>es.map(e=>{const k=e.querySelector('.k').getBoundingClientRect(),v=e.querySelector('.v').getBoundingClientRect();return {label:e.querySelector('.k').textContent,kCenter:k.top+k.height/2,vCenter:v.top+v.height/2};}));
+   assert.ok(rows.some(r=>r.label==='합계'));
+   if(view==='quotes')assert.ok(rows.some(r=>r.label==='예상 마진'));
+   for(const row of rows)assert.ok(Math.abs(row.kCenter-row.vCenter)<1,view+' '+width+' '+row.label+' center line');
+  }
+  await page.close();
+ }}finally{await browser.close();}
+});

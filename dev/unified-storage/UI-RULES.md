@@ -115,3 +115,5 @@ existing material-edit actions also use this state; material action labels must
 not overwrite an existing edit's 저장됨 state. Keep native write/recovery controls.
 Verify actual field edits, revert, save completion, photo auto-save, and computed
 button colors on mobile/desktop in both themes.
+
+견적서·매입 요약의 각 행은 항목명과 값을 수직 중앙 정렬하여 가로로 나란히 표시한다. 합계·예상 마진에도 같은 규칙을 적용하며 기존 열 너비, 글꼴, 구분선 길이는 유지한다.
