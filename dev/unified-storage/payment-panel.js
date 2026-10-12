@@ -3,6 +3,7 @@
 (()=>{
  const desk=matchMedia('(min-width:1024px)');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const paymentLabel=s=>esc(s).replace('입금·출금','입금<span class="nd-payment-dot">·</span>출금');
  const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
  const signed=n=>(n>0?'+':n<0?'−':'')+won(Math.abs(n));
  const company=p=>(data()?.companies||[]).find(c=>c.id===p?.company_id)?.name||'거래처 없음';
@@ -69,8 +70,8 @@
   const title=p?co?.name||'거래처 없음':kindTitle();
   const groups=new Map();for(const row of rows){const day=row.date||'날짜 없음';if(!groups.has(day))groups.set(day,[]);groups.get(day).push(row);}
   const metric=(label,n,count)=>`<div><span>${label}<small>${count}건</small></span><strong>${Math.round(n).toLocaleString('ko-KR')}<small>원</small></strong></div>`;
-  return `<button type="button" class="pp-back" data-pp="back">‹ <span>입금·출금</span></button>
-   <header class="pp-head"><div class="pp-title"><span class="pp-caption">${p?'거래처':'입출금 현황'}</span><h3 title="${esc(title)}">${esc(title)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong>${signed(sum.in-sum.out)}</strong></div><div class="pp-meta">${esc(periodLabel())} · ${p?'거래처 기록':'조회된 기록'}</div></header>
+  return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">${p?'거래처':'입출금 현황'}</span><h3 title="${esc(title)}">${p?esc(title):paymentLabel(title)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong>${signed(sum.in-sum.out)}</strong></div><div class="pp-meta">${esc(periodLabel())} · ${p?'거래처 기록':'조회된 기록'}</div></header>
    <div class="pp-body" id="pp-body"><section class="pp-metrics" aria-label="조회 결과 합계">${metric('입금 합계',sum.in,rows.filter(x=>x.kind!=='지급').length)}${metric('출금 합계',sum.out,rows.filter(x=>x.kind==='지급').length)}</section>
    <div class="pp-section-head"><h4>${p?'거래처 입출금 내역':'입출금 내역'} <small>${sum.count}건</small></h4>${p?'<button type="button" data-pp="overview">전체 내역</button>':''}</div>
    <div class="pp-columns" aria-hidden="true"><span>거래 내용</span><span>결제수단</span><span>금액</span></div>
@@ -85,7 +86,7 @@
   let list=v.querySelector(':scope>.pp-mobile-list');
   if(!list){list=document.createElement('div');list.className='pp-mobile-list';v.append(list);}
   const sum=totals(history(null));
-  const html=`<div class="pp-kind-tabs" role="group" aria-label="입출금 구분">${[['','전체'],['수금','입금'],['지급','출금']].map(([k,t])=>`<button type="button" data-pp="kind" data-kind="${k}" aria-pressed="${value('payFilter')===k}">${t}</button>`).join('')}</div><div class="pp-list-scope"><span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button></div><button type="button" class="pp-mobile-row" data-pp="overview"><span><b>${kindTitle()}</b><strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small></button>${ids.map(id=>{const p=get(id);return p?`<button type="button" class="pp-mobile-row" data-pp="record" data-id="${esc(id)}"><span><b>${esc(company(p))}</b><strong>${won(p.amount)}</strong></span><small>${esc(p.date)} · <em class="pp-badge ${p.kind==='지급'?'out':'in'}">${p.kind==='지급'?'출금':'입금'}</em> · ${esc(p.method||'미기록')}</small></button>`:'';}).join('')||'<p class="pp-empty">표시할 입출금 기록이 없습니다.</p>'}`;
+  const html=`<div class="pp-kind-tabs" role="group" aria-label="입출금 구분">${[['','전체'],['수금','입금'],['지급','출금']].map(([k,t])=>`<button type="button" data-pp="kind" data-kind="${k}" aria-pressed="${value('payFilter')===k}">${t}</button>`).join('')}</div><div class="pp-list-scope"><span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button></div><button type="button" class="pp-mobile-row" data-pp="overview"><span><b>${paymentLabel(kindTitle())}</b><strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small></button>${ids.map(id=>{const p=get(id);return p?`<button type="button" class="pp-mobile-row" data-pp="record" data-id="${esc(id)}"><span><b>${esc(company(p))}</b><strong>${won(p.amount)}</strong></span><small>${esc(p.date)} · <em class="pp-badge ${p.kind==='지급'?'out':'in'}">${p.kind==='지급'?'출금':'입금'}</em> · ${esc(p.method||'미기록')}</small></button>`:'';}).join('')||'<p class="pp-empty">표시할 입출금 기록이 없습니다.</p>'}`;
   if(list.innerHTML!==html)list.innerHTML=html;
  }
  function show(id){
@@ -102,7 +103,7 @@
   syncLeft(left,index,ids);
   let all=left?.querySelector('.pp-overview');
   if(index&&!all){all=document.createElement('button');all.type='button';all.className='pp-overview';all.dataset.pp='overview';index.before(all);}
-  if(all){const sum=totals(history(null)),html=`<span>${kindTitle()} <strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small>`;if(all.innerHTML!==html)all.innerHTML=html;all.classList.toggle('on',!p);}
+  if(all){const sum=totals(history(null)),html=`<span>${paymentLabel(kindTitle())} <strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small>`;if(all.innerHTML!==html)all.innerHTML=html;all.classList.toggle('on',!p);}
   let host=v.querySelector(':scope>.pp-detail');
   const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!document.getElementById('payEntry')?.open;
   v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);

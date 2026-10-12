@@ -1496,6 +1496,15 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
+ // Keep the wording intact; only the middle-dot gutters change.
+ function paymentDotSpacing(){
+  for(const root of document.querySelectorAll('#view-payments .page-head h2,.rail-nav [data-view="payments"],#bottomNav [data-view="payments"],.nd-pay-entry-head h3')){
+   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+   while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.nd-payment-dot')&&walker.currentNode.textContent.includes('입금·출금'))nodes.push(walker.currentNode);
+   for(const node of nodes){const fragment=document.createDocumentFragment(),parts=node.textContent.split('입금·출금');
+    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('span');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});node.replaceWith(fragment);}
+  }
+ }
  // Search controls keep their original node and handlers, including moved filter fields.
  const SEARCH_INPUTS='input[type="search"],.search input,.nd-tsearch input,.ip-pop>input,.qp-search';
  const searchClears=new Map();
@@ -1523,7 +1532,7 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
  addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
  document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};
