@@ -296,7 +296,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const d=today(),n=rows().filter(p=>p.date===d).length+1,vendor=companies().find(c=>c.type==='매입');
   st.draft={id:'pu_'+uid(),no:`PO-${d.slice(0,4)}${d.slice(5,7)}${d.slice(8)}-${n}`,kind:'국내',vendor_id:vendor?.id||'',date:d,status:'작성중',currency:'KRW',lines:[blank()],vat:{supply:0,tax:0},vat_on:true,tax_invoice:{received:false},costs:[],receipts:[],returns:[],cost_runs:[],created_at:nowIso(),updated_at:nowIso()};
   while(rows().some(p=>p.no===st.draft.no))st.draft.no=st.draft.no.replace(/-(\d+)$/,(m,x)=>'-'+(Number(x)+1));
-  st.sel=st.draft.id;st.dirty=true;st.editing=true;st.tab='items';st.sz=null;render();
+  st.sel=st.draft.id;st.dirty=true;st.editing=true;st.tab='basic';st.sz=null;render();
  }
  const recalcVat=p=>{const t=totals(p);p.vat={supply:t.supply,tax:t.tax};};
  async function save(){
