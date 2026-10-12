@@ -457,3 +457,24 @@ test('purchase navigation reuses loaded rows without repeated cloud requests',as
   assert.deepEqual(await page.evaluate(()=>fixturePurchaseRequests),['PURCHASE_STATE']);
  }finally{await browser.close();}
 });
+
+test('all screen searches and item/company pickers clear through the original filter handlers',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  for(const view of ['quotes','companies','items','materials','payments','purchases','stock','sales','ar','settings']){
+   await page.evaluate(view=>switchView(view),view);await page.waitForTimeout(120);
+   const searches=page.locator('#view-'+view+' input.nd-search-input:visible:not(:disabled)');const count=await searches.count();assert.ok(count>0,view+' has a search');
+   for(let i=0;i<count;i++){
+    const input=searches.nth(i);await input.fill('zz-no-matching-fixture');
+    const button=input.locator('..').locator('.nd-search-clear:visible').first();await button.waitFor();const b=await button.boundingBox(),r=await input.boundingBox();assert.ok(b.x>=r.x&&b.x+b.width<=r.x+r.width+1,view+' '+width+' clear inside input '+JSON.stringify({b,r}));
+    await button.click();assert.equal(await searches.nth(i).inputValue(),'');assert.equal(await button.count(),0,view+' empty search hides X');
+   }
+  }
+  await page.evaluate(()=>switchView('quotes'));await page.locator('#qtNewBtn').click();const picker=page.locator('.nd-co-pop');await picker.waitFor();const company=picker.locator('input');await company.fill('zz-no-match');assert.equal(await picker.locator('[role=option]').count(),0);await picker.locator('.nd-search-clear').click();assert.equal(await company.inputValue(),'');assert.equal(await picker.locator('[role=option]').count(),2);await picker.locator('[role=option]').filter({hasText:'합성 거래처'}).click();
+  if(width<821){await page.locator('#qtForm [data-qp-edit]').first().click();await page.locator('#qp-edit-item').click();}else await page.locator('#qtForm .ip-btn[data-f="item"]').first().click();
+  const item=page.locator(width<821?'.qp-search:visible':'.ip-pop>input:visible');await item.fill('zz-no-match');const host=item.locator('..');await host.locator('.nd-search-clear').click();assert.equal(await item.inputValue(),'');assert.ok(await page.locator(width<821?'.qp-result:visible':'.ip-opt:visible').count()>0,'item results restored');
+  if(evidence)await page.screenshot({path:resolve(evidence,`search-clear-${width}.png`)});
+  await page.close();
+ }}finally{await browser.close();}
+});

@@ -1474,7 +1474,32 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // Search controls keep their original node and handlers, including moved filter fields.
+ const SEARCH_INPUTS='input[type="search"],.search input,.nd-tsearch input,.ip-pop>input,.qp-search';
+ const searchClears=new Map();
+ const searchClearResize=typeof ResizeObserver==='function'?new ResizeObserver(()=>requestAnimationFrame(searchClearButtons)):null;
+ function searchClearButtons(){
+  for(const [input,button] of searchClears)if(!input.isConnected){button.remove();searchClearResize?.unobserve(input);searchClears.delete(input);}
+  for(const input of document.querySelectorAll(SEARCH_INPUTS)){
+   if(!(input instanceof HTMLInputElement))continue;
+   let button=searchClears.get(input);
+   if(!button){button=document.createElement('button');button.type='button';button.className='nd-search-clear';button.setAttribute('aria-label','검색어 지우기');button.title='검색어 지우기';button.innerHTML=svgI('<path d="M6 6l12 12M18 6 6 18"/>');
+    button.onpointerdown=e=>e.preventDefault();
+    button.onclick=()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+     const target=input.isConnected?input:input.id&&document.getElementById(input.id);target?.focus();searchClearButtons();};
+    input.addEventListener('input',searchClearButtons);searchClears.set(input,button);input.classList.add('nd-search-input');searchClearResize?.observe(input);
+   }
+   const host=input.parentElement;if(getComputedStyle(host).position==='static')host.classList.add('nd-search-host');
+   if(button.parentElement!==host)input.after(button);
+   button.hidden=!input.value||input.disabled||input.readOnly||!input.getClientRects().length;
+   if(!button.hidden){const left=input.offsetLeft+input.offsetWidth-32,top=input.offsetTop+(input.offsetHeight-28)/2;
+    if(button.style.left!==left+'px')button.style.left=left+'px';if(button.style.top!==top+'px')button.style.top=top+'px';}
+  }
+ }
+ document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
+ addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
+ document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};
