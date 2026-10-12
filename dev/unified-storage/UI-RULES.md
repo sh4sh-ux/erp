@@ -79,8 +79,9 @@ that an input exists or a tab is selected is insufficient to verify this flow.
 
 “자동으로 줄여서 저장” must fit the encoded PNG to the private asset store's
 kind-specific limit (`assetByteLimit`): products 1MB, business cards/registrations 8MB.
-Documents preserve original dimensions up to the supported 4096px bound; do not
-apply the product thumbnail's size cap to documents. JPG-to-PNG conversion can grow
+Documents preserve original dimensions when possible; larger input images scale
+proportionally to fit the stored 4096px/16MP bounds instead of being rejected before
+resizing. Do not apply the product thumbnail's size cap to documents. JPG-to-PNG conversion can grow
 file size. Redraw each smaller attempt from the original bitmap. Verify a JPEG
 larger than 1MB whose PNG also exceeds 1MB through the actual attachment
 button and native file chooser, then assert kind-specific upload size and visible preview. For documents verify
@@ -88,7 +89,10 @@ original dimensions and that `createAssetFile` retains the exact stored bytes.
 Sharing must not resize/re-encode the stored document. Advise KakaoTalk users to
 select original quality or send as a file, since a recipient app may compress photos.
 Attachment errors must survive unrelated renders and remain visible beside the
-attachment; a generic “등록 안 됨” label must not erase a failure.
+attachment; a generic “등록 안 됨” label must not erase a failure. Inline errors
+can be dismissed and reset on retry; long errors wrap below the full document title.
+Transient attachment notifications use the existing auto-hiding toast rather than
+the persistent storage recovery status. Verify toast disappearance and error dismissal.
 
 ## Quote/purchase totals and row deletion
 
