@@ -1,6 +1,6 @@
 import {validateData} from '../core.mjs';
 import {readImport} from './tabular-import.mjs';
-import {installAssets} from './asset-ui.mjs';
+import {installAssets,createAssetFile} from './asset-ui.mjs';
 import {installMailUI} from './mail-ui.mjs';
 import {installAccessUI} from './access-ui.mjs';
 import {installLogUI} from './log-ui.mjs';
@@ -133,16 +133,17 @@ export function start(bridge,build){
      let file=sent[kind]?.path===path?sent[kind].file:null;
      if(!file){
       say(`${label} 이미지를 불러오는 중…`);
-      try{const {bytes}=await assetRequest('ASSET_READ',{path});file=new File([bytes],filename,{type:'image/png'});sent[kind]={path,file};}
+      try{const {bytes}=await assetRequest('ASSET_READ',{path});file=createAssetFile(bytes,filename);sent[kind]={path,file};}
       catch(error){say(error.message||`${label} 이미지를 불러오지 못했습니다.`);return;}
      }
      if(navigator.canShare?.({files:[file]})){
+      say(`${label} 고해상도 파일을 공유합니다 — 카카오톡에서는 원본 또는 파일로 보내기를 선택해 주세요.`);
       try{await navigator.share({files:[file]});return;}
       catch(error){if(error?.name==='AbortError')return;if(error?.name==='NotAllowedError'){say(`${label} 이미지가 준비됐습니다 — 한 번 더 눌러 주세요.`);return;}}
      }
-     try{if(navigator.clipboard?.write&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);say(`${label} 이미지를 복사했습니다 — 메일·메신저에 붙여넣기로 보내세요.`);return;}}catch{}
+     try{if(navigator.clipboard?.write&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);say(`${label} 고해상도 이미지를 복사했습니다 — 카카오톡에서는 원본 또는 파일로 보내주세요.`);return;}}catch{}
      const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-     say(`${label} 이미지를 내려받았습니다.`);
+     say(`${label} 고해상도 파일을 내려받았습니다 — 카카오톡에 파일로 첨부하면 화질을 유지할 수 있어요.`);
     };
     // ASCII file names: some browsers drop non-ASCII download names.
     for(const [id,kind,label,filename] of [['bizCardBtn','card','명함','business-card.png'],['bizCertBtn','registration','사업자등록증','business-registration.png']]){const b=document.getElementById(id);if(b){b.disabled=false;b.title=label+' 보내기';b.onclick=()=>sendAsset(kind,label,filename);}}

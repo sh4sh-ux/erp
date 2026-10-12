@@ -19,7 +19,7 @@
     },
     {
       "path": "asset-store.mjs",
-      "sha256": "e2a275f72c7b50335c8b53de973efc8034d10ed19a5d2f7bc76a1cd6ce253bed"
+      "sha256": "f2c083561182d94bbf02e47a178925946b13db1386f2e8650fd433500e00c803"
     },
     {
       "path": "boot.mjs",
@@ -95,11 +95,11 @@
     },
     {
       "path": "erp/asset-ui.mjs",
-      "sha256": "9b011797f64c7235cd5959318ca537b8f59c0223f68f7dab81e8c12624d73965"
+      "sha256": "b09cd8b587868f206dc05f645340df4fe512bf53c895b0a74cf979baed9663ee"
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "933fc95da91a4676c208b0f056242273677b4c7c6ea2d23306b387cb21149e9f"
+      "sha256": "9b0a8491a9fc828253b20aaab546f4bf9d7b3f263de49921dc19030cfcbe163b"
     },
     {
       "path": "erp/favicon.png",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "9b2d2abfa0547d35735884e5f6b68ee089fdeb48d4e567b07c22c2bc4d0aa47c",
+  "aggregate": "d72522fd08cbd8d7a446e14e22850e783439920f269e8ad0e43b7f265d453598",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

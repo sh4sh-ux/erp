@@ -1,4 +1,5 @@
-async function normalize(file,maxSide=1600){
+import {assetByteLimit} from '../personal-cloud-onboarding/asset-store.mjs';
+async function normalize(file,maxSide=1600,maxBytes=1048576){
  if(file.size>8*1048576)throw Error('원본 이미지는 8MB 이하여야 합니다.');
  const head=new Uint8Array(await file.slice(0,12).arrayBuffer());
  const png=[137,80,78,71,13,10,26,10].every((v,i)=>head[i]===v),jpeg=head[0]===255&&head[1]===216&&head[2]===255,webp=new TextDecoder().decode(head.slice(0,4))==='RIFF'&&new TextDecoder().decode(head.slice(8,12))==='WEBP';
@@ -15,13 +16,15 @@ async function normalize(file,maxSide=1600){
    canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
    if(!blob)throw Error('이미지를 변환하지 못했습니다. 다시 첨부해 주세요.');
-   if(blob.size<=1048576)return new Uint8Array(await blob.arrayBuffer());
+   if(blob.size<=maxBytes)return new Uint8Array(await blob.arrayBuffer());
    if(side===1)break;
    side=Math.max(1,Math.floor(side*.85));
   }
   throw Error('이미지를 저장 용량에 맞게 줄이지 못했습니다. 다시 첨부해 주세요.');
  }finally{bitmap.close();}
 }
+// Sending keeps the stored PNG bytes, with no second resize or re-encoding.
+export function createAssetFile(bytes,filename){return new File([bytes],filename,{type:'image/png'});}
 // Photo cards: 명함 · 사업자등록증 in 공급자 정보, 품목 이미지 in the item form. Same normalize → ASSET_UPLOAD →
 // settings.assets path flow as before (files are added, never deleted); only the UI changed.
 export function installAssets({db,request,save,notify}){
@@ -37,7 +40,7 @@ export function installAssets({db,request,save,notify}){
  async function attach(target,kind,file,onState){
   if(busy)throw Error('다른 사진을 저장하고 있습니다. 잠시 후 다시 시도해 주세요.');busy=true;let uploaded=false;
   try{
-   onState('정리하는 중…');const bytes=await normalize(file,kind==='product'?900:1600);
+   onState('정리하는 중…');const bytes=await normalize(file,kind==='product'?900:4096,assetByteLimit(kind));
    onState('저장하는 중…');const result=await call('ASSET_UPLOAD',{kind,bytes});uploaded=true;
    await save('settings',{...db.settings,assets:{...(db.settings.assets||{}),[target]:result.path}});
    urls.set(result.path,await dataUrl(bytes));
@@ -92,7 +95,7 @@ export function installAssets({db,request,save,notify}){
  // 공급자 정보: one section, two cards.
  const panel=document.createElement('section');panel.className='card nd-assets nd-docs-photos';
  const title=document.createElement('h3');title.textContent='명함·사업자등록증';
- const note=document.createElement('p');note.textContent='명함 보내기·사업자등록증 보내기에 쓰는 사진이에요. 연결된 클라우드에만 저장되고 공개 링크는 만들지 않아요. PNG·JPEG·WebP, 8MB 이하(자동으로 줄여서 저장).';
+ const note=document.createElement('p');note.textContent='명함 보내기·사업자등록증 보내기에 쓰는 사진이에요. 연결된 클라우드에만 저장되고 공개 링크는 만들지 않아요. PNG·JPEG·WebP, 원본 8MB 이하. 명함·사업자등록증은 원본 해상도를 우선 보존해 저장하고 전송해요. 카카오톡에서는 원본 또는 파일로 보내기를 선택해 주세요.';
  const grid=document.createElement('div');grid.className='nd-photo-grid';
  const cards=[card('명함',()=>'card','card'),card('사업자등록증',()=>'registration','registration')];
  grid.append(...cards.map(c=>c.el));panel.append(title,note,grid);document.getElementById('view-settings').append(panel);
