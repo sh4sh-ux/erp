@@ -3,15 +3,15 @@ import {createAssetStore,assetPath,validateAssetPath,pngDigest} from '../persona
 import {validateExtendedChange} from '../personal-cloud-onboarding/extended-contract.mjs';
 const png=Uint8Array.from([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1]);
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status});
-function fixture(provider,{loss=false,quota=false,corrupt=false}={}){
+function fixture(provider,{loss=false,quota=false,corrupt=false,content=png}={}){
  const files=new Map();let writes=0,reads=0;
  const fetcher=async(url,options)=>{
   assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');assert.equal(options.headers.Authorization,'Bearer synthetic-'+provider);
   if(quota)return json({},429);
   if(url.includes('generateIds'))return json({ids:['synthetic-asset-id']});
-  if(url.includes('/upload/drive/')){writes++;const raw=await options.body.arrayBuffer();assert.ok(raw.byteLength>png.length);files.set('synthetic-asset-id',png);if(loss)throw Error();return json({id:'synthetic-asset-id'});}
+  if(url.includes('/upload/drive/')){writes++;const raw=await options.body.arrayBuffer();assert.ok(raw.byteLength>png.length);files.set('synthetic-asset-id',content);if(loss)throw Error();return json({id:'synthetic-asset-id'});}
   if(url.includes('/drive/v3/files?'))return json({files:files.size?[{id:'synthetic-asset-id',mimeType:'image/png',appProperties:{naroPersonalCloud:'1'}}]:[]});
-  if(url.includes('/drive/v3/files/synthetic-asset-id')){reads++;return new Response(corrupt?new Uint8Array([1]):png);}
+  if(url.includes('/drive/v3/files/synthetic-asset-id')){reads++;return new Response(corrupt?new Uint8Array([1]):content);}
   const arg=options.headers['Dropbox-API-Arg']?JSON.parse(options.headers['Dropbox-API-Arg']):JSON.parse(options.body);
   if(url.endsWith('/get_metadata'))return files.has(arg.path)?json({'.tag':'file',id:'synthetic-file',rev:'1',path_lower:arg.path.toLowerCase()}):json({error:{'.tag':'path',path:{'.tag':'not_found'}}},409);
   if(url.endsWith('/upload')){assert.equal(arg.mode,'add');assert.equal(arg.autorename,false);writes++;files.set(arg.path,options.body);if(loss)throw Error();return json({id:'synthetic-file'});}
@@ -44,4 +44,11 @@ test('asset references remain optional schema 3, public/malformed references rej
 });
 test('different active provider sessions do not reuse another session files',async()=>{
  const a=fixture('dropbox'),b=fixture('dropbox');const {path}=await a.store.upload('card',png);await assert.rejects(b.store.download(path),{code:'STORAGE_INVALID'});assert.equal(b.writes,0);
+});
+
+for(const provider of ['drive','dropbox'])test(provider+' document PNG above 1MB retains bytes; products stay bounded',async()=>{
+ const bytes=new Uint8Array(2*1048576);bytes.set(png);const f=fixture(provider,{content:bytes});
+ const result=await f.store.upload('registration',bytes);assert.deepEqual(await f.store.download(result.path),bytes);
+ await assert.rejects(f.store.upload('product',bytes),{code:'VALIDATION'});
+ const tooLarge=new Uint8Array(8*1048576+1);tooLarge.set(png);await assert.rejects(f.store.upload('card',tooLarge),{code:'VALIDATION'});
 });

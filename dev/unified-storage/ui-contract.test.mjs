@@ -276,7 +276,7 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
    window.assetTestReady=(async()=>{
    const {installAssets}=await import('./asset-ui.mjs');window.assetNotifications=[];window.assetUploads=[];
    installAssets({db,notify:t=>assetNotifications.push(t),request:async(type,body)=>{
-    if(type!=='ASSET_UPLOAD')throw Error('Unexpected read');assetUploads.push({kind:body.kind,size:body.bytes.length,width:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(16),height:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(20)});return {path:'assets/registration-test.png'};
+    if(type!=='ASSET_UPLOAD')throw Error('Unexpected read');window.latestAssetBytes=body.bytes;assetUploads.push({kind:body.kind,size:body.bytes.length,width:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(16),height:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(20)});return {path:'assets/registration-test.png'};
    },save:async(key,value)=>{if(key!=='settings')throw Error('Unexpected table');db.settings=value;}});
    switchView('settings');window.assetTestInstalled=true;
    })();
@@ -315,7 +315,8 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
   assert.ok(large.initialSize>1048576,'dimension-only resize would exceed storage limit');
   await card.locator('input[type=file]').setInputFiles({name:'large-registration.jpg',mimeType:'image/jpeg',buffer:Buffer.from(large.bytes)});
   await page.waitForFunction(()=>assetUploads.length===2&&document.querySelectorAll('.nd-photo-state')[1].textContent==='저장 완료');
-  const upload=await page.evaluate(()=>assetUploads[1]);assert.ok(upload.size<=1048576);assert.ok(Math.max(upload.width,upload.height)<1600,'additional automatic resize');
+  const upload=await page.evaluate(()=>assetUploads[1]);assert.ok(upload.size>1048576&&upload.size<=8*1048576);assert.equal(upload.width,1334);assert.equal(upload.height,1888,'document resolution preserved');
+  const shared=await page.evaluate(async()=>{const {createAssetFile}=await import('./asset-ui.mjs'),file=createAssetFile(latestAssetBytes,'business-registration.png'),bytes=new Uint8Array(await file.arrayBuffer());return {size:file.size,type:file.type,identical:bytes.length===latestAssetBytes.length&&bytes.every((v,i)=>v===latestAssetBytes[i])};});assert.equal(shared.size,upload.size);assert.equal(shared.type,'image/png');assert.equal(shared.identical,true,'send exact high-resolution stored bytes');
   assert.equal(await card.locator('.nd-photo-shot img').isVisible(),true);
 
   assert.ok(await page.evaluate(()=>assetNotifications.some(t=>t.includes('첨부 실패'))));

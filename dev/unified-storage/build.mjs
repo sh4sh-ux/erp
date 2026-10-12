@@ -435,7 +435,7 @@ await copyFile(resolve(here,business?'business-entry.mjs':'erp-entry.mjs'),resol
 for(const f of ['postcode.html','postcode.css','postcode.js'])await copyFile(resolve(here,f),resolve(release,f));
 if(business){
  await copyFile(resolve(here,'tabular-import.mjs'),resolve(release,'erp/tabular-import.mjs'));
- await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));
+ await writeFile(resolve(release,'erp/asset-ui.mjs'),(await readFile(resolve(here,'asset-ui.mjs'),'utf8')).replace('../personal-cloud-onboarding/asset-store.mjs','../asset-store.mjs'));
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
  await writeFile(resolve(release,'erp/log-ui.mjs'),(await readFile(resolve(here,'log-ui.mjs'),'utf8')).replace("from './change-log.mjs'","from '../change-log.mjs'"));
