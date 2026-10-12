@@ -183,6 +183,12 @@ for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name)
 // 폰 견적서 품목 카드: 품번은 품명 뒤에 얇은 회색 글자로(같은 굵기로 붙어 있어 품명처럼 보였다).
 {
  const qpPath=resolve(release,'erp/quote-presentation.js');let qp=await readFile(qpPath,'utf8');
+ // Closing a focused sheet can fire a change handler that renders again.
+ // Detach the shared reference first so a nested render cannot remove it twice.
+ const closeSheetFrom='if (dialog) { dialog.close(); dialog.remove(); dialog = null; }';
+ const closeSheetTo='if (dialog) { const previous = dialog; dialog = null; if (previous.contains(document.activeElement)) document.activeElement.blur(); previous.close(); previous.remove(); }';
+ if(!qp.includes(closeSheetFrom))throw Error('QP_SHEET_CLOSE_BOUNDARY');
+ qp=qp.replace(closeSheetFrom,closeSheetTo);
  const from="const name = item ? `${item.name || ''} ${item.code || ''}` : line.name || '품목 선택';\n        edit.append(el('strong', '', name), el('span', 'qp-muted', '편집 ›'));";
  const to="const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');\n        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));\n        edit.append(title, el('span', 'qp-muted', '편집 ›'));";
  if(!qp.includes(from))throw Error('QP_CARD_NAME_BOUNDARY');

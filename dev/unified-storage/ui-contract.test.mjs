@@ -36,7 +36,7 @@ async function prepare(page){
   const url=new URL(route.request().url());
   if(url.origin!=='https://naro-fixture.test')return route.abort();
   const pathname=url.pathname.replace(/^\//,'')||'erp/index.html';
-  if(pathname==='erp/entry.mjs')return route.fulfill({contentType:'application/javascript',body:'export function start() {}'});
+  if(pathname==='erp/entry.mjs')return route.fulfill({contentType:'application/javascript',body:'export function start(app) { app.bindBusinessUI(); }'});
   const path=resolve(release,pathname);if(!path.startsWith(release+'/'))return route.abort();
   try{
    let body=await readFile(path);
@@ -49,6 +49,7 @@ async function prepare(page){
   }catch{return route.fulfill({status:404,body:''});}
  });
  await page.goto('https://naro-fixture.test/erp/index.html');
+ await page.waitForFunction(()=>typeof document.getElementById('qtNewBtn').onclick==='function');
  await page.evaluate(async()=>{
   document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');
   const date=localDate();
@@ -94,7 +95,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
  try{for(const width of [320,390,820,1440])for(const theme of ['light','dark']){
   await t.test(`${width}px ${theme}`,async()=>{
    const page=await browser.newPage({viewport:{width,height:1000}}),errors=[];
-   page.on('pageerror',e=>errors.push(e.message));
+   page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
    try{
     await prepare(page);await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
     let reference=null,companyInfo=null;const report=[];
@@ -183,13 +184,33 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
 });
 
 
-test('purchase + opens an editable draft and cancel discards it without writing',async()=>{
+test('quote and purchase + share company picking and continue to editable items without writing',async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
  try{for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:1000}}),errors=[];
-  page.on('pageerror',e=>errors.push(e.message));
+  page.on('pageerror',e=>{errors.push(e.message);console.error(e.stack);});
   try{
-   await prepare(page);await page.evaluate(()=>switchView('purchases'));
+   await prepare(page);
+   await page.evaluate(()=>switchView('quotes'));await page.locator('#qtNewBtn').click();
+   const picker=page.locator('.nd-co-pop');await picker.waitFor();
+   const quotePicker=await picker.evaluate(e=>{const s=getComputedStyle(e);return {font:s.font,borderRadius:s.borderRadius,background:s.backgroundColor};});
+   await picker.locator('input').fill('합성 거래처');await picker.locator('[role=option]').first().click();
+   await page.waitForFunction(()=>document.getElementById('qp-tab-items')?.getAttribute('aria-selected')==='true');
+   assert.equal(await page.locator('#fq_co').inputValue(),'c');
+   if(width<821){
+    await page.locator('#qtForm [data-qp-edit]').first().click();await page.locator('#qp-edit-item').click();
+    await page.locator('#qtForm .qp-result').filter({hasText:'합성 품목'}).click();
+    for(const [field,value] of [['qty','3'],['price','2500']]){const input=page.locator('#qp-edit-'+field);await input.fill(value);await input.dispatchEvent('change');}
+    await page.locator('#qtForm .qp-sheet-footer .qp-primary').click();
+   }else{
+    await page.locator('#qtForm .ip-btn[data-f="item"]').first().click();await page.locator('.ip-opt[data-id="i"]').click();
+    for(const [field,value] of [['qty','3'],['price','2500']]){const input=page.locator(`#qtForm [data-f="${field}"]`).first();await input.fill(value);await input.dispatchEvent('change');}
+   }
+   assert.equal(await page.evaluate(()=>quoteTotals(qtEditing).total),8250);
+   if(evidence)await page.screenshot({path:resolve(evidence,`quote-entry-${width}.png`)});
+   await page.locator('#qp-tab-basic').click();await page.locator('#fq_co').selectOption('v');
+   await page.waitForFunction(()=>document.getElementById('qp-tab-items')?.getAttribute('aria-selected')==='true');
+   await page.evaluate(()=>{qtEditing=null;qtBaseline='';qtSel=null;renderQtDetail();switchView('purchases');});
    const add=page.locator('#puNewBtn');await add.waitFor();
    await page.waitForFunction(()=>!document.getElementById('puNewBtn').disabled);
    const count=await page.locator('#puList .list-item').count();
@@ -199,7 +220,26 @@ test('purchase + opens an editable draft and cancel discards it without writing'
    assert.equal(await page.locator('#pu_co').isVisible(),true);
    assert.equal(await page.locator('#pu_co').isEnabled(),true);
    assert.equal(await page.locator('#pu_memo').isEditable(),true);
-   await page.locator('#pu_co').selectOption('v');
+   await picker.waitFor();
+   if(evidence)await page.screenshot({path:resolve(evidence,`purchase-picker-${width}.png`)});
+   assert.deepEqual(await picker.evaluate(e=>{const s=getComputedStyle(e);return {font:s.font,borderRadius:s.borderRadius,background:s.backgroundColor};}),quotePicker);
+   assert.equal(await page.locator('#pu_co').inputValue(),'');
+   assert.equal(await picker.locator('[role=option]').count(),1,'only purchase vendors');
+   await picker.locator('input').fill('합성 매입처');await picker.locator('[role=option]').first().click();
+   assert.equal(await page.locator('#pp-tab-items').getAttribute('aria-selected'),'true');
+   assert.equal(await page.locator('#pu_co').inputValue(),'v');
+   if(width<821){
+    await page.locator('[data-qp-edit="0"]').click();await page.locator('.qp-result[data-pick="i"]').click();
+    await page.locator('#pu-edit-qty').fill('3');await page.locator('#pu-edit-price').fill('2500');await page.locator('[data-apply]').click();
+   }else{
+    await page.locator('#puForm .ip-btn[data-f="item"]').first().click();await page.locator('.ip-opt[data-id="i"]').click();
+    for(const [field,value] of [['qty','3'],['price','2500']]){const input=page.locator(`#puForm [data-f="${field}"]`).first();await input.fill(value);await input.dispatchEvent('change');}
+   }
+   assert.equal(await page.locator('#pu_total').textContent(),'8,250원');
+   if(evidence)await page.screenshot({path:resolve(evidence,`purchase-entry-${width}.png`)});
+   await page.locator('#pp-tab-basic').click();await page.locator('#pu_co').selectOption('v');
+   assert.equal(await page.locator('#pp-tab-items').getAttribute('aria-selected'),'true');
+   await page.locator('#pp-tab-basic').click();
    await page.locator('#pu_memo').fill('새 매입 입력 검증');
    await page.locator('#pu_memo').dispatchEvent('change');
    await page.locator('#pp-tab-items').click();
@@ -210,6 +250,7 @@ test('purchase + opens an editable draft and cancel discards it without writing'
    assert.equal(await page.locator('#puForm').isVisible(),false);
    await add.click();
    assert.equal(await page.locator('#pu_memo').inputValue(),'');
+   await picker.locator('input').press('Escape');
    await page.locator('#puCancelBtn').click();
    assert.deepEqual(errors,[]);
   }finally{await page.close();}

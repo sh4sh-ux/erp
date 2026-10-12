@@ -15,7 +15,7 @@
     const b = el('button', cls, text); b.type = 'button'; b.onclick = action; return b;
   }
   function beforeRender() {
-    if (dialog) { dialog.close(); dialog.remove(); dialog = null; }
+    if (dialog) { const previous = dialog; dialog = null; if (previous.contains(document.activeElement)) document.activeElement.blur(); previous.close(); previous.remove(); }
     const form = $('#qtForm'); if (form) { form.oninput = null; form.onchange = null; }
   }
   function redraw() { renderQtDetail(); }
