@@ -1,5 +1,7 @@
 # NARO Personal Cloud handoff
 
+사업자등록증 JPG 자동축소·오류표시 수정(수동 배포): asset-ui normalize가 한 번의1600px축소→PNG변환 후1MB초과면거절하던동작을, 실제PNG크기가private asset-store1MB한도에맞을때까지원본bitmap에서85%씩재축소하도록변경. 지원원본8MB/4096px등기존가드·PNG저장계약·클라우드업로드/설정연결유지. refresh가실패상태를등록안됨으로덮지않도록target변경시에만빈상태초기화하고실패알림추가. 실제사진첨부버튼→nativefilechooser→비지원PDF오류유지및일반JPEG성공,1334x1888합성대형JPEG(1MB초과·8MB미만)와첫PNG1MB초과조건에서자동축소된PNG<=1MB업로드및미리보기성공검증. 사용자원본사업자등록증은합성테스트/저장소/PR에포함하지않음. 전체307tests PASS 및실제filechooser최종검증PASS. UI-RULES.md에자동축소·오류유지규칙추가. 후보hosted변경erp/asset-ui.mjs1개,manifest/deployPIN함께갱신. 배포는사용자실행,feature/naro-redesign대상PR.
+
 견적·매입 신규 입력 흐름 통일(수동 배포): + 클릭 → 동일한 nd-co-pop 거래처 검색 선택창 → 선택 후 품목 탭 자동 이동. 매입은 첫 업체 자동선택 제거 및 매입처만 필터. 견적의 NaroQuoteActions.chooseCompany/closeCompanyPicker를 공통 재사용하여 스타일·검색·키보드 동작 유지. 두 문서 모두 신규 select 변경만 자동 이동, 기존 저장 문서는 현재 탭 유지. 신규 매입에는 저장 이후 진행 요약 숨김. 실제 +버튼 핸들러를 바인딩한 합성 브라우저390/1440px에서 두 문서 품목선택·수량3·단가2500·합계8250 확인, 매입 취소·값 초기화·저장 없음 확인. 모바일 견적 편집창 제거 중 blur→change→중복 렌더 오류 발견, build.mjs와 후보 quote-presentation.js에서 기존 dialog 참조를 먼저 해제하고 blur 후 제거하도록 수정. 전체306tests PASS 및 최종 입력 흐름 검사. UI-RULES.md에 신규 흐름과 필수 시나리오 기록. 배포는 사용자 직접 실행, feature/naro-redesign 대상 PR/머지. 증빙 /workspace/erp-cloud-tools/purchase-entry-audit/.
 
 매입 + 입력 화면 수정(사용자 수동 배포): 새 매입은 품목 탭 대신 정보 탭으로 시작하여 매입처·매입일·부가세·비고를 바로 입력할 수 있다. 기존 문서 조회·품목 편집·저장 로직은 유지. 실제 후보 브라우저390/1440px에서 + 클릭, 입력 가능, 탭 전환 후 값 유지, 취소 시 미저장·목록 불변, 다시 + 클릭 시 빈 비고 확인. 전체306tests PASS. 후보 purchase-ui.mjs만 갱신(배포용 purchase-ledger import 경로 유지), manifest/deploy PIN 갱신. feature/naro-redesign 대상 PR로 반영하며 운영 배포는 사용자가 실행한다.

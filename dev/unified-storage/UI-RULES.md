@@ -74,3 +74,13 @@ new drafts to the items tab. Existing saved records retain their current tab.
 Verify actual + clicks and company/item selection, quantity and unit price editing,
 computed totals, and cancel without persistence on mobile and desktop. An assertion
 that an input exists or a tab is selected is insufficient to verify this flow.
+
+## Photo attachment behavior
+
+“자동으로 줄여서 저장” must fit the encoded PNG to the private asset store's
+1MB limit, rather than checking dimensions alone. JPG-to-PNG conversion can grow
+file size. Redraw each smaller attempt from the original bitmap. Verify a JPEG
+larger than 1MB whose first PNG exceeds the limit through the actual attachment
+button and native file chooser, then assert upload size and visible preview.
+Attachment errors must survive unrelated renders and remain visible beside the
+attachment; a generic “등록 안 됨” label must not erase a failure.
