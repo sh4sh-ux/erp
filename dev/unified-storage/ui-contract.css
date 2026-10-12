@@ -125,3 +125,24 @@
   --nd-page-title-size:22px;--nd-page-title-line:28px;
  }
 }
+
+/* Shared quote/purchase item geometry: separator reaches the section edges;
+   amounts keep their existing inner alignment. Delete uses quote's 14px glyph. */
+@media screen {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals {--nd-total-line-inset:0px}
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand {
+  align-self:stretch;position:relative;border-top:0!important;
+ }
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand::before {
+  content:"";position:absolute;top:0;
+  left:calc(-1 * var(--nd-total-line-inset));right:calc(-1 * var(--nd-total-line-inset));
+  border-top:1px solid var(--nd-line);pointer-events:none;
+ }
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qline .rm>svg {
+  width:14px;height:14px;display:block;flex:none;
+ }
+}
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals {--nd-total-line-inset:var(--nd-in,17px)}
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand {justify-content:flex-end!important}
+}

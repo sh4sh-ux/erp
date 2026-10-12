@@ -207,6 +207,7 @@ test('quote and purchase + share company picking and continue to editable items 
     for(const [field,value] of [['qty','3'],['price','2500']]){const input=page.locator(`#qtForm [data-f="${field}"]`).first();await input.fill(value);await input.dispatchEvent('change');}
    }
    assert.equal(await page.evaluate(()=>quoteTotals(qtEditing).total),8250);
+   if(width>=1024){const g=await page.locator('#qtForm .qtotals .grand').evaluate(e=>{const r=e.getBoundingClientRect(),t=e.closest('.qtotals').getBoundingClientRect(),p=getComputedStyle(e,'::before');return {left:r.left+parseFloat(p.left),right:r.right-parseFloat(p.right),tl:t.left,tr:t.right};});assert.ok(Math.abs(g.left-g.tl)<1);assert.ok(Math.abs(g.right-g.tr)<1);const icon=await page.locator('#qtForm .qline .rm svg').first().boundingBox();assert.equal(icon.width,14);assert.equal(icon.height,14);}
    if(evidence)await page.screenshot({path:resolve(evidence,`quote-entry-${width}.png`)});
    await page.locator('#qp-tab-basic').click();await page.locator('#fq_co').selectOption('v');
    await page.waitForFunction(()=>document.getElementById('qp-tab-items')?.getAttribute('aria-selected')==='true');
@@ -228,6 +229,15 @@ test('quote and purchase + share company picking and continue to editable items 
    await picker.locator('input').fill('합성 매입처');await picker.locator('[role=option]').first().click();
    assert.equal(await page.locator('#pp-tab-items').getAttribute('aria-selected'),'true');
    assert.equal(await page.locator('#pu_co').inputValue(),'v');
+   if(width>=1024){
+    const geometry=await page.evaluate(()=>['puForm'].map(id=>{
+     const form=document.getElementById(id),line=form.querySelector('.qtotals .grand'),totals=form.querySelector('.qtotals'),icon=form.querySelector('.qline .rm svg');
+     const l=line.getBoundingClientRect(),t=totals.getBoundingClientRect(),p=getComputedStyle(line,'::before'),r=icon.getBoundingClientRect();
+     return {id,lineLeft:l.left+parseFloat(p.left),lineRight:l.right-parseFloat(p.right),left:t.left,right:t.right,iconWidth:r.width,iconHeight:r.height,stroke:getComputedStyle(icon).strokeWidth};
+    }));
+    for(const g of geometry){assert.ok(Math.abs(g.lineLeft-g.left)<1,g.id+' full left separator');assert.ok(Math.abs(g.lineRight-g.right)<1,g.id+' full right separator');assert.equal(g.iconWidth,14);assert.equal(g.iconHeight,14);assert.equal(g.stroke,'2px');}
+   }
+
    if(width<821){
     await page.locator('[data-qp-edit="0"]').click();await page.locator('.qp-result[data-pick="i"]').click();
     await page.locator('#pu-edit-qty').fill('3');await page.locator('#pu-edit-price').fill('2500');await page.locator('[data-apply]').click();
