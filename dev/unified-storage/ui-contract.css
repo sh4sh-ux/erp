@@ -173,3 +173,13 @@
  html body #appView #itNewBtn {position:relative}
  html body #appView #itNewBtn::before {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
 }
+
+@media screen {
+ .nd-search-host {position:relative!important}
+ html body input.nd-search-input {padding-right:36px!important}
+ input.nd-search-input::-webkit-search-cancel-button {display:none;-webkit-appearance:none}
+ html body .nd-search-clear {position:absolute;display:flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;min-height:28px;padding:0;margin:0;border:0;border-radius:6px;background:transparent;color:var(--nd-ink-3,#8A8F98);cursor:pointer;z-index:2;box-shadow:none}
+ html body .nd-search-clear[hidden] {display:none!important}
+ html body .nd-search-clear:hover {color:var(--nd-ink,#1B1F28);background:var(--nd-fill,#F1F2F6)}
+ html body .nd-search-clear>svg {width:14px!important;height:14px!important;flex:none;stroke-width:2}
+}
