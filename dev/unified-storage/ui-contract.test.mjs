@@ -385,3 +385,26 @@ test('summary label and value are horizontally level on each row',async()=>{
   await page.close();
  }}finally{await browser.close();}
 });
+
+test('item add glyph is centered and copy opens an independent unsaved item',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  await page.evaluate(()=>{Object.assign(db.items[0],{category:'합성 분류',memo:'복사 메모',spec:'기본 규격',unit:'개',variants:[{spec:'M',buy_price:1200,sell_price:2400}],stock_minimums:{'WH|M':5},created_at:'old'});window.originalItem=JSON.stringify(db.items[0]);window.itemWrites=[];Table.save=async(name,rows)=>{if(name!=='items')throw Error('Unexpected write');window.itemWrites.push(structuredClone(rows));};});
+  await open(page,'items');
+  await page.locator('#itCopyBtn').waitFor();assert.equal(await page.locator('#itCopyBtn').isVisible(),true);
+  await page.locator('#itCopyBtn').click();
+  assert.equal(await page.locator('#fi_name').inputValue(),'합성 품목 (복사)');assert.equal(await page.locator('#fi_code').inputValue(),'');
+  assert.equal(await page.locator('#itSaveBtn').textContent(),'등록');assert.equal(await page.locator('#itCopyBtn').count(),0);
+  if(evidence)await page.screenshot({path:resolve(evidence,`item-copy-${width}.png`)});
+  const draft=await page.evaluate(()=>({draft:itEditing,writes:itemWrites.length,unchanged:JSON.stringify(db.items[0])===originalItem}));
+  assert.equal(draft.writes,0);assert.equal(draft.unchanged,true);assert.equal(draft.draft.id,null);assert.equal(draft.draft.created_at,undefined);assert.equal(draft.draft.stock_minimums,undefined);assert.equal(draft.draft.memo,'복사 메모');assert.equal(draft.draft.category,'합성 분류');assert.deepEqual(draft.draft.variants,[{spec:'M',buy_price:1200,sell_price:2400}]);assert.deepEqual(draft.draft.colors,['WH']);
+  await page.locator('#fi_name').fill('복사해서 수정');await page.locator('#itSaveBtn').click();await page.waitForFunction(()=>itemWrites.length===1);
+  const saved=await page.evaluate(()=>({rows:db.items,unchanged:JSON.stringify(db.items[0])===originalItem}));assert.equal(saved.unchanged,true);assert.equal(saved.rows.length,2);assert.notEqual(saved.rows[1].id,'i');assert.ok(saved.rows[1].id);assert.equal(saved.rows[1].name,'복사해서 수정');
+  await page.locator('#itCopyBtn').click();await page.locator('#itCancelBtn').click();assert.equal(await page.evaluate(()=>itemWrites.length),1,'cancel does not save');
+  await page.waitForTimeout(80);
+  const center=await page.locator('#itNewBtn').evaluate(e=>{const s=getComputedStyle(e,'::before'),m=new DOMMatrix(s.transform);return {x:parseFloat(s.left)+parseFloat(s.width)/2+m.e,y:parseFloat(s.top)+parseFloat(s.height)/2+m.f,cx:e.clientWidth/2,cy:e.clientHeight/2};});
+  assert.ok(Math.abs(center.x-center.cx)<1,'+ horizontal center');assert.ok(Math.abs(center.y-center.cy)<1,'+ vertical center');
+  await page.close();
+ }}finally{await browser.close();}
+});
