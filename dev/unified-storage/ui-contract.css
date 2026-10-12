@@ -160,3 +160,10 @@
   background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important;
  }
 }
+
+/* Each summary label and its value sit on the same horizontal center line. */
+@media screen {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row {
+  align-items:center!important;
+ }
+}
