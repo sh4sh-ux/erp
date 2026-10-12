@@ -31,4 +31,17 @@ jobs:
       - name: Check all rail destinations in mobile/desktop and light/dark
         run: |
           export NODE_PATH="$RUNNER_TEMP/naro-ui-tools/node_modules"
-          node --test dev/unified-storage/*.test.mjs
+          test_output="$RUNNER_TEMP/naro-test-output.txt"
+          if node --test --test-reporter=spec dev/unified-storage/*.test.mjs > "$test_output" 2>&1; then
+            cat "$test_output"
+          else
+            cat "$test_output"
+            TEST_OUTPUT_PATH="$test_output" python3 - <<'PYTHON'
+          import os
+          from pathlib import Path
+          lines = Path(os.environ['TEST_OUTPUT_PATH']).read_text().splitlines()
+          message = '\n'.join(lines[-120:]).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=NARO regression failure::' + message)
+          PYTHON
+            exit 1
+          fi
