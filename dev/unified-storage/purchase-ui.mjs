@@ -110,6 +110,7 @@ export function installPurchaseUI({port,features=()=>true}){
  // ── 그리기: 견적서와 같은 뼈대(머리·목록 카드·상세 카드) ──
  function render(){
   if(!view.isConnected)return;
+  g.NaroQuoteActions?.closeCompanyPicker();
   mirrorQuoteStyles();
   if(st.status==='unknown'){st.status='loading';load();}
   const more=document.getElementById('moreNavBtn');if(more&&app.view==='purchases')more.classList.add('on');
@@ -168,7 +169,7 @@ export function installPurchaseUI({port,features=()=>true}){
   // 머리·탭: PC는 고정 머리(panel-b-work-header)+본문(workspace-form-body) 묶음, 폰·태블릿은 묶음 없이 양식 바로 아래 — 견적서(panel-layout-b)와 같다
   const head=`    ${mob.matches?`<div class="qp-mobile-actions"><button type="button" data-act="back">‹ 매입</button><button type="button" class="qp-primary naro-compact-action" data-act="save">저장</button></div>`:''}
     <div class="qt-hero quote-summary">
-     <div class="qs-info"><div class="qs-row"><span class="qs-k">매입처</span><span class="qs-val co">${esc(coName(p.vendor_id)||'매입처를 골라 주세요')}</span></div></div>
+     <div class="qs-info"><div class="qs-row"><span class="qs-k">매입처</span><span class="qs-val co">${esc(coName(p.vendor_id)||'매입처 선택')}</span></div></div>
      <div class="qs-amount"><div class="qs-amt-k">금액 (부가세 포함)</div><div class="qs-amt-v" id="pu_heroTotal">${money(t.total)}</div></div>
      <div class="qp-metadata"><span>${esc(p.no)}</span><span>${esc(md(p.date))}</span>${pill(p)}</div>
     </div>
@@ -176,7 +177,7 @@ export function installPurchaseUI({port,features=()=>true}){
   return `<div class="detail workspace-form${st.editing?'':' nd-view'}" id="puForm" data-nd-st="${esc(disp(p)[0])}">
    ${desk.matches?`<div class="panel-b-work-header">${head}</div>`:''}
    ${desk.matches?'<div class="workspace-form-body">':head}
-    ${next(p,sv)}
+    ${sv?next(p,sv):''}
     <div class="qt-sec qt-basic" id="pp-panel-basic" role="tabpanel" aria-labelledby="pp-tab-basic" ${st.tab==='basic'?'':'hidden'}>${basic(p,sv)}</div>
     <div class="qt-sec" id="pp-panel-items" role="tabpanel" aria-labelledby="pp-tab-items" ${st.tab==='items'?'':'hidden'}>${itemsPanel(p,sv)}</div>
     <div class="qt-sec qp-flow nd-rec-on" id="pp-panel-flow" role="tabpanel" aria-labelledby="pp-tab-flow" ${st.tab==='flow'?'':'hidden'}>${flow(p,sv)}</div>
@@ -292,11 +293,16 @@ export function installPurchaseUI({port,features=()=>true}){
   const it=itemOf(id);if(!it)return;if(isWork(it)){toast('작업 품목은 매입에 넣을 수 없어요.');return;}
   edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
  }
+ function chooseVendor(){
+  const p=shown(),sel=view.querySelector('#pu_co'),anchor=view.querySelector('#puForm .quote-summary .co');
+  if(!p||!sel||sel.disabled||!anchor)return;
+  g.NaroQuoteActions?.chooseCompany(anchor,sel,c=>c.type==='매입'||c.id===p.vendor_id,'매입처');
+ }
  function newPurchase(){
-  const d=today(),n=rows().filter(p=>p.date===d).length+1,vendor=companies().find(c=>c.type==='매입');
-  st.draft={id:'pu_'+uid(),no:`PO-${d.slice(0,4)}${d.slice(5,7)}${d.slice(8)}-${n}`,kind:'국내',vendor_id:vendor?.id||'',date:d,status:'작성중',currency:'KRW',lines:[blank()],vat:{supply:0,tax:0},vat_on:true,tax_invoice:{received:false},costs:[],receipts:[],returns:[],cost_runs:[],created_at:nowIso(),updated_at:nowIso()};
+  const d=today(),n=rows().filter(p=>p.date===d).length+1;
+  st.draft={id:'pu_'+uid(),no:`PO-${d.slice(0,4)}${d.slice(5,7)}${d.slice(8)}-${n}`,kind:'국내',vendor_id:'',date:d,status:'작성중',currency:'KRW',lines:[blank()],vat:{supply:0,tax:0},vat_on:true,tax_invoice:{received:false},costs:[],receipts:[],returns:[],cost_runs:[],created_at:nowIso(),updated_at:nowIso()};
   while(rows().some(p=>p.no===st.draft.no))st.draft.no=st.draft.no.replace(/-(\d+)$/,(m,x)=>'-'+(Number(x)+1));
-  st.sel=st.draft.id;st.dirty=true;st.editing=true;st.tab='basic';st.sz=null;render();
+  st.sel=st.draft.id;st.dirty=true;st.editing=true;st.tab='basic';st.sz=null;render();chooseVendor();
  }
  const recalcVat=p=>{const t=totals(p);p.vat={supply:t.supply,tax:t.tax};};
  async function save(){
@@ -583,8 +589,13 @@ export function installPurchaseUI({port,features=()=>true}){
   f.querySelectorAll('.qline [data-rm]').forEach(b=>b.onclick=()=>edit(p=>{p.lines.splice(Number(b.dataset.rm),1);if(!p.lines.length)p.lines.push(blank());}));
   f.querySelectorAll('[data-qp-edit]').forEach(b=>b.onclick=()=>{if(st.editing)lineEditor(Number(b.dataset.qpEdit));});
   f.querySelectorAll('[data-qstep]').forEach(b=>b.onclick=()=>edit(p=>{const l=p.lines[Number(b.dataset.qstep)];if(l)l.qty=Math.max(0,(l.qty||0)+Number(b.dataset.v));}));
+  const vendorHeader=f.querySelector('.quote-summary .co'),vendorSelect=f.querySelector('#pu_co');
+  if(vendorHeader&&vendorSelect&&!vendorSelect.disabled){
+   vendorHeader.classList.add('nd-co-editable');vendorHeader.setAttribute('role','button');vendorHeader.tabIndex=0;
+   vendorHeader.onclick=chooseVendor;vendorHeader.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();chooseVendor();}};
+  }
   f.querySelector('#pu_date')?.addEventListener('change',e=>edit(p=>{p.date=e.target.value||p.date;}));
-  f.querySelector('#pu_co')?.addEventListener('change',e=>edit(p=>{p.vendor_id=e.target.value;}));
+  f.querySelector('#pu_co')?.addEventListener('change',e=>{if(e.target.value&&!saved(shown()))st.tab='items';edit(p=>{p.vendor_id=e.target.value;});});
   f.querySelector('#pu_vatSel')?.addEventListener('change',e=>edit(p=>{p.vat_on=e.target.value!=='0';}));
   f.querySelector('#pu_memo')?.addEventListener('change',e=>edit(p=>{p.memo=e.target.value;}));
   f.querySelector('#pu_szItem')?.addEventListener('change',e=>{st.sz={item:e.target.value,color:null};render();});

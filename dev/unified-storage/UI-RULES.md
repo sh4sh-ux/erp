@@ -63,3 +63,14 @@ deployment workflow from reaching its Hosting steps. Purchase uses
 its real mirrored quote styles; company/payment/sales header amounts must match
 the quote header size/weight/color while using the receipt numeric font. Mobile items have a form without a separate record-name header;
 the desktop item header is compared when that component exists.
+
+## New quote and purchase entry flow
+
+Both + buttons open a new editable draft with no company selected and immediately
+open the same searchable company picker (`NaroQuoteActions.chooseCompany`).
+Purchases filter this shared picker to purchase vendors; never silently choose the
+first vendor. Selecting a company in the picker or the information select advances
+new drafts to the items tab. Existing saved records retain their current tab.
+Verify actual + clicks and company/item selection, quantity and unit price editing,
+computed totals, and cancel without persistence on mobile and desktop. An assertion
+that an input exists or a tab is selected is insufficient to verify this flow.
