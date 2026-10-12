@@ -1107,6 +1107,28 @@ const NaroCompanyLedger=(()=>{
   in:()=>setSel('payFilter','수금'),out:()=>setSel('payFilter','지급'),all:()=>setSel('payFilter','')};
 
  /* 업체 제공 자재(PC): 조회 기준일·재고내역서는 오른쪽 헤더 아래 줄(제목 아래, 왼쪽)로 — 다른 화면처럼 '이 화면을 고르는 도구'는 헤더에. 폰은 제자리. */
+ // Material detail uses the quote panel anatomy; native controls keep their handlers.
+ let materialDesignOwner=null,materialDesignTab='overview',materialDesignForm=null;
+ function materialDetailDesign(){
+  const detail=document.querySelector('#view-materials .material-detail'),head=detail?.querySelector('.material-detail-head');if(!head)return;
+  const balance=detail.querySelector('.material-balance-hero');if(balance&&balance.parentElement!==head)head.append(balance);
+  const owner=document.getElementById('mm_statement_company')?.value;
+  if(owner!==materialDesignOwner){materialDesignOwner=owner;materialDesignTab='overview';}
+  const form=detail.querySelector('.material-detail-form'),card=form?.querySelector('#materialEntryCard');
+  if(card!==materialDesignForm){materialDesignForm=card;if(card&&!card.hidden)materialDesignTab='entry';else if(materialDesignTab==='entry')materialDesignTab='overview';}
+  let tabs=detail.querySelector(':scope>.nd-material-tabs');
+  if(!tabs){tabs=document.createElement('div');tabs.className='qp-tabs nd-material-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','자재 상세');
+   for(const [key,label] of [['overview','자재'],['history','내역'],['entry','입력']]){const b=document.createElement('button');b.type='button';b.dataset.materialPanel=key;b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-controls','nd-material-'+key);b.onclick=()=>{if(key==='entry'&&document.getElementById('materialEntryCard')?.hidden){document.getElementById('mm_detail')?.click();return;}materialDesignTab=key;materialDetailDesign();};tabs.append(b);}head.after(tabs);}
+  let overview=detail.querySelector(':scope>.nd-material-overview');
+  if(!overview){overview=document.createElement('section');overview.className='nd-material-overview';overview.id='nd-material-overview';overview.setAttribute('role','tabpanel');tabs.after(overview);}
+  for(const selector of ['.nd-mat','.material-summary','.material-type-tabs']){const node=detail.querySelector(selector);if(node&&node.parentElement!==overview)overview.append(node);}
+  const history=detail.querySelector('.material-history-wrap'),quick=detail.querySelector('.material-quick');
+  if(history){history.id='nd-material-history';history.setAttribute('role','tabpanel');}
+  if(form){form.id='nd-material-entry';form.setAttribute('role','tabpanel');}
+  if(quick&&quick!==detail.lastElementChild)detail.append(quick);
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.materialPanel===materialDesignTab)));
+  overview.hidden=materialDesignTab!=='overview';if(history)history.hidden=materialDesignTab!=='history';if(form)form.hidden=materialDesignTab!=='entry';if(quick)quick.hidden=materialDesignTab==='entry';
+ }
  const matDesk=matchMedia('(min-width:1024px)');
  function materialHeadTools(){
   const head=document.querySelector('#view-materials .material-detail-head'),ctl=document.querySelector('#view-materials .material-statement-controls');
@@ -1499,7 +1521,7 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
  addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
  document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

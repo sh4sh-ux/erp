@@ -365,7 +365,7 @@ test('saved forms share neutral buttons and edits/reverts update save state',asy
    await waitSaved(page,'stSaveBtn',true);
    await open(page,'stock');if(width<1024){const row=page.locator('#stockItems .stock-item').first();if(await row.isVisible())await row.click();}const minimum=page.locator('#stockOverview [data-stock-min]').first();
    if(await minimum.isVisible()){const before=await minimum.inputValue();await minimum.fill('7');await waitSaved(page,'stockMinimumSave',false);await minimum.fill(before);await waitSaved(page,'stockMinimumSave',true);}
-   await open(page,'materials');if(width<=820){const owner=page.locator('[data-mm-owner="c"]');if(await owner.isVisible())await owner.click();await page.locator('.material-record-main').first().click();}else await page.locator('[data-mm-edit="m"]').click();await waitSaved(page,'mm_save',true);
+   await open(page,'materials');await page.locator('[data-material-panel=history]').click();if(width<=820){const owner=page.locator('[data-mm-owner="c"]');if(await owner.isVisible())await owner.click();await page.locator('.material-record-main').first().click();}else await page.locator('[data-mm-edit="m"]').click();await waitSaved(page,'mm_save',true);
    const memo=page.locator('[data-mm="memo"]');await memo.fill('자재 수정');await waitSaved(page,'mm_save',false);await memo.fill('');await waitSaved(page,'mm_save',true);
   }finally{await page.close();}
  }}finally{await browser.close();}
@@ -475,6 +475,24 @@ test('all screen searches and item/company pickers clear through the original fi
   if(width<821){await page.locator('#qtForm [data-qp-edit]').first().click();await page.locator('#qp-edit-item').click();}else await page.locator('#qtForm .ip-btn[data-f="item"]').first().click();
   const item=page.locator(width<821?'.qp-search:visible':'.ip-pop>input:visible');await item.fill('zz-no-match');const host=item.locator('..');await host.locator('.nd-search-clear').click();assert.equal(await item.inputValue(),'');assert.ok(await page.locator(width<821?'.qp-result:visible':'.ip-opt:visible').count()>0,'item results restored');
   if(evidence)await page.screenshot({path:resolve(evidence,`search-clear-${width}.png`)});
+  await page.close();
+ }}finally{await browser.close();}
+});
+
+test('material detail reuses quote tabs, typography and insets while preserving native entry controls',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440])for(const theme of ['light','dark']){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+  await open(page,'quotes');const quoteTab=await page.locator('#qp-tab-items').evaluate(e=>{const s=getComputedStyle(e);return {font:s.font,height:s.height,color:s.color};}),quoteAmount=await page.locator('#qtForm .qs-amt-v').evaluate(style);
+  await open(page,'materials');if(width<=820)await page.locator('[data-mm-owner=c]').click();await page.locator('.nd-material-tabs').waitFor();
+  const tab=page.locator('[data-material-panel=overview]');assert.deepEqual(await tab.evaluate(e=>{const s=getComputedStyle(e);return {font:s.font,height:s.height,color:s.color};}),quoteTab);
+  const number=await page.locator('.material-balance-hero strong').evaluate(style);for(const key of ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','color'])assert.equal(number[key],quoteAmount[key],key);
+  assert.equal(await page.locator('.nd-material-overview').isVisible(),true);assert.equal(await page.locator('.material-history-wrap').isVisible(),false);
+  await page.locator('[data-material-panel=history]').click();assert.equal(await page.locator('.material-record').isVisible(),true);assert.equal(await page.locator('.nd-material-overview').isVisible(),false);
+  const before=await page.evaluate(()=>JSON.stringify(db.material_moves));await page.locator('[data-material-panel=entry]').click();await page.locator('#mm_material').waitFor();await page.locator('#mm_memo').fill('입력 보존');
+  await page.locator('[data-material-panel=history]').click();await page.locator('[data-material-panel=entry]').click();assert.equal(await page.locator('#mm_memo').inputValue(),'입력 보존');assert.equal(await page.evaluate(()=>JSON.stringify(db.material_moves)),before,'tab navigation never writes');
+  const overflow=await page.locator('.material-detail').evaluate(e=>e.scrollWidth-e.clientWidth);assert.ok(overflow<2,'no horizontal overflow');
+  if(evidence)await page.screenshot({path:resolve(evidence,`material-entry-${width}-${theme}.png`)});
   await page.close();
  }}finally{await browser.close();}
 });
