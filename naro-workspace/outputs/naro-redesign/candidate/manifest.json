@@ -159,7 +159,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "65a4cafd891b131f3ef14312b22e3a96be9e3fe6e7d40484ca001f141f13c859"
+      "sha256": "c8c37ffec41fc40257d0791a465bcdc1ea538b08415bbc7f7d4d316dbf719cc2"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "d227ab5db9dca73010af0a71eef7effc188b16a91234a6aa659e90bde92e6717",
+  "aggregate": "a09d82fa6a5e0f96fa894ef73b730af58c5c841fe8235121db037bc40e424559",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

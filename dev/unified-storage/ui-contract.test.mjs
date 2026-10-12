@@ -181,3 +181,37 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
   });
  }}finally{await browser.close();}
 });
+
+
+test('purchase + opens an editable draft and cancel discards it without writing',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await prepare(page);await page.evaluate(()=>switchView('purchases'));
+   const add=page.locator('#puNewBtn');await add.waitFor();
+   await page.waitForFunction(()=>!document.getElementById('puNewBtn').disabled);
+   const count=await page.locator('#puList .list-item').count();
+   await add.click();
+   assert.equal(await page.locator('#puForm').isVisible(),true);
+   assert.equal(await page.locator('#pp-tab-basic').getAttribute('aria-selected'),'true');
+   assert.equal(await page.locator('#pu_co').isVisible(),true);
+   assert.equal(await page.locator('#pu_co').isEnabled(),true);
+   assert.equal(await page.locator('#pu_memo').isEditable(),true);
+   await page.locator('#pu_co').selectOption('v');
+   await page.locator('#pu_memo').fill('새 매입 입력 검증');
+   await page.locator('#pu_memo').dispatchEvent('change');
+   await page.locator('#pp-tab-items').click();
+   await page.locator('#pp-tab-basic').click();
+   assert.equal(await page.locator('#pu_memo').inputValue(),'새 매입 입력 검증');
+   await page.locator('#puCancelBtn').click();
+   assert.equal(await page.locator('#puList .list-item').count(),count);
+   assert.equal(await page.locator('#puForm').isVisible(),false);
+   await add.click();
+   assert.equal(await page.locator('#pu_memo').inputValue(),'');
+   await page.locator('#puCancelBtn').click();
+   assert.deepEqual(errors,[]);
+  }finally{await page.close();}
+ }}finally{await browser.close();}
+});
