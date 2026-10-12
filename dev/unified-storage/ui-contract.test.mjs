@@ -262,13 +262,16 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
  const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  try{
-  await prepare(page);await page.evaluate(async()=>{
+  await prepare(page);await page.evaluate(()=>{
+   window.assetTestReady=(async()=>{
    const {installAssets}=await import('./asset-ui.mjs');window.assetNotifications=[];window.assetUploads=[];
    installAssets({db,notify:t=>assetNotifications.push(t),request:async(type,body)=>{
     if(type!=='ASSET_UPLOAD')throw Error('Unexpected read');assetUploads.push({kind:body.kind,size:body.bytes.length,width:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(16),height:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(20)});return {path:'assets/registration-test.png'};
    },save:async(key,value)=>{if(key!=='settings')throw Error('Unexpected table');db.settings=value;}});
-   switchView('settings');
+   switchView('settings');window.assetTestInstalled=true;
+   })();
   });
+  await page.waitForFunction(()=>window.assetTestInstalled===true);
   const card=page.locator('.nd-photo').filter({has:page.locator('.nd-photo-name>span', {hasText:'사업자등록증'})});
   const [firstChooser]=await Promise.all([page.waitForEvent('filechooser'),card.locator('.nd-photo-shot').click()]);
   await firstChooser.setFiles({name:'registration.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7 synthetic')});
@@ -286,6 +289,7 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
   const [jpegChooser]=await Promise.all([page.waitForEvent('filechooser'),card.locator('.nd-photo-up').click()]);
   await jpegChooser.setFiles({name:'registration.jpg',mimeType:'image/jpeg',buffer:Buffer.from(jpeg)});
   await page.waitForFunction(()=>db.settings.assets?.registration==='assets/registration-test.png');
+  await card.locator('.nd-photo-shot img').waitFor({state:'visible'});
   assert.equal(await card.locator('.nd-photo-shot img').isVisible(),true);
   assert.equal(await page.evaluate(()=>assetUploads[0].kind),'registration');
   const large=await page.evaluate(async()=>{
