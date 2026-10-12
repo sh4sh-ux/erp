@@ -50,7 +50,8 @@ async function prepare(page){
  });
  await page.goto('https://naro-fixture.test/erp/index.html');
  await page.waitForFunction(()=>typeof document.getElementById('qtNewBtn').onclick==='function');
- await page.evaluate(async()=>{
+ // Keep the async fixture alive while Chrome waits for module imports.
+ await page.evaluate(()=>window.naroFixtureReady=(async()=>{
   document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');
   const date=localDate();
   db.companies=[{id:'c',name:'합성 거래처',type:'매출',prices:[]},{id:'v',name:'합성 매입처',type:'매입',prices:[]}];
@@ -73,7 +74,7 @@ async function prepare(page){
   access=installAccessUI({say(){throw Error('Unexpected access mutation');},port:()=>({postMessage(m){if(m.type!=='ACCESS_LIST')throw Error('Unexpected access write');queueMicrotask(()=>access.onMessage({type:'ACCESS_USERS',requestId:m.requestId,users:[]}));}})});
   window.styleAccess=access;
   switchView('dash');
- });
+ })());
 }
 async function open(page,view){
  await page.evaluate(view=>{
