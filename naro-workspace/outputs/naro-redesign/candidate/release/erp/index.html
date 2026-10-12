@@ -11925,7 +11925,7 @@ const NaroCompanyLedger=(()=>{
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
    while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.nd-payment-dot')&&walker.currentNode.textContent.includes('입금·출금'))nodes.push(walker.currentNode);
    for(const node of nodes){const fragment=document.createDocumentFragment(),parts=node.textContent.split('입금·출금');
-    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('span');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});node.replaceWith(fragment);}
+    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('i');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});const label=document.createElement('span');label.className='nd-payment-label';label.append(fragment);node.replaceWith(label);}
   }
  }
  // Search controls keep their original node and handlers, including moved filter fields.
@@ -13953,7 +13953,7 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
 (()=>{
  const desk=matchMedia('(min-width:1024px)');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const paymentLabel=s=>esc(s).replace('입금·출금','입금<span class="nd-payment-dot">·</span>출금');
+ const paymentLabel=s=>'<span class="nd-payment-label">'+esc(s).replace('입금·출금','입금<i class="nd-payment-dot">·</i>출금')+'</span>';
  const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
  const signed=n=>(n>0?'+':n<0?'−':'')+won(Math.abs(n));
  const company=p=>(data()?.companies||[]).find(c=>c.id===p?.company_id)?.name||'거래처 없음';
@@ -14339,6 +14339,9 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-form:not([hidden]) {max-height:calc(100dvh - 180px);overflow-y:auto}
 }
 
-@media screen {html body .nd-payment-dot {display:inline-block;margin-inline:.10em}}
+@media screen {
+ html body #appView .nd-payment-label {display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important;margin:0!important;padding:0!important}
+ html body #appView .nd-payment-dot {display:inline-block!important;font:inherit!important;color:inherit!important;margin:0 .10em!important;padding:0!important;width:auto!important;letter-spacing:inherit!important}
+}
 </style></body>
 </html>

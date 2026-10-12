@@ -131,3 +131,5 @@ button colors on mobile/desktop in both themes.
 사용자 검토 방식(2026-10-12): 디자인 변경은 실제 화면 시안을 먼저 공유하고 사용자 확인 후 PR 머지를 진행한다. 구현/검증과 시안 준비까지는 진행하되 시안 확인 전에는 추가 머지하지 않는다. 배포는 사용자가 직접 실행한다. 검색창에 돋보기가 있으면 X의 우측 여백은 돋보기의 좌측 여백과 대칭으로 맞춘다.
 
 All menu page titles, record headers and primary header amounts use the shared 22px/30px title tokens and `--nd-header-weight:650`, on desktop and mobile. Utility dialog titles follow the same rule. Never override individual destinations. Payment labels keep the text `입금·출금`; `.nd-payment-dot` adds `.10em` on each side of the dot. Render the span in payment-panel markup to preserve its DOM comparison and stable clickable rows.
+
+Payment dot labels must be a single `.nd-payment-label` inline group; never expose the dot as a direct flex child of page titles or overview rows. The dot inherits the label font/size/weight/color. Regression checks must measure rendered gaps beside the dot, including desktop overview lists, rather than only computed margins.

@@ -232,4 +232,7 @@
  html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-form:not([hidden]) {max-height:calc(100dvh - 180px);overflow-y:auto}
 }
 
-@media screen {html body .nd-payment-dot {display:inline-block;margin-inline:.10em}}
+@media screen {
+ html body #appView .nd-payment-label {display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important;margin:0!important;padding:0!important}
+ html body #appView .nd-payment-dot {display:inline-block!important;font:inherit!important;color:inherit!important;margin:0 .10em!important;padding:0!important;width:auto!important;letter-spacing:inherit!important}
+}

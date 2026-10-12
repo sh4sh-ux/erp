@@ -1502,7 +1502,7 @@ const NaroCompanyLedger=(()=>{
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
    while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.nd-payment-dot')&&walker.currentNode.textContent.includes('입금·출금'))nodes.push(walker.currentNode);
    for(const node of nodes){const fragment=document.createDocumentFragment(),parts=node.textContent.split('입금·출금');
-    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('span');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});node.replaceWith(fragment);}
+    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('i');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});const label=document.createElement('span');label.className='nd-payment-label';label.append(fragment);node.replaceWith(label);}
   }
  }
  // Search controls keep their original node and handlers, including moved filter fields.
