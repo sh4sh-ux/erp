@@ -193,10 +193,10 @@ html body #appView .pp-detail .pp-record[open] .pp-chevron{transform:rotate(225d
 html body #appView .pp-detail .pp-record[open]{background:none}
 html body #appView .pp-detail .pp-record.pp-selected-record{background:none;box-shadow:none}
 html body #appView .pp-detail .pp-selected-record>summary{background:none;box-shadow:none}
-html body #appView .pp-detail .pp-record-more{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-record-more{display:grid;align-items:baseline;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
 html body #appView .pp-detail .pp-record-more dt{color:var(--nd-ink-3)}
 html body #appView .pp-detail .pp-record-more dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-record-delete{color:var(--danger,#d73329)}
+html body #appView .pp-detail .pp-record-more .pp-record-delete{padding:0;margin:0;vertical-align:baseline;font:inherit;color:var(--danger,#d73329)}
 html body #appView .pp-detail .pp-note{margin:24px 0 8px;font-size:11px}
 html body #appView #view-payments .pp-badge{padding:1px 5px;border-radius:4px;background:var(--nd-fill);color:var(--nd-ink-2);font:500 11px/18px var(--sans);font-style:normal;white-space:nowrap}
 html body #appView #view-payments .pp-badge.in{color:var(--success,#16934f);background:color-mix(in srgb,var(--success,#16934f) 10%,transparent)}
@@ -247,9 +247,10 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  html body #appView .pp-detail .pp-record summary>strong{gap:8px}
  html body #appView .pp-detail .pp-day-head{padding-inline:0}
  html body #appView .pp-detail .pp-record-more{padding-inline:0}
+ html body #appView #view-payments .pp-detail .pp-metrics strong{letter-spacing:normal!important}
  /* Quote detail contract: outer gutter 12px, content inset 16px; heading 19px/1.4. */
  html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
- html body #appView .pp-detail h3,html body #appView .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal;color:var(--nd-ink)}
+ html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
 }
 
 @media(max-width:780px){
