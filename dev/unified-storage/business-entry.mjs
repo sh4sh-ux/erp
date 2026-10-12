@@ -38,7 +38,10 @@ export function start(bridge,build){
  // Don't override the existing form's own disabled/validation states.
  document.addEventListener('click',e=>{
   const el=e.composedPath().find(n=>n?.matches?.('button,input,select,textarea,[role="button"]'));
-  if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary,.nd-mail,.nd-photo-view,.nd-photo-error-dismiss')&&(pending||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
+  // Startup image reads must not swallow navigation; writes and recovery still lock it.
+  const navigation=el?.matches('.nav-item,.mobile-nav-item,#menuBtn,#closeNavBtn,#moreNavBtn');
+  const readingImage=pending?.type==='ASSET_READ'&&!locked&&!recovering;
+  if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary,.nd-mail,.nd-photo-view,.nd-photo-error-dismiss')&&((pending&&!(readingImage&&navigation))||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
  },true);
  window.addEventListener('beforeunload',e=>{if(pending||locked){e.preventDefault();e.returnValue='';}});
  const reconcile=()=>new Promise((resolve,reject)=>{
@@ -113,7 +116,7 @@ export function start(bridge,build){
    };
    bridge.bindReadUI();bridge.bindBusinessUI();bridge.switchView('dash');
    if(build.extendedWrite){
-    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,...details});
+    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,type,resolve,reject};port.postMessage({type,requestId,...details});
      // 답이 끝내 오지 않아도 화면 전체가 잠긴 채 남지 않게(사진 요청은 읽기·추가 전용이라 다시 시도해도 안전).
      setTimeout(()=>{if(pending?.requestId===requestId){pending=null;reject(Error('응답이 늦어 중단했어요. 다시 눌러 주세요.'));}},40000);});
     installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>notifyAsset(text,message=>{status.hidden=false;status.textContent=message;setTimeout(()=>{if(status.textContent===message&&!status.querySelector('button')&&!pending&&!locked)status.hidden=true;},5000);})});
