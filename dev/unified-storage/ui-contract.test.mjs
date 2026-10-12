@@ -106,7 +106,8 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
      const panel=page.locator('#view-'+view);assert.equal(await panel.isVisible(),true,view);
      const heading=panel.locator('.page-head h2').first();
      assert.ok(await heading.count(),view+' page title');
-     assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontSize),width<1024?'22px':'24px',view+' page title size');
+     assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontSize),'22px',view+' page title size');
+     assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontWeight),'600',view+' page title weight');
      const kpis=panel.locator('.nd-db-metric strong,.pp-metrics strong,.nd-sa-kpis strong,.cp-ov .v b,.stats>.stat>.v');
      for(const kpi of await kpis.all()){
       const numeric=await kpi.evaluate(style);assert.equal(numeric.fontSize,'20px',view+' KPI size');assert.equal(numeric.letterSpacing,'normal',view+' KPI spacing');assert.equal(numeric.fontWeight,'600',view+' KPI weight');assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt KPI number font');
@@ -117,9 +118,9 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
       assert.ok(await title.count(),view+' title must exist');
       const actual=await title.evaluate(style);
       if(!reference)reference=actual;
-      assert.equal(actual.fontSize,width<1024?'19px':'24px',view);
-      assert.equal(actual.lineHeight,width<1024?'26.6px':'30px',view);
-      assert.equal(actual.fontWeight,'700',view);assert.equal(actual.letterSpacing,'normal',view);
+      assert.equal(actual.fontSize,'22px',view);
+      assert.equal(actual.lineHeight,'30px',view);
+      assert.equal(actual.fontWeight,'600',view);assert.equal(actual.letterSpacing,'normal',view);
       assert.deepEqual(actual,reference,view+' detail title');
       if(role.money){const amount=page.locator(role.money).first();assert.ok(await amount.count(),view+' header amount must exist');const numeric=await amount.evaluate(style);
        assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt number font');
@@ -162,13 +163,13 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
     const nav=await page.locator('.rail-nav').evaluate(e=>[...e.querySelectorAll('.nav-item,.nd-nav-act')].map(b=>{const s=getComputedStyle(b);return {label:b.textContent.trim(),font:s.fontFamily,size:s.fontSize,line:s.lineHeight};}));
     assert.ok(nav.length>=17);for(const n of nav){assert.equal(n.size,'14px',n.label);assert.equal(n.line,'20px',n.label);assert.equal(n.font,nav[0].font,n.label);}
     await page.evaluate(()=>window.styleAccess.open());await page.waitForTimeout(60);
-    assert.equal(await page.locator('.nd-acc-ttl h3').evaluate(e=>getComputedStyle(e).fontSize),'22px');
+    assert.deepEqual(await page.locator('.nd-acc-ttl h3').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','600']);
     const accessTab=page.locator('.nd-acc-chip[aria-selected=true]');
     assert.deepEqual(await accessTab.evaluate(e=>{const s=getComputedStyle(e);return [s.backgroundColor,s.color];}),['rgb(22, 26, 35)','rgb(255, 255, 255)']);
     await page.keyboard.press('Escape');
     // Utility export dialog is appended outside appView; it must inherit the same tokens.
     await page.locator('.rail-nav .nd-nav-act').filter({hasText:'데이터 내보내기'}).evaluate(e=>e.click());
-    assert.equal(await page.locator('.nd-export .nd-ex-head h2').evaluate(e=>getComputedStyle(e).fontSize),'22px');
+    assert.deepEqual(await page.locator('.nd-export .nd-ex-head h2').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','600']);
     await page.locator('.nd-export .nd-ex-close').click();
     // Real log dialog and native filtering events, not a mock CSS fragment.
     await page.evaluate(()=>window.NaroChangeLog.open());
@@ -517,4 +518,12 @@ test('rail and mobile tabs respond once while startup images read, but remain gu
   await page.evaluate(()=>{const request=navMessages.find(m=>m.type==='SAVE_TABLE');navHost.postMessage({type:'TABLE_SAVED',requestId:request.requestId,key:'settings',rows:request.rows});});await page.evaluate(()=>navSave);
   await next.click();assert.equal(await page.evaluate(()=>currentView),width<821?'payments':'items','first click after save switches');await page.close();
  }}finally{await browser.close();}
+});
+
+
+test('payment title dot spacing is shared by desktop and mobile labels without changing text',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);await open(page,'payments');
+  for(const selector of ['#view-payments .page-head h2','.rail-nav [data-view="payments"]','#bottomNav [data-view="payments"]','.pp-head h3']){const label=page.locator(selector).first();if(!await label.count())continue;const dots=label.locator('.nd-payment-dot');assert.equal(await dots.count(),1,selector);const style=await dots.evaluate(e=>{const s=getComputedStyle(e);return {left:parseFloat(s.marginLeft),right:parseFloat(s.marginRight),size:parseFloat(s.fontSize)};});assert.ok(Math.abs(style.left-style.size*.1)<.1);assert.equal(style.left,style.right);assert.match(await label.textContent(),/입금·출금/);}
+  await page.close();}}finally{await browser.close();}
 });

@@ -16,15 +16,15 @@ fix a presentation issue.
 
 | Role | Desktop | Mobile (under 1024px) | Color |
 | --- | --- | --- | --- |
-| Page title | 24px / 30px, 700 | 22px / 28px, 700 | `--nd-ink` |
-| Record title and primary header amount | 24px / 30px, 700 | 19px / 26.6px, 700 | `--nd-ink` |
+| Page title | 22px / 30px, 600 | same | `--nd-ink` |
+| Record title and primary header amount | 22px / 30px, 600 | same | `--nd-ink` |
 | KPI/summary total | 20px / 24px, 600 | same | `--nd-ink` |
 | Section heading | 14px / 22px, 600 | same | `--nd-ink` |
 | Record name and record amount | 14px / 20px, 600 | same | existing semantic text color |
 | Supporting label/header metadata | 12px / 18px, 400 | same | `--nd-ink-2` |
 | Muted list metadata | 12px / 18px, 400 | same | `--nd-ink-3` |
 | Rail text | 14px / 20px, 500 (selected 600) | same | rail state colors |
-| Utility dialog title | 22px / 28px, 700 | same | `--nd-ink` |
+| Utility dialog title | 22px / 30px, 600 | same | `--nd-ink` |
 | Detail section tab | 13px / 20px, height 46px | 14px / 20px, height 44px | selected underline: ink on desktop, blue on mobile |
 
 Status badges, warnings, destructive actions and loss/margin annotations retain
@@ -129,3 +129,5 @@ button colors on mobile/desktop in both themes.
 업체 제공 자재 상세는 견적서와 같은 헤더/우측 수량, 공통 밑줄 탭(자재·내역·입력), 흰 본문, 섹션 여백/구분선 및 하단 작업바를 사용한다. 탭 전환은 원래 입력 노드를 보존하여 초안 값을 유지하며 저장하지 않는다. 폰에서는 기존 기록 시트 대신 상세 입력 탭을 사용하되 새 업체의 최초 자재 받음 동작은 유지한다.
 
 사용자 검토 방식(2026-10-12): 디자인 변경은 실제 화면 시안을 먼저 공유하고 사용자 확인 후 PR 머지를 진행한다. 구현/검증과 시안 준비까지는 진행하되 시안 확인 전에는 추가 머지하지 않는다. 배포는 사용자가 직접 실행한다. 검색창에 돋보기가 있으면 X의 우측 여백은 돋보기의 좌측 여백과 대칭으로 맞춘다.
+
+All menu page titles, record headers and primary header amounts use the shared 22px/30px title tokens and `--nd-header-weight:600`, on desktop and mobile. Utility dialog titles follow the same rule. Never override individual destinations. Payment labels keep the text `입금·출금`; `.nd-payment-dot` adds `.10em` on each side of the dot. Render the span in payment-panel markup to preserve its DOM comparison and stable clickable rows.
