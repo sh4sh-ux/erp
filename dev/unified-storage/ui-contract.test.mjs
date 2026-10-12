@@ -408,3 +408,18 @@ test('item add glyph is centered and copy opens an independent unsaved item',asy
   await page.close();
  }}finally{await browser.close();}
 });
+
+test('item filter trash section shares body insets with category and keeps bottom space',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440])for(const count of [0,1]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  await page.evaluate(count=>{db.settings.trash=count?[{key:'items',id:'deleted',at:'2026-10-12',label:'삭제된 합성 품목',row:{id:'deleted',name:'삭제된 합성 품목'}}]:[];switchView('items');itSel=null;itEditing=null;renderItList();renderItDetail();},count);
+  await page.locator('#view-items button[aria-label="필터"]').click();const panel=page.locator('.nd-pop-panel');await panel.locator('.nd-trash-go').waitFor();
+  const geometry=await panel.evaluate(p=>{const category=p.querySelector('#itCategory').getBoundingClientRect(),trash=p.querySelector('.nd-trash-go').getBoundingClientRect(),body=p.querySelector('.nd-pop-body'),b=body.getBoundingClientRect();return {inBody:body.contains(p.querySelector('.nd-trash-field')),left:trash.left-category.left,right:trash.right-category.right,bottom:b.bottom-trash.bottom};});
+  assert.equal(geometry.inBody,true);assert.ok(Math.abs(geometry.left)<1);assert.ok(Math.abs(geometry.right)<1);assert.ok(geometry.bottom>=15);
+  assert.equal(await panel.locator('.nd-trash-go').isEnabled(),!!count);
+  if(count){await panel.locator('.nd-trash-go').click();await page.locator('dialog.nd-trash').waitFor();assert.match(await page.locator('dialog.nd-trash').textContent(),/삭제된 합성 품목/);}
+  if(evidence)await page.screenshot({path:resolve(evidence,`item-filter-${width}-${count}.png`)});
+  await page.close();
+ }}finally{await browser.close();}
+});
