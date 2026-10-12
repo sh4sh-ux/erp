@@ -467,7 +467,7 @@ test('all screen searches and item/company pickers clear through the original fi
    const searches=page.locator('#view-'+view+' input.nd-search-input:visible:not(:disabled)');const count=await searches.count();assert.ok(count>0,view+' has a search');
    for(let i=0;i<count;i++){
     const input=searches.nth(i);await input.fill('zz-no-matching-fixture');
-    const button=input.locator('..').locator('.nd-search-clear:visible').first();await button.waitFor();const b=await button.boundingBox(),r=await input.boundingBox();assert.ok(b.x>=r.x&&b.x+b.width<=r.x+r.width+1,view+' '+width+' clear inside input '+JSON.stringify({b,r}));
+    const button=input.locator('..').locator('.nd-search-clear:visible').first();await button.waitFor();const geometry=await input.evaluate(e=>{const host=e.parentElement,r=host.getBoundingClientRect(),b=host.querySelector('.nd-search-clear').getBoundingClientRect(),icon=host.querySelector(':scope>svg'),x=host.querySelector('.nd-search-clear>svg').getBoundingClientRect();return {inside:b.left>=r.left&&b.right<=r.right+1,gap:icon?Math.abs(icon.getBoundingClientRect().left-r.left-(r.right-x.right)):0};});assert.equal(geometry.inside,true,view+' '+width+' X stays in search box');assert.ok(geometry.gap<1.1,view+' '+width+' equal icon gutters');
     await button.click();assert.equal(await searches.nth(i).inputValue(),'');assert.equal(await button.count(),0,view+' empty search hides X');
    }
   }

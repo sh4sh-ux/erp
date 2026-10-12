@@ -11937,7 +11937,9 @@ const NaroCompanyLedger=(()=>{
    const host=input.parentElement;if(getComputedStyle(host).position==='static')host.classList.add('nd-search-host');
    if(button.parentElement!==host)input.after(button);
    button.hidden=!input.value||input.disabled||input.readOnly||!input.getClientRects().length;
-   if(!button.hidden){const left=input.offsetLeft+input.offsetWidth-32,top=input.offsetTop+(input.offsetHeight-28)/2;
+   if(!button.hidden){let left=input.offsetLeft+input.offsetWidth-32;const icon=host.querySelector(':scope>svg');
+    if(icon){const h=host.getBoundingClientRect(),r=icon.getBoundingClientRect(),scale=h.width/host.offsetWidth||1,gutter=(r.left-h.left)/scale-host.clientLeft;left=host.clientWidth-gutter-21;}
+    const top=input.offsetTop+(input.offsetHeight-28)/2;
     if(button.style.left!==left+'px')button.style.left=left+'px';if(button.style.top!==top+'px')button.style.top=top+'px';}
   }
  }
