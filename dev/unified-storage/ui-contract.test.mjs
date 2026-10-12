@@ -107,7 +107,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
      const heading=panel.locator('.page-head h2').first();
      assert.ok(await heading.count(),view+' page title');
      assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontSize),'22px',view+' page title size');
-     assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontWeight),'600',view+' page title weight');
+     assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontWeight),'650',view+' page title weight');
      const kpis=panel.locator('.nd-db-metric strong,.pp-metrics strong,.nd-sa-kpis strong,.cp-ov .v b,.stats>.stat>.v');
      for(const kpi of await kpis.all()){
       const numeric=await kpi.evaluate(style);assert.equal(numeric.fontSize,'20px',view+' KPI size');assert.equal(numeric.letterSpacing,'normal',view+' KPI spacing');assert.equal(numeric.fontWeight,'600',view+' KPI weight');assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt KPI number font');
@@ -120,7 +120,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
       if(!reference)reference=actual;
       assert.equal(actual.fontSize,'22px',view);
       assert.equal(actual.lineHeight,'30px',view);
-      assert.equal(actual.fontWeight,'600',view);assert.equal(actual.letterSpacing,'normal',view);
+      assert.equal(actual.fontWeight,'650',view);assert.equal(actual.letterSpacing,'normal',view);
       assert.deepEqual(actual,reference,view+' detail title');
       if(role.money){const amount=page.locator(role.money).first();assert.ok(await amount.count(),view+' header amount must exist');const numeric=await amount.evaluate(style);
        assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt number font');
@@ -163,13 +163,13 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
     const nav=await page.locator('.rail-nav').evaluate(e=>[...e.querySelectorAll('.nav-item,.nd-nav-act')].map(b=>{const s=getComputedStyle(b);return {label:b.textContent.trim(),font:s.fontFamily,size:s.fontSize,line:s.lineHeight};}));
     assert.ok(nav.length>=17);for(const n of nav){assert.equal(n.size,'14px',n.label);assert.equal(n.line,'20px',n.label);assert.equal(n.font,nav[0].font,n.label);}
     await page.evaluate(()=>window.styleAccess.open());await page.waitForTimeout(60);
-    assert.deepEqual(await page.locator('.nd-acc-ttl h3').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','600']);
+    assert.deepEqual(await page.locator('.nd-acc-ttl h3').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','650']);
     const accessTab=page.locator('.nd-acc-chip[aria-selected=true]');
     assert.deepEqual(await accessTab.evaluate(e=>{const s=getComputedStyle(e);return [s.backgroundColor,s.color];}),['rgb(22, 26, 35)','rgb(255, 255, 255)']);
     await page.keyboard.press('Escape');
     // Utility export dialog is appended outside appView; it must inherit the same tokens.
     await page.locator('.rail-nav .nd-nav-act').filter({hasText:'데이터 내보내기'}).evaluate(e=>e.click());
-    assert.deepEqual(await page.locator('.nd-export .nd-ex-head h2').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','600']);
+    assert.deepEqual(await page.locator('.nd-export .nd-ex-head h2').evaluate(e=>{const s=getComputedStyle(e);return [s.fontSize,s.lineHeight,s.fontWeight];}),['22px','30px','650']);
     await page.locator('.nd-export .nd-ex-close').click();
     // Real log dialog and native filtering events, not a mock CSS fragment.
     await page.evaluate(()=>window.NaroChangeLog.open());
