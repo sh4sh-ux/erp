@@ -234,3 +234,13 @@ test('용량: 1MB의 70%에서 안내 표시',()=>{
  assert.equal(capacity(emptyPurchases()).warn,false);
  const big={...emptyPurchases(),rows:[{pad:'x'.repeat(760000)}]};assert.equal(capacity(big).warn,true);
 });
+
+test('매입 읽기는 중복 metadata 요청 없이 3회 읽기, 읽는 중 변경은 여전히 감지',async()=>{
+ const fake=fakeDropbox({...emptyData(),...base()}),path='/naro biz/data/purchases.json';
+ fake.files.set(path,{path:'/NARO Biz/Data/purchases.json',id:'purchase-file',rev:'p1',body:JSON.stringify(doc([domestic()]))});
+ const {repo,backend}=await open(fake);const before=backend.metrics();
+ assert.equal((await repo.loadPurchases()).status,'ready');assert.equal(backend.metrics().readRequests-before.readRequests,3);assert.equal(backend.metrics().businessWriteRequests,0);
+ const changing=fakeDropbox({...emptyData(),...base()});changing.files.set(path,{path:'/NARO Biz/Data/purchases.json',id:'purchase-file',rev:'p1',body:JSON.stringify(doc([domestic()]))});
+ const original=changing.fetcher;changing.fetcher=async(url,opts)=>{const response=await original(url,opts);if(url.endsWith('download')&&JSON.parse(opts.headers['Dropbox-API-Arg']).path.toLowerCase()===path)changing.files.get(path).rev='p2';return response;};
+ const other=await open(changing);assert.equal((await other.repo.loadPurchases()).status,'error');assert.equal(other.repo.purchasesState().error,'STORAGE_CONFLICT');
+});

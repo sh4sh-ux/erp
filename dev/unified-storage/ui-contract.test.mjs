@@ -63,9 +63,10 @@ async function prepare(page){
   db.settings={schema:3,name:'합성 공급자'};
   Table.save=async()=>{throw Error('Unexpected write in style test');};
   const {installPurchaseUI}=await import('./purchase-ui.mjs');
-  let purchase;
+  let purchase;window.fixturePurchaseRequests=[];
   purchase=installPurchaseUI({port:()=>({postMessage(m){
    if(m.type!=='PURCHASE_STATE')throw Error('Unexpected purchase write');
+   fixturePurchaseRequests.push(m.type);
    queueMicrotask(()=>purchase.onMessage({type:'PURCHASE_STATE',requestId:m.requestId,state:{status:'ready'},doc:{schema:1,rows:[{id:'buy',no:'PO-FIXTURE',vendor_id:'v',date,status:'작성중',lines:[{id:'bl',item_id:'i',name:'합성 품목',qty:10,unit_price:1000}],vat_on:true}]}}));
   }})});
   const {installLogUI}=await import('./log-ui.mjs');let log;
@@ -445,4 +446,14 @@ test('quote print and shared image split nested item codes and center the other 
   if(evidence){await page.screenshot({path:resolve(evidence,`quote-print-code-${width}.png`)});await page.emulateMedia({media:'screen'});await page.evaluate(()=>{document.body.innerHTML='<img style="width:794px" src="'+quoteCanvasEvidence+'">';});await page.screenshot({path:resolve(evidence,`quote-image-code-${width}.png`),fullPage:true});}
   await page.close();
  }}finally{await browser.close();}
+});
+
+
+test('purchase navigation reuses loaded rows without repeated cloud requests',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ try{await prepare(page);await page.locator('.pu-nav').click();await page.waitForFunction(()=>NaroPurchases.state().status==='ready');
+  assert.equal(await page.locator('#puList .list-item').count(),1);
+  for(let i=0;i<3;i++){await page.locator('.rail-nav .nav-item[data-view="dash"]').click();await page.locator('.pu-nav').click();assert.equal(await page.locator('#puList .list-item').count(),1);}
+  assert.deepEqual(await page.evaluate(()=>fixturePurchaseRequests),['PURCHASE_STATE']);
+ }finally{await browser.close();}
 });

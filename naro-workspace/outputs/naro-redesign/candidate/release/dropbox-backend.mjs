@@ -52,11 +52,13 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   check();return data;
  }
  async function load(path){return request(content+'download',{path:pathArg(path)},{download:true});}
- async function identity(path){
-  if(!paths.has(path)&&!isSide(path))throw fault('WRITE_BLOCKED');
-  const m=await request(api+'get_metadata',{path:pathArg(path)});
+ function identityFromMetadata(path,m){
   if(m?.['.tag']!=='file'||!m.id||!m.rev||m.path_lower!==('/'+path).toLowerCase())throw fault('STORAGE_CONFLICT');
   return {provider:'dropbox',logicalKey:path.split('/').pop().replace('.json',''),fileId:m.id,path:m.path_lower,revision:m.rev,revisionKind:'dropbox.rev',etag:null};
+ }
+ async function identity(path){
+  if(!paths.has(path)&&!isSide(path))throw fault('WRITE_BLOCKED');
+  return identityFromMetadata(path,await request(api+'get_metadata',{path:pathArg(path)}));
  }
  return {
   async connect(){if(disposed)throw fault('CANCELLED');const result=await oauth.authorize(signal);if(disposed||signal?.aborted)throw fault('CANCELLED');token=result.accessToken;expires=result.expiresAt;schedule();globalThis.document?.addEventListener('visibilitychange',onVisible);},
@@ -64,7 +66,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   async exists(path){return !!await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});},
   load,identity,metrics:()=>({...metrics}),
   // 매입 파일: 있으면 식별 정보, 없으면 null(=매입 시작 전). 7개 파일과 상관없이 따로 확인한다.
-  async purchasesIdentity(){const m=await request(api+'get_metadata',{path:pathArg(PURCHASES_PATH)},{allowMissing:true});if(!m)return null;return identity(PURCHASES_PATH);},
+  async purchasesIdentity(){const m=await request(api+'get_metadata',{path:pathArg(PURCHASES_PATH)},{allowMissing:true});if(!m)return null;return identityFromMetadata(PURCHASES_PATH,m);},
   loadPurchases:()=>load(PURCHASES_PATH),
   // [매입 시작하기]: 빈 매입 파일을 '없을 때만' 만든다(add + strict_conflict → 이미 있으면 덮지 않고 그대로 사용).
   async createPurchases(value){
