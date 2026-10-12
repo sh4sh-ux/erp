@@ -37,7 +37,7 @@
  }
  /* Primary header money has the same hierarchy as the adjacent record title. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
-  .qs-amt-v,.cp-amt .v,.pp-amount strong,.nd-sa-header-amount strong,
+  .qs-amt-v,.cp-amt .v,.pp-amount strong,.material-balance-hero strong,.nd-sa-header-amount strong,
   .workspace-heading>.scr-hero>.big,.workspace-record-heading>.scr-hero>.big
  ) {
   font:700 var(--nd-title-size)/var(--nd-title-line) var(--nd-number-font)!important;
@@ -47,7 +47,7 @@
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .qs-k,.qs-amt-k,.cp-cap,.cp-amt .k,.cp-meta,.pp-caption,.pp-amount>span,.pp-meta,
   .nd-sa-eyebrow,.nd-sa-label,.nd-sa-period,.qp-metadata,.material-detail-head .hint,
-  .workspace-caption,.cp-stats span,.pp-metrics>div>span,.nd-sa-kpis span
+  .workspace-caption,.material-eyebrow,.material-balance-hero>span,.nd-mm-asof,.nd-mat-hd>span,.material-summary>span,.nd-mat-legend>span,.cp-stats span,.pp-metrics>div>span,.nd-sa-kpis span
  ) {
   font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;color:var(--nd-ink-2)!important;
@@ -71,7 +71,7 @@
  /* List and ledger money, separate from the smaller margin annotations. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
-  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number,.material-summary b,.nd-mat-legend b
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
@@ -182,4 +182,52 @@
  html body .nd-search-clear[hidden] {display:none!important}
  html body .nd-search-clear:hover {color:var(--nd-ink,#1B1F28);background:var(--nd-fill,#F1F2F6)}
  html body .nd-search-clear>svg {width:14px!important;height:14px!important;flex:none;stroke-width:2}
+}
+
+/* Material details reuse quote header, tab, section and action-bar geometry. */
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail {display:flex;flex-direction:column;min-height:100%;padding:0!important;gap:0}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail>[hidden] {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-tabs {display:flex!important;flex:none;gap:22px;margin:0!important;padding:0 var(--panel-inset,28px)!important;border-bottom:1px solid var(--nd-line);background:var(--nd-surface);order:2}
+ html body #appView[data-layout-system] .shell .main #view-materials :is(.nd-material-overview,.material-history-wrap,.material-detail-form) {order:3;padding:28px var(--panel-inset,28px)!important;margin:0!important;box-sizing:border-box}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-overview>.nd-mat {padding:0 0 24px!important;margin:0!important;background:transparent!important;border:0;border-bottom:1px solid var(--nd-line);border-radius:0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-summary {margin:0!important;padding:20px 0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;gap:28px;flex-wrap:wrap;background:transparent!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-type-tabs {margin:20px 0 0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-quick {order:4;position:sticky;bottom:0;flex:none;margin:auto 0 0!important;padding:14px var(--panel-inset,28px)!important;border:0;border-top:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;z-index:3;min-height:72px;box-sizing:border-box;flex-wrap:wrap}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-history-wrap>.material-section-head {padding:0 0 20px!important;margin:0!important;border:0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-record {padding:16px 17px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;background:transparent!important;border-radius:0!important;align-items:center}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-history {margin:0!important}
+}
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head {flex:none;order:1;margin:0!important;height:144px;min-height:144px;padding:30px var(--panel-inset,28px) 20px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-tabs {position:sticky;top:144px;z-index:3}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials {--panel-inset:16px}
+ html body #appView[data-layout-system] .shell .main #view-materials :is(.nd-material-overview,.material-history-wrap,.material-detail-form) {padding-top:20px!important;padding-bottom:20px!important}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-detail-form::before {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard {position:static!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard::before {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-form-actions {position:sticky;bottom:0;display:flex;gap:8px;margin:24px calc(-1 * var(--panel-inset,28px)) -28px!important;padding:14px var(--panel-inset,28px)!important;border-top:1px solid var(--nd-line);background:var(--nd-surface);min-height:72px;box-sizing:border-box;z-index:3}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-form-actions {margin-bottom:-20px!important}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) {background:var(--nd-surface)!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .field :is(input:not([type=hidden]),select,textarea) {background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important;border-radius:9px!important;color:var(--nd-ink);box-shadow:none!important}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head {position:relative;display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:18px 16px!important;background:var(--nd-surface)!important}
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head>.material-balance-hero {position:static!important;grid-column:2;grid-row:1;align-items:flex-end!important;align-self:start;margin:0!important;padding:0!important;gap:4px;text-align:right}
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head>.material-balance-hero>span {max-width:140px}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .date-control {background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important;border-radius:9px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .date-control-display {background:transparent!important;box-shadow:none!important;border:0!important}
+}
+@media screen and (max-width:820px) {
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-form:not([hidden]) {max-height:calc(100dvh - 180px);overflow-y:auto}
 }
