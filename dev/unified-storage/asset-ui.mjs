@@ -6,13 +6,13 @@ async function normalize(file,maxSide=1600,maxBytes=1048576){
  if(!png&&!jpeg&&!webp)throw Error('PNG, JPEG, WebP 이미지만 지원합니다.');
  let bitmap;try{bitmap=await createImageBitmap(file);}catch{throw Error('이미지를 읽을 수 없습니다.');}
  try{
-  if(bitmap.width>4096||bitmap.height>4096||bitmap.width*bitmap.height>16000000)throw Error('이미지는 가로·세로 4,096px 이하여야 합니다.');
   const canvas=document.createElement('canvas'),longest=Math.max(bitmap.width,bitmap.height);
-  let side=Math.min(maxSide,longest);
+  let side=Math.min(maxSide,longest,Math.floor(longest*Math.min(1,Math.sqrt(16000000/(bitmap.width*bitmap.height)))));
   // JPEG → PNG can grow even when dimensions shrink. Fit the actual encoded
   // bytes to the private asset store limit, drawing each attempt from the source.
   while(side>=1){
    const ratio=side/longest;canvas.width=Math.max(1,Math.round(bitmap.width*ratio));canvas.height=Math.max(1,Math.round(bitmap.height*ratio));
+   if(canvas.width*canvas.height>16000000){side=Math.max(1,side-1);continue;}
    canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
    if(!blob)throw Error('이미지를 변환하지 못했습니다. 다시 첨부해 주세요.');
@@ -23,6 +23,7 @@ async function normalize(file,maxSide=1600,maxBytes=1048576){
   throw Error('이미지를 저장 용량에 맞게 줄이지 못했습니다. 다시 첨부해 주세요.');
  }finally{bitmap.close();}
 }
+export function notifyAsset(text,fallback){if(typeof window.toast==='function')window.toast(text);else fallback?.(text);}
 // Sending keeps the stored PNG bytes, with no second resize or re-encoding.
 export function createAssetFile(bytes,filename){return new File([bytes],filename,{type:'image/png'});}
 // Photo cards: 명함 · 사업자등록증 in 공급자 정보, 품목 이미지 in the item form. Same normalize → ASSET_UPLOAD →
@@ -72,7 +73,9 @@ export function installAssets({db,request,save,notify}){
   const big=document.createElement('button');big.type='button';big.className='nd-photo-big';big.textContent='크게 보기';
   const del=document.createElement('button');del.type='button';del.className='nd-photo-del';del.textContent='삭제';
   act.append(up,big,del);
-  const input=picker(async file=>{try{const path=await attach(target(),kind,file,t=>setState(t));await show(path);setState('저장 완료');say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){setState(e.message);say(label+' 첨부 실패: '+e.message);}});
+  const clearError=()=>{el.classList.remove('warn');setState(current?'등록됨':'등록 안 됨');};
+  const showError=t=>{setState(t);el.classList.add('warn');const close=document.createElement('button');close.type='button';close.className='nd-photo-error-dismiss';close.textContent='닫기';close.setAttribute('aria-label',label+' 첨부 오류 닫기');close.onclick=clearError;state.append(close);};
+  const input=picker(async file=>{clearError();try{const path=await attach(target(),kind,file,t=>setState(t));await show(path);setState('저장 완료');say(label+' 사진 저장·다시 읽기 확인 완료');}catch(e){showError(e.message);say(label+' 첨부 실패: '+e.message);}});
   name.append(state);el.append(shot,name,act,input);
   let current='';const tries={};
   async function show(path){current=path||'';img.hidden=true;plus.hidden=false;big.hidden=!current;del.hidden=!current;up.textContent=current?'바꾸기':'사진 첨부';el.classList.toggle('has',!!current);
@@ -81,7 +84,7 @@ export function installAssets({db,request,save,notify}){
   const emptyText=()=>{let ok=true;try{target();}catch{ok=false;}setState(ok?'등록 안 됨':(hint||'등록 안 됨'));};
   show('');
   // 누를 때마다 반드시 눈에 보이는 반응: 파일 창을 열거나, 왜 못 여는지 상태 줄과 알림에 알린다.
-  const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);el.classList.add('warn');say(e.message);return;}el.classList.remove('warn');
+  const choose=()=>{let t;try{t=target();}catch(e){setState(e.message);el.classList.add('warn');say(e.message);return;}if(el.classList.contains('warn'))clearError();
    if(busy){const m='다른 사진을 저장하고 있어요. 잠시 후 다시 눌러 주세요.';setState(m);say(m);return;}if(t)input.click();};
   shot.onclick=()=>{current&&!img.hidden?open(img.src,label):choose();};up.onclick=choose;big.onclick=()=>{if(!img.hidden)open(img.src,label);};
   del.onclick=async()=>{let t;try{t=target();}catch(e){setState(e.message);return;}if(!current||busy)return;

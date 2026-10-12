@@ -274,8 +274,8 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
  try{
   await prepare(page);await page.evaluate(()=>{
    window.assetTestReady=(async()=>{
-   const {installAssets}=await import('./asset-ui.mjs');window.assetNotifications=[];window.assetUploads=[];
-   installAssets({db,notify:t=>assetNotifications.push(t),request:async(type,body)=>{
+   const {installAssets,notifyAsset}=await import('./asset-ui.mjs');window.assetNotifications=[];window.assetUploads=[];
+   installAssets({db,notify:t=>{assetNotifications.push(t);notifyAsset(t);},request:async(type,body)=>{
     if(type!=='ASSET_UPLOAD')throw Error('Unexpected read');window.latestAssetBytes=body.bytes;assetUploads.push({kind:body.kind,size:body.bytes.length,width:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(16),height:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(20)});return {path:'assets/registration-test.png'};
    },save:async(key,value)=>{if(key!=='settings')throw Error('Unexpected table');db.settings=value;}});
    switchView('settings');window.assetTestInstalled=true;
@@ -292,6 +292,11 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
   await page.waitForTimeout(150);
   assert.match(await card.locator('[role=status]').textContent(),/PNG, JPEG, WebP/);
   assert.equal(await page.evaluate(()=>assetUploads.length),0);
+  const title=card.locator('.nd-photo-name>span');assert.equal(await title.textContent(),'사업자등록증');assert.ok(await title.evaluate(e=>e.clientWidth>=e.scrollWidth),'error must not truncate title');
+  await page.waitForFunction(()=>!document.getElementById('toast').classList.contains('show'));
+  await card.getByRole('button',{name:'사업자등록증 첨부 오류 닫기'}).click();
+  assert.equal(await card.locator('[role=status]').textContent(),'등록 안 됨');
+
   const jpeg=await page.evaluate(async()=>{
    const canvas=document.createElement('canvas');canvas.width=100;canvas.height=140;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,100,140);ctx.fillStyle='black';ctx.fillText('Registration fixture',5,30);
    const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg'));return Array.from(new Uint8Array(await blob.arrayBuffer()));
@@ -319,6 +324,14 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
   const shared=await page.evaluate(async()=>{const {createAssetFile}=await import('./asset-ui.mjs'),file=createAssetFile(latestAssetBytes,'business-registration.png'),bytes=new Uint8Array(await file.arrayBuffer());return {size:file.size,type:file.type,identical:bytes.length===latestAssetBytes.length&&bytes.every((v,i)=>v===latestAssetBytes[i])};});assert.equal(shared.size,upload.size);assert.equal(shared.type,'image/png');assert.equal(shared.identical,true,'send exact high-resolution stored bytes');
   assert.equal(await card.locator('.nd-photo-shot img').isVisible(),true);
 
+  const oversized=await page.evaluate(async()=>{
+   const canvas=document.createElement('canvas');canvas.width=5000;canvas.height=2000;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,5000,2000);ctx.fillStyle='black';ctx.font='60px sans-serif';ctx.fillText('High resolution registration fixture',100,200);
+   const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg'));return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await card.locator('input[type=file]').setInputFiles({name:'5000px-registration.jpg',mimeType:'image/jpeg',buffer:Buffer.from(oversized)});
+  await page.waitForFunction(()=>assetUploads.length===3&&document.querySelectorAll('.nd-photo-state')[1].textContent==='저장 완료');
+  const scaled=await page.evaluate(()=>assetUploads[2]);assert.equal(scaled.width,4096);assert.equal(scaled.height,1638);assert.ok(scaled.size<=8*1048576);
+  assert.equal(await card.getByRole('button',{name:'사업자등록증 첨부 오류 닫기'}).count(),0);
   assert.ok(await page.evaluate(()=>assetNotifications.some(t=>t.includes('첨부 실패'))));
  }finally{await page.close();await browser.close();}
 });

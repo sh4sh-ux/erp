@@ -14155,5 +14155,12 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals {--nd-total-line-inset:var(--nd-in,17px)}
  html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand {justify-content:flex-end!important}
 }
+
+@media screen {
+ html body #appView .nd-photo-name {flex-wrap:wrap}
+ html body #appView .nd-photo-name>span {flex:none}
+ html body #appView .nd-photo.warn .nd-photo-name>.nd-photo-state {flex-basis:100%;text-align:left;overflow-wrap:anywhere}
+ html body #appView .nd-photo-error-dismiss {border:0;background:none;color:inherit;font:inherit;padding:4px 0;margin-left:8px;text-decoration:underline;cursor:pointer}
+}
 </style></body>
 </html>
