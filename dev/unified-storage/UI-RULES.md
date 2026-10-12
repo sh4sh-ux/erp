@@ -84,3 +84,12 @@ larger than 1MB whose first PNG exceeds the limit through the actual attachment
 button and native file chooser, then assert upload size and visible preview.
 Attachment errors must survive unrelated renders and remain visible beside the
 attachment; a generic “등록 안 됨” label must not erase a failure.
+
+## Quote/purchase totals and row deletion
+
+The separator above 합계 spans the full item section width, including the desktop
+17px text inset on each side. Keep totals text on its existing inner alignment.
+Quote and purchase row-delete SVGs both use 14×14px and stroke-width 2. Apply the
+shared `ui-contract.css` selectors for both forms. Check rendered separator endpoints
+against the section bounds and actual SVG rectangles; CSS source equality alone
+is insufficient. Screen rules must not change printed quotation documents.
