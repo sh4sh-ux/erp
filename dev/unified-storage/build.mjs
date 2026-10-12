@@ -352,9 +352,12 @@ const patchFn=(name,edits)=>{const start=html.indexOf('function '+name+'(');if(s
 patchFn('drawQuoteCanvas',[
  ['const nameLs=qimgWrap(mc,l.name,COLS[0]-22);','const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""};const nameLs=(window.naroWrapWords||qimgWrap)(mc,sp.name,COLS[0]-22-(ph?66:0));if(sp.code)nameLs.push({code:sp.code});'],
  ['return { nameLs, colorLs, specLs, h:Math.max(42,n*18+24) };','return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?72:42,n*18+24) };'],
- ['const baseY=ty+12+13;','const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;'],
+ ['const baseY=ty+12+13;','const baseY=ty+(r.h-r.nameLs.length*18)/2+13;'],
  ['r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));','if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}'],
 
+ ['r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));','r.colorLs.forEach((ln,j)=>cell(ln,1,ty+(r.h-r.colorLs.length*18)/2+13+j*18));'],
+ ['r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));','r.specLs.forEach((ln,j)=>cell(ln,2,ty+(r.h-r.specLs.length*18)/2+13+j*18));'],
+ ['.forEach((v,i)=>cell(v,i+3,baseY));','.forEach((v,i)=>cell(v,i+3,ty+r.h/2+4));'],
  ['ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();','if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}'],
 ]);
 // 비고 글자는 아래 상자 안 글자(자수 제품은…)·합계와 같은 왼쪽 선에 맞춘다.

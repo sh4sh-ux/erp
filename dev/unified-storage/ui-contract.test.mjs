@@ -423,3 +423,25 @@ test('item filter trash section shares body insets with category and keeps botto
   await page.close();
  }}finally{await browser.close();}
 });
+
+test('quote print and shared image split nested item codes and center the other columns',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  await page.evaluate(()=>{window.print=()=>{};window.quotePrintReady=(async()=>{const {installAssets}=await import('./asset-ui.mjs');installAssets({db,request:async()=>{throw Error('Unexpected asset request');},save:async()=>{throw Error('Unexpected save');},notify(){}});window.quotePrintInstalled=true;})();});await page.waitForFunction(()=>window.quotePrintInstalled===true);
+  const result=await page.evaluate(()=>{
+   const lines=[{id:'nested',item_id:'i',name:'셰프복 [JK_3SB-LS [VN]]',color:'BK',spec:'M',qty:4,price:17000},{id:'simple',name:'타월 [T-100]',color:'WH',spec:'L',qty:2,price:1000}];const q={...db.quotes[0],lines};const original=JSON.stringify({q,items:db.items});
+   const split=lines.map(naroSplitName),removed=naroSplitName({name:'옛 품목 [OLD [VN]]',item_id:'removed'}),fallback=naroSplitName({name:'합성 품목',item_id:'i'});
+   const calls=[],fill=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(text,x,y,...rest){calls.push({text:String(text),x,y});return fill.call(this,text,x,y,...rest);};let canvas;try{canvas=drawQuoteCanvas(q,'견적서');}finally{CanvasRenderingContext2D.prototype.fillText=fill;}
+   window.quoteCanvasEvidence=canvas.toDataURL();printQuote(q,'견적서');return {split,removed,fallback,calls,unchanged:original===JSON.stringify({q,items:db.items})};
+  });
+  assert.deepEqual(result.split,[{name:'셰프복',code:'JK_3SB-LS [VN]'},{name:'타월',code:'T-100'}]);assert.deepEqual(result.removed,{name:'옛 품목',code:'OLD [VN]'});assert.deepEqual(result.fallback,{name:'합성 품목',code:'FIXTURE'});assert.equal(result.unchanged,true);
+  const name=result.calls.find(c=>c.text==='셰프복'),code=result.calls.find(c=>c.text==='JK_3SB-LS [VN]'),mid=(name.y+code.y)/2;
+  for(const text of ['BK','M','4','17,000','68,000','6,800'])assert.ok(Math.abs(result.calls.find(c=>c.text===text).y-mid)<.01,text+' centered between name and code');
+  await page.emulateMedia({media:'print'});
+  const row=page.locator('#printArea .p-tbl tbody tr').first();assert.equal(await row.locator('.nd-pn>b').textContent(),'셰프복');assert.equal(await row.locator('.nd-pn>small').textContent(),'JK_3SB-LS [VN]');
+  const centers=await row.evaluate(tr=>{const p=tr.querySelector('.nd-pn').getBoundingClientRect();return [...tr.cells].slice(1).map(td=>{const r=document.createRange();r.selectNodeContents(td);const b=r.getBoundingClientRect();return {alignment:getComputedStyle(td).verticalAlign,offset:b.top+b.height/2-(p.top+p.height/2)};});});for(const c of centers){assert.equal(c.alignment,'middle');assert.ok(Math.abs(c.offset)<3,'printed column vertically centered');}
+  if(evidence){await page.screenshot({path:resolve(evidence,`quote-print-code-${width}.png`)});await page.emulateMedia({media:'screen'});await page.evaluate(()=>{document.body.innerHTML='<img style="width:794px" src="'+quoteCanvasEvidence+'">';});await page.screenshot({path:resolve(evidence,`quote-image-code-${width}.png`),fullPage:true});}
+  await page.close();
+ }}finally{await browser.close();}
+});

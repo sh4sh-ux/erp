@@ -5535,12 +5535,12 @@ function drawQuoteCanvas(q,docType){
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const lv=lineSupplyVat(l), supply=lv.supply;
-    const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;
+    const baseY=ty+(r.h-r.nameLs.length*18)/2+13;
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
     if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}
-    r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
-    r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
-    [fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)].forEach((v,i)=>cell(v,i+3,baseY));
+    r.colorLs.forEach((ln,j)=>cell(ln,1,ty+(r.h-r.colorLs.length*18)/2+13+j*18));
+    r.specLs.forEach((ln,j)=>cell(ln,2,ty+(r.h-r.specLs.length*18)/2+13+j*18));
+    [fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)].forEach((v,i)=>cell(v,i+3,ty+r.h/2+4));
     ty+=r.h;
     ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
     if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}
@@ -8456,7 +8456,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
 #printArea .p-etc .k{padding-left:14px}
 #printArea .nd-pq>span{min-width:0;word-break:keep-all;overflow-wrap:break-word}
-#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word}
+#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word;vertical-align:middle}
 #printArea .nd-pn{display:flex;flex-direction:column;gap:1px;min-width:0}
 #printArea .nd-pn>b{font-weight:400;color:inherit}
 #printArea .nd-pn>small{font-size:11px;color:#8A8F98;line-height:1.35}
