@@ -24,6 +24,14 @@ const roles={
  purchases:{title:'#puForm .qs-val.co',money:'#puForm .qs-amt-v'}
 };
 async function prepare(page){
+ await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{
+  window.supplierOriginalNodes={};window.supplierInputEvents=0;
+  for(const id of ['st_name','st_ceo','st_biz','st_phone','st_email','st_bank','st_address','stSaveBtn']){
+   const el=document.getElementById(id);window.supplierOriginalNodes[id]=el;
+   el?.addEventListener('input',()=>window.supplierInputEvents++);
+   if(id==='stSaveBtn')el.onclick=()=>saveSettings();
+  }
+ }));
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());
   if(url.origin!=='https://naro-fixture.test')return route.abort();
@@ -89,7 +97,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
    page.on('pageerror',e=>errors.push(e.message));
    try{
     await prepare(page);await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
-    let reference=null;const report=[];
+    let reference=null,companyInfo=null;const report=[];
     for(const view of ['dash','quotes','materials','payments','purchases','stock','companies','items','sales','ar','settings']){
      await open(page,view);
      const panel=page.locator('#view-'+view);assert.equal(await panel.isVisible(),true,view);
@@ -115,6 +123,36 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
        for(const key of ['fontSize','lineHeight','fontWeight','letterSpacing','color'])assert.equal(numeric[key],reference[key],view+' header amount '+key);
        assert.equal(await amount.evaluate(e=>getComputedStyle(e).fontFeatureSettings),'normal',view+' no forced tnum');}
       report.push(view);
+     }
+     if(view==='companies'){
+      if(width<1024)await page.locator('#coList .list-item[data-id=c]').click();
+      await page.locator('#coForm [data-cp-tab=info]').click();
+      companyInfo=await page.locator('#coForm .cp-panel[data-cp-panel=info] .cp-grp').first().evaluate(e=>{
+       const g=getComputedStyle(e),h=getComputedStyle(e.querySelector('.cp-grph h4')),p=getComputedStyle(e.querySelector('.cp-grph p')),input=getComputedStyle(e.querySelector('input'));
+       return {display:g.display,columns:g.gridTemplateColumns,gap:g.columnGap,heading:h.font,description:p.font,descriptionColor:p.color,inputFont:input.font,inputHeight:input.height,inputBackground:input.backgroundColor,inputBorder:input.borderColor,inputRadius:input.borderRadius,inputPadding:input.padding,labelFont:getComputedStyle(e.querySelector('label')).font,labelColor:getComputedStyle(e.querySelector('label')).color,fieldMargin:getComputedStyle(e.querySelector('.field')).marginBottom,innerGap:getComputedStyle(e.querySelector('.cp-grpb .grid2')).columnGap};
+      });
+     }
+     if(view==='settings'){
+      const groups=page.locator('#view-settings .sup-sec.cp-grp');assert.equal(await groups.count(),3);
+      const supplier=await groups.first().evaluate(e=>{
+       const g=getComputedStyle(e),h=getComputedStyle(e.querySelector('.cp-grph h3')),p=getComputedStyle(e.querySelector('.cp-grph p')),input=getComputedStyle(e.querySelector('input'));
+       return {display:g.display,columns:g.gridTemplateColumns,gap:g.columnGap,heading:h.font,description:p.font,descriptionColor:p.color,inputFont:input.font,inputHeight:input.height,inputBackground:input.backgroundColor,inputBorder:input.borderColor,inputRadius:input.borderRadius,inputPadding:input.padding,labelFont:getComputedStyle(e.querySelector('label')).font,labelColor:getComputedStyle(e.querySelector('label')).color,fieldMargin:getComputedStyle(e.querySelector('.field')).marginBottom,innerGap:getComputedStyle(e.querySelector('.cp-grpb .grid2')).columnGap};
+      });
+      for(const key of ['display','gap','heading','description','descriptionColor','inputFont','inputHeight','inputBackground','inputBorder','inputRadius','inputPadding','labelFont','labelColor','fieldMargin','innerGap'])assert.equal(supplier[key],companyInfo[key],'supplier/company info '+key);
+      if(width>=1024){assert.ok(supplier.columns.startsWith('180px '));assert.ok(companyInfo.columns.startsWith('180px '));}
+      assert.equal(await page.evaluate(()=>Object.entries(window.supplierOriginalNodes).every(([id,node])=>document.getElementById(id)===node)),true,'native controls preserved');
+      await page.locator('#st_name').fill('입력 보존 검증');assert.ok(await page.evaluate(()=>window.supplierInputEvents)>0,'native listener preserved');
+      assert.equal(await page.locator('#nd_address_detail').locator('..').locator('label').textContent(),'상세주소');
+      assert.equal(await page.locator('#st_name').evaluate(e=>{const f=e.closest('.field'),b=e.closest('.cp-grpb');return Math.abs(f.getBoundingClientRect().width-b.getBoundingClientRect().width)<1;}),true,'full-width supplier name');
+      if(evidence&&theme==='light'&&[390,1440].includes(width))await page.screenshot({path:resolve(evidence,`supplier-info-${width}.png`)});
+      if(width===390&&theme==='light'){
+       await page.evaluate(()=>{window.supplierSaved=[];Table.save=async(name,rows)=>{if(name!=='settings')throw Error('Unexpected fixture write');window.supplierSaved.push(structuredClone(rows));};});
+       await page.locator('#st_address').fill('합성 기본주소');await page.locator('#nd_address_detail').fill('합성 상세주소');
+       await page.locator('#stSaveBtn').click();await page.waitForFunction(()=>window.supplierSaved.length===1);
+       const saved=await page.evaluate(()=>window.supplierSaved[0]);assert.equal(saved.name,'입력 보존 검증');assert.equal(saved.schema,3);assert.equal(saved.address,'합성 기본주소 합성 상세주소');
+       await page.evaluate(()=>{Table.save=async()=>{throw Error('Unexpected write in style test');};});
+      }
+
      }
     }
     const nav=await page.locator('.rail-nav').evaluate(e=>[...e.querySelectorAll('.nav-item,.nd-nav-act')].map(b=>{const s=getComputedStyle(b);return {label:b.textContent.trim(),font:s.fontFamily,size:s.fontSize,line:s.lineHeight};}));
