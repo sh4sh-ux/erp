@@ -11576,14 +11576,34 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go],[data-nd-stat]')){e.preventDefault();jClick(e);}},true);
  // 저장 버튼 상태: 저장된 그대로면 회색 '저장됨', 고치기 시작하면 파란 '저장'. 새로 만드는 중('등록')은 그대로.
  // 회색이어도 누를 수는 있다(재고 반영을 다시 하려고 견적을 다시 저장하는 경우 등).
- const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')]];
+ function supplierClean(){
+  const s=db.settings||{},fields={st_name:'name',st_ceo:'ceo',st_biz:'biz_no',st_phone:'phone',st_email:'email',st_bank:'bank'};
+  for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el||el.value.trim()!==String(s[key]||'').trim())return false;}
+  const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
+  if(address!==String(s.address||'').trim())return false;
+  const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
+  return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
+ }
+ function stockMinimumClean(){
+  return [...document.querySelectorAll('#stockOverview [data-stock-min]')].every(el=>{
+   const [id,...parts]=el.dataset.stockMin.split('|'),item=db.items.find(i=>i.id===id),stored=item?.stock_minimums?.[parts.join('|')]??null;
+   const raw=el.value.trim(),value=raw===''?null:Number(raw);return value===(stored===null?null:Number(stored));
+  });
+ }
+ function materialEditClean(){
+  if(!materialEditingId)return false;
+  const old=db.material_moves.find(m=>m.id===materialEditingId);if(!old)return false;
+  const next=buildMaterialMove(materialDraft);
+  return ['company_id','date','kind','material','order_no','quote_id','work_item_id','memo'].every(k=>String(next[k]||'').trim()===String(old[k]||'').trim())&&String(next.source||'').trim()===String(old.source??'직접 주문').trim()&&['qty','work_qty','per_unit'].every(k=>(next[k]==null?null:Number(next[k]))===(old[k]==null?null:Number(old[k])));
+ }
+ const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')],['stSaveBtn',supplierClean],['stockMinimumSave',stockMinimumClean,'표시된 최소 기준 저장'],['mm_save',materialEditClean,'수정 내용 저장']];
  function saveState(){
-  for(const [id,clean] of SAVE_STATE){
-   const b=document.getElementById(id);if(!b||b.children.length)continue;
-   const t=b.textContent.trim();if(t!=='저장'&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
+  for(const [id,clean,dirtyLabel='저장'] of SAVE_STATE){
+   const b=document.getElementById(id);if(!b||b.children.length)continue;if(id==='stockMinimumSave'&&!b.classList.contains('save'))b.classList.add('save');
+   const t=b.textContent.trim();if(t!==dirtyLabel&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
    let saved=false;try{saved=clean();}catch{}
    if(b.classList.contains('nd-saved')!==saved)b.classList.toggle('nd-saved',saved);
-   const label=saved?'저장됨':'저장';if(t!==label)b.textContent=label;
+   const label=saved?'저장됨':dirtyLabel;if(t!==label)b.textContent=label;
    const aria=saved?'저장됨 — 바뀐 내용 없음':'저장';if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);
   }
  }
@@ -11769,7 +11789,7 @@ const NaroCompanyLedger=(()=>{
   const pk=document.getElementById('payKind'),pb=document.getElementById('payAddBtn');
   if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록 저장',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
   const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
-  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
+  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=materialEditingId?(mb.classList.contains('nd-saved')?'저장됨':'수정 내용 저장'):lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
  }
  // 요약 칸(.stats) 구분선 규칙: 칸 사이 선은 위아래(가로선은 좌우) 14px 띄운다 — 원래 테두리가 있는 칸만 골라 테두리를 투명하게 두고 같은 자리에 짧은 선을 그린다.
  function statDividers(){
@@ -14161,6 +14181,13 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  html body #appView .nd-photo-name>span {flex:none}
  html body #appView .nd-photo.warn .nd-photo-name>.nd-photo-state {flex-basis:100%;text-align:left;overflow-wrap:anywhere}
  html body #appView .nd-photo-error-dismiss {border:0;background:none;color:inherit;font:inherit;padding:4px 0;margin-left:8px;text-decoration:underline;cursor:pointer}
+}
+
+@media screen {
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved,
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved:hover {
+  background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important;
+ }
 }
 </style></body>
 </html>

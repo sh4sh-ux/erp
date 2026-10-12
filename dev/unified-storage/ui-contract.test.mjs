@@ -55,7 +55,7 @@ async function prepare(page){
   const date=localDate();
   db.companies=[{id:'c',name:'합성 거래처',type:'매출',prices:[]},{id:'v',name:'합성 매입처',type:'매입',prices:[]}];
   db.items=[{id:'i',name:'합성 품목',code:'FIXTURE',type:'단품',colors:['WH'],variants:[],components:[],buy_price:1000,sell_price:2000}];
-  db.quotes=[{id:'q',no:'Q-FIXTURE',company_id:'c',date,status:'납품',delivered_at:date,deliveries:[{id:'d',date,lines:[{line_id:'l',qty:100}]}],lines:[{id:'l',item_id:'i',name:'합성 품목',qty:100,price:20000}],vat_on:true}];
+  db.quotes=[{id:'q',no:'Q-FIXTURE',company_id:'c',date,memo:'',status:'납품',delivered_at:date,deliveries:[{id:'d',date,lines:[{line_id:'l',qty:100}]}],lines:[{id:'l',item_id:'i',name:'합성 품목',qty:100,price:20000}],vat_on:true}];
   db.payments=[{id:'p',company_id:'c',quote_id:'q',kind:'수금',date,amount:143000,method:'계좌이체',memo:'합성 내역'}];
   db.stock_moves=[{id:'s',item_id:'i',kind:'입고',date,qty:100,color:'WH',spec:''}];
   db.material_moves=[{id:'m',company_id:'c',kind:'받음',material:'합성 자재',date,qty:10}];
@@ -65,7 +65,7 @@ async function prepare(page){
   let purchase;
   purchase=installPurchaseUI({port:()=>({postMessage(m){
    if(m.type!=='PURCHASE_STATE')throw Error('Unexpected purchase write');
-   queueMicrotask(()=>purchase.onMessage({type:'PURCHASE_STATE',requestId:m.requestId,state:{status:'ready'},doc:{schema:1,rows:[{id:'buy',no:'PO-FIXTURE',company_id:'v',date,status:'작성중',lines:[{id:'bl',item_id:'i',name:'합성 품목',qty:10,price:1000}],vat_on:true}]}}));
+   queueMicrotask(()=>purchase.onMessage({type:'PURCHASE_STATE',requestId:m.requestId,state:{status:'ready'},doc:{schema:1,rows:[{id:'buy',no:'PO-FIXTURE',vendor_id:'v',date,status:'작성중',lines:[{id:'bl',item_id:'i',name:'합성 품목',qty:10,unit_price:1000}],vat_on:true}]}}));
   }})});
   const {installLogUI}=await import('./log-ui.mjs');let log;
   log=installLogUI({port:()=>({postMessage(m){if(m.type!=='LOG_READ')throw Error('Unexpected log write');queueMicrotask(()=>log.onMessage({type:'LOG_ROWS',requestId:m.requestId,rows:[]}));}})});
@@ -86,7 +86,7 @@ async function open(page,view){
  if(view==='payments'&&await page.locator('.pp-mobile-list').isVisible())await page.locator('.pp-mobile-row').first().click();
  if(view==='purchases'){
   await page.waitForTimeout(100);
-  const item=page.locator('#puList .list-item').first();if(await item.count())await item.click();
+  const item=page.locator('#puList .list-item').first();if(await item.isVisible())await item.click();
  }
  await page.waitForTimeout(80);
 }
@@ -150,6 +150,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
        await page.evaluate(()=>{window.supplierSaved=[];Table.save=async(name,rows)=>{if(name!=='settings')throw Error('Unexpected fixture write');window.supplierSaved.push(structuredClone(rows));};});
        await page.locator('#st_address').fill('합성 기본주소');await page.locator('#nd_address_detail').fill('합성 상세주소');
        await page.locator('#stSaveBtn').click();await page.waitForFunction(()=>window.supplierSaved.length===1);
+       await page.waitForFunction(()=>document.getElementById('stSaveBtn').classList.contains('nd-saved'));
        const saved=await page.evaluate(()=>window.supplierSaved[0]);assert.equal(saved.name,'입력 보존 검증');assert.equal(saved.schema,3);assert.equal(saved.address,'합성 기본주소 합성 상세주소');
        await page.evaluate(()=>{Table.save=async()=>{throw Error('Unexpected write in style test');};});
       }
@@ -332,6 +333,38 @@ test('registration photo errors remain visible and a supported JPEG attaches suc
   await page.waitForFunction(()=>assetUploads.length===3&&document.querySelectorAll('.nd-photo-state')[1].textContent==='저장 완료');
   const scaled=await page.evaluate(()=>assetUploads[2]);assert.equal(scaled.width,4096);assert.equal(scaled.height,1638);assert.ok(scaled.size<=8*1048576);
   assert.equal(await card.getByRole('button',{name:'사업자등록증 첨부 오류 닫기'}).count(),0);
+  await page.waitForFunction(()=>document.getElementById('stSaveBtn').classList.contains('nd-saved'));
+  assert.equal(await page.locator('#stSaveBtn').textContent(),'저장됨');
   assert.ok(await page.evaluate(()=>assetNotifications.some(t=>t.includes('첨부 실패'))));
  }finally{await page.close();await browser.close();}
+});
+
+
+test('saved forms share neutral buttons and edits/reverts update save state',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ const waitSaved=async(page,id,saved)=>{await page.waitForFunction(({id,saved})=>document.getElementById(id)?.classList.contains('nd-saved')===saved,{id,saved});};
+ try{for(const width of [390,1440])for(const theme of ['light','dark']){
+  const page=await browser.newPage({viewport:{width,height:1000}});
+  try{
+   await prepare(page);await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+   await open(page,'quotes');await waitSaved(page,'qtSaveBtn',true);await page.waitForTimeout(250);
+   const neutral=await page.locator('#qtSaveBtn').evaluate(e=>{const s=getComputedStyle(e),rgba=v=>{const a=v.match(/[\d.]+/g).map(Number);if(a.length===3)a.push(1);return a;};return {background:rgba(s.backgroundColor),color:rgba(s.color)};});
+   for(const [view,id] of [['companies','coSaveBtn'],['items','itSaveBtn'],['settings','stSaveBtn'],['purchases','puSaveBtn'],['stock','stockMinimumSave']]){
+    await open(page,view);await waitSaved(page,id,true);
+    await page.waitForFunction(({id,neutral})=>{const s=getComputedStyle(document.getElementById(id)),rgba=v=>{const a=v.match(/[\d.]+/g).map(Number);if(a.length===3)a.push(1);return a;};return JSON.stringify({background:rgba(s.backgroundColor),color:rgba(s.color)})===JSON.stringify(neutral);},{id,neutral});
+    assert.deepEqual(await page.locator('#'+id).evaluate(e=>{const s=getComputedStyle(e),rgba=v=>{const a=v.match(/[\d.]+/g).map(Number);if(a.length===3)a.push(1);return a;};return {background:rgba(s.backgroundColor),color:rgba(s.color)};}),neutral,view+' saved colors');
+   }
+   await open(page,'purchases');await page.locator('#pp-tab-basic').click();const purchaseMemo=page.locator('#pu_memo');await purchaseMemo.fill('매입 수정');await purchaseMemo.dispatchEvent('change');await waitSaved(page,'puSaveBtn',false);await purchaseMemo.fill('');await purchaseMemo.dispatchEvent('change');await waitSaved(page,'puSaveBtn',true);
+   await open(page,'settings');await page.locator('#st_name').fill('변경된 공급자');await waitSaved(page,'stSaveBtn',false);
+   await page.locator('#st_name').fill('합성 공급자');await waitSaved(page,'stSaveBtn',true);
+   await page.locator('#nd_address_detail').fill('추가 주소');await waitSaved(page,'stSaveBtn',false);
+   await page.locator('#nd_address_detail').fill('');await waitSaved(page,'stSaveBtn',true);
+   await page.evaluate(()=>{db.settings.assets={registration:'synthetic-photo-reference'};const n=document.createElement('span');document.getElementById('appView').append(n);});
+   await waitSaved(page,'stSaveBtn',true);
+   await open(page,'stock');if(width<1024){const row=page.locator('#stockItems .stock-item').first();if(await row.isVisible())await row.click();}const minimum=page.locator('#stockOverview [data-stock-min]').first();
+   if(await minimum.isVisible()){const before=await minimum.inputValue();await minimum.fill('7');await waitSaved(page,'stockMinimumSave',false);await minimum.fill(before);await waitSaved(page,'stockMinimumSave',true);}
+   await open(page,'materials');if(width<=820){const owner=page.locator('[data-mm-owner="c"]');if(await owner.isVisible())await owner.click();await page.locator('.material-record-main').first().click();}else await page.locator('[data-mm-edit="m"]').click();await waitSaved(page,'mm_save',true);
+   const memo=page.locator('[data-mm="memo"]');await memo.fill('자재 수정');await waitSaved(page,'mm_save',false);await memo.fill('');await waitSaved(page,'mm_save',true);
+  }finally{await page.close();}
+ }}finally{await browser.close();}
 });
