@@ -267,3 +267,5 @@ naro-design.css 맨 아래 블록이 기준이다. 화면별로 따로 정하지
   51. 매입 1단계(10/10, 조건부 승인 — 화면·실제 재고 처리 변경 없음): purchases.json은 7개 데이터와 따로 있는 '선택' 파일. 7개 목록·구조 검사(storage.mjs discover, dropbox list)는 그대로 — 옛 버전은 이 파일을 무시. Dropbox만 지원(purchasesIdentity/loadPurchases/createPurchases), Drive는 unsupported. repository.loadPurchases/startPurchases/savePurchases(복구 포함)는 아직 아무 화면도 부르지 않음. 규칙 purchase-contract.mjs(저장 1번에 1건, 입고 차수·비용·원가 이력은 추가만, 재고 기록 번호 pm_<차수>_<줄> 고정 → 중복 입고 불가, 지급 client_ref 중복 차단). 원가 purchase-ledger.mjs(옵션별 이동평균을 재고 배열 순서로 재계산, 입고 원가는 차수에 고정, 원가 확정은 after_move_count=지금 시점만 + 팔린 몫은 '원가 조정' → 지난 출고 원가 불변, impact()로 검증). 복구 purchase-saga.mjs(계획→재고→완료, unfinished/resume). 테스트 purchase.test.mjs 23개(가짜 Dropbox). 배포 후보(candidate)는 승인 전이라 다시 고정하지 않음.
 
 2026-10-12: 견적서·매입 요약의 각 행에서 항목명과 금액의 수직 중심을 맞춤. 합계 및 예상 마진의 글자 크기가 달라도 같은 가로선에 놓인다. 기존 열 너비와 전체 너비 합계 구분선 유지. 배포는 사용자가 feature/naro-redesign에서 수동 실행한다.
+
+2026-10-12: 품목 + 아이콘 중앙 고정 및 하단 복사 버튼 추가. 복사본은 새 품목 초안이며 이름에 (복사)를 붙이고 코드는 비운다. 옵션/가격/구성품 등 품목 정보는 보존하고 원본 ID/날짜/재고 최소 기준은 초기화. 등록 전에는 저장하지 않음. feature/naro-redesign 머지 후 배포는 사용자 수동 실행.

@@ -167,3 +167,9 @@
   align-items:center!important;
  }
 }
+
+/* The item add button also contains hidden legacy text: center the glyph independently. */
+@media screen {
+ html body #appView #itNewBtn {position:relative}
+ html body #appView #itNewBtn::before {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+}

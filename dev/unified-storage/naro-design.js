@@ -179,7 +179,24 @@ const NaroCompanyLedger=(()=>{
   list.before(row);select.classList.add('nd-chip-source');
   select.addEventListener('change',sync);new MutationObserver(sync).observe(list,{childList:true});sync();}}
  /* Action bar: [secondary ≤4] … [⋯ more] [save]. Quote copy/email join delete inside ⋯. */
+ function itemCopyAction(){
+  const bar=document.querySelector('#itForm .form-actions');
+  if(!bar||itSel==='__new__'||!itSel||bar.querySelector('#itCopyBtn'))return;
+  const button=document.createElement('button');button.type='button';button.id='itCopyBtn';button.className='btn ghost';button.textContent='복사';button.title='이 품목을 새 품목으로 복사';
+  button.onclick=()=>{
+   if(!guardMasterLeave('items'))return;
+   const source=db.items.find(item=>item.id===itSel);if(!source)return;
+   const copy=normalizeItem(JSON.parse(JSON.stringify(source)));
+   copy.id=null;copy.code='';copy.name=(copy.name||'')+' (복사)';
+   delete copy.created_at;delete copy.updated_at;delete copy.stock_minimums;
+   itSel='__new__';itEditing=copy;itFormBaseline=JSON.stringify(copy);
+   renderItList();renderItDetail();scrollToDetail('itForm');
+   requestAnimationFrame(()=>{const name=document.getElementById('fi_name');name?.focus();name?.select();});
+  };
+  bar.prepend(button);
+ }
  function actions(){
+  itemCopyAction();
   for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
    let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
     menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
