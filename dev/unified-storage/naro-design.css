@@ -1153,7 +1153,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
 #printArea .p-etc .k{padding-left:14px}
 #printArea .nd-pq>span{min-width:0;word-break:keep-all;overflow-wrap:break-word}
-#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word}
+#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word;vertical-align:middle}
 #printArea .nd-pn{display:flex;flex-direction:column;gap:1px;min-width:0}
 #printArea .nd-pn>b{font-weight:400;color:inherit}
 #printArea .nd-pn>small{font-size:11px;color:#8A8F98;line-height:1.35}
