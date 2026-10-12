@@ -63,7 +63,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "d9bec938ab67ff91206fdbab57bb4e4aa33d936f7f7628a82784af8bf27fcfb5"
+      "sha256": "0f1f1749eab1c2eb312f6e4ead23fcabfd07d6b381a3606164d2877011ad08f6"
     },
     {
       "path": "dropbox-callback.html",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "e3a06c4e19fabbcce9eb7b14c6031b94c75e0ba3844bc7d9c05b0ab479d9a671",
+  "aggregate": "addd2a76ea4e2bbce9dbdac5b7e0488250e23f8df0100774ec9cd193ae7c72f7",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
