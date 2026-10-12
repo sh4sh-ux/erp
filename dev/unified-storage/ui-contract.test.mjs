@@ -11,6 +11,8 @@ const here=dirname(fileURLToPath(import.meta.url)),root=resolve(here,'../..');
 const release=resolve(root,'naro-workspace/outputs/naro-redesign/candidate/release');
 const contract=await readFile(resolve(here,'ui-contract.css'),'utf8');
 const style=e=>{const s=getComputedStyle(e);return {font:s.font,fontFamily:s.fontFamily,fontSize:s.fontSize,lineHeight:s.lineHeight,fontWeight:s.fontWeight,letterSpacing:s.letterSpacing,color:s.color};};
+// receipt-db v3.90, index.html body font rule: system-ui must be first for comma glyphs.
+const receiptNumberFont='system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", Arial, sans-serif';
 const evidence=process.env.NARO_UI_EVIDENCE_DIR;if(evidence)await mkdir(evidence,{recursive:true});
 const roles={
  quotes:{title:'#qtForm .qs-val.co',money:'#qtForm .qs-amt-v'},
@@ -96,7 +98,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
      assert.equal(await heading.evaluate(e=>getComputedStyle(e).fontSize),width<1024?'22px':'24px',view+' page title size');
      const kpis=panel.locator('.nd-db-metric strong,.pp-metrics strong,.nd-sa-kpis strong,.cp-ov .v b,.stats>.stat>.v');
      for(const kpi of await kpis.all()){
-      const numeric=await kpi.evaluate(style);assert.equal(numeric.fontSize,'20px',view+' KPI size');assert.equal(numeric.letterSpacing,'normal',view+' KPI spacing');assert.equal(numeric.fontWeight,'600',view+' KPI weight');
+      const numeric=await kpi.evaluate(style);assert.equal(numeric.fontSize,'20px',view+' KPI size');assert.equal(numeric.letterSpacing,'normal',view+' KPI spacing');assert.equal(numeric.fontWeight,'600',view+' KPI weight');assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt KPI number font');
      }
      if(evidence&&theme==='light'&&[390,1440].includes(width))await page.screenshot({path:resolve(evidence,`${view}-${width}.png`)});
      if(roles[view]&&(!roles[view].desktopOnly||width>=1024)){
@@ -108,7 +110,10 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
       assert.equal(actual.lineHeight,width<1024?'26.6px':'30px',view);
       assert.equal(actual.fontWeight,'700',view);assert.equal(actual.letterSpacing,'normal',view);
       assert.deepEqual(actual,reference,view+' detail title');
-      if(role.money){const amount=page.locator(role.money).first();assert.ok(await amount.count(),view+' header amount must exist');assert.deepEqual(await amount.evaluate(style),reference,view+' header amount');}
+      if(role.money){const amount=page.locator(role.money).first();assert.ok(await amount.count(),view+' header amount must exist');const numeric=await amount.evaluate(style);
+       assert.equal(numeric.fontFamily,receiptNumberFont,view+' receipt number font');
+       for(const key of ['fontSize','lineHeight','fontWeight','letterSpacing','color'])assert.equal(numeric[key],reference[key],view+' header amount '+key);
+       assert.equal(await amount.evaluate(e=>getComputedStyle(e).fontFeatureSettings),'normal',view+' no forced tnum');}
       report.push(view);
      }
     }

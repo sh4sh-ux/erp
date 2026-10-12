@@ -9,10 +9,17 @@
   --nd-body-size:14px;--nd-body-line:20px;
   --nd-label-size:12px;--nd-label-line:18px;
   --nd-section-size:14px;--nd-section-line:22px;
-  --nd-number-font:var(--nd-ui-font)!important;
+  /* receipt-db v3.90: system-ui first determines the comma glyph.
+     Use tabular-nums, not font-feature-settings "tnum" (which widens commas). */
+  --nd-number-font:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;
   --nd-stat-size:20px!important;--nd-stat-weight:600!important;--nd-stat-spacing:normal!important;
   --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);
   --nd-pill-active-bg:#161A23;--nd-pill-active-ink:#FFFFFF;
+ }
+ /* Receipt numeric glyphs for existing number cells and numeric entry fields. */
+ html body #appView[data-layout-system] :is(.num,.amt,.money,.nd-cl-number,.nd-sa-num,.nd-sa-n,.nd-sa-margin,.item-num-inp,input[type=number],input[inputmode=numeric]) {
+  font-family:var(--nd-number-font)!important;
+  font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
  }
  /* Page titles in every rail destination, including purchase's mirrored quote view. */
  html body #appView[data-layout-system] .shell .main .view :is(.page-head h2,.nd-mh-title) {
@@ -34,7 +41,7 @@
   .workspace-heading>.scr-hero>.big,.workspace-record-heading>.scr-hero>.big
  ) {
   font:700 var(--nd-title-size)/var(--nd-title-line) var(--nd-number-font)!important;
-  letter-spacing:normal!important;font-variant-numeric:tabular-nums;color:var(--nd-ink)!important;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
  }
  /* Supporting labels and header metadata. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
@@ -51,7 +58,7 @@
   .stats>.stat>.v,.ops-summary>.scr-hero>.big
  ) {
   font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
-  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;color:var(--nd-ink)!important;
+  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
  }
  /* Section headings; preserve smaller, muted count chips next to the heading. */
  html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
@@ -67,7 +74,7 @@
   .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
-  letter-spacing:normal!important;font-variant-numeric:tabular-nums;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
  }
  /* Record names and muted list metadata use the same body/label hierarchy. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(

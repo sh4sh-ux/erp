@@ -6,8 +6,11 @@ palette generator must skip this layer, because it already uses theme tokens and
 explicit selected-state tokens. Print documents keep their own rules.
 
 Use the same token for the same role, rather than copying a font shorthand into a
-feature file. Text and numbers share the existing system font stack (`--sans`);
-there is no required downloadable font. All numeric roles use tabular digits and
+feature file. Text uses the existing NARO font stack (`--sans`). Numeric glyphs use the
+receipt-db v3.90 stack: `system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif`.
+The leading `system-ui` is required for the reference comma shape. There is no required downloadable font.
+Use `font-variant-numeric:tabular-nums`; do not force `font-feature-settings:"tnum"`,
+which can widen the comma. Reference: https://sh4sh-ux.github.io/receipt-db/ (`index.html` body rule). All numeric roles use tabular digits and
 normal letter spacing. Do not change accounting, persistence or authentication to
 fix a presentation issue.
 
@@ -58,5 +61,5 @@ spacing rather than accepting the presence of CSS text as proof. Both `.github/w
 run the style test with the business regressions. A failed check prevents the
 deployment workflow from reaching its Hosting steps. Purchase uses
 its real mirrored quote styles; company/payment/sales header amounts must match
-the quote header. Mobile items have a form without a separate record-name header;
+the quote header size/weight/color while using the receipt numeric font. Mobile items have a form without a separate record-name header;
 the desktop item header is compared when that component exists.
