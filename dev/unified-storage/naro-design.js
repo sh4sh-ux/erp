@@ -322,9 +322,31 @@ const NaroCompanyLedger=(()=>{
   document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 
+ // Reuse the company Information group anatomy, moving native supplier fields intact.
+ function supplierInfoGroups(view){
+  const titles=[['기본 정보','견적서·거래명세서에 나와요'],['연락처','견적서를 보낼 때 써요'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌예요']];
+  view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
+   if(sec.classList.contains('cp-grp'))return;
+   const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
+   const head=document.createElement('div');head.className='cp-grph';h.textContent=titles[i]?.[0]||h.textContent;
+   const desc=document.createElement('p');desc.textContent=titles[i]?.[1]||'';head.append(h,desc);
+   const body=document.createElement('div');body.className='cp-grpb cp-panel';
+   [...sec.children].forEach(n=>body.append(n));
+   // Same full-width name / two-field second row as company Information.
+   if(i===0){const name=body.querySelector('#st_name')?.closest('.field'),ceo=body.querySelector('#st_ceo')?.closest('.field'),biz=body.querySelector('#st_biz')?.closest('.field');
+    if(name&&ceo&&biz){const row=name.parentElement;body.prepend(name);row.append(ceo,biz);}}
+   const detail=body.querySelector('#nd_address_detail');
+   if(detail){const field=document.createElement('div');field.className='field';const label=document.createElement('label');label.htmlFor=detail.id;label.textContent='상세주소';field.append(label,detail);body.append(field);}
+   const address=body.querySelector('#st_address');if(address){const label=address.closest('.field')?.querySelector('label');if(label)label.textContent='기본주소';}
+   sec.classList.add('cp-grp');sec.replaceChildren(head,body);
+  });
+  const intro=view.querySelector('.sup-intro');if(intro)intro.hidden=true;
+ }
+
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
  function settingsPolish(){
   const view=document.getElementById('view-settings');if(!view)return;
+  supplierInfoGroups(view);
   for(const sec of view.querySelectorAll('section.card')){const h=sec.querySelector(':scope>h3');if(h&&h.textContent.trim()==='개인 클라우드 이미지'&&!sec.classList.contains('nd-assets')){sec.classList.add('nd-assets');
    const btns=sec.querySelectorAll(':scope>button');btns[0]?.classList.add('nd-assets-up');btns[1]?.classList.add('nd-assets-view');
    const row=document.createElement('div');row.className='nd-assets-row';sec.querySelector(':scope>select')?.before(row);row.append(...sec.querySelectorAll(':scope>select,:scope>button'));}}
