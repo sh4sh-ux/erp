@@ -256,3 +256,54 @@ test('quote and purchase + share company picking and continue to editable items 
   }finally{await page.close();}
  }}finally{await browser.close();}
 });
+
+
+test('registration photo errors remain visible and a supported JPEG attaches successfully',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ try{
+  await prepare(page);await page.evaluate(async()=>{
+   const {installAssets}=await import('./asset-ui.mjs');window.assetNotifications=[];window.assetUploads=[];
+   installAssets({db,notify:t=>assetNotifications.push(t),request:async(type,body)=>{
+    if(type!=='ASSET_UPLOAD')throw Error('Unexpected read');assetUploads.push({kind:body.kind,size:body.bytes.length,width:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(16),height:new DataView(body.bytes.buffer,body.bytes.byteOffset).getUint32(20)});return {path:'assets/registration-test.png'};
+   },save:async(key,value)=>{if(key!=='settings')throw Error('Unexpected table');db.settings=value;}});
+   switchView('settings');
+  });
+  const card=page.locator('.nd-photo').filter({has:page.locator('.nd-photo-name>span', {hasText:'사업자등록증'})});
+  const [firstChooser]=await Promise.all([page.waitForEvent('filechooser'),card.locator('.nd-photo-shot').click()]);
+  await firstChooser.setFiles({name:'registration.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7 synthetic')});
+  await page.waitForFunction(()=>Array.isArray(window.assetNotifications)&&assetNotifications.some(t=>t.includes('첨부 실패')));
+  await page.waitForTimeout(150);
+  assert.match(await card.locator('[role=status]').textContent(),/PNG, JPEG, WebP/);
+  await page.evaluate(()=>{const node=document.createElement('span');node.textContent='unrelated render';document.getElementById('appView').append(node);});
+  await page.waitForTimeout(150);
+  assert.match(await card.locator('[role=status]').textContent(),/PNG, JPEG, WebP/);
+  assert.equal(await page.evaluate(()=>assetUploads.length),0);
+  const jpeg=await page.evaluate(async()=>{
+   const canvas=document.createElement('canvas');canvas.width=100;canvas.height=140;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,100,140);ctx.fillStyle='black';ctx.fillText('Registration fixture',5,30);
+   const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg'));return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  const [jpegChooser]=await Promise.all([page.waitForEvent('filechooser'),card.locator('.nd-photo-up').click()]);
+  await jpegChooser.setFiles({name:'registration.jpg',mimeType:'image/jpeg',buffer:Buffer.from(jpeg)});
+  await page.waitForFunction(()=>db.settings.assets?.registration==='assets/registration-test.png');
+  assert.equal(await card.locator('.nd-photo-shot img').isVisible(),true);
+  assert.equal(await page.evaluate(()=>assetUploads[0].kind),'registration');
+  const large=await page.evaluate(async()=>{
+   const canvas=document.createElement('canvas');canvas.width=1334;canvas.height=1888;const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(canvas.width,canvas.height);let seed=123456;
+   for(let i=0;i<pixels.data.length;i+=4){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const v=seed>>>24;pixels.data[i]=v;pixels.data[i+1]=v;pixels.data[i+2]=v;pixels.data[i+3]=255;}
+   ctx.putImageData(pixels,0,0);
+   const jpeg=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.7));
+   const normalized=document.createElement('canvas');normalized.width=Math.round(1334*1600/1888);normalized.height=1600;normalized.getContext('2d').drawImage(canvas,0,0,normalized.width,1600);
+   const initial=await new Promise(r=>normalized.toBlob(r,'image/png'));
+   return {bytes:Array.from(new Uint8Array(await jpeg.arrayBuffer())),initialSize:initial.size};
+  });
+  assert.ok(large.bytes.length>1048576&&large.bytes.length<8*1048576,'large JPEG within advertised input limit');
+  assert.ok(large.initialSize>1048576,'dimension-only resize would exceed storage limit');
+  await card.locator('input[type=file]').setInputFiles({name:'large-registration.jpg',mimeType:'image/jpeg',buffer:Buffer.from(large.bytes)});
+  await page.waitForFunction(()=>assetUploads.length===2&&document.querySelectorAll('.nd-photo-state')[1].textContent==='저장 완료');
+  const upload=await page.evaluate(()=>assetUploads[1]);assert.ok(upload.size<=1048576);assert.ok(Math.max(upload.width,upload.height)<1600,'additional automatic resize');
+  assert.equal(await card.locator('.nd-photo-shot img').isVisible(),true);
+
+  assert.ok(await page.evaluate(()=>assetNotifications.some(t=>t.includes('첨부 실패'))));
+ }finally{await page.close();await browser.close();}
+});
