@@ -3,7 +3,7 @@
 (()=>{
  const desk=matchMedia('(min-width:1024px)');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const paymentLabel=s=>esc(s).replace('입금·출금','입금<span class="nd-payment-dot">·</span>출금');
+ const paymentLabel=s=>'<span class="nd-payment-label">'+esc(s).replace('입금·출금','입금<i class="nd-payment-dot">·</i>출금')+'</span>';
  const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
  const signed=n=>(n>0?'+':n<0?'−':'')+won(Math.abs(n));
  const company=p=>(data()?.companies||[]).find(c=>c.id===p?.company_id)?.name||'거래처 없음';
