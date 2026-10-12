@@ -28,6 +28,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: 공통 UI 규칙 및 업무 회귀 검사
+        run: |
+          npm install --prefix "$RUNNER_TEMP/naro-ui-tools" --no-audit --no-fund --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/naro-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+          export NODE_PATH="$RUNNER_TEMP/naro-ui-tools/node_modules"
+          node --test dev/unified-storage/*.test.mjs
       - name: 버전 표시
         run: git log -1 --format='배포할 버전 %h — %s (%cr)'
       - name: 사전 점검 (읽기 전용)

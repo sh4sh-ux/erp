@@ -1,0 +1,120 @@
+/* Shared screen typography contract. Loaded last, after feature styles.
+   Same role = same token. Keep status, warning, loss and destructive colors semantic.
+   Do not apply to print documents or flatten headings into body text. */
+@media screen {
+ :root,html body #appView[data-layout-system] {
+  --nd-ui-font:var(--sans);
+  --nd-title-size:24px;--nd-title-line:30px;
+  --nd-page-title-size:24px;--nd-page-title-line:30px;
+  --nd-body-size:14px;--nd-body-line:20px;
+  --nd-label-size:12px;--nd-label-line:18px;
+  --nd-section-size:14px;--nd-section-line:22px;
+  --nd-number-font:var(--nd-ui-font)!important;
+  --nd-stat-size:20px!important;--nd-stat-weight:600!important;--nd-stat-spacing:normal!important;
+  --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);
+  --nd-pill-active-bg:#161A23;--nd-pill-active-ink:#FFFFFF;
+ }
+ /* Page titles in every rail destination, including purchase's mirrored quote view. */
+ html body #appView[data-layout-system] .shell .main .view :is(.page-head h2,.nd-mh-title) {
+  font:700 var(--nd-page-title-size)/var(--nd-page-title-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Right-panel titles: quote, company, item, materials, payment and sales. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
+  .qs-val.co,.co-title-name,.cp-head .co-title-name,.workspace-heading h3,
+  .workspace-record-heading h3,.panel-b-empty-heading h3,.material-detail-head h3,
+  .pp-head h3,.nd-sa-title
+ ) {
+  font:700 var(--nd-title-size)/var(--nd-title-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Primary header money has the same hierarchy as the adjacent record title. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .qs-amt-v,.cp-amt .v,.pp-amount strong,.nd-sa-header-amount strong,
+  .workspace-heading>.scr-hero>.big,.workspace-record-heading>.scr-hero>.big
+ ) {
+  font:700 var(--nd-title-size)/var(--nd-title-line) var(--nd-number-font)!important;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;color:var(--nd-ink)!important;
+ }
+ /* Supporting labels and header metadata. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .qs-k,.qs-amt-k,.cp-cap,.cp-amt .k,.cp-meta,.pp-caption,.pp-amount>span,.pp-meta,
+  .nd-sa-eyebrow,.nd-sa-label,.nd-sa-period,.qp-metadata,.material-detail-head .hint,
+  .workspace-caption,.cp-stats span,.pp-metrics>div>span,.nd-sa-kpis span
+ ) {
+  font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-2)!important;
+ }
+ /* KPI totals use one numeric font, weight and spacing across all screens. */
+ html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-companies,#view-payments,#view-sales,#view-stock,#view-ar,#view-materials) :is(
+  .nd-db-metric strong,.pp-metrics strong,.nd-sa-kpis strong,.cp-ov .v b,
+  .stats>.stat>.v,.ops-summary>.scr-hero>.big
+ ) {
+  font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
+  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;color:var(--nd-ink)!important;
+ }
+ /* Section headings; preserve smaller, muted count chips next to the heading. */
+ html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
+  h3,h4,.cp-sech h3,.cp-grph h4,.pp-section-head h4,.nd-db-range-heading h3,
+  .ops-section-title,.qt-sec-t,.qp-products>h3,.material-records-title,.nd-sa-table-title
+ ) {
+  font:600 var(--nd-section-size)/var(--nd-section-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* List and ledger money, separate from the smaller margin annotations. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number
+ ) {
+  font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;
+ }
+ /* Record names and muted list metadata use the same body/label hierarchy. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-name,.li-nm,.material-record-name,.stock-item>span,.pp-record-name>span,.pp-mobile-row b,.cp-qr .t,.nd-sa-entry-name
+ ) {
+  font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d
+ ) {
+  font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-3)!important;
+ }
+ /* Rail labels share one text style; active color still follows the rail state. */
+ html body #appView[data-layout-system] .shell .rail-nav :is(.nav-item,.nd-nav-act) {
+  font:500 var(--nd-body-size)/var(--nd-body-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] .shell .rail-nav :is(.nav-item.on,.nd-nav-act[aria-expanded=true]) {font-weight:600!important}
+ /* Right-panel section tabs are distinct from the blue underlined list filters. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-sales,#view-materials) :is(.qp-tabs,.cp-tabs,.panel-b-tabs)>button {
+  height:var(--nd-detail-tab-height)!important;min-height:var(--nd-detail-tab-height)!important;
+  font:500 var(--nd-ui-tab-size)/20px var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-2)!important;
+ }
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-sales,#view-materials) :is(.qp-tabs,.cp-tabs,.panel-b-tabs)>button[aria-selected=true] {
+  font-weight:600!important;color:var(--nd-section-active-color)!important;
+  border-bottom-color:transparent!important;box-shadow:inset 0 -2px 0 var(--nd-section-active-color)!important;
+ }
+ /* Utility destinations use the same modal-title hierarchy. Export is appended to body. */
+ html body :is(.nd-log-hd #ndLogTtl,.nd-acc-ttl h3,.nd-export .nd-ex-head h2,.nd-mail-hd>b) {
+  font:700 22px/28px var(--nd-ui-font)!important;letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Filled pill filters: selected means dark background and white text. */
+ html body #appView[data-layout-system] :is(.nd-log-sheet .nd-log-tabs>button,.nd-acc-chip,.nd-qa-chips>button) {
+  font:600 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] :is(.nd-log-sheet .nd-log-tabs>button[aria-pressed=true],.nd-acc-chip[aria-selected=true],.nd-qa-chips>button[aria-pressed=true]) {
+  background:var(--nd-pill-active-bg)!important;border-color:var(--nd-pill-active-bg)!important;
+  color:var(--nd-pill-active-ink)!important;box-shadow:none!important;
+ }
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] {
+  --nd-title-size:19px;--nd-title-line:26.6px;
+  --nd-detail-tab-height:44px;--nd-ui-tab-size:14px;--nd-section-active-color:var(--nd-blue);
+  --nd-page-title-size:22px;--nd-page-title-line:28px;
+ }
+}

@@ -124,7 +124,7 @@ const NaroCompanyLedger=(()=>{
    if(!decl.length)continue;
    const sel=r.selectorText.split(/,(?![^(]*\))/).map(s=>{s=s.trim();if(/^(html|:root)\b/.test(s))return s.replace(/^(html|:root)/,'html[data-theme="dark"]');return 'html[data-theme="dark"] '+s.replace(/^body\b/,'body');}).join(',');
    out.push(`${sel}{${decl.join(';')}}`);}};
-  for(const sheet of document.styleSheets){if(sheet.ownerNode?.id==='naro-design')continue;try{walk(sheet.cssRules);}catch{}}
+  for(const sheet of document.styleSheets){if(['naro-design','naro-ui-contract'].includes(sheet.ownerNode?.id))continue;try{walk(sheet.cssRules);}catch{}}
   const style=document.createElement('style');style.id='nd-dark-auto';style.textContent='@media screen{'+out.join('\n')+'}';
   const design=document.getElementById('naro-design');design?design.before(style):document.head.append(style);
  }
