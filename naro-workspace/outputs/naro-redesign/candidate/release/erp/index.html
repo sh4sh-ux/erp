@@ -12843,7 +12843,9 @@ const NaroOrderImport=(()=>{
  // 품목·입금출금: 이미 있는 필터 팝업 맨 아래에 붙인다.
  const viewOn=v=>{const el=document.getElementById('view-'+v);return !!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none';};
  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(!(n instanceof HTMLElement)||!n.classList.contains('nd-pop-panel')||n.querySelector('.nd-trash-field'))continue;
-  const key=viewOn('items')?'items':viewOn('payments')?'payments':null;if(key)n.append(trashField(key));}}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
+  const key=viewOn('items')?'items':viewOn('payments')?'payments':null;
+  const host=key==='items'?n.querySelector(':scope>.nd-pop-body.nd-pop-filter'):n;
+  if(key&&host)host.append(trashField(key));}}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
  // 거래처: 필터 버튼이 없어서 같은 모양으로 하나 만든다(검색·＋ 줄).
  function coFilterBtn(){
   const add=document.getElementById('coNewBtn');if(!add||!window.NaroPop||add.parentElement.querySelector('.nd-trash-filter'))return;
