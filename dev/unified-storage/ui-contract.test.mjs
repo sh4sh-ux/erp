@@ -496,3 +496,25 @@ test('material detail reuses quote tabs, typography and insets while preserving 
   await page.close();
  }}finally{await browser.close();}
 });
+
+test('rail and mobile tabs respond once while startup images read, but remain guarded during saves',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}});await prepare(page);
+  await page.route('**/erp/nav-entry-test.mjs',async route=>route.fulfill({body:await readFile(resolve(release,'erp/entry.mjs')),contentType:'application/javascript'}));
+  await page.evaluate(()=>{window.navigationEntryReady=(async()=>{
+   const {start}=await import('./nav-entry-test.mjs');db.settings.assets={registration:'assets/registration-test.png'};
+   start({db,Table,StorageRepository,bindReadUI(){document.querySelectorAll('.nav-item,.mobile-nav-item').forEach(n=>n.onclick=()=>switchView(n.dataset.view));},bindBusinessUI(){},switchView,setSyncState(){},clearDrafts(){},pendingStock(){return null;}},{personalBusinessWrite:true,extendedWrite:true});
+   window.navMessages=[];const channel=new MessageChannel();window.navHost=channel.port2;navHost.onmessage=e=>navMessages.push(e.data);
+   const data=Object.fromEntries(['companies','items','quotes','payments','stock_moves','material_moves','settings'].map(k=>[k,structuredClone(db[k])]));
+   dispatchEvent(new MessageEvent('message',{origin:location.origin,source:window,data:{type:'NARO_READ_SNAPSHOT',data,features:['*'],provider:'dropbox'},ports:[channel.port1]}));
+  })();});
+  await page.waitForFunction(()=>window.navMessages?.some(m=>m.type==='ASSET_READ'));
+  const target=page.locator(width<821?'.mobile-nav-item[data-view=quotes]':'.rail-nav .nav-item[data-view=quotes]');await target.click();assert.equal(await page.evaluate(()=>currentView),'quotes','first click switches during asset read');
+  await page.evaluate(()=>{const request=navMessages.find(m=>m.type==='ASSET_READ');navHost.postMessage({type:'ASSET_ERROR',requestId:request.requestId,code:'NETWORK_ERROR'});});await page.waitForTimeout(80);
+  await page.evaluate(()=>{window.navSave=Table.save('settings',structuredClone(db.settings));});await page.waitForFunction(()=>navMessages.some(m=>m.type==='SAVE_TABLE'));
+  const next=page.locator(width<821?'.mobile-nav-item[data-view=payments]':'.rail-nav .nav-item[data-view=items]');await next.click();assert.equal(await page.evaluate(()=>currentView),'quotes','save protection remains');
+  await page.evaluate(()=>{const request=navMessages.find(m=>m.type==='SAVE_TABLE');navHost.postMessage({type:'TABLE_SAVED',requestId:request.requestId,key:'settings',rows:request.rows});});await page.evaluate(()=>navSave);
+  await next.click();assert.equal(await page.evaluate(()=>currentView),width<821?'payments':'items','first click after save switches');await page.close();
+ }}finally{await browser.close();}
+});
