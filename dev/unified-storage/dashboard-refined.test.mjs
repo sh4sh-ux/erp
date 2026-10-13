@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await readFile(new URL('./dashboard-refined.js',import.meta.url),'utf8');
 const context=vm.createContext({});vm.runInContext(source,context);
-const {periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange}=context.NaroDashboardModel;
+const {periods,aggregate,progress,stageOf,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange}=context.NaroDashboardModel;
 const plain=v=>JSON.parse(JSON.stringify(v));
 test('dashboard title follows the current local month without changing receivables scope',()=>{
  for(const [date,title] of [['2026-10-05','10월 현황'],['2026-12-31','12월 현황'],['2027-01-01','1월 현황']])assert.equal(context.NaroDashboardModel.monthHeading(date),title);
@@ -88,12 +88,13 @@ test('empty data and negative amounts remain real, without fabricated bars/count
  assert.equal(aggregate({quotes:[{deliveries:[{date:'2026-10-01'}]}]},'month','2026-10-04',()=>-550).at(-1).sale,-550);
  assert(progress([]).every(r=>r.count===0));
 });
-test('approved labels keep stored status values and separate partial deliveries/cancellations',()=>{
- const quotes=['작성중','발송','수주','납품','부분납품','취소'].map(status=>({status}));
- const before=JSON.stringify(quotes),rows=progress(quotes);
- assert.deepEqual(plain(rows.map(r=>r.label+' ('+r.hint+')')),['작성 중 (견적 준비)','발송 (고객 답변 대기)','수주 (주문 확정·납품 준비)','부분납품 (남은 수량 납품 준비)','납품 (납품 완료)']);
- assert.equal(rows.find(r=>r.status==='납품').count,1);
- assert(!rows.some(r=>r.status==='취소'));
+test('견적 진행: 4단계가 서로 겹치지 않고, 납품은 입금 대기만 · 입금까지 끝나면 입금',()=>{
+ const quotes=['작성중','발송','수주','부분납품','납품','납품','취소'].map((status,i)=>({id:'q'+i,status}));
+ const before=JSON.stringify(quotes),rows=progress(quotes,q=>q.id==='q5');
+ assert.deepEqual(plain(rows.map(r=>r.label+' ('+r.hint+')')),['작성·발송 (견적 준비·답변 대기)','수주 (주문 확정·납품 준비)','납품 (입금 대기)','입금 (입금까지 완료)']);
+ assert.deepEqual(plain(rows.map(r=>r.count)),[2,2,1,1]);
+ assert.equal(rows.reduce((s,r)=>s+r.count,0),6); // 취소만 빠지고 나머지는 한 곳에만
+ assert.equal(stageOf({status:'취소'}),'');
  assert.equal(JSON.stringify(quotes),before);
 });
 test('recent quotes only, sorted without modifying the original collection',()=>{
