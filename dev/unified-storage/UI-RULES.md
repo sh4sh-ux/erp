@@ -25,7 +25,7 @@ fix a presentation issue.
 | Muted list metadata | 12px / 18px, 400 | same | `--nd-ink-3` |
 | Rail text | 14px / 20px, 500 (selected 600) | same | rail state colors |
 | Utility dialog title | 22px / 30px, 650 | same | `--nd-ink` |
-| Detail section tab | 13px / 20px, height 46px | 14px / 20px, height 44px | selected underline: ink on desktop, blue on mobile |
+| Detail section tab | 13px / 20px, height 46px | 14px / 20px, height 44px | selected underline: blue on desktop and mobile |
 
 Status badges, warnings, destructive actions and loss/margin annotations retain
 meaningful colors and smaller annotation sizes. A percentage or a count belongs to
@@ -133,3 +133,7 @@ button colors on mobile/desktop in both themes.
 All menu page titles, record headers and primary header amounts use the shared 22px/30px title tokens and `--nd-header-weight:650`, on desktop and mobile. Utility dialog titles follow the same rule. Never override individual destinations. Payment labels keep the text `입금·출금`; `.nd-payment-dot` adds `.10em` on each side of the dot. Render the span in payment-panel markup to preserve its DOM comparison and stable clickable rows.
 
 Payment dot labels must be a single `.nd-payment-label` inline group; never expose the dot as a direct flex child of page titles or overview rows. The dot inherits the label font/size/weight/color. Regression checks must measure rendered gaps beside the dot, including desktop overview lists, rather than only computed margins.
+
+Desktop rail headers share caption top 30px and title top 50px relative to the page header. Right header captions use `--nd-header-caption-line:13px`, with `--nd-header-title-gap:7px`. All detail tabs use `--nd-section-underline-color:var(--nd-blue)` for the selected underline; text state colors stay separate. Verify rendered title positions across every destination, not just font sizes.
+
+Desktop quote/purchase metadata aligns vertically with the left search field center using `--nd-header-meta-offset`. Quote progress steps center between the detail-tab divider and their lower divider using `--nd-progress-body-inset` and `--nd-progress-strip-height`. Check actual bounding-box centers without moving other body sections.
