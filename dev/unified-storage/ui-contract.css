@@ -250,3 +250,10 @@
  html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:relative;top:var(--nd-header-meta-offset)}
  html body #appView[data-layout-system] .shell .main #qtForm .nd-next {margin-top:calc(-1 * var(--nd-progress-body-inset));min-height:var(--nd-progress-strip-height);padding-block:0;box-sizing:border-box;align-items:center}
 }
+
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amount,.cp-amt,.pp-amount,.material-detail-head>.material-balance-hero,.nd-sa-header-amount,.workspace-heading>.scr-hero) {display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:var(--nd-header-title-gap)!important}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-k,.cp-amt>.k,.pp-amount>span,.material-detail-head>.material-balance-hero>span,.nd-sa-header-amount>.nd-sa-label,.workspace-heading>.scr-hero>.lbl) {display:block!important;line-height:var(--nd-header-caption-line)!important;margin:0!important;order:-1}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-v,.cp-amt>.v,.pp-amount>strong,.material-detail-head>.material-balance-hero>strong,.nd-sa-header-amount>strong,.workspace-heading>.scr-hero>.big) {margin:0!important;order:0}
+ html body #appView[data-layout-system] .shell .main #view-ar>.workspace-heading>.scr-hero {top:30px!important}
+}
