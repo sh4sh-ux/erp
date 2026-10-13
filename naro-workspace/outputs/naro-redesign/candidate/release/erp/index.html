@@ -14142,7 +14142,7 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
      Use tabular-nums, not font-feature-settings "tnum" (which widens commas). */
   --nd-number-font:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;
   --nd-stat-size:20px!important;--nd-stat-weight:600!important;--nd-stat-spacing:normal!important;
-  --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);
+  --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);--nd-section-underline-color:var(--nd-blue);
   --nd-pill-active-bg:#161A23;--nd-pill-active-ink:#FFFFFF;
  }
  /* Receipt numeric glyphs for existing number cells and numeric entry fields. */
@@ -14232,7 +14232,7 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  }
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-sales,#view-materials) :is(.qp-tabs,.cp-tabs,.panel-b-tabs)>button[aria-selected=true] {
   font-weight:600!important;color:var(--nd-section-active-color)!important;
-  border-bottom-color:transparent!important;box-shadow:inset 0 -2px 0 var(--nd-section-active-color)!important;
+  border-bottom-color:transparent!important;box-shadow:inset 0 -2px 0 var(--nd-section-underline-color)!important;
  }
  /* Utility destinations use the same modal-title hierarchy. Export is appended to body. */
  html body :is(.nd-log-hd #ndLogTtl,.nd-acc-ttl h3,.nd-export .nd-ex-head h2,.nd-mail-hd>b,.nd-mobile-nav-dialog header h2,.nd-pay-entry-head h3) {
@@ -14364,6 +14364,14 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
 @media screen {
  html body #appView .nd-payment-label {display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important;margin:0!important;padding:0!important}
  html body #appView .nd-payment-dot {display:inline-block!important;font:inherit!important;color:inherit!important;margin:0 .10em!important;padding:0!important;width:auto!important;letter-spacing:inherit!important}
+}
+
+/* Desktop header alignment: one caption line and one title line across rail views. */
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] {--nd-header-caption-line:13px;--nd-header-title-gap:7px}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.workspace-heading,.workspace-record-heading,.panel-b-empty-heading,.quote-summary,.material-detail-head,.pp-head,.cp-head,.nd-sa-header) :is(.workspace-caption,.qs-k,.material-eyebrow,.pp-caption,.cp-cap,.nd-sa-eyebrow) {line-height:var(--nd-header-caption-line)!important}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar,#view-settings) :is(.pp-title>h3,.workspace-heading>h3,.panel-b-empty-heading>h3,.workspace-record-heading>.co-title-name) {margin-top:var(--nd-header-title-gap)!important}
+ html body #appView[data-layout-system] .shell .main .nd-sa-header {padding-top:2px!important}
 }
 </style></body>
 </html>
