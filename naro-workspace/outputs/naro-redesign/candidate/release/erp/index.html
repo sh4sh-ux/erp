@@ -13309,7 +13309,8 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
    dataset, write a ledger, migrate statuses, or perform network/storage operations. */
 (() => {
  'use strict';
- const stages=[['작성중','작성 중','견적 준비','file'],['발송','발송','고객 답변 대기','send'],['수주','수주','주문 확정·납품 준비','check'],['납품','납품','납품 완료','box']];
+ // 견적 진행(10/13): 4단계, 서로 겹치지 않게. 납품은 '입금 대기'만, 입금까지 끝나면 '입금'(종료). 저장된 상태값은 그대로 둔다.
+ const stages=[['작성발송','작성·발송','견적 준비·답변 대기','file',['작성중','발송']],['수주','수주','주문 확정·납품 준비','check',['수주','부분납품']],['납품','납품','입금 대기','box',['납품']],['입금','입금','입금까지 완료','wallet',['납품']]];
  const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
  const parseDay=value=>{
   if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return null;
@@ -13370,12 +13371,15 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   }
   return rows;
  }
- function progress(quotes){
-  const counts=new Map();for(const q of quotes||[])counts.set(q.status,(counts.get(q.status)||0)+1);
-  const rows=stages.map(([status,label,hint,icon])=>({status,label,hint,icon,count:counts.get(status)||0}));
-  // Never call a partially delivered order complete or silently omit it.
-  if(counts.get('부분납품'))rows.splice(3,0,{status:'부분납품',label:'부분납품',hint:'남은 수량 납품 준비',icon:'box',count:counts.get('부분납품')});
-  return rows;
+ // 견적 하나가 어느 단계인지(취소는 어디에도 안 잡힘). isPaid(q) = 받을 돈을 다 받았는지(화면에서 넘겨줌).
+ function stageOf(q,isPaid=()=>false){
+  if(q?.status==='납품')return isPaid(q)?'입금':'납품';
+  return stages.find(s=>s[0]!=='입금'&&s[4].includes(q?.status))?.[0]||'';
+ }
+ function progress(quotes,isPaid){
+  const counts=new Map();for(const q of quotes||[]){const k=stageOf(q,isPaid);if(k)counts.set(k,(counts.get(k)||0)+1);}
+  // 부분납품은 '수주'(납품 중)에 함께 센다 — 빼거나 끝난 것으로 치지 않는다.
+  return stages.map(([status,label,hint,icon])=>({status,label,hint,icon,count:counts.get(status)||0}));
  }
  function recent(quotes){return [...(quotes||[])].filter(q=>q.status!=='취소').sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,4);}
  // One visual emphasis only; the latest period is a soft default, not a user selection.
@@ -13389,7 +13393,7 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
  const amountHtml=v=>money(v).slice(0,-1)+'<small class="nd-db-currency">원</small>';
  const needsAttention=count=>Number(count)>0;
  const monthHeading=today=>`${Number(today.slice(5,7))}월 현황`;
- const model={periods,aggregate,progress,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange,monthHeading};
+ const model={periods,aggregate,progress,stageOf,recent,chartEmphasis,money,amountHtml,needsAttention,rangeError,defaultRange,quickRange,monthHeading};
  if(typeof document==='undefined'){globalThis.NaroDashboardModel=model;return;}
  const paths={
   arrow:'<path d="M7 17 17 7M7 7h10v10"/>',chevron:'<path d="m9 6 6 6-6 6"/>',
@@ -13405,10 +13409,28 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
  let chartMode='month',selectedKey=null,chartRange=null,chartPage=0;
  let rangeListeners=null;
  const deliveryTotal=(q,d)=>quoteTotals({lines:deliveredLines(q,d)}).total;
+ // 받을 돈을 다 받았는지: 이 견적에 연결된 입금 − 환불 ≥ 견적 금액
+ function quotePaid(q){
+  const total=typeof quoteAmount==='function'?Number(quoteAmount(q))||0:0;if(!(total>0))return false;
+  const paid=(db.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
+  return paid>=total-0.5;
+ }
+ // 견적 진행 단계로 목록을 열 때: 저장된 상태 필터로 먼저 좁히고, 단계에 안 맞는 줄은 가린다(상태 필터를 바꾸면 풀린다).
+ let stageFilter='';
+ function applyStageFilter(){
+  const list=document.getElementById('qtList');if(!list)return;
+  list.querySelectorAll('.list-item[data-id]').forEach(el=>{const q=(db.quotes||[]).find(x=>x.id===el.dataset.id);el.hidden=!!stageFilter&&(!q||stageOf(q,quotePaid)!==stageFilter);});
+ }
+ if(typeof renderQtList==='function'){const base=renderQtList;renderQtList=function(){const r=base.apply(this,arguments);try{applyStageFilter();}catch{}return r;};}
+ const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{applyStageFilter();}catch{}},0);};
+ document.addEventListener('change',e=>{if(e.target?.id==='qtStatus'&&e.isTrusted)clearStage();},true);
+ document.addEventListener('click',e=>{if(e.target.closest?.('#view-quotes .nd-chips button'))clearStage();},true);
  function openQuotes(status,id){
   if(switchView('quotes')===false||currentView!=='quotes')return;
   if(typeof clearQtFilters==='function')clearQtFilters();
   const search=document.getElementById('qtSearch');if(search){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
+  const st=stages.find(x=>x[0]===status);stageFilter=st?status:'';
+  if(st)status=st[4].length===1?st[4][0]:'';
   document.getElementById('qtStatus').value=status||'';
   document.getElementById('qtFrom').value='';document.getElementById('qtTo').value='';
   if(id)qtSel=id;
@@ -13523,7 +13545,7 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   const ar=arData(),open=ar.reduce((s,r)=>s+Math.max(0,r.open),0),prepaid=ar.reduce((s,r)=>s+Math.max(0,-r.open),0);
   const aged=ar.filter(r=>r.open>0&&(daysSince(r.lastDeliver)||0)>=30),tax=db.quotes.filter(needsTax);
   const short=Object.values(currentStocks()).filter(n=>n<=0).length;
-  const qs=recent(db.quotes),stagesNow=progress(db.quotes);
+  const qs=recent(db.quotes),stagesNow=progress(db.quotes,quotePaid);
   const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
   const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
