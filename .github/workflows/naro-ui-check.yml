@@ -1,0 +1,50 @@
+name: NARO UI rules
+on:
+  pull_request:
+    paths:
+      - 'dev/unified-storage/**'
+      - 'naro-workspace/outputs/naro-redesign/candidate/**'
+      - '.github/workflows/naro-ui-check.yml'
+  push:
+    branches: [feature/naro-redesign]
+    paths:
+      - 'dev/unified-storage/**'
+      - 'naro-workspace/outputs/naro-redesign/candidate/**'
+      - '.github/workflows/naro-ui-check.yml'
+permissions:
+  contents: read
+jobs:
+  styles-and-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser test tools outside the checkout
+        run: |
+          npm install --prefix "$RUNNER_TEMP/naro-ui-tools" --no-audit --no-fund --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/naro-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Check all rail destinations in mobile/desktop and light/dark
+        run: |
+          export NODE_PATH="$RUNNER_TEMP/naro-ui-tools/node_modules"
+          test_output="$RUNNER_TEMP/naro-test-output.txt"
+          if node --test --test-reporter=spec dev/unified-storage/*.test.mjs > "$test_output" 2>&1; then
+            cat "$test_output"
+          else
+            cat "$test_output"
+            TEST_OUTPUT_PATH="$test_output" python3 - <<'PYTHON'
+          import os
+          from pathlib import Path
+          output = Path(os.environ['TEST_OUTPUT_PATH']).read_text()
+          start = output.rfind('failing tests:')
+          detail = output[start:] if start >= 0 else '\n'.join(output.splitlines()[-35:])
+          detail = detail.encode('utf-8')[:3500].decode('utf-8', errors='ignore')
+          message = detail.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=NARO regression failure::' + message)
+          PYTHON
+            exit 1
+          fi

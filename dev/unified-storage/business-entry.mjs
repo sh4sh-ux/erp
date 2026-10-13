@@ -1,6 +1,6 @@
 import {validateData} from '../core.mjs';
 import {readImport} from './tabular-import.mjs';
-import {installAssets} from './asset-ui.mjs';
+import {installAssets,createAssetFile,notifyAsset} from './asset-ui.mjs';
 import {installMailUI} from './mail-ui.mjs';
 import {installAccessUI} from './access-ui.mjs';
 import {installLogUI} from './log-ui.mjs';
@@ -38,7 +38,10 @@ export function start(bridge,build){
  // Don't override the existing form's own disabled/validation states.
  document.addEventListener('click',e=>{
   const el=e.composedPath().find(n=>n?.matches?.('button,input,select,textarea,[role="button"]'));
-  if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary,.nd-mail,.nd-photo-view')&&(pending||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
+  // Startup image reads must not swallow navigation; writes and recovery still lock it.
+  const navigation=el?.matches('.nav-item,.mobile-nav-item,#menuBtn,#closeNavBtn,#moreNavBtn');
+  const readingImage=pending?.type==='ASSET_READ'&&!locked&&!recovering;
+  if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary,.nd-mail,.nd-photo-view,.nd-photo-error-dismiss')&&((pending&&!(readingImage&&navigation))||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
  },true);
  window.addEventListener('beforeunload',e=>{if(pending||locked){e.preventDefault();e.returnValue='';}});
  const reconcile=()=>new Promise((resolve,reject)=>{
@@ -113,10 +116,10 @@ export function start(bridge,build){
    };
    bridge.bindReadUI();bridge.bindBusinessUI();bridge.switchView('dash');
    if(build.extendedWrite){
-    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,...details});
+    const assetRequest=(type,details)=>new Promise((resolve,reject)=>{if(pending||locked||recovering||!port){reject(Error('저장 결과 확인이 필요합니다.'));return;}const requestId=crypto.randomUUID();pending={requestId,type,resolve,reject};port.postMessage({type,requestId,...details});
      // 답이 끝내 오지 않아도 화면 전체가 잠긴 채 남지 않게(사진 요청은 읽기·추가 전용이라 다시 시도해도 안전).
      setTimeout(()=>{if(pending?.requestId===requestId){pending=null;reject(Error('응답이 늦어 중단했어요. 다시 눌러 주세요.'));}},40000);});
-    installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>{status.hidden=false;status.textContent=text;}});
+    installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>notifyAsset(text,message=>{status.hidden=false;status.textContent=message;setTimeout(()=>{if(status.textContent===message&&!status.querySelector('button')&&!pending&&!locked)status.hidden=true;},5000);})});
     mail=installMailUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});
     logUI=installLogUI({port:()=>port});
     // 매입(2단계): '매입' 권한이 있는 사람만 메뉴가 보인다(관리자는 모든 기능).
@@ -133,16 +136,17 @@ export function start(bridge,build){
      let file=sent[kind]?.path===path?sent[kind].file:null;
      if(!file){
       say(`${label} 이미지를 불러오는 중…`);
-      try{const {bytes}=await assetRequest('ASSET_READ',{path});file=new File([bytes],filename,{type:'image/png'});sent[kind]={path,file};}
+      try{const {bytes}=await assetRequest('ASSET_READ',{path});file=createAssetFile(bytes,filename);sent[kind]={path,file};}
       catch(error){say(error.message||`${label} 이미지를 불러오지 못했습니다.`);return;}
      }
      if(navigator.canShare?.({files:[file]})){
+      say(`${label} 고해상도 파일을 공유합니다 — 카카오톡에서는 원본 또는 파일로 보내기를 선택해 주세요.`);
       try{await navigator.share({files:[file]});return;}
       catch(error){if(error?.name==='AbortError')return;if(error?.name==='NotAllowedError'){say(`${label} 이미지가 준비됐습니다 — 한 번 더 눌러 주세요.`);return;}}
      }
-     try{if(navigator.clipboard?.write&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);say(`${label} 이미지를 복사했습니다 — 메일·메신저에 붙여넣기로 보내세요.`);return;}}catch{}
+     try{if(navigator.clipboard?.write&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':file})]);say(`${label} 고해상도 이미지를 복사했습니다 — 카카오톡에서는 원본 또는 파일로 보내주세요.`);return;}}catch{}
      const url=URL.createObjectURL(file),link=document.createElement('a');link.href=url;link.download=file.name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-     say(`${label} 이미지를 내려받았습니다.`);
+     say(`${label} 고해상도 파일을 내려받았습니다 — 카카오톡에 파일로 첨부하면 화질을 유지할 수 있어요.`);
     };
     // ASCII file names: some browsers drop non-ASCII download names.
     for(const [id,kind,label,filename] of [['bizCardBtn','card','명함','business-card.png'],['bizCertBtn','registration','사업자등록증','business-registration.png']]){const b=document.getElementById(id);if(b){b.disabled=false;b.title=label+' 보내기';b.onclick=()=>sendAsset(kind,label,filename);}}

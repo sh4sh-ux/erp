@@ -124,7 +124,7 @@ const NaroCompanyLedger=(()=>{
    if(!decl.length)continue;
    const sel=r.selectorText.split(/,(?![^(]*\))/).map(s=>{s=s.trim();if(/^(html|:root)\b/.test(s))return s.replace(/^(html|:root)/,'html[data-theme="dark"]');return 'html[data-theme="dark"] '+s.replace(/^body\b/,'body');}).join(',');
    out.push(`${sel}{${decl.join(';')}}`);}};
-  for(const sheet of document.styleSheets){if(sheet.ownerNode?.id==='naro-design')continue;try{walk(sheet.cssRules);}catch{}}
+  for(const sheet of document.styleSheets){if(['naro-design','naro-ui-contract'].includes(sheet.ownerNode?.id))continue;try{walk(sheet.cssRules);}catch{}}
   const style=document.createElement('style');style.id='nd-dark-auto';style.textContent='@media screen{'+out.join('\n')+'}';
   const design=document.getElementById('naro-design');design?design.before(style):document.head.append(style);
  }
@@ -179,7 +179,24 @@ const NaroCompanyLedger=(()=>{
   list.before(row);select.classList.add('nd-chip-source');
   select.addEventListener('change',sync);new MutationObserver(sync).observe(list,{childList:true});sync();}}
  /* Action bar: [secondary ≤4] … [⋯ more] [save]. Quote copy/email join delete inside ⋯. */
+ function itemCopyAction(){
+  const bar=document.querySelector('#itForm .form-actions');
+  if(!bar||itSel==='__new__'||!itSel||bar.querySelector('#itCopyBtn'))return;
+  const button=document.createElement('button');button.type='button';button.id='itCopyBtn';button.className='btn ghost';button.textContent='복사';button.title='이 품목을 새 품목으로 복사';
+  button.onclick=()=>{
+   if(!guardMasterLeave('items'))return;
+   const source=db.items.find(item=>item.id===itSel);if(!source)return;
+   const copy=normalizeItem(JSON.parse(JSON.stringify(source)));
+   copy.id=null;copy.code='';copy.name=(copy.name||'')+' (복사)';
+   delete copy.created_at;delete copy.updated_at;delete copy.stock_minimums;
+   itSel='__new__';itEditing=copy;itFormBaseline=JSON.stringify(copy);
+   renderItList();renderItDetail();scrollToDetail('itForm');
+   requestAnimationFrame(()=>{const name=document.getElementById('fi_name');name?.focus();name?.select();});
+  };
+  bar.prepend(button);
+ }
  function actions(){
+  itemCopyAction();
   for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
    let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
     menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
@@ -322,9 +339,31 @@ const NaroCompanyLedger=(()=>{
   document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 
+ // Reuse the company Information group anatomy, moving native supplier fields intact.
+ function supplierInfoGroups(view){
+  const titles=[['기본 정보','견적서·거래명세서에 나와요'],['연락처','견적서를 보낼 때 써요'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌예요']];
+  view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
+   if(sec.classList.contains('cp-grp'))return;
+   const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
+   const head=document.createElement('div');head.className='cp-grph';h.textContent=titles[i]?.[0]||h.textContent;
+   const desc=document.createElement('p');desc.textContent=titles[i]?.[1]||'';head.append(h,desc);
+   const body=document.createElement('div');body.className='cp-grpb cp-panel';
+   [...sec.children].forEach(n=>body.append(n));
+   // Same full-width name / two-field second row as company Information.
+   if(i===0){const name=body.querySelector('#st_name')?.closest('.field'),ceo=body.querySelector('#st_ceo')?.closest('.field'),biz=body.querySelector('#st_biz')?.closest('.field');
+    if(name&&ceo&&biz){const row=name.parentElement;body.prepend(name);row.append(ceo,biz);}}
+   const detail=body.querySelector('#nd_address_detail');
+   if(detail){const field=document.createElement('div');field.className='field';const label=document.createElement('label');label.htmlFor=detail.id;label.textContent='상세주소';field.append(label,detail);body.append(field);}
+   const address=body.querySelector('#st_address');if(address){const label=address.closest('.field')?.querySelector('label');if(label)label.textContent='기본주소';}
+   sec.classList.add('cp-grp');sec.replaceChildren(head,body);
+  });
+  const intro=view.querySelector('.sup-intro');if(intro)intro.hidden=true;
+ }
+
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
  function settingsPolish(){
   const view=document.getElementById('view-settings');if(!view)return;
+  supplierInfoGroups(view);
   for(const sec of view.querySelectorAll('section.card')){const h=sec.querySelector(':scope>h3');if(h&&h.textContent.trim()==='개인 클라우드 이미지'&&!sec.classList.contains('nd-assets')){sec.classList.add('nd-assets');
    const btns=sec.querySelectorAll(':scope>button');btns[0]?.classList.add('nd-assets-up');btns[1]?.classList.add('nd-assets-view');
    const row=document.createElement('div');row.className='nd-assets-row';sec.querySelector(':scope>select')?.before(row);row.append(...sec.querySelectorAll(':scope>select,:scope>button'));}}
@@ -404,7 +443,7 @@ const NaroCompanyLedger=(()=>{
     const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
     const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
     input.addEventListener('input',push);
-    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
     const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
@@ -414,7 +453,7 @@ const NaroCompanyLedger=(()=>{
     b.onclick=()=>{if(pop?.btn===b){closePop();return;}const block=document.querySelector(c.filter);
      if(!block){ // 폰처럼 PC용 필터 묶음이 없는 화면: 원래 고르기 칸(select)을 그대로 꺼내 보여주고 닫으면 제자리로
       const view=document.getElementById('view-'+b.closest('.view')?.id.replace('view-',''))||b.closest('.view');
-      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'));if(!fields.length)return;
+      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label, :scope .ops-filters>#payClear')||[])].filter(l=>(l.id==='payClear'||l.querySelector('select,input'))&&!l.closest('.nd-pop'));if(!fields.length)return;
       const marks=fields.map(f=>{const m=document.createComment('nd-filter');f.before(m);return m;});
       openPop(b,el=>{el.classList.add('nd-pop-filter');fields.forEach(f=>{f.classList.add('nd-pop-field');el.append(f);});},()=>fields.forEach((f,i)=>{f.classList.remove('nd-pop-field');marks[i].replaceWith(f);}),'필터');return;}
      const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
@@ -1068,6 +1107,28 @@ const NaroCompanyLedger=(()=>{
   in:()=>setSel('payFilter','수금'),out:()=>setSel('payFilter','지급'),all:()=>setSel('payFilter','')};
 
  /* 업체 제공 자재(PC): 조회 기준일·재고내역서는 오른쪽 헤더 아래 줄(제목 아래, 왼쪽)로 — 다른 화면처럼 '이 화면을 고르는 도구'는 헤더에. 폰은 제자리. */
+ // Material detail uses the quote panel anatomy; native controls keep their handlers.
+ let materialDesignOwner=null,materialDesignTab='overview',materialDesignForm=null;
+ function materialDetailDesign(){
+  const detail=document.querySelector('#view-materials .material-detail'),head=detail?.querySelector('.material-detail-head');if(!head)return;
+  const balance=detail.querySelector('.material-balance-hero');if(balance&&balance.parentElement!==head)head.append(balance);
+  const owner=document.getElementById('mm_statement_company')?.value;
+  if(owner!==materialDesignOwner){materialDesignOwner=owner;materialDesignTab='overview';}
+  const form=detail.querySelector('.material-detail-form'),card=form?.querySelector('#materialEntryCard');
+  if(card!==materialDesignForm){materialDesignForm=card;if(card&&!card.hidden)materialDesignTab='entry';else if(materialDesignTab==='entry')materialDesignTab='overview';}
+  let tabs=detail.querySelector(':scope>.nd-material-tabs');
+  if(!tabs){tabs=document.createElement('div');tabs.className='qp-tabs nd-material-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','자재 상세');
+   for(const [key,label] of [['overview','자재'],['history','내역'],['entry','입력']]){const b=document.createElement('button');b.type='button';b.dataset.materialPanel=key;b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-controls','nd-material-'+key);b.onclick=()=>{if(key==='entry'&&document.getElementById('materialEntryCard')?.hidden){document.getElementById('mm_detail')?.click();return;}materialDesignTab=key;materialDetailDesign();};tabs.append(b);}head.after(tabs);}
+  let overview=detail.querySelector(':scope>.nd-material-overview');
+  if(!overview){overview=document.createElement('section');overview.className='nd-material-overview';overview.id='nd-material-overview';overview.setAttribute('role','tabpanel');tabs.after(overview);}
+  for(const selector of ['.nd-mat','.material-summary','.material-type-tabs']){const node=detail.querySelector(selector);if(node&&node.parentElement!==overview)overview.append(node);}
+  const history=detail.querySelector('.material-history-wrap'),quick=detail.querySelector('.material-quick');
+  if(history){history.id='nd-material-history';history.setAttribute('role','tabpanel');}
+  if(form){form.id='nd-material-entry';form.setAttribute('role','tabpanel');}
+  if(quick&&quick!==detail.lastElementChild)detail.append(quick);
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.materialPanel===materialDesignTab)));
+  overview.hidden=materialDesignTab!=='overview';if(history)history.hidden=materialDesignTab!=='history';if(form)form.hidden=materialDesignTab!=='entry';if(quick)quick.hidden=materialDesignTab==='entry';
+ }
  const matDesk=matchMedia('(min-width:1024px)');
  function materialHeadTools(){
   const head=document.querySelector('#view-materials .material-detail-head'),ctl=document.querySelector('#view-materials .material-statement-controls');
@@ -1131,14 +1192,34 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go],[data-nd-stat]')){e.preventDefault();jClick(e);}},true);
  // 저장 버튼 상태: 저장된 그대로면 회색 '저장됨', 고치기 시작하면 파란 '저장'. 새로 만드는 중('등록')은 그대로.
  // 회색이어도 누를 수는 있다(재고 반영을 다시 하려고 견적을 다시 저장하는 경우 등).
- const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')]];
+ function supplierClean(){
+  const s=db.settings||{},fields={st_name:'name',st_ceo:'ceo',st_biz:'biz_no',st_phone:'phone',st_email:'email',st_bank:'bank'};
+  for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el||el.value.trim()!==String(s[key]||'').trim())return false;}
+  const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
+  if(address!==String(s.address||'').trim())return false;
+  const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
+  return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
+ }
+ function stockMinimumClean(){
+  return [...document.querySelectorAll('#stockOverview [data-stock-min]')].every(el=>{
+   const [id,...parts]=el.dataset.stockMin.split('|'),item=db.items.find(i=>i.id===id),stored=item?.stock_minimums?.[parts.join('|')]??null;
+   const raw=el.value.trim(),value=raw===''?null:Number(raw);return value===(stored===null?null:Number(stored));
+  });
+ }
+ function materialEditClean(){
+  if(!materialEditingId)return false;
+  const old=db.material_moves.find(m=>m.id===materialEditingId);if(!old)return false;
+  const next=buildMaterialMove(materialDraft);
+  return ['company_id','date','kind','material','order_no','quote_id','work_item_id','memo'].every(k=>String(next[k]||'').trim()===String(old[k]||'').trim())&&String(next.source||'').trim()===String(old.source??'직접 주문').trim()&&['qty','work_qty','per_unit'].every(k=>(next[k]==null?null:Number(next[k]))===(old[k]==null?null:Number(old[k])));
+ }
+ const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')],['stSaveBtn',supplierClean],['stockMinimumSave',stockMinimumClean,'표시된 최소 기준 저장'],['mm_save',materialEditClean,'수정 내용 저장']];
  function saveState(){
-  for(const [id,clean] of SAVE_STATE){
-   const b=document.getElementById(id);if(!b||b.children.length)continue;
-   const t=b.textContent.trim();if(t!=='저장'&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
+  for(const [id,clean,dirtyLabel='저장'] of SAVE_STATE){
+   const b=document.getElementById(id);if(!b||b.children.length)continue;if(id==='stockMinimumSave'&&!b.classList.contains('save'))b.classList.add('save');
+   const t=b.textContent.trim();if(t!==dirtyLabel&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
    let saved=false;try{saved=clean();}catch{}
    if(b.classList.contains('nd-saved')!==saved)b.classList.toggle('nd-saved',saved);
-   const label=saved?'저장됨':'저장';if(t!==label)b.textContent=label;
+   const label=saved?'저장됨':dirtyLabel;if(t!==label)b.textContent=label;
    const aria=saved?'저장됨 — 바뀐 내용 없음':'저장';if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);
   }
  }
@@ -1324,7 +1405,7 @@ const NaroCompanyLedger=(()=>{
   const pk=document.getElementById('payKind'),pb=document.getElementById('payAddBtn');
   if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록 저장',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
   const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
-  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
+  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=materialEditingId?(mb.classList.contains('nd-saved')?'저장됨':'수정 내용 저장'):lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
  }
  // 요약 칸(.stats) 구분선 규칙: 칸 사이 선은 위아래(가로선은 좌우) 14px 띄운다 — 원래 테두리가 있는 칸만 골라 테두리를 투명하게 두고 같은 자리에 짧은 선을 그린다.
  function statDividers(){
@@ -1382,6 +1463,7 @@ const NaroCompanyLedger=(()=>{
  paymentFocusMode();
  let paySheetEl=null;
  function openPaySheet(id){
+  if(window.NaroPaymentPanel?.open(id))return;
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
   const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const out=p.kind==='지급',co=(db.companies||[]).find(c=>c.id===p.company_id)?.name||'',q=p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no||'':'';
@@ -1414,7 +1496,43 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // Keep the wording intact; only the middle-dot gutters change.
+ function paymentDotSpacing(){
+  for(const root of document.querySelectorAll('#view-payments .page-head h2,.rail-nav [data-view="payments"],#bottomNav [data-view="payments"],.nd-pay-entry-head h3')){
+   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+   while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.nd-payment-dot')&&walker.currentNode.textContent.includes('입금·출금'))nodes.push(walker.currentNode);
+   for(const node of nodes){const fragment=document.createDocumentFragment(),parts=node.textContent.split('입금·출금');
+    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('i');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});const label=document.createElement('span');label.className='nd-payment-label';label.append(fragment);node.replaceWith(label);}
+  }
+ }
+ // Search controls keep their original node and handlers, including moved filter fields.
+ const SEARCH_INPUTS='input[type="search"],.search input,.nd-tsearch input,.ip-pop>input,.qp-search';
+ const searchClears=new Map();
+ const searchClearResize=typeof ResizeObserver==='function'?new ResizeObserver(()=>requestAnimationFrame(searchClearButtons)):null;
+ function searchClearButtons(){
+  for(const [input,button] of searchClears)if(!input.isConnected){button.remove();searchClearResize?.unobserve(input);searchClears.delete(input);}
+  for(const input of document.querySelectorAll(SEARCH_INPUTS)){
+   if(!(input instanceof HTMLInputElement))continue;
+   let button=searchClears.get(input);
+   if(!button){button=document.createElement('button');button.type='button';button.className='nd-search-clear';button.setAttribute('aria-label','검색어 지우기');button.title='검색어 지우기';button.innerHTML=svgI('<path d="M6 6l12 12M18 6 6 18"/>');
+    button.onpointerdown=e=>e.preventDefault();
+    button.onclick=()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+     const target=input.isConnected?input:input.id&&document.getElementById(input.id);target?.focus();searchClearButtons();};
+    input.addEventListener('input',searchClearButtons);searchClears.set(input,button);input.classList.add('nd-search-input');searchClearResize?.observe(input);
+   }
+   const host=input.parentElement;if(getComputedStyle(host).position==='static')host.classList.add('nd-search-host');
+   if(button.parentElement!==host)input.after(button);
+   button.hidden=!input.value||input.disabled||input.readOnly||!input.getClientRects().length;
+   if(!button.hidden){let left=input.offsetLeft+input.offsetWidth-32;const icon=host.querySelector(':scope>svg');
+    if(icon){const h=host.getBoundingClientRect(),r=icon.getBoundingClientRect(),scale=h.width/host.offsetWidth||1,gutter=(r.left-h.left)/scale-host.clientLeft;left=host.clientWidth-gutter-21;}
+    const top=input.offsetTop+(input.offsetHeight-28)/2;
+    if(button.style.left!==left+'px')button.style.left=left+'px';if(button.style.top!==top+'px')button.style.top=top+'px';}
+  }
+ }
+ document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
+ addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
+ document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

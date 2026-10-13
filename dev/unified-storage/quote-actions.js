@@ -427,12 +427,17 @@
     새 견적을 열면 바로 펼친다. 고르면 정보 탭의 거래처 칸(#fq_co)에 넣고 change — 단가·메모 자동 채움은 원래 동작 그대로. */
  let coPop=null,coAuto='';
  const closeCoPop=()=>{coPop?.remove();coPop=null;};
+ // Capture before the original change handler rebuilds and detaches the select.
+ document.addEventListener('change',ev=>{
+  if(ev.target.id!=='fq_co'||!ev.target.value||qtSel!=='__new__')return;
+  queueMicrotask(()=>{if(qtSel==='__new__'&&document.getElementById('fq_co')?.value)document.getElementById('qp-tab-items')?.click();});
+ },true);
  function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__';}
- function openCoPop(anchor){
-  closeCoPop();const sel=document.getElementById('fq_co');if(!sel)return;
+ function openCoPop(anchor,sel=document.getElementById('fq_co'),filter=()=>true,label='거래처'){
+  closeCoPop();if(!sel)return;
   const hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
-  const all=(db.companies||[]).filter(c=>!hidden.includes(c.id)).sort((a,b)=>((a.type==='매입')-(b.type==='매입'))||(a.name||'').localeCompare(b.name||'','ko'));
-  const pop=document.createElement('div');pop.className='nd-co-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','거래처 고르기');
+  const all=(db.companies||[]).filter(c=>!hidden.includes(c.id)&&filter(c)).sort((a,b)=>((a.type==='매입')-(b.type==='매입'))||(a.name||'').localeCompare(b.name||'','ko'));
+  const pop=document.createElement('div');pop.className='nd-co-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',label+' 고르기');
   pop.innerHTML='<input type="search" placeholder="거래처 이름·담당자 검색" aria-label="거래처 검색"><div class="nd-co-list" role="listbox"></div><button type="button" class="nd-co-new">+ 새 거래처 등록</button>';
   const input=pop.querySelector('input'),list=pop.querySelector('.nd-co-list');let hi=0,shown=[];
   const pick=c=>{closeCoPop();sel.value=c.id;sel.dispatchEvent(new Event('change',{bubbles:true}));};
@@ -449,7 +454,7 @@
  document.addEventListener('click',ev=>{
   const co=ev.target.closest?.('#qtForm .quote-summary .co');
   if(co&&editable()){ev.preventDefault();openCoPop(co);return;}
-  if(coPop&&!coPop.contains(ev.target))closeCoPop();
+  if(coPop&&!coPop.contains(ev.target)&&!ev.target.closest?.('#puForm .quote-summary .co'))closeCoPop();
  },true);
  window.addEventListener('resize',closeCoPop);
  // 새 견적: 거래처가 비어 있으면 열자마자 고르기 창
@@ -461,5 +466,5 @@
    if(qtSel!=='__new__')coAuto='';
   }catch{}return r;};}
  if(legacyDelete)window.deleteQuote=removeQuote;
- window.NaroQuoteActions={bar,deliver,pay,removeQuote};
+ window.NaroQuoteActions={bar,deliver,pay,removeQuote,chooseCompany:openCoPop,closeCompanyPicker:closeCoPop};
 })();

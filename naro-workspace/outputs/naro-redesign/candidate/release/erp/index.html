@@ -2855,7 +2855,7 @@
 const DROPBOX_APP_KEY_DEFAULT = "uy4mukymihfjf1o";
 const LS_APP_KEY = "dbx_app_key";
 const appKey = () => localStorage.getItem(LS_APP_KEY) || DROPBOX_APP_KEY_DEFAULT;
-const APP_VERSION = "v1.186";
+const APP_VERSION = "v1.187";
 const LEGACY_BUSINESS_CARD_URL = "";
 const DEFAULT_BUSINESS_CARD_URL = "";
 const BUSINESS_CARD_FILENAME = "business-card.png";
@@ -5535,12 +5535,12 @@ function drawQuoteCanvas(q,docType){
   rowInfo.forEach((r,ri)=>{
     const l=lines[ri];
     const lv=lineSupplyVat(l), supply=lv.supply;
-    const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;
+    const baseY=ty+(r.h-r.nameLs.length*18)/2+13;
     ctx.fillStyle="#111"; ctx.font=F(400,12.5);
     if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}
-    r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));
-    r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));
-    [fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)].forEach((v,i)=>cell(v,i+3,baseY));
+    r.colorLs.forEach((ln,j)=>cell(ln,1,ty+(r.h-r.colorLs.length*18)/2+13+j*18));
+    r.specLs.forEach((ln,j)=>cell(ln,2,ty+(r.h-r.specLs.length*18)/2+13+j*18));
+    [fmtb(l.qty),fmtb(lv.price),fmtb(supply),fmtb(lv.vat)].forEach((v,i)=>cell(v,i+3,ty+r.h/2+4));
     ty+=r.h;
     ctx.strokeStyle="#ECEDEF"; ctx.lineWidth=1;
     if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}
@@ -7298,7 +7298,7 @@ window.naroReveal=function(el){if(!el)return;let sc=el.parentElement;while(sc&&!
    const label=document.createElement('span'),title=document.createElement('h3');label.className='workspace-caption';label.textContent='NARO BIZ';title.textContent={companies:'거래처 상세',items:'품목 상세',quotes:'견적서 상세'}[id];head.append(label,title);card.prepend(head);undo.push(()=>head.remove());
   });
  }
- function update(){if(desktop.matches)mount();else{const tasks=undo;undo=[];tasks.forEach(fn=>fn());}}
+ function update(){window.NaroPop?.close();if(desktop.matches)mount();else{const tasks=undo;undo=[];tasks.forEach(fn=>fn());}}
  desktop.addEventListener('change',update);update();
 })();
 </script><style id="naro-design">/* NARO design layer — theme tokens (light/dark), wide rail, receipt-db style panels.
@@ -8456,7 +8456,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #printArea .nd-pq{display:flex;align-items:center;gap:10px;min-width:0}
 #printArea .p-etc .k{padding-left:14px}
 #printArea .nd-pq>span{min-width:0;word-break:keep-all;overflow-wrap:break-word}
-#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word}
+#printArea .p-tbl td{word-break:keep-all;overflow-wrap:break-word;vertical-align:middle}
 #printArea .nd-pn{display:flex;flex-direction:column;gap:1px;min-width:0}
 #printArea .nd-pn>b{font-weight:400;color:inherit}
 #printArea .nd-pn>small{font-size:11px;color:#8A8F98;line-height:1.35}
@@ -9604,13 +9604,13 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){curs
 /* 구분 탭 규칙(앱 전체): 목록을 '종류'로 나누는 줄(매출 집계 거래처별·품목별·카테고리별 / 입금·출금 전체·입금·출금)은
    같은 너비로 나눈 밑줄 탭(거래처 전체·매출·매입 포함). 높이 PC 46 · 폰 44, 글자 PC 13 · 폰 14 / 500, 고른 쪽 = 파란 글자 600 + 2px 밑줄, 아래 1px 선.
    10/8 사용자 요청으로 왼쪽 목록 위 칩 줄은 전부 이 탭으로(견적서 상태·재고 상태·받을 금액 보기 포함). */
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){gap:0!important;align-items:stretch!important;min-height:0!important;height:auto!important;padding:0 20px!important;border-bottom:1px solid var(--nd-line)!important;background:none!important;overflow:visible!important}
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button{flex:1 1 0!important;min-width:0!important;width:auto!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-2)!important;font:500 13px/20px var(--sans)!important;text-align:center!important;white-space:nowrap}
-html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button[aria-pressed="true"]{color:var(--nd-blue)!important;border-bottom-color:var(--nd-blue)!important;font-weight:600!important}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){gap:0!important;align-items:stretch!important;min-height:0!important;height:auto!important;padding:0 20px!important;border-bottom:1px solid var(--nd-line)!important;background:none!important;overflow:visible!important}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button{flex:1 1 0!important;min-width:0!important;width:auto!important;height:46px!important;min-height:46px!important;margin:0!important;padding:0 4px!important;border:0!important;border-bottom:2px solid transparent!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--nd-ink-2)!important;font:500 13px/20px var(--sans)!important;text-align:center!important;white-space:nowrap}
+html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button[aria-pressed="true"]{color:var(--nd-blue)!important;border-bottom-color:var(--nd-blue)!important;font-weight:600!important}
 @media (max-width:1023px){
- html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){padding:0!important}
- html body #appView :is(#view-sales .nd-sa-tabs,:is(#view-quotes,#view-materials,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){padding:0 16px!important}
- html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button{height:44px!important;min-height:44px!important;font-size:14px!important}
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){padding:0!important}
+ html body #appView :is(#view-sales .nd-sa-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips){padding:0 16px!important}
+ html body #appView :is(.nd-sa-tabs,#view-payments .nd-pay-tabs,#view-payments .pp-kind-tabs,:is(#view-quotes,#view-materials,#view-payments,#view-stock,#view-companies,#view-items,#view-sales,#view-ar) .nd-chips)>button{height:44px!important;min-height:44px!important;font-size:14px!important}
 }
 .nd-period-sheet{outline:none}
 .nd-period-sheet .nd-per-row:focus{outline:none}
@@ -10351,15 +10351,15 @@ html body #appView #coForm.cp section.cp-prices{margin:0!important;padding:0!imp
 html body #appView #coForm.cp section.cp-prices>h3{margin:0 0 6px!important;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
 html body #appView #coForm.cp section.cp-prices>.hint{font-size:12.5px;line-height:19px;color:var(--nd-ink-3)}
 /* 정보: 묶음(왼쪽 이름·설명 / 오른쪽 입력 칸) */
-html body #appView #coForm.cp .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
-html body #appView #coForm.cp .cp-grp:first-child{padding-top:4px;border-top:0}
-html body #appView #coForm.cp .cp-grph h4{margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
-html body #appView #coForm.cp .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView #coForm.cp .cp-grpb{min-width:0}
-html body #appView #coForm.cp .cp-grpb>.field:last-child,html body #appView #coForm.cp .cp-grpb>.grid2:last-child .field{margin-bottom:0}
-html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
-html body #appView #coForm.cp .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
-html body #appView #coForm.cp .cp-log{margin-top:8px}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grp:first-child{padding-top:4px;border-top:0}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grpb{min-width:0}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.field:last-child,html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.grid2:last-child .field{margin-bottom:0}
+html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView :is(#coForm.cp,#view-settings) .cp-log{margin-top:8px}
 /* 아래 버튼 줄: PC = [이메일] [거래명세서] … [삭제] [저장] · 폰 = [⋯] [전화] [이메일] [저장] */
 html body #appView #coForm.cp .form-actions>.cp-act{flex:none;height:40px;min-height:0;margin:0;padding:0 14px;gap:6px;font-size:13.5px}
 html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
@@ -10399,16 +10399,28 @@ html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
  html body #appView #coForm.cp .cp-qr .s>.sd{display:inline}
  html body #appView #coForm.cp .cp-tl{margin:0 0 12px 4px}
  html body #appView #coForm.cp .cp-ev{grid-template-columns:42px 34px minmax(0,1fr) auto;gap:6px}
- html body #appView #coForm.cp .cp-grp{display:block;padding:20px 0}
- html body #appView #coForm.cp .cp-grph{margin-bottom:14px}
- html body #appView #coForm.cp .cp-grph h4{font-size:15px}
- html body #appView #coForm.cp .cp-grpb .grid2{grid-template-columns:1fr!important}
+ html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:block;padding:20px 0}
+ html body #appView :is(#coForm.cp,#view-settings) .cp-grph{margin-bottom:14px}
+ html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){font-size:15px}
+ html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .grid2{grid-template-columns:1fr!important}
  html body #appView #coForm.cp .form-actions>.cp-tel{display:inline-flex}
  html body #appView #coForm.cp .form-actions>.cp-act{order:5;flex:1 1 0;height:48px;min-width:0;padding:0 8px;justify-content:center;border-radius:12px;font-size:15px;white-space:nowrap}
  html body #appView #coForm.cp .form-actions>.panel-b-danger{order:1!important;margin-left:0!important}
  html body #appView #coForm.cp .form-actions>.panel-b-danger:not(.nd-solo-menu)>.nd-pop{left:0!important;right:auto!important;transform:none!important}
  html body #appView #coForm.cp .form-actions>.btn.save{order:9;flex:1.3 1 0!important;min-width:0!important}
 }
+
+/* Supplier uses the same groups; suppress only the legacy stacked-section spacing. */
+html body #appView #view-settings .sup-sec.cp-grp{margin:0!important;padding:24px 0!important}
+html body #appView #view-settings .sup-sec.cp-grp:first-of-type{padding-top:4px!important;border-top:0}
+html body #appView #view-settings .cp-grph .sup-sec-t{margin:0!important}
+html body #appView #view-settings .cp-grpb .nd-addr-detail{margin-top:0}
+@media(max-width:1023px){html body #appView #view-settings .sup-sec.cp-grp{padding:20px 0!important}}
+
+/* Match the company Information form's existing field rhythm. */
+html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:18px}
+html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
+@media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:16px}}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -10535,7 +10547,7 @@ const NaroCompanyLedger=(()=>{
    if(!decl.length)continue;
    const sel=r.selectorText.split(/,(?![^(]*\))/).map(s=>{s=s.trim();if(/^(html|:root)\b/.test(s))return s.replace(/^(html|:root)/,'html[data-theme="dark"]');return 'html[data-theme="dark"] '+s.replace(/^body\b/,'body');}).join(',');
    out.push(`${sel}{${decl.join(';')}}`);}};
-  for(const sheet of document.styleSheets){if(sheet.ownerNode?.id==='naro-design')continue;try{walk(sheet.cssRules);}catch{}}
+  for(const sheet of document.styleSheets){if(['naro-design','naro-ui-contract'].includes(sheet.ownerNode?.id))continue;try{walk(sheet.cssRules);}catch{}}
   const style=document.createElement('style');style.id='nd-dark-auto';style.textContent='@media screen{'+out.join('\n')+'}';
   const design=document.getElementById('naro-design');design?design.before(style):document.head.append(style);
  }
@@ -10590,7 +10602,24 @@ const NaroCompanyLedger=(()=>{
   list.before(row);select.classList.add('nd-chip-source');
   select.addEventListener('change',sync);new MutationObserver(sync).observe(list,{childList:true});sync();}}
  /* Action bar: [secondary ≤4] … [⋯ more] [save]. Quote copy/email join delete inside ⋯. */
+ function itemCopyAction(){
+  const bar=document.querySelector('#itForm .form-actions');
+  if(!bar||itSel==='__new__'||!itSel||bar.querySelector('#itCopyBtn'))return;
+  const button=document.createElement('button');button.type='button';button.id='itCopyBtn';button.className='btn ghost';button.textContent='복사';button.title='이 품목을 새 품목으로 복사';
+  button.onclick=()=>{
+   if(!guardMasterLeave('items'))return;
+   const source=db.items.find(item=>item.id===itSel);if(!source)return;
+   const copy=normalizeItem(JSON.parse(JSON.stringify(source)));
+   copy.id=null;copy.code='';copy.name=(copy.name||'')+' (복사)';
+   delete copy.created_at;delete copy.updated_at;delete copy.stock_minimums;
+   itSel='__new__';itEditing=copy;itFormBaseline=JSON.stringify(copy);
+   renderItList();renderItDetail();scrollToDetail('itForm');
+   requestAnimationFrame(()=>{const name=document.getElementById('fi_name');name?.focus();name?.select();});
+  };
+  bar.prepend(button);
+ }
  function actions(){
+  itemCopyAction();
   for(const menu of document.querySelectorAll('#appView :is(#coForm,#itForm,#qtForm) .form-actions>.panel-b-danger')){
    let pop=menu.querySelector(':scope>.nd-pop');if(!pop){pop=document.createElement('div');pop.className='nd-pop';menu.append(pop);
     menu.querySelector('summary')?.setAttribute('aria-label','더보기');}
@@ -10733,9 +10762,31 @@ const NaroCompanyLedger=(()=>{
   document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
 
 
+ // Reuse the company Information group anatomy, moving native supplier fields intact.
+ function supplierInfoGroups(view){
+  const titles=[['기본 정보','견적서·거래명세서에 나와요'],['연락처','견적서를 보낼 때 써요'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌예요']];
+  view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
+   if(sec.classList.contains('cp-grp'))return;
+   const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
+   const head=document.createElement('div');head.className='cp-grph';h.textContent=titles[i]?.[0]||h.textContent;
+   const desc=document.createElement('p');desc.textContent=titles[i]?.[1]||'';head.append(h,desc);
+   const body=document.createElement('div');body.className='cp-grpb cp-panel';
+   [...sec.children].forEach(n=>body.append(n));
+   // Same full-width name / two-field second row as company Information.
+   if(i===0){const name=body.querySelector('#st_name')?.closest('.field'),ceo=body.querySelector('#st_ceo')?.closest('.field'),biz=body.querySelector('#st_biz')?.closest('.field');
+    if(name&&ceo&&biz){const row=name.parentElement;body.prepend(name);row.append(ceo,biz);}}
+   const detail=body.querySelector('#nd_address_detail');
+   if(detail){const field=document.createElement('div');field.className='field';const label=document.createElement('label');label.htmlFor=detail.id;label.textContent='상세주소';field.append(label,detail);body.append(field);}
+   const address=body.querySelector('#st_address');if(address){const label=address.closest('.field')?.querySelector('label');if(label)label.textContent='기본주소';}
+   sec.classList.add('cp-grp');sec.replaceChildren(head,body);
+  });
+  const intro=view.querySelector('.sup-intro');if(intro)intro.hidden=true;
+ }
+
  /* 공급자 정보: the personal-cloud image panel gets the app's form styling; legacy link fields say what they are now. */
  function settingsPolish(){
   const view=document.getElementById('view-settings');if(!view)return;
+  supplierInfoGroups(view);
   for(const sec of view.querySelectorAll('section.card')){const h=sec.querySelector(':scope>h3');if(h&&h.textContent.trim()==='개인 클라우드 이미지'&&!sec.classList.contains('nd-assets')){sec.classList.add('nd-assets');
    const btns=sec.querySelectorAll(':scope>button');btns[0]?.classList.add('nd-assets-up');btns[1]?.classList.add('nd-assets-view');
    const row=document.createElement('div');row.className='nd-assets-row';sec.querySelector(':scope>select')?.before(row);row.append(...sec.querySelectorAll(':scope>select,:scope>button'));}}
@@ -10815,7 +10866,7 @@ const NaroCompanyLedger=(()=>{
     const input=document.createElement('input');input.type='search';input.placeholder=c.ph;input.setAttribute('aria-label',c.ph);lab.append(input);row.append(lab);
     const push=()=>{const o=document.querySelector(c.search);if(o&&o.value!==input.value){o.value=input.value;o.dispatchEvent(new Event('input',{bubbles:true}));}};
     input.addEventListener('input',push);
-    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'&&matchMedia('(max-width:780px)').matches){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
+    const v=document.getElementById('view-'+view);new MutationObserver(()=>{const o=document.querySelector(c.search);if(view==='payments'){if(o&&o.value!==input.value)input.value=o.value;}else if(o&&input.value&&o.value!==input.value)push();}).observe(v,{childList:true,subtree:true});}
    if(c.period){const b=document.createElement('button');b.type='button';b.className='nd-tperiod';row.append(b);
     const label=()=>{const [f,t]=c.period.map(id=>{const i=document.getElementById(id);const d=i?.parentElement?.querySelector('.date-control-display:not(.empty)');return i?.value||(d?.textContent.trim().replace(/\.\s*/g,'-').replace(/-$/,'').replace(/-(\d)(?=-|$)/g,'-0$1'))||'';});b.innerHTML=svgI('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>')+`<span>${f&&t?(f===t?f.replace(/-/g,'.'):f.replace(/-/g,'.')+' – '+t.slice(5).replace(/-/g,'.')):'기간 선택'}</span>`;};
     label();setTimeout(label,800);c.period.forEach(id=>document.getElementById(id)?.addEventListener('change',label));
@@ -10825,7 +10876,7 @@ const NaroCompanyLedger=(()=>{
     b.onclick=()=>{if(pop?.btn===b){closePop();return;}const block=document.querySelector(c.filter);
      if(!block){ // 폰처럼 PC용 필터 묶음이 없는 화면: 원래 고르기 칸(select)을 그대로 꺼내 보여주고 닫으면 제자리로
       const view=document.getElementById('view-'+b.closest('.view')?.id.replace('view-',''))||b.closest('.view');
-      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label')||[])].filter(l=>l.querySelector('select,input')&&!l.closest('.nd-pop'));if(!fields.length)return;
+      const fields=[...(view?.querySelectorAll(':scope .ops-category, :scope .ops-filters>label, :scope .ops-filters>#payClear')||[])].filter(l=>(l.id==='payClear'||l.querySelector('select,input'))&&!l.closest('.nd-pop'));if(!fields.length)return;
       const marks=fields.map(f=>{const m=document.createComment('nd-filter');f.before(m);return m;});
       openPop(b,el=>{el.classList.add('nd-pop-filter');fields.forEach(f=>{f.classList.add('nd-pop-field');el.append(f);});},()=>fields.forEach((f,i)=>{f.classList.remove('nd-pop-field');marks[i].replaceWith(f);}),'필터');return;}
      const mark=document.createComment('nd-filter');block.before(mark);if(block.tagName==='DETAILS')block.open=true;
@@ -11479,6 +11530,28 @@ const NaroCompanyLedger=(()=>{
   in:()=>setSel('payFilter','수금'),out:()=>setSel('payFilter','지급'),all:()=>setSel('payFilter','')};
 
  /* 업체 제공 자재(PC): 조회 기준일·재고내역서는 오른쪽 헤더 아래 줄(제목 아래, 왼쪽)로 — 다른 화면처럼 '이 화면을 고르는 도구'는 헤더에. 폰은 제자리. */
+ // Material detail uses the quote panel anatomy; native controls keep their handlers.
+ let materialDesignOwner=null,materialDesignTab='overview',materialDesignForm=null;
+ function materialDetailDesign(){
+  const detail=document.querySelector('#view-materials .material-detail'),head=detail?.querySelector('.material-detail-head');if(!head)return;
+  const balance=detail.querySelector('.material-balance-hero');if(balance&&balance.parentElement!==head)head.append(balance);
+  const owner=document.getElementById('mm_statement_company')?.value;
+  if(owner!==materialDesignOwner){materialDesignOwner=owner;materialDesignTab='overview';}
+  const form=detail.querySelector('.material-detail-form'),card=form?.querySelector('#materialEntryCard');
+  if(card!==materialDesignForm){materialDesignForm=card;if(card&&!card.hidden)materialDesignTab='entry';else if(materialDesignTab==='entry')materialDesignTab='overview';}
+  let tabs=detail.querySelector(':scope>.nd-material-tabs');
+  if(!tabs){tabs=document.createElement('div');tabs.className='qp-tabs nd-material-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','자재 상세');
+   for(const [key,label] of [['overview','자재'],['history','내역'],['entry','입력']]){const b=document.createElement('button');b.type='button';b.dataset.materialPanel=key;b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-controls','nd-material-'+key);b.onclick=()=>{if(key==='entry'&&document.getElementById('materialEntryCard')?.hidden){document.getElementById('mm_detail')?.click();return;}materialDesignTab=key;materialDetailDesign();};tabs.append(b);}head.after(tabs);}
+  let overview=detail.querySelector(':scope>.nd-material-overview');
+  if(!overview){overview=document.createElement('section');overview.className='nd-material-overview';overview.id='nd-material-overview';overview.setAttribute('role','tabpanel');tabs.after(overview);}
+  for(const selector of ['.nd-mat','.material-summary','.material-type-tabs']){const node=detail.querySelector(selector);if(node&&node.parentElement!==overview)overview.append(node);}
+  const history=detail.querySelector('.material-history-wrap'),quick=detail.querySelector('.material-quick');
+  if(history){history.id='nd-material-history';history.setAttribute('role','tabpanel');}
+  if(form){form.id='nd-material-entry';form.setAttribute('role','tabpanel');}
+  if(quick&&quick!==detail.lastElementChild)detail.append(quick);
+  tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.materialPanel===materialDesignTab)));
+  overview.hidden=materialDesignTab!=='overview';if(history)history.hidden=materialDesignTab!=='history';if(form)form.hidden=materialDesignTab!=='entry';if(quick)quick.hidden=materialDesignTab==='entry';
+ }
  const matDesk=matchMedia('(min-width:1024px)');
  function materialHeadTools(){
   const head=document.querySelector('#view-materials .material-detail-head'),ctl=document.querySelector('#view-materials .material-statement-controls');
@@ -11542,14 +11615,34 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest?.('[data-nd-go],[data-nd-stat]')){e.preventDefault();jClick(e);}},true);
  // 저장 버튼 상태: 저장된 그대로면 회색 '저장됨', 고치기 시작하면 파란 '저장'. 새로 만드는 중('등록')은 그대로.
  // 회색이어도 누를 수는 있다(재고 반영을 다시 하려고 견적을 다시 저장하는 경우 등).
- const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')]];
+ function supplierClean(){
+  const s=db.settings||{},fields={st_name:'name',st_ceo:'ceo',st_biz:'biz_no',st_phone:'phone',st_email:'email',st_bank:'bank'};
+  for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el||el.value.trim()!==String(s[key]||'').trim())return false;}
+  const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
+  if(address!==String(s.address||'').trim())return false;
+  const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
+  return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
+ }
+ function stockMinimumClean(){
+  return [...document.querySelectorAll('#stockOverview [data-stock-min]')].every(el=>{
+   const [id,...parts]=el.dataset.stockMin.split('|'),item=db.items.find(i=>i.id===id),stored=item?.stock_minimums?.[parts.join('|')]??null;
+   const raw=el.value.trim(),value=raw===''?null:Number(raw);return value===(stored===null?null:Number(stored));
+  });
+ }
+ function materialEditClean(){
+  if(!materialEditingId)return false;
+  const old=db.material_moves.find(m=>m.id===materialEditingId);if(!old)return false;
+  const next=buildMaterialMove(materialDraft);
+  return ['company_id','date','kind','material','order_no','quote_id','work_item_id','memo'].every(k=>String(next[k]||'').trim()===String(old[k]||'').trim())&&String(next.source||'').trim()===String(old.source??'직접 주문').trim()&&['qty','work_qty','per_unit'].every(k=>(next[k]==null?null:Number(next[k]))===(old[k]==null?null:Number(old[k])));
+ }
+ const SAVE_STATE=[['qtSaveBtn',()=>typeof qtHasUnsavedChanges==='function'&&!qtHasUnsavedChanges()],['coSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('companies')],['itSaveBtn',()=>typeof masterHasUnsavedChanges==='function'&&!masterHasUnsavedChanges('items')],['stSaveBtn',supplierClean],['stockMinimumSave',stockMinimumClean,'표시된 최소 기준 저장'],['mm_save',materialEditClean,'수정 내용 저장']];
  function saveState(){
-  for(const [id,clean] of SAVE_STATE){
-   const b=document.getElementById(id);if(!b||b.children.length)continue;
-   const t=b.textContent.trim();if(t!=='저장'&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
+  for(const [id,clean,dirtyLabel='저장'] of SAVE_STATE){
+   const b=document.getElementById(id);if(!b||b.children.length)continue;if(id==='stockMinimumSave'&&!b.classList.contains('save'))b.classList.add('save');
+   const t=b.textContent.trim();if(t!==dirtyLabel&&t!=='저장됨'){if(b.classList.contains('nd-saved'))b.classList.remove('nd-saved');continue;}
    let saved=false;try{saved=clean();}catch{}
    if(b.classList.contains('nd-saved')!==saved)b.classList.toggle('nd-saved',saved);
-   const label=saved?'저장됨':'저장';if(t!==label)b.textContent=label;
+   const label=saved?'저장됨':dirtyLabel;if(t!==label)b.textContent=label;
    const aria=saved?'저장됨 — 바뀐 내용 없음':'저장';if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);
   }
  }
@@ -11735,7 +11828,7 @@ const NaroCompanyLedger=(()=>{
   const pk=document.getElementById('payKind'),pb=document.getElementById('payAddBtn');
   if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록 저장',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
   const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
-  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
+  if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=materialEditingId?(mb.classList.contains('nd-saved')?'저장됨':'수정 내용 저장'):lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
  }
  // 요약 칸(.stats) 구분선 규칙: 칸 사이 선은 위아래(가로선은 좌우) 14px 띄운다 — 원래 테두리가 있는 칸만 골라 테두리를 투명하게 두고 같은 자리에 짧은 선을 그린다.
  function statDividers(){
@@ -11793,6 +11886,7 @@ const NaroCompanyLedger=(()=>{
  paymentFocusMode();
  let paySheetEl=null;
  function openPaySheet(id){
+  if(window.NaroPaymentPanel?.open(id))return;
   const p=(db.payments||[]).find(x=>x.id===id);if(!p)return;
   const e=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const out=p.kind==='지급',co=(db.companies||[]).find(c=>c.id===p.company_id)?.name||'',q=p.quote_id?(db.quotes||[]).find(x=>x.id===p.quote_id)?.no||'':'';
@@ -11825,7 +11919,43 @@ const NaroCompanyLedger=(()=>{
     itSel=null;itEditing=null;itFormBaseline='';renderers.items();requestAnimationFrame(()=>{v.scrollTop=0;});
    };}
  }
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();}catch(e){}});};
+ // Keep the wording intact; only the middle-dot gutters change.
+ function paymentDotSpacing(){
+  for(const root of document.querySelectorAll('#view-payments .page-head h2,.rail-nav [data-view="payments"],#bottomNav [data-view="payments"],.nd-pay-entry-head h3')){
+   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+   while(walker.nextNode())if(!walker.currentNode.parentElement.closest('.nd-payment-dot')&&walker.currentNode.textContent.includes('입금·출금'))nodes.push(walker.currentNode);
+   for(const node of nodes){const fragment=document.createDocumentFragment(),parts=node.textContent.split('입금·출금');
+    parts.forEach((part,i)=>{if(i){fragment.append('입금');const dot=document.createElement('i');dot.className='nd-payment-dot';dot.textContent='·';fragment.append(dot,'출금');}fragment.append(part);});const label=document.createElement('span');label.className='nd-payment-label';label.append(fragment);node.replaceWith(label);}
+  }
+ }
+ // Search controls keep their original node and handlers, including moved filter fields.
+ const SEARCH_INPUTS='input[type="search"],.search input,.nd-tsearch input,.ip-pop>input,.qp-search';
+ const searchClears=new Map();
+ const searchClearResize=typeof ResizeObserver==='function'?new ResizeObserver(()=>requestAnimationFrame(searchClearButtons)):null;
+ function searchClearButtons(){
+  for(const [input,button] of searchClears)if(!input.isConnected){button.remove();searchClearResize?.unobserve(input);searchClears.delete(input);}
+  for(const input of document.querySelectorAll(SEARCH_INPUTS)){
+   if(!(input instanceof HTMLInputElement))continue;
+   let button=searchClears.get(input);
+   if(!button){button=document.createElement('button');button.type='button';button.className='nd-search-clear';button.setAttribute('aria-label','검색어 지우기');button.title='검색어 지우기';button.innerHTML=svgI('<path d="M6 6l12 12M18 6 6 18"/>');
+    button.onpointerdown=e=>e.preventDefault();
+    button.onclick=()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+     const target=input.isConnected?input:input.id&&document.getElementById(input.id);target?.focus();searchClearButtons();};
+    input.addEventListener('input',searchClearButtons);searchClears.set(input,button);input.classList.add('nd-search-input');searchClearResize?.observe(input);
+   }
+   const host=input.parentElement;if(getComputedStyle(host).position==='static')host.classList.add('nd-search-host');
+   if(button.parentElement!==host)input.after(button);
+   button.hidden=!input.value||input.disabled||input.readOnly||!input.getClientRects().length;
+   if(!button.hidden){let left=input.offsetLeft+input.offsetWidth-32;const icon=host.querySelector(':scope>svg');
+    if(icon){const h=host.getBoundingClientRect(),r=icon.getBoundingClientRect(),scale=h.width/host.offsetWidth||1,gutter=(r.left-h.left)/scale-host.clientLeft;left=host.clientWidth-gutter-21;}
+    const top=input.offsetTop+(input.offsetHeight-28)/2;
+    if(button.style.left!==left+'px')button.style.left=left+'px';if(button.style.top!==top+'px')button.style.top=top+'px';}
+  }
+ }
+ document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
+ addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
+ document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};
@@ -12622,12 +12752,17 @@ const NaroOrderImport=(()=>{
     새 견적을 열면 바로 펼친다. 고르면 정보 탭의 거래처 칸(#fq_co)에 넣고 change — 단가·메모 자동 채움은 원래 동작 그대로. */
  let coPop=null,coAuto='';
  const closeCoPop=()=>{coPop?.remove();coPop=null;};
+ // Capture before the original change handler rebuilds and detaches the select.
+ document.addEventListener('change',ev=>{
+  if(ev.target.id!=='fq_co'||!ev.target.value||qtSel!=='__new__')return;
+  queueMicrotask(()=>{if(qtSel==='__new__'&&document.getElementById('fq_co')?.value)document.getElementById('qp-tab-items')?.click();});
+ },true);
  function editable(){const sel=document.getElementById('fq_co');if(!sel||sel.disabled)return false;return qtSel==='__new__';}
- function openCoPop(anchor){
-  closeCoPop();const sel=document.getElementById('fq_co');if(!sel)return;
+ function openCoPop(anchor,sel=document.getElementById('fq_co'),filter=()=>true,label='거래처'){
+  closeCoPop();if(!sel)return;
   const hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
-  const all=(db.companies||[]).filter(c=>!hidden.includes(c.id)).sort((a,b)=>((a.type==='매입')-(b.type==='매입'))||(a.name||'').localeCompare(b.name||'','ko'));
-  const pop=document.createElement('div');pop.className='nd-co-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','거래처 고르기');
+  const all=(db.companies||[]).filter(c=>!hidden.includes(c.id)&&filter(c)).sort((a,b)=>((a.type==='매입')-(b.type==='매입'))||(a.name||'').localeCompare(b.name||'','ko'));
+  const pop=document.createElement('div');pop.className='nd-co-pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',label+' 고르기');
   pop.innerHTML='<input type="search" placeholder="거래처 이름·담당자 검색" aria-label="거래처 검색"><div class="nd-co-list" role="listbox"></div><button type="button" class="nd-co-new">+ 새 거래처 등록</button>';
   const input=pop.querySelector('input'),list=pop.querySelector('.nd-co-list');let hi=0,shown=[];
   const pick=c=>{closeCoPop();sel.value=c.id;sel.dispatchEvent(new Event('change',{bubbles:true}));};
@@ -12644,7 +12779,7 @@ const NaroOrderImport=(()=>{
  document.addEventListener('click',ev=>{
   const co=ev.target.closest?.('#qtForm .quote-summary .co');
   if(co&&editable()){ev.preventDefault();openCoPop(co);return;}
-  if(coPop&&!coPop.contains(ev.target))closeCoPop();
+  if(coPop&&!coPop.contains(ev.target)&&!ev.target.closest?.('#puForm .quote-summary .co'))closeCoPop();
  },true);
  window.addEventListener('resize',closeCoPop);
  // 새 견적: 거래처가 비어 있으면 열자마자 고르기 창
@@ -12656,7 +12791,7 @@ const NaroOrderImport=(()=>{
    if(qtSel!=='__new__')coAuto='';
   }catch{}return r;};}
  if(legacyDelete)window.deleteQuote=removeQuote;
- window.NaroQuoteActions={bar,deliver,pay,removeQuote};
+ window.NaroQuoteActions={bar,deliver,pay,removeQuote,chooseCompany:openCoPop,closeCompanyPicker:closeCoPop};
 })();
 
 /* 휴지통(10/11): 지우기를 되돌릴 수 있게.
@@ -12766,7 +12901,9 @@ const NaroOrderImport=(()=>{
  // 품목·입금출금: 이미 있는 필터 팝업 맨 아래에 붙인다.
  const viewOn=v=>{const el=document.getElementById('view-'+v);return !!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none';};
  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(!(n instanceof HTMLElement)||!n.classList.contains('nd-pop-panel')||n.querySelector('.nd-trash-field'))continue;
-  const key=viewOn('items')?'items':viewOn('payments')?'payments':null;if(key)n.append(trashField(key));}}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
+  const key=viewOn('items')?'items':viewOn('payments')?'payments':null;
+  const host=key==='items'?n.querySelector(':scope>.nd-pop-body.nd-pop-filter'):n;
+  if(key&&host)host.append(trashField(key));}}).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
  // 거래처: 필터 버튼이 없어서 같은 모양으로 하나 만든다(검색·＋ 줄).
  function coFilterBtn(){
   const add=document.getElementById('coNewBtn');if(!add||!window.NaroPop||add.parentElement.querySelector('.nd-trash-filter'))return;
@@ -13575,5 +13712,658 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
  renderDash=refinedDashboard;renderers.dash=refinedDashboard;
  if(typeof currentView!=='undefined'&&currentView==='dash'&&typeof db!=='undefined')refinedDashboard();
 })();
-</script></body>
+</script><style id="naro-payment-panel">/* Shared quote/company anatomy. Approved ledger refinements follow below. */
+#view-payments>.pp-detail[hidden]{display:none!important}
+@media all{
+ html body #appView #view-payments.pp-detail-open>.workspace-heading,
+ html body #appView #view-payments.pp-detail-open>.workspace-right{display:none!important}
+ html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) 46px minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
+ html body #appView .pp-detail .pp-head{display:flex;justify-content:space-between;gap:24px;padding:30px 28px 0;min-width:0;border-bottom:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-title{min-width:0}
+ html body #appView .pp-detail .pp-caption{display:block;font:600 11px/13px var(--sans);color:var(--nd-ink-3);letter-spacing:.8px}
+ html body #appView .pp-detail h3{margin:8px 0 0;padding:0;font:700 24px/30px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--nd-ink)}
+ html body #appView .pp-detail .pp-meta{display:flex;align-items:center;gap:10px;margin-top:10px;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+ html body #appView .pp-detail .pp-badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
+ html body #appView .pp-detail .pp-badge.in{color:#16834a;background:#eaf7ef}
+ html body #appView .pp-detail .pp-badge.out{color:#ba403b;background:#fceeed}
+ html body #appView .pp-detail .pp-amount{text-align:right;flex-shrink:0;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+ html body #appView .pp-detail .pp-amount strong{display:block;margin-top:6px;font:700 24px/30px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink)}
+ html body #appView .pp-detail .pp-tabs{display:flex;gap:24px;padding:0 28px;border-bottom:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-tabs button{height:46px;min-height:0;padding:0 2px;border:0;border-radius:0;background:none;box-shadow:none;font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-tabs button[aria-selected=true]{border-bottom:2px solid var(--nd-ink);color:var(--nd-ink);font-weight:700}
+ html body #appView .pp-detail .pp-body{overflow-y:auto;min-height:0;padding:28px 28px 40px}
+ html body #appView .pp-detail .pp-section+.pp-section{margin-top:36px}
+ html body #appView .pp-detail .pp-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px;margin-bottom:12px}
+ html body #appView .pp-detail h4{margin:0;font:700 14px/22px var(--sans);color:var(--nd-ink)}
+ html body #appView .pp-detail h4 span{margin-left:8px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-muted{color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+ html body #appView .pp-detail .pp-fields{margin:0;border-top:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-fields>div{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
+ html body #appView .pp-detail dt{color:var(--nd-ink-2)}
+ html body #appView .pp-detail dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-link{border:0;background:none;padding:0;font:inherit;color:var(--nd-blue)}
+ html body #appView .pp-detail .pp-memo{margin:0;padding:18px 0;border-top:1px solid var(--nd-line);font:400 13px/22px var(--sans);white-space:pre-wrap;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-actions{display:flex;align-items:center;gap:8px;padding:14px 28px;border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+ html body #appView .pp-detail .btn{flex:0 0 auto;white-space:nowrap;height:40px;min-height:0;padding:0 14px;font:500 13px/20px var(--sans);border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink-2);box-shadow:none}
+ html body #appView .pp-detail .pp-delete{color:#d73329}
+ html body #appView .pp-detail .pp-spacer{flex:1}
+ html body #appView .pp-detail .pp-saved{white-space:nowrap;padding:10px 48px;border-radius:9px;background:var(--nd-fill);font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-empty{padding:64px 20px;text-align:center;color:var(--nd-ink-3)}
+ html body #appView .pp-detail .pp-empty p{font:400 13px/22px var(--sans)}
+ html body #appView .pp-detail .pp-quote-lines{border-top:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-quote-lines>div{display:flex;justify-content:space-between;gap:24px;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
+ html body #appView .pp-detail small{color:var(--nd-ink-3);font:inherit}
+ html body #appView .pp-detail button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:3px}
+}
+html body #appView .pp-detail .pp-back{display:none}
+html body #appView .pp-detail .pp-route{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:20px;align-items:center;padding:22px 0;border-block:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-route div{min-width:0}
+html body #appView .pp-detail .pp-route span:not(.pp-arrow),html body #appView .pp-detail .pp-metrics span{display:block;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-route strong{display:block;margin-top:6px;font:600 17px/26px var(--sans);overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-arrow{color:var(--nd-blue);font-size:24px;text-align:center}
+html body #appView .pp-detail .pp-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:18px 0;border-block:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-metrics>div{padding:0 20px;border-left:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0;border:0}
+html body #appView .pp-detail .pp-metrics strong{display:block;margin-top:8px;font:600 20px/28px var(--sans);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-timeline{margin:0;padding:0;list-style:none}
+html body #appView .pp-detail .pp-timeline li{position:relative;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-dot{width:8px;height:8px;border:2px solid var(--nd-ink-3);border-radius:50%}
+html body #appView .pp-detail .current .pp-dot{border-color:var(--nd-blue);background:var(--nd-blue)}
+html body #appView .pp-detail .pp-event{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:3px 0;font:600 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-current{color:var(--nd-blue);font:500 11px/18px var(--sans)}
+html body #appView .pp-detail .pp-timeline strong{font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-in{color:#16934f}
+@media(min-width:1024px){html body #appView .pp-detail .pp-back{display:none}}
+@media(max-width:1023px){
+ html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
+ html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
+ html body #appView #view-payments.pp-detail-open::after{display:none!important}
+ html body #appView #view-payments>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
+ html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
+ html body #appView .pp-detail .pp-back span{font-size:14px}
+ html body #appView .pp-detail .pp-head{padding:20px 16px;gap:12px;min-height:110px}
+ html body #appView .pp-detail h3{font-size:18px;line-height:26px;margin-top:8px}
+ html body #appView .pp-detail .pp-amount strong{font-size:20px;line-height:26px;margin-top:8px}
+ html body #appView .pp-detail .pp-meta{flex-wrap:wrap;gap:5px;font-size:11px}
+ html body #appView .pp-detail .pp-tabs{padding:0 16px;gap:0}
+ html body #appView .pp-detail .pp-tabs button{flex:1;height:48px;font-size:14px}
+ html body #appView .pp-detail .pp-tabs button[aria-selected=true]{color:var(--nd-blue);border-color:var(--nd-blue)}
+ html body #appView .pp-detail .pp-body{padding:24px 16px 32px;overflow:visible;flex:1}
+ html body #appView .pp-detail .pp-route{gap:10px;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);padding:16px 0}
+ html body #appView .pp-detail .pp-route strong{font-size:15px;line-height:22px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0 10px}
+ html body #appView .pp-detail .pp-metrics strong{font-size:15px;line-height:22px}
+ html body #appView .pp-detail .pp-fields>div{grid-template-columns:90px minmax(0,1fr);gap:12px}
+ html body #appView .pp-detail .pp-actions{position:sticky;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;z-index:5}
+ html body #appView .pp-detail .pp-actions>[data-pp=overview],html body #appView .pp-detail .pp-spacer{display:none}
+ html body #appView .pp-detail .pp-actions .btn{padding:0 12px;height:44px}
+ html body #appView .pp-detail .pp-saved{flex:1;padding:12px 4px;text-align:center;font-size:12px}
+ html body #appView .pp-detail .pp-timeline li{gap:10px;grid-template-columns:10px minmax(0,1fr) auto}
+ html body #appView .pp-detail .pp-timeline strong{font-size:14px}
+}
+@media(max-width:360px){
+ html body #appView .pp-detail .pp-timeline strong{grid-column:2/-1}
+ html body #appView .pp-detail .pp-metrics strong{font-size:13px}
+ html body #appView .pp-detail .pp-amount strong{font-size:17px}
+}
+@media(min-width:1024px) and (max-width:1200px){
+ html body #appView .pp-detail .pp-saved{padding-inline:16px}
+ html body #appView .pp-detail .pp-fields>div{grid-template-columns:140px minmax(0,1fr);gap:20px}
+}
+/* Approved history layout: unobtrusive totals, date groups, selected record. */
+html body #appView .pp-detail .pp-tabs{justify-content:space-between;align-items:center}
+html body #appView .pp-detail .pp-tab-title{align-self:stretch;display:flex;align-items:center;border-bottom:2px solid var(--nd-ink);font:600 14px/20px var(--sans)}
+html body #appView .pp-detail .pp-metrics{border-top:0;padding:0 0 26px;margin-bottom:26px;grid-template-columns:1fr 1fr .65fr}
+html body #appView .pp-detail .pp-metrics strong{font:600 22px/30px var(--sans);letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-metrics small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0}
+html body #appView .pp-detail .pp-in{color:var(--success,#16934f)}
+html body #appView .pp-detail .pp-day+.pp-day{margin-top:28px}
+html body #appView .pp-detail .pp-day-head{display:flex;justify-content:space-between;padding:0 0 12px;border-bottom:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-records{list-style:none;padding:0;margin:0}
+html body #appView .pp-detail .pp-records li{padding:20px 12px;border-bottom:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-record-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;font:600 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-record-name{min-width:0;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-record-top strong{flex-shrink:0;font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
+html body #appView .pp-detail .pp-current{display:inline-block;margin-left:8px;font:400 11px/18px var(--sans);color:var(--nd-blue-ink,var(--nd-blue))}
+html body #appView .pp-detail .pp-record-meta{margin:6px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-selected-record{background:none;box-shadow:none}
+html body #appView .pp-detail .pp-note{margin:24px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-overview{display:block;text-align:left;flex:none;margin:0 calc(-1 * var(--panel-inset));padding:20px var(--panel-inset);border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:500 14px/22px var(--sans)}
+html body #appView #view-payments .pp-overview>span{display:flex;justify-content:space-between;gap:10px}
+html body #appView #view-payments .pp-overview strong{font-weight:600;font-variant-numeric:tabular-nums}
+html body #appView #view-payments .pp-overview small{display:block;margin-top:6px;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-overview.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
+@media(max-width:1023px){
+ html body #appView .pp-detail .pp-tabs button{flex:none;font-size:12px}
+ html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr .6fr;gap:0;padding-bottom:22px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0 10px;min-width:0}
+ html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0}
+ html body #appView .pp-detail .pp-metrics strong{font-size:18px;line-height:26px;letter-spacing:-.4px}
+ html body #appView .pp-detail .pp-metrics small{font-size:11px}
+ html body #appView .pp-detail .pp-records li{padding:18px 10px}
+ html body #appView .pp-detail .pp-record-top{gap:10px}
+ html body #appView .pp-detail .pp-record-top strong{font-size:15px}
+ html body #appView .pp-detail .pp-saved{display:none}
+ html body #appView .pp-detail .pp-actions{justify-content:space-between}
+ html body #appView .pp-detail .pp-head{flex-wrap:wrap}
+ html body #appView .pp-detail .pp-amount{margin-left:auto}
+}
+@media(max-width:360px){html body #appView .pp-detail .pp-metrics strong{font-size:16px}}
+/* Reuse the dashboard number contract, not the body-font shorthand. */
+html body #appView #view-payments :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
+html body #appView #view-payments :is(.pbr-amt,.pp-overview strong,.pp-record-top strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums}
+html body #appView #view-payments .pbr .pbr-amt{color:var(--nd-ink)!important}
+html body #appView #view-payments .workspace-left>.nd-chips{display:flex!important;flex:none}
+html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+/* Keep recovery available, but separate it from search criteria and contain it
+   within the popover's padded area rather than a full-width oversized field. */
+html body #appView .nd-pay-filter>.nd-trash-field{margin:0!important;padding:12px 16px!important;gap:6px;border-top:1px solid var(--nd-line);background:var(--nd-fill)}
+html body #appView .nd-pay-filter>.nd-trash-field .nd-trash-go{height:32px;min-height:32px;padding:0;border:0;background:none;text-align:left;font:400 12px/20px var(--sans);box-shadow:none}
+html body #appView .nd-pay-filter>.nd-trash-field>span{font:500 11px/16px var(--sans)}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter{gap:12px}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter label:not([hidden]){margin:0 0 14px!important}
+html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font:400 14px/20px var(--sans)!important}
+@media(max-width:1023px){
+ html body #appView #view-payments .pp-record-top strong{font-size:15px!important}
+ html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
+}
+/* Approved refined ledger: two quiet totals, one money column, real history. */
+html body #appView #view-payments>.pp-detail{grid-template-rows:var(--panel-head,144px) minmax(0,1fr)}
+html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px}
+html body #appView .pp-detail .pp-meta{grid-column:1/-1;margin-top:3px}
+html body #appView .pp-detail .pp-amount strong{white-space:nowrap}
+html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:24px;margin-bottom:0;padding-bottom:26px}
+html body #appView .pp-detail .pp-metrics>div{padding:0;min-width:0}
+html body #appView .pp-detail .pp-metrics>div+div{padding-left:24px}
+html body #appView .pp-detail .pp-metrics>div>span{display:flex;justify-content:space-between;gap:8px}
+html body #appView .pp-detail .pp-metrics strong{margin-top:10px;color:var(--nd-ink)}
+/* Desktop: 28px inset + 54px totals + 12px gap + 1px border =
+   the left panel's 47px tabs + 48px scope row. Mobile keeps its own spacing. */
+@media(min-width:1024px){
+ html body #appView .pp-detail .pp-metrics{padding-bottom:12px}
+}
+html body #appView .pp-detail .pp-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 16px}
+html body #appView .pp-detail h4{font-weight:600}
+html body #appView .pp-detail h4 small{margin-left:6px;padding:2px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-3);font:400 11px/18px var(--sans)}
+html body #appView .pp-detail :is(.pp-section-head button,.pp-company-link,.pp-record-delete){padding:4px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-columns{display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;gap:16px;padding:10px 12px;border-block:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
+html body #appView .pp-detail .pp-columns>span:last-child{text-align:right;padding-right:24px}
+html body #appView .pp-detail .pp-day+.pp-day{margin-top:0}
+html body #appView .pp-detail .pp-day-head{padding:22px 12px 8px;border:0}
+html body #appView .pp-detail .pp-records li{padding:0}
+html body #appView .pp-detail .pp-record{margin:0;padding:0;border:0;border-radius:0;background:none}
+html body #appView .pp-detail .pp-record summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;align-items:start;gap:16px;padding:18px 12px;min-height:80px;cursor:pointer;background:none;font:400 14px/22px var(--sans)}
+html body #appView .pp-detail .pp-record summary::-webkit-details-marker{display:none}
+html body #appView .pp-detail .pp-record summary::after{display:none}
+html body #appView .pp-detail .pp-record-name{min-width:0;font-weight:500}
+html body #appView .pp-detail .pp-record-name>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .pp-detail .pp-record-name small{display:flex;align-items:center;gap:6px;min-width:0;margin-top:7px;color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
+html body #appView .pp-detail .pp-preview{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .pp-detail .pp-method{font:400 12px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-inline-method{display:none}
+html body #appView .pp-detail .pp-record summary>strong{display:flex;justify-content:flex-end;align-items:center;gap:12px;white-space:nowrap;color:var(--nd-ink)}
+html body #appView .pp-detail .pp-chevron{width:6px;height:6px;border-right:1.5px solid var(--nd-ink-3);border-bottom:1.5px solid var(--nd-ink-3);transform:rotate(45deg);margin:0 3px 4px;flex:none}
+html body #appView .pp-detail .pp-record[open] .pp-chevron{transform:rotate(225deg);margin-bottom:0}
+html body #appView .pp-detail .pp-record[open]{background:none}
+html body #appView .pp-detail .pp-record.pp-selected-record{background:none;box-shadow:none}
+html body #appView .pp-detail .pp-selected-record>summary{background:none;box-shadow:none}
+html body #appView .pp-detail .pp-record-more{display:grid;align-items:baseline;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
+html body #appView .pp-detail .pp-record-more dt{color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-record-more dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-record-more .pp-record-delete{padding:0;margin:0;vertical-align:baseline;font:inherit;color:var(--danger,#d73329)}
+html body #appView .pp-detail .pp-note{margin:24px 0 8px;font-size:11px}
+html body #appView #view-payments .pp-badge{padding:1px 5px;border-radius:4px;background:var(--nd-fill);color:var(--nd-ink-2);font:500 11px/18px var(--sans);font-style:normal;white-space:nowrap}
+html body #appView #view-payments .pp-badge.in{color:var(--success,#16934f);background:color-mix(in srgb,var(--success,#16934f) 10%,transparent)}
+html body #appView .pp-detail summary:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView #view-payments :is(.pp-record summary>strong,.pp-mobile-row strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #view-payments .pp-list-scope{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:none;padding:12px 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-list-scope button{padding:2px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
+html body #appView #view-payments>.pp-mobile-list{display:none}
+html body #appView .nd-pay-filter .pp-pop-close{margin-left:auto;border:0;background:none;box-shadow:none;color:var(--nd-ink-3);font:400 20px/24px var(--sans);width:32px;height:32px}
+html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;justify-content:space-between}
+html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
+/* Native month presets hide these labels; when showing them in the popup,
+   restore the full shared field layout, not only display:flex. */
+html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap;margin:0 0 14px!important;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
+html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
+@media(max-width:1023px){
+ html body #appView #view-payments>.pp-mobile-list{display:block}
+ html body #appView .shell .main #view-payments>.page-head{margin-bottom:0!important}
+ html body #appView #view-payments:not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
+ html body #appView #view-payments.pp-entry-open>.pp-mobile-list{display:none}
+ html body #appView #view-payments .nd-pay-record{display:none!important}
+ html body #appView #view-payments>.page-head h2{padding-right:0}
+ html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px 44px!important}
+ html body #appView #view-payments .nd-tools .nd-tadd{display:flex!important}
+ html body #appView #view-payments>.pp-mobile-list{margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
+ html body #appView #view-payments .pp-kind-tabs{display:flex}
+ html body #appView #view-payments .pp-kind-tabs button{flex:1;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
+ html body #appView #view-payments .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
+ html body #appView #view-payments .pp-list-scope{padding:12px 20px}
+ html body #appView #view-payments .pp-mobile-row{display:block;width:100%;padding:20px;text-align:left;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;box-shadow:none;background:none;color:var(--nd-ink);font:400 14px/22px var(--sans)}
+ html body #appView #view-payments .pp-mobile-row>span{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ html body #appView #view-payments .pp-mobile-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+ html body #appView #view-payments .pp-mobile-row small{display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
+ html body #appView .pp-detail .pp-back{margin-left:16px}
+ html body #appView .pp-detail .pp-head{padding:20px 16px;gap:14px 12px;min-height:126px}
+ html body #appView .pp-detail .pp-amount{font-size:12px;line-height:18px}
+ html body #appView .pp-detail .pp-meta{font-size:12px;line-height:18px;margin-top:0}
+ html body #appView .pp-detail .pp-body{padding:24px 16px 32px}
+ html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:16px;padding-bottom:24px}
+ html body #appView .pp-detail .pp-metrics>div{padding:0}
+ html body #appView .pp-detail .pp-metrics>div+div{padding-left:16px}
+ html body #appView .pp-detail .pp-metrics>div>span>small{display:none}
+ html body #appView .pp-detail .pp-columns,html body #appView .pp-detail .pp-method{display:none}
+ html body #appView .pp-detail .pp-record summary{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:18px 0;min-height:88px}
+ html body #appView .pp-detail .pp-record-name>span{white-space:normal;overflow-wrap:anywhere}
+ html body #appView .pp-detail .pp-record-name small{display:flex;flex-wrap:wrap}
+ html body #appView .pp-detail .pp-inline-method{display:inline}
+ html body #appView .pp-detail .pp-record summary>strong{gap:8px}
+ html body #appView .pp-detail .pp-day-head{padding-inline:0}
+ html body #appView .pp-detail .pp-record-more{padding-inline:0}
+ html body #appView #view-payments .pp-detail .pp-metrics strong{letter-spacing:normal!important}
+ /* Quote detail contract: outer gutter 12px, content inset 16px; heading 19px/1.4. */
+ html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
+ html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
+}
+
+@media(max-width:780px){
+ html body #appView #view-payments>.page-head{padding-bottom:20px!important}
+}
+</style><script id="naro-payment-panel-script">/* Read-only presentation. Native filters, entry and confirmed deletion remain
+   authoritative; no persistence or accounting calculation changes. */
+(()=>{
+ const desk=matchMedia('(min-width:1024px)');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const paymentLabel=s=>'<span class="nd-payment-label">'+esc(s).replace('입금·출금','입금<i class="nd-payment-dot">·</i>출금')+'</span>';
+ const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
+ const signed=n=>(n>0?'+':n<0?'−':'')+won(Math.abs(n));
+ const company=p=>(data()?.companies||[]).find(c=>c.id===p?.company_id)?.name||'거래처 없음';
+ const kindTitle=()=>value('payFilter')==='수금'?'전체 입금':value('payFilter')==='지급'?'전체 출금':'전체 입금·출금';
+ const state={id:null,mobileOpen:false,signature:''};
+ let queued=false;
+ const data=()=>{try{return db;}catch{return null;}};
+ const value=id=>document.getElementById(id)?.value||'';
+ const records=()=>[...document.querySelectorAll('#payTbl tbody tr .rm')].map(b=>b.dataset.id);
+ const get=id=>(data()?.payments||[]).find(p=>p.id===id&&!p.void_at);
+ // Header tools are installed once, but the responsive left panel is recreated.
+ // Restore its native-select tabs on every mount, without cloning form controls.
+ function syncLeft(left,index,ids){
+  if(!left||!index)return;
+  const select=document.getElementById('payFilter');
+  let tabs=left.querySelector(':scope>.nd-chips');
+  if(select&&!tabs){
+   tabs=document.createElement('div');tabs.className='nd-chips pp-kind-tabs';
+   tabs.setAttribute('role','group');tabs.setAttribute('aria-label','입출금 구분');
+   for(const [value,label] of [['','전체'],['수금','입금'],['지급','출금']]){
+    const b=document.createElement('button');b.type='button';b.dataset.v=value;b.textContent=label;
+    b.onclick=()=>{select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));};tabs.append(b);
+   }
+   left.insertBefore(tabs,left.querySelector('.pp-overview')||index);
+  }
+  if(tabs&&select)for(const b of tabs.querySelectorAll('button')){
+   const pressed=String(b.dataset.v===select.value);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);
+  }
+  let scope=left.querySelector('.pp-list-scope');
+  if(!scope){scope=document.createElement('div');scope.className='pp-list-scope';(tabs||index).after(scope);}
+  const scopeHTML=`<span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button>`;
+  if(scope.innerHTML!==scopeHTML)scope.innerHTML=scopeHTML;
+  index.querySelectorAll('button').forEach((b,i)=>{
+   const p=get(ids[i]);if(!p)return;
+   const amount=b.querySelector('.pbr-amt'),sub=b.querySelector('.pbr-sub');
+   if(amount&&amount.textContent!==won(p.amount))amount.textContent=won(p.amount);
+   const text=[p.date,p.kind==='지급'?'출금':'입금',p.method].filter(Boolean).join(' · ');
+   if(sub&&sub.textContent!==text)sub.textContent=text;
+  });
+ }
+ const period=()=>({mode:value('payPeriod'),month:value('payMonth'),from:value('payFrom'),to:value('payTo')});
+ function inPeriod(p,c=period()){
+  const date=String(p.date||'');
+  if(c.mode==='month')return !!c.month&&date.startsWith(c.month);
+  if(c.mode==='range')return !(c.from&&c.to&&c.from>c.to)&&(!c.from||date>=c.from)&&(!c.to||date<=c.to);
+  return true;
+ }
+ function periodLabel(){
+  const c=period();
+  return c.mode==='month'?c.month.replace('-','년 ')+'월':c.mode==='range'?`${c.from||'처음'} – ${c.to||'현재'}`:'전체 기간';
+ }
+ function history(p){
+  const ids=new Set(records());
+  return (data()?.payments||[]).filter(x=>!x.void_at&&(p?(p.company_id?x.company_id===p.company_id:x.id===p.id)&&inPeriod(x):ids.has(x.id)))
+   .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+ }
+ const totals=rows=>rows.reduce((s,p)=>{s[p.kind==='지급'?'out':'in']+=Number(p.amount)||0;s.count++;return s;},{in:0,out:0,count:0});
+ function documentNo(p){
+  if(p.purchase_id)return window.NaroPurchases?.vendor(p.company_id)?.find(q=>q.id===p.purchase_id)?.no||'';
+  return (data()?.quotes||[]).find(q=>q.id===p.quote_id&&(!q.company_id||q.company_id===p.company_id))?.no||'';
+ }
+ function markup(p){
+  const rows=history(p),sum=totals(rows),co=(data()?.companies||[]).find(c=>c.id===p?.company_id);
+  const title=p?co?.name||'거래처 없음':kindTitle();
+  const groups=new Map();for(const row of rows){const day=row.date||'날짜 없음';if(!groups.has(day))groups.set(day,[]);groups.get(day).push(row);}
+  const metric=(label,n,count)=>`<div><span>${label}<small>${count}건</small></span><strong>${Math.round(n).toLocaleString('ko-KR')}<small>원</small></strong></div>`;
+  return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">${p?'거래처':'입출금 현황'}</span><h3 title="${esc(title)}">${p?esc(title):paymentLabel(title)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong>${signed(sum.in-sum.out)}</strong></div><div class="pp-meta">${esc(periodLabel())} · ${p?'거래처 기록':'조회된 기록'}</div></header>
+   <div class="pp-body" id="pp-body"><section class="pp-metrics" aria-label="조회 결과 합계">${metric('입금 합계',sum.in,rows.filter(x=>x.kind!=='지급').length)}${metric('출금 합계',sum.out,rows.filter(x=>x.kind==='지급').length)}</section>
+   <div class="pp-section-head"><h4>${p?'거래처 입출금 내역':'입출금 내역'} <small>${sum.count}건</small></h4>${p?'<button type="button" data-pp="overview">전체 내역</button>':''}</div>
+   <div class="pp-columns" aria-hidden="true"><span>거래 내용</span><span>결제수단</span><span>금액</span></div>
+   ${[...groups].map(([date,items])=>`<section class="pp-day"><div class="pp-day-head"><span>${esc(date)}</span><span>${items.length}건</span></div><ol class="pp-records">${items.map(x=>{
+    const incoming=x.kind!=='지급',name=p?`${x.refund?'환불 ':''}${incoming?'입금':'출금'}`:(data()?.companies||[]).find(c=>c.id===x.company_id)?.name||'거래처 없음';
+    const doc=documentNo(x),type=(x.refund?'환불 ':'')+(incoming?'입금':'출금');
+    return `<li><details class="pp-record${x.id===p?.id?' pp-selected-record':''}" data-record="${esc(x.id)}"${x.id===p?.id?' aria-current="true"':''}><summary><div class="pp-record-name"><span>${esc(name)}</span><small>${!p?`<b class="pp-badge ${incoming?'in':'out'}">${type}</b>`:''}<span class="pp-inline-method">${esc(x.method||'미기록')}</span><span class="pp-preview">${esc(x.memo||doc||'')}</span></small></div><span class="pp-method">${esc(x.method||'미기록')}</span><strong>${won(x.amount)}<i class="pp-chevron" aria-hidden="true"></i></strong></summary><dl class="pp-record-more"><dt>거래일</dt><dd>${esc(x.date||'미기록')}</dd><dt>구분</dt><dd>${type} · ${esc(x.method||'결제수단 미기록')}</dd>${doc?`<dt>문서번호</dt><dd>${esc(doc)}</dd>`:''}<dt>메모</dt><dd>${esc(x.memo||'메모 없음')}</dd><dt>기록 관리</dt><dd><button type="button" class="pp-record-delete" data-pp="delete-record" data-id="${esc(x.id)}">이 기록 삭제</button></dd></dl></details></li>`;
+   }).join('')}</ol></section>`).join('')||'<div class="pp-empty">표시할 입출금 기록이 없습니다.</div>'}
+   <p class="pp-note">${p?'선택 기간의 거래처 입금·출금을 모두 표시합니다. ':''}차액은 통장 잔액과 다릅니다.</p>${co?'<button type="button" class="pp-company-link" data-pp="company">거래처 보기 ›</button>':''}</div>`;
+ }
+ function mobileList(v,ids){
+  let list=v.querySelector(':scope>.pp-mobile-list');
+  if(!list){list=document.createElement('div');list.className='pp-mobile-list';v.append(list);}
+  const sum=totals(history(null));
+  const html=`<div class="pp-kind-tabs" role="group" aria-label="입출금 구분">${[['','전체'],['수금','입금'],['지급','출금']].map(([k,t])=>`<button type="button" data-pp="kind" data-kind="${k}" aria-pressed="${value('payFilter')===k}">${t}</button>`).join('')}</div><div class="pp-list-scope"><span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button></div><button type="button" class="pp-mobile-row" data-pp="overview"><span><b>${paymentLabel(kindTitle())}</b><strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small></button>${ids.map(id=>{const p=get(id);return p?`<button type="button" class="pp-mobile-row" data-pp="record" data-id="${esc(id)}"><span><b>${esc(company(p))}</b><strong>${won(p.amount)}</strong></span><small>${esc(p.date)} · <em class="pp-badge ${p.kind==='지급'?'out':'in'}">${p.kind==='지급'?'출금':'입금'}</em> · ${esc(p.method||'미기록')}</small></button>`:'';}).join('')||'<p class="pp-empty">표시할 입출금 기록이 없습니다.</p>'}`;
+  if(list.innerHTML!==html)list.innerHTML=html;
+ }
+ function show(id){
+  const v=document.getElementById('view-payments');
+  if(!v||!get(id)||!records().includes(id)||document.getElementById('payEntry')?.open)return false;
+  state.id=id;state.mobileOpen=true;render();if(!desk.matches)v.querySelector('.pp-back')?.scrollIntoView({block:'start'});return true;
+ }
+ function render(){
+  const v=document.getElementById('view-payments');if(!v)return;
+  const ids=records();if(state.id&&!ids.includes(state.id)){state.id=null;state.signature='';}
+  v.classList.toggle('pp-entry-open',!!document.getElementById('payEntry')?.open);
+  if(!desk.matches)mobileList(v,ids);
+  const p=get(state.id),left=v.querySelector('.workspace-left'),index=left?.querySelector('.panel-b-index');
+  syncLeft(left,index,ids);
+  let all=left?.querySelector('.pp-overview');
+  if(index&&!all){all=document.createElement('button');all.type='button';all.className='pp-overview';all.dataset.pp='overview';index.before(all);}
+  if(all){const sum=totals(history(null)),html=`<span>${paymentLabel(kindTitle())} <strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small>`;if(all.innerHTML!==html)all.innerHTML=html;all.classList.toggle('on',!p);}
+  let host=v.querySelector(':scope>.pp-detail');
+  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!document.getElementById('payEntry')?.open;
+  v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);
+  if(!active){if(host)host.hidden=true;return;}
+  if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','입출금 상세 내역');v.append(host);}
+  host.hidden=false;const html=markup(p);
+  if(html!==state.signature||!host.firstChild){const expanded=[...host.querySelectorAll('details[open]')].map(x=>x.dataset.record);host.innerHTML=html;host.querySelectorAll('details').forEach(x=>{x.open=expanded.includes(x.dataset.record);});state.signature=html;}
+  v.querySelectorAll('#payTbl tbody tr').forEach(r=>r.classList.toggle('panel-b-selected',!!p&&r.querySelector('.rm')?.dataset.id===state.id));
+  v.querySelectorAll('.panel-b-index button').forEach((b,i)=>{const selected=!!p&&ids[i]===state.id;b.classList.toggle('on',selected);if(selected)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});
+ }
+ const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});};
+ function syncFilterDates(){
+  const pop=document.querySelector('.nd-pay-filter');if(!pop?.querySelector('#payFrom'))return;
+  const c=period();if(c.mode==='range')return;
+  let from='',to='';
+  if(c.mode==='month'&&/^\d{4}-\d{2}$/.test(c.month)){
+   const [y,m]=c.month.split('-').map(Number);from=c.month+'-01';to=c.month+'-'+new Date(y,m,0).getDate();
+  }
+  for(const [id,v] of [['payFrom',from],['payTo',to]]){const input=document.getElementById(id);if(input&&input.value!==v){input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));}}
+ }
+ function mount(){
+  const v=document.getElementById('view-payments');if(!v)return;
+  v.addEventListener('click',ev=>{
+   const b=ev.target.closest('[data-pp]');if(!b)return;const p=get(state.id);
+   switch(b.dataset.pp){
+    case 'record':show(b.dataset.id);break;
+    case 'kind':{const s=document.getElementById('payFilter');s.value=b.dataset.kind;s.dispatchEvent(new Event('change',{bubbles:true}));break;}
+    case 'reset':state.id=null;document.getElementById('payClear')?.click();break;
+    case 'delete-record':if(get(b.dataset.id)&&typeof deletePayment==='function')deletePayment(b.dataset.id);break;
+    case 'overview':state.id=null;state.mobileOpen=true;render();break;
+    case 'back':state.mobileOpen=false;render();break;
+    case 'company':if(p&&typeof switchView==='function'&&switchView('companies')!==false){coSel=p.company_id;renderCoList();renderCoDetail();}break;
+    case 'delete':if(p&&typeof deletePayment==='function')deletePayment(p.id);break;
+   }
+  });
+  v.addEventListener('change',schedule);v.addEventListener('input',schedule);
+  document.addEventListener('change',e=>{
+   if(e.target.matches?.('.nd-pay-filter #payFrom,.nd-pay-filter #payTo'))document.getElementById('payPeriod').value='range';
+  },true);
+  document.addEventListener('click',()=>queueMicrotask(()=>{
+   syncFilterDates();
+   const h=document.querySelector('.nd-pay-filter .nd-pop-hd');
+   if(h&&!h.querySelector('.pp-pop-close')){const b=document.createElement('button');b.type='button';b.className='pp-pop-close';b.setAttribute('aria-label',h.textContent==='필터'?'필터 닫기':'메뉴 닫기');b.textContent='×';b.onclick=()=>window.NaroPop?.close();h.append(b);}
+  }));
+  document.getElementById('payEntry')?.addEventListener('toggle',schedule);
+  new MutationObserver(schedule).observe(v,{childList:true,subtree:true});
+  desk.addEventListener('change',schedule);schedule();
+ }
+ window.NaroPaymentPanel={open:show};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
+})();
+</script><style id="naro-ui-contract">/* Shared screen typography contract. Loaded last, after feature styles.
+   Same role = same token. Keep status, warning, loss and destructive colors semantic.
+   Do not apply to print documents or flatten headings into body text. */
+@media screen {
+ :root,html body #appView[data-layout-system] {
+  --nd-ui-font:var(--sans);
+  --nd-title-size:22px;--nd-title-line:30px;--nd-header-weight:650;
+  --nd-page-title-size:22px;--nd-page-title-line:30px;
+  --nd-body-size:14px;--nd-body-line:20px;
+  --nd-label-size:12px;--nd-label-line:18px;
+  --nd-section-size:14px;--nd-section-line:22px;
+  /* receipt-db v3.90: system-ui first determines the comma glyph.
+     Use tabular-nums, not font-feature-settings "tnum" (which widens commas). */
+  --nd-number-font:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;
+  --nd-stat-size:20px!important;--nd-stat-weight:600!important;--nd-stat-spacing:normal!important;
+  --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);
+  --nd-pill-active-bg:#161A23;--nd-pill-active-ink:#FFFFFF;
+ }
+ /* Receipt numeric glyphs for existing number cells and numeric entry fields. */
+ html body #appView[data-layout-system] :is(.num,.amt,.money,.nd-cl-number,.nd-sa-num,.nd-sa-n,.nd-sa-margin,.item-num-inp,input[type=number],input[inputmode=numeric]) {
+  font-family:var(--nd-number-font)!important;
+  font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
+ }
+ /* Page titles in every rail destination, including purchase's mirrored quote view. */
+ html body #appView[data-layout-system] .shell .main .view :is(.page-head h2,.nd-mh-title) {
+  font:var(--nd-header-weight) var(--nd-page-title-size)/var(--nd-page-title-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Right-panel titles: quote, company, item, materials, payment and sales. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
+  .qs-val.co,.co-title-name,.cp-head .co-title-name,.workspace-heading h3,
+  .workspace-record-heading h3,.panel-b-empty-heading h3,.material-detail-head h3,
+  .pp-head h3,.nd-sa-title
+ ) {
+  font:var(--nd-header-weight) var(--nd-title-size)/var(--nd-title-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Primary header money has the same hierarchy as the adjacent record title. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .qs-amt-v,.cp-amt .v,.pp-amount strong,.material-balance-hero strong,.nd-sa-header-amount strong,
+  .workspace-heading>.scr-hero>.big,.workspace-record-heading>.scr-hero>.big
+ ) {
+  font:var(--nd-header-weight) var(--nd-title-size)/var(--nd-title-line) var(--nd-number-font)!important;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Supporting labels and header metadata. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .qs-k,.qs-amt-k,.cp-cap,.cp-amt .k,.cp-meta,.pp-caption,.pp-amount>span,.pp-meta,
+  .nd-sa-eyebrow,.nd-sa-label,.nd-sa-period,.qp-metadata,.material-detail-head .hint,
+  .workspace-caption,.material-eyebrow,.material-balance-hero>span,.nd-mm-asof,.nd-mat-hd>span,.material-summary>span,.nd-mat-legend>span,.cp-stats span,.pp-metrics>div>span,.nd-sa-kpis span
+ ) {
+  font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-2)!important;
+ }
+ /* KPI totals use one numeric font, weight and spacing across all screens. */
+ html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-companies,#view-payments,#view-sales,#view-stock,#view-ar,#view-materials) :is(
+  .nd-db-metric strong,.pp-metrics strong,.nd-sa-kpis strong,.cp-ov .v b,
+  .stats>.stat>.v,.ops-summary>.scr-hero>.big
+ ) {
+  font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
+  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Section headings; preserve smaller, muted count chips next to the heading. */
+ html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
+  h3,h4,.cp-sech h3,.cp-grph h4,.pp-section-head h4,.nd-db-range-heading h3,
+  .ops-section-title,.qt-sec-t,.qp-products>h3,.material-records-title,.nd-sa-table-title
+ ) {
+  font:600 var(--nd-section-size)/var(--nd-section-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* List and ledger money, separate from the smaller margin annotations. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number,.material-summary b,.nd-mat-legend b
+ ) {
+  font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
+  letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
+ }
+ /* Record names and muted list metadata use the same body/label hierarchy. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-name,.li-nm,.material-record-name,.stock-item>span,.pp-record-name>span,.pp-mobile-row b,.cp-qr .t,.nd-sa-entry-name
+ ) {
+  font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
+  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d
+ ) {
+  font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-3)!important;
+ }
+ /* Rail labels share one text style; active color still follows the rail state. */
+ html body #appView[data-layout-system] .shell .rail-nav :is(.nav-item,.nd-nav-act) {
+  font:500 var(--nd-body-size)/var(--nd-body-line) var(--nd-ui-font)!important;
+  letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] .shell .rail-nav :is(.nav-item.on,.nd-nav-act[aria-expanded=true]) {font-weight:600!important}
+ /* Right-panel section tabs are distinct from the blue underlined list filters. */
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-sales,#view-materials) :is(.qp-tabs,.cp-tabs,.panel-b-tabs)>button {
+  height:var(--nd-detail-tab-height)!important;min-height:var(--nd-detail-tab-height)!important;
+  font:500 var(--nd-ui-tab-size)/20px var(--nd-ui-font)!important;
+  letter-spacing:normal!important;color:var(--nd-ink-2)!important;
+ }
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-sales,#view-materials) :is(.qp-tabs,.cp-tabs,.panel-b-tabs)>button[aria-selected=true] {
+  font-weight:600!important;color:var(--nd-section-active-color)!important;
+  border-bottom-color:transparent!important;box-shadow:inset 0 -2px 0 var(--nd-section-active-color)!important;
+ }
+ /* Utility destinations use the same modal-title hierarchy. Export is appended to body. */
+ html body :is(.nd-log-hd #ndLogTtl,.nd-acc-ttl h3,.nd-export .nd-ex-head h2,.nd-mail-hd>b,.nd-mobile-nav-dialog header h2,.nd-pay-entry-head h3) {
+  font:var(--nd-header-weight,650) var(--nd-title-size,22px)/var(--nd-title-line,30px) var(--nd-ui-font)!important;letter-spacing:normal!important;color:var(--nd-ink)!important;
+ }
+ /* Filled pill filters: selected means dark background and white text. */
+ html body #appView[data-layout-system] :is(.nd-log-sheet .nd-log-tabs>button,.nd-acc-chip,.nd-qa-chips>button) {
+  font:600 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;letter-spacing:normal!important;
+ }
+ html body #appView[data-layout-system] :is(.nd-log-sheet .nd-log-tabs>button[aria-pressed=true],.nd-acc-chip[aria-selected=true],.nd-qa-chips>button[aria-pressed=true]) {
+  background:var(--nd-pill-active-bg)!important;border-color:var(--nd-pill-active-bg)!important;
+  color:var(--nd-pill-active-ink)!important;box-shadow:none!important;
+ }
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] {
+  --nd-title-size:22px;--nd-title-line:30px;
+  --nd-detail-tab-height:44px;--nd-ui-tab-size:14px;--nd-section-active-color:var(--nd-blue);
+  --nd-page-title-size:22px;--nd-page-title-line:30px;
+ }
+}
+
+/* Shared quote/purchase item geometry: separator reaches the section edges;
+   amounts keep their existing inner alignment. Delete uses quote's 14px glyph. */
+@media screen {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals {--nd-total-line-inset:0px}
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand {
+  align-self:stretch;position:relative;border-top:0!important;
+ }
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand::before {
+  content:"";position:absolute;top:0;
+  left:calc(-1 * var(--nd-total-line-inset));right:calc(-1 * var(--nd-total-line-inset));
+  border-top:1px solid var(--nd-line);pointer-events:none;
+ }
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qline .rm>svg {
+  width:14px;height:14px;display:block;flex:none;
+ }
+}
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals {--nd-total-line-inset:var(--nd-in,17px)}
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row.grand {justify-content:flex-end!important}
+}
+
+@media screen {
+ html body #appView .nd-photo-name {flex-wrap:wrap}
+ html body #appView .nd-photo-name>span {flex:none}
+ html body #appView .nd-photo.warn .nd-photo-name>.nd-photo-state {flex-basis:100%;text-align:left;overflow-wrap:anywhere}
+ html body #appView .nd-photo-error-dismiss {border:0;background:none;color:inherit;font:inherit;padding:4px 0;margin-left:8px;text-decoration:underline;cursor:pointer}
+}
+
+@media screen {
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved,
+ html body #appView .shell :is(#qtSaveBtn,#coSaveBtn,#itSaveBtn,#stSaveBtn,#puSaveBtn,#stockMinimumSave,#mm_save).nd-saved:hover {
+  background:var(--nd-fill)!important;border-color:transparent!important;color:var(--nd-ink-3)!important;box-shadow:none!important;
+ }
+}
+
+/* Each summary label and its value sit on the same horizontal center line. */
+@media screen {
+ html body #appView[data-layout-system] :is(#qtForm,#puForm) .qtotals .row {
+  align-items:center!important;
+ }
+}
+
+/* The item add button also contains hidden legacy text: center the glyph independently. */
+@media screen {
+ html body #appView #itNewBtn {position:relative}
+ html body #appView #itNewBtn::before {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+}
+
+@media screen {
+ .nd-search-host {position:relative!important}
+ html body input.nd-search-input {padding-right:36px!important}
+ input.nd-search-input::-webkit-search-cancel-button {display:none;-webkit-appearance:none}
+ html body .nd-search-clear {position:absolute;display:flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;min-height:28px;padding:0;margin:0;border:0;border-radius:6px;background:transparent;color:var(--nd-ink-3,#8A8F98);cursor:pointer;z-index:2;box-shadow:none}
+ html body .nd-search-clear[hidden] {display:none!important}
+ html body .nd-search-clear:hover {color:var(--nd-ink,#1B1F28);background:var(--nd-fill,#F1F2F6)}
+ html body .nd-search-clear>svg {width:14px!important;height:14px!important;flex:none;stroke-width:2}
+}
+
+/* Material details reuse quote header, tab, section and action-bar geometry. */
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail {display:flex;flex-direction:column;min-height:100%;padding:0!important;gap:0}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail>[hidden] {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-tabs {display:flex!important;flex:none;gap:22px;margin:0!important;padding:0 var(--panel-inset,28px)!important;border-bottom:1px solid var(--nd-line);background:var(--nd-surface);order:2}
+ html body #appView[data-layout-system] .shell .main #view-materials :is(.nd-material-overview,.material-history-wrap,.material-detail-form) {order:3;padding:28px var(--panel-inset,28px)!important;margin:0!important;box-sizing:border-box}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-overview>.nd-mat {padding:0 0 24px!important;margin:0!important;background:transparent!important;border:0;border-bottom:1px solid var(--nd-line);border-radius:0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-summary {margin:0!important;padding:20px 0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;gap:28px;flex-wrap:wrap;background:transparent!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-type-tabs {margin:20px 0 0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-quick {order:4;position:sticky;bottom:0;flex:none;margin:auto 0 0!important;padding:14px var(--panel-inset,28px)!important;border:0;border-top:1px solid var(--nd-line)!important;background:var(--nd-surface)!important;z-index:3;min-height:72px;box-sizing:border-box;flex-wrap:wrap}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-history-wrap>.material-section-head {padding:0 0 20px!important;margin:0!important;border:0!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-record {padding:16px 17px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--nd-line)!important;background:transparent!important;border-radius:0!important;align-items:center}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-history {margin:0!important}
+}
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail-head {flex:none;order:1;margin:0!important;height:144px;min-height:144px;padding:30px var(--panel-inset,28px) 20px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .nd-material-tabs {position:sticky;top:144px;z-index:3}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials {--panel-inset:16px}
+ html body #appView[data-layout-system] .shell .main #view-materials :is(.nd-material-overview,.material-history-wrap,.material-detail-form) {padding-top:20px!important;padding-bottom:20px!important}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-detail-form::before {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard {position:static!important;max-height:none!important;overflow:visible!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard::before {display:none!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-form-actions {position:sticky;bottom:0;display:flex;gap:8px;margin:24px calc(-1 * var(--panel-inset,28px)) -28px!important;padding:14px var(--panel-inset,28px)!important;border-top:1px solid var(--nd-line);background:var(--nd-surface);min-height:72px;box-sizing:border-box;z-index:3}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) .material-form-actions {margin-bottom:-20px!important}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) {background:var(--nd-surface)!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .field :is(input:not([type=hidden]),select,textarea) {background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important;border-radius:9px!important;color:var(--nd-ink);box-shadow:none!important}
+}
+@media screen and (max-width:1023px) {
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head {position:relative;display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:18px 16px!important;background:var(--nd-surface)!important}
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head>.material-balance-hero {position:static!important;grid-column:2;grid-row:1;align-items:flex-end!important;align-self:start;margin:0!important;padding:0!important;gap:4px;text-align:right}
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-head>.material-balance-hero>span {max-width:140px}
+}
+@media screen {
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .date-control {background:var(--nd-surface)!important;border:1px solid var(--nd-line)!important;border-radius:9px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .material-detail:has(.nd-material-tabs) #materialEntryCard .date-control-display {background:transparent!important;box-shadow:none!important;border:0!important}
+}
+@media screen and (max-width:820px) {
+ html body #appView[data-layout-system] .shell .main #view-materials.nd-mm-open .material-detail-form:not([hidden]) {max-height:calc(100dvh - 180px);overflow-y:auto}
+}
+
+@media screen {
+ html body #appView .nd-payment-label {display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important;margin:0!important;padding:0!important}
+ html body #appView .nd-payment-dot {display:inline-block!important;font:inherit!important;color:inherit!important;margin:0 .10em!important;padding:0!important;width:auto!important;letter-spacing:inherit!important}
+}
+</style></body>
 </html>

@@ -179,6 +179,8 @@ Settings  { name, ceo, biz_no, phone, email, bank, address }   // 견적서 공�
 - iOS 입력 확대 방지: viewport에 `maximum-scale=1.0, user-scalable=no`
 
 ## 디자인 원칙 (dutch-pay·receipt-db와 통일)
+
+**NARO Biz (`feature/naro-redesign`) 화면 수정은 먼저 [공통 UI 규칙](dev/unified-storage/UI-RULES.md)을 읽을 것.** 역할별 폰트·크기·자간·색상은 `dev/unified-storage/ui-contract.css` 한 곳에서 관리하며, 화면별 숫자/헤더 재정의 대신 해당 역할에 selector를 등록한다. 배포 후보 갱신 후 `ui-contract.test.mjs`로 전체 메뉴·모바일/PC·밝은/어두운 테마의 computed style과 선택 필터를 검증한다. 아래 기본 ERP 팔레트 설명보다 NARO의 실제 테마 토큰과 공통 UI 계약을 우선한다.
 - 배경 `--paper:#F2F4F7`, 카드 `#FFFFFF`, 선 `--line:#E5E9EF`
 - 강조 `--primary:#0A84FF`, 위험 `--danger:#FF3B30`, 성공 `--ok:#34C759`, 경고 `--warn-c:#FF9F0A`
 - 모서리 `--r:16px / --r-sm:10px`, 폰트는 시스템 스택 (외부 폰트·CDN 없음 — 오프라인 동작)

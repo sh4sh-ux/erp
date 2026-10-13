@@ -183,6 +183,12 @@ for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name)
 // 폰 견적서 품목 카드: 품번은 품명 뒤에 얇은 회색 글자로(같은 굵기로 붙어 있어 품명처럼 보였다).
 {
  const qpPath=resolve(release,'erp/quote-presentation.js');let qp=await readFile(qpPath,'utf8');
+ // Closing a focused sheet can fire a change handler that renders again.
+ // Detach the shared reference first so a nested render cannot remove it twice.
+ const closeSheetFrom='if (dialog) { dialog.close(); dialog.remove(); dialog = null; }';
+ const closeSheetTo='if (dialog) { const previous = dialog; dialog = null; if (previous.contains(document.activeElement)) document.activeElement.blur(); previous.close(); previous.remove(); }';
+ if(!qp.includes(closeSheetFrom))throw Error('QP_SHEET_CLOSE_BOUNDARY');
+ qp=qp.replace(closeSheetFrom,closeSheetTo);
  const from="const name = item ? `${item.name || ''} ${item.code || ''}` : line.name || '품목 선택';\n        edit.append(el('strong', '', name), el('span', 'qp-muted', '편집 ›'));";
  const to="const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');\n        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));\n        edit.append(title, el('span', 'qp-muted', '편집 ›'));";
  if(!qp.includes(from))throw Error('QP_CARD_NAME_BOUNDARY');
@@ -346,9 +352,12 @@ const patchFn=(name,edits)=>{const start=html.indexOf('function '+name+'(');if(s
 patchFn('drawQuoteCanvas',[
  ['const nameLs=qimgWrap(mc,l.name,COLS[0]-22);','const ph=window.naroQuotePhoto?.(l,lines[lines.indexOf(l)-1])||null;const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""};const nameLs=(window.naroWrapWords||qimgWrap)(mc,sp.name,COLS[0]-22-(ph?66:0));if(sp.code)nameLs.push({code:sp.code});'],
  ['return { nameLs, colorLs, specLs, h:Math.max(42,n*18+24) };','return { nameLs, colorLs, specLs, ph, h:Math.max(ph&&ph.first?72:42,n*18+24) };'],
- ['const baseY=ty+12+13;','const baseY=ty+Math.max(12,(r.h-Math.max(r.nameLs.length,r.colorLs.length,r.specLs.length)*18)/2)+13;'],
+ ['const baseY=ty+12+13;','const baseY=ty+(r.h-r.nameLs.length*18)/2+13;'],
  ['r.nameLs.forEach((ln,j)=>cell(ln,0,baseY+j*18));','if(r.ph&&r.ph.first&&r.ph.img){const S=56,ix=colX[0]+11,iy=ty+8,im=r.ph.img,k=Math.min((S-4)/im.width,(S-4)/im.height);ctx.save();ctx.fillStyle="#F4F5F7";qimgRR(ctx,ix,iy,S,S,10);ctx.fill();qimgRR(ctx,ix,iy,S,S,10);ctx.clip();ctx.drawImage(im,ix+(S-im.width*k)/2,iy+(S-im.height*k)/2,im.width*k,im.height*k);ctx.restore();ctx.fillStyle="#111";ctx.font=F(400,12.5);}{const x0=colX[0]+11+(r.ph?66:0);ctx.textAlign="left";r.nameLs.forEach((ln,j)=>{if(typeof ln==="object"){ctx.fillStyle="#8A8F98";ctx.font=F(400,11.5);ctx.fillText(ln.code,x0,baseY+j*18);ctx.fillStyle="#111";ctx.font=F(400,12.5);}else ctx.fillText(ln,x0,baseY+j*18);});}'],
 
+ ['r.colorLs.forEach((ln,j)=>cell(ln,1,baseY+j*18));','r.colorLs.forEach((ln,j)=>cell(ln,1,ty+(r.h-r.colorLs.length*18)/2+13+j*18));'],
+ ['r.specLs.forEach((ln,j)=>cell(ln,2,baseY+j*18));','r.specLs.forEach((ln,j)=>cell(ln,2,ty+(r.h-r.specLs.length*18)/2+13+j*18));'],
+ ['.forEach((v,i)=>cell(v,i+3,baseY));','.forEach((v,i)=>cell(v,i+3,ty+r.h/2+4));'],
  ['ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();','if(!(r.ph&&rowInfo[ri+1]?.ph&&!rowInfo[ri+1].ph.first)){ctx.beginPath(); ctx.moveTo(MX,ty-.5); ctx.lineTo(MX+CW,ty-.5); ctx.stroke();}'],
 ]);
 // 비고 글자는 아래 상자 안 글자(자수 제품은…)·합계와 같은 왼쪽 선에 맞춘다.
@@ -367,6 +376,9 @@ if(business){
 html=html.replace('</head>',`<script>try{const p=localStorage.getItem('naroTheme');document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}</script><style>html[data-theme="dark"]{background:#0B0C0E;color-scheme:dark}</style></head>`);
 html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}\n${await readFile(resolve(here,'company-panel.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}\n${await readFile(resolve(here,'trash-actions.js'),'utf8')}\n${await readFile(resolve(here,'company-panel.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-payment-panel">${await readFile(resolve(here,'payment-panel.css'),'utf8')}</style><script id="naro-payment-panel-script">${await readFile(resolve(here,'payment-panel.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-ui-contract">${await readFile(resolve(here,'ui-contract.css'),'utf8')}</style></body>`);
+html=html.replace('const APP_VERSION = "v1.186";','const APP_VERSION = "v1.187";');
 // Strip legacy OAuth/network transport and snapshot writes from the business bundle.
 const begin=html.indexOf('/* ---------- PKCE 유틸'),end=html.indexOf('const db =',begin);
 if(begin<0||end<0)throw Error('SOURCE_BOUNDARY_CHANGED');
@@ -426,7 +438,7 @@ await copyFile(resolve(here,business?'business-entry.mjs':'erp-entry.mjs'),resol
 for(const f of ['postcode.html','postcode.css','postcode.js'])await copyFile(resolve(here,f),resolve(release,f));
 if(business){
  await copyFile(resolve(here,'tabular-import.mjs'),resolve(release,'erp/tabular-import.mjs'));
- await copyFile(resolve(here,'asset-ui.mjs'),resolve(release,'erp/asset-ui.mjs'));
+ await writeFile(resolve(release,'erp/asset-ui.mjs'),(await readFile(resolve(here,'asset-ui.mjs'),'utf8')).replace('../personal-cloud-onboarding/asset-store.mjs','../asset-store.mjs'));
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
  await writeFile(resolve(release,'erp/log-ui.mjs'),(await readFile(resolve(here,'log-ui.mjs'),'utf8')).replace("from './change-log.mjs'","from '../change-log.mjs'"));

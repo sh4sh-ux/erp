@@ -19,7 +19,7 @@
     },
     {
       "path": "asset-store.mjs",
-      "sha256": "e2a275f72c7b50335c8b53de973efc8034d10ed19a5d2f7bc76a1cd6ce253bed"
+      "sha256": "f2c083561182d94bbf02e47a178925946b13db1386f2e8650fd433500e00c803"
     },
     {
       "path": "boot.mjs",
@@ -63,7 +63,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "d9bec938ab67ff91206fdbab57bb4e4aa33d936f7f7628a82784af8bf27fcfb5"
+      "sha256": "0f1f1749eab1c2eb312f6e4ead23fcabfd07d6b381a3606164d2877011ad08f6"
     },
     {
       "path": "dropbox-callback.html",
@@ -95,11 +95,11 @@
     },
     {
       "path": "erp/asset-ui.mjs",
-      "sha256": "c7c026a92e7a0b2cb87c1a588398d5e663ec1d6f0e4eeb4075dec287dcbebd32"
+      "sha256": "1a04d37aedf11775e0ec981044511b751502f2686bb088bab8ebfaf2d7d5102f"
     },
     {
       "path": "erp/entry.mjs",
-      "sha256": "933fc95da91a4676c208b0f056242273677b4c7c6ea2d23306b387cb21149e9f"
+      "sha256": "99a14e250d6c36149307f16303cd2945403b80b60d8e44faee499538d44521e9"
     },
     {
       "path": "erp/favicon.png",
@@ -119,7 +119,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "d515bfb4369dad5d10a08be0e6e0564512fd2f64dd1661551577b28ef2b88451"
+      "sha256": "1b803f1adf529d6efdae76add3e2bdef6c2a27faedb002587ea3627230f1c5ab"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -159,7 +159,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "65a4cafd891b131f3ef14312b22e3a96be9e3fe6e7d40484ca001f141f13c859"
+      "sha256": "cd77a27d28e7ed4793f06162353aa73e0f1db9d9dc223261af3a38878e45bc98"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -167,7 +167,7 @@
     },
     {
       "path": "erp/quote-presentation.js",
-      "sha256": "02ff75ab672c49d0dd972b4f8e02cdb463f58bcf84e7aee583d3ec110fc6f7c5"
+      "sha256": "2e58edbd31ac6a47bfe01917e42f58cbd0f3bfa2284be013edc606b17ebd6c70"
     },
     {
       "path": "erp/readonly-guard.mjs",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "7e3bdaf1cfa760c7431f521e0a1b7a2da139bcfc7678abda57be6117d5841498",
+  "aggregate": "fd248cb24f69dcff064c138a47ba1bf52170ea0ff146e927fb6a4efe96de683c",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
