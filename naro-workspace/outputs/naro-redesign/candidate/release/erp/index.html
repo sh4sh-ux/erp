@@ -12450,7 +12450,7 @@ const NaroOrderImport=(()=>{
  /* ── 납품 처리 ── */
  function deliver(start='all'){
   const q0=current();if(!q0||!guard())return;const q=work(q0);const s=state(q);if(!s.left)return;
-  const qty=Object.fromEntries(s.rest.map(r=>[r.l.id,r.left]));let mode=start,date=localDate(),memo='',shipping={method:'택배'};
+  const qty=Object.fromEntries(s.rest.map(r=>[r.l.id,r.left]));let mode=start,date=localDate(),memo='',shipping={method:''};
   const label=l=>`${e(l.name||'')}`,sub=(l,left)=>[l.color,l.spec].filter(Boolean).map(e).join(' · ')+(l.color||l.spec?' · ':'')+`남음 ${won(left)}`;
   const paint=()=>{
    const total=Object.values(qty).reduce((a,b)=>a+b,0);
@@ -12530,12 +12530,13 @@ const NaroOrderImport=(()=>{
  const recQty=d=>(d.lines||[]).reduce((a,l)=>a+(Number(l.qty)||0),0);
  const recordOpen=new Map();
  const CARRIERS={cj:['CJ대한통운','https://trace.cjlogistics.com/next/tracking.html?wblNo='],post:['우체국택배','https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1='],hanjin:['한진택배','https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do?mCode=MN038&wblnum=']};
- function shippingFields(v={}){return `<div class="nd-qa-fields"><label>전달 방법<select id="ndShipMethod">${v.method?'':'<option value="" selected>미기록</option>'}${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><label>택배사<select id="ndShipCarrier">${Object.entries(CARRIERS).map(([k,[name]])=>`<option value="${k}" ${v.carrier===k?'selected':''}>${name}</option>`).join('')}</select></label><label>송장번호<input id="ndShipTracking" inputmode="numeric" value="${e(v.tracking||'')}" placeholder="송장번호 입력"></label></div>`;}
+ function shippingFields(v={}){return `<div class="nd-qa-fields"><label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><label>택배사<select id="ndShipCarrier">${Object.entries(CARRIERS).map(([k,[name]])=>`<option value="${k}" ${v.carrier===k?'selected':''}>${name}</option>`).join('')}</select></label><label>송장번호<input id="ndShipTracking" inputmode="numeric" value="${e(v.tracking||'')}" placeholder="송장번호 입력"></label></div>`;}
  function readShipping(d){const method=d.querySelector('#ndShipMethod').value,tracking=d.querySelector('#ndShipTracking').value.replace(/[\s-]/g,'');if(method==='택배'&&tracking&&!/^\d{8,30}$/.test(tracking)){say('송장번호는 숫자 8~30자리로 입력해 주세요.');return null;}return method==='택배'?{method,carrier:d.querySelector('#ndShipCarrier').value,tracking}:{method};}
  function bindShipping(d){const method=d.querySelector('#ndShipMethod');const refresh=()=>{for(const id of ['ndShipCarrier','ndShipTracking'])d.querySelector('#'+id).closest('label').hidden=method.value!=='택배';};method.onchange=refresh;refresh();}
  function trackingLink(d){const v=d.shipping,c=v&&CARRIERS[v.carrier];return v?.method==='택배'&&c&&/^\d{8,30}$/.test(v.tracking||'')?`<a href="${e(c[1]+encodeURIComponent(v.tracking))}" target="_blank" rel="noopener noreferrer">${e(v.tracking)} · 배송 조회</a>`:e(v?.tracking||'—');}
+ function shipmentIdentity(d){const v=d.shipping||{};return [v.method,v.method==='택배'?(CARRIERS[v.carrier]?.[0]||v.carrier):'',v.tracking,d.memo,'기록 '+d.id].filter(Boolean).join(' · ');}
  function recordPicker(kind){const q=current();if(!q||!guard())return;const rows=kind==='delivery'?(work(q).deliveries||[]).filter(x=>!x.void_at):(db.payments||[]).filter(x=>x.quote_id===q.id&&(x.kind==='수금'||x.refund));if(!rows.length)return;
- const d=open(`<div class="nd-ps-hd"><b>수정할 기록 선택</b></div><div class="nd-qa-body">${rows.map((r,i)=>`<button type="button" class="nd-record-pick" data-pick="${i}">${e(r.date)} · ${kind==='delivery'?e(recLabel(work(q),r))+' · '+won(recQty(r))+'개':won(r.amount)+'원 · '+e(r.method||'')}</button><button type="button" class="nd-record-pick" data-remove="${i}">${kind==='delivery'?'이 납품 취소 (재고 되돌림)':'이 기록 지우기'}</button>`).join('')}</div><div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);
+ const d=open(`<div class="nd-ps-hd"><b>수정할 기록 선택</b></div><div class="nd-qa-body">${rows.map((r,i)=>`<button type="button" class="nd-record-pick" data-pick="${i}">${e(r.date)} · ${kind==='delivery'?e(recLabel(work(q),r))+' · '+won(recQty(r))+'개 · '+e(shipmentIdentity(r)):won(r.amount)+'원 · '+e(r.method||'')}</button><button type="button" class="nd-record-pick" data-remove="${i}">${kind==='delivery'?'이 납품 취소 (재고 되돌림) · '+e(shipmentIdentity(r)):'이 기록 지우기'}</button>`).join('')}</div><div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`);
  d.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{const r=rows[Number(b.dataset.remove)];d.close();kind==='delivery'?cancelDelivery(r.id):deletePayment(r.id);});
  d.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const r=rows[Number(b.dataset.pick)];d.close();kind==='delivery'?editDelivery(r.id):r.refund?deletePayment(r.id):pay(r);});}
  function recs(f,q){
@@ -12588,7 +12589,7 @@ const NaroOrderImport=(()=>{
   const qty=Object.fromEntries(rows.map(r=>[r.id,r.was]));let date=d0.date||localDate(),shipping=structuredClone(d0.shipping||{method:''});
   const paint=()=>{
    const was=rows.reduce((a,r)=>a+r.was,0),now=rows.reduce((a,r)=>a+qty[r.id],0),same=now===was&&rows.every(r=>qty[r.id]===r.was)&&date===d0.date&&JSON.stringify(shipping)===JSON.stringify(d0.shipping||{method:''});
-   const d=open(`<div class="nd-ps-hd"><b>납품 기록 고치기</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'')}</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>납품 기록 고치기</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'')} · ${e(shipmentIdentity(d0))}</span></div>
     <div class="nd-qa-body"><div class="nd-qa-lines">${rows.map(r=>`<div class="nd-qa-ln"><div><span>${e(r.l.name||'품목')}</span><small>${[r.l.color,r.l.spec].filter(Boolean).map(e).join(' · ')}${r.l.color||r.l.spec?' · ':''}원래 ${won(r.was)}개</small></div><span class="nd-qa-step"><button type="button" data-d="${e(r.id)}" data-v="-1" aria-label="줄이기">−</button><input inputmode="numeric" data-q="${e(r.id)}" value="${qty[r.id]}" aria-label="납품 수량"><button type="button" data-d="${e(r.id)}" data-v="1" aria-label="늘리기">+</button></span></div>`).join('')}</div>
      <div class="nd-qa-fields"><label>납품일<input type="date" id="ndQaDate" value="${e(date)}"></label></div>
      ${shippingFields(shipping)}<p class="nd-qa-after">${same?'바꾼 내용이 없어요.':now?`확인하면 <b>원래 ${won(was)}개 기록은 '고침'으로 남고 ${won(now)}개 기록이 새로 생겨요.</b> 재고는 차이(${now>was?'+':''}${won(now-was)}개)만큼 반영돼요.`:`0개면 <b>이 납품을 취소</b>하는 것과 같아요. 재고 ${won(was)}개가 되돌아와요.`}</p></div>
@@ -12607,7 +12608,7 @@ const NaroOrderImport=(()=>{
  }
  function cancelDelivery(id){
   const q0=current();if(!q0||!guard())return;const q=work(q0);const d0=(q.deliveries||[]).find(x=>x.id===id&&!x.void_at);if(!d0)return;
-  const d=open(`<div class="nd-ps-hd"><b>이 납품을 취소할까요?</b><span class="nd-qa-sub">${md(d0.date)} · ${e(recLabel(q,d0)||'')} · ${won(recQty(d0))}개</span></div>
+  const d=open(`<div class="nd-ps-hd"><b>이 납품을 취소할까요?</b><span class="nd-qa-sub">${md(d0.date)} · ${e(recLabel(q,d0)||'')} · ${won(recQty(d0))}개 · ${e(shipmentIdentity(d0))}</span></div>
    <div class="nd-qa-body"><p class="nd-qa-note">기록은 '취소됨'으로 남고 재고 ${won(recQty(d0))}개가 되돌아와요. 매출·받을 금액에서도 빠져요.</p></div>
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">납품 취소</button></div>`);
   d.querySelector('.nd-qa-del').onclick=async ev=>{const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';
