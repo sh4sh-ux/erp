@@ -246,7 +246,7 @@
 }
 
 @media screen and (min-width:1024px) {
- html body #appView[data-layout-system] {--nd-header-meta-offset:10px;--nd-progress-body-inset:24px;--nd-progress-strip-height:75px}
+ html body #appView[data-layout-system] {--nd-header-meta-offset:14px;--nd-progress-body-inset:24px;--nd-progress-strip-height:75px}
  html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:relative;top:var(--nd-header-meta-offset)}
  html body #appView[data-layout-system] .shell .main #qtForm .nd-next {margin-top:calc(-1 * var(--nd-progress-body-inset));min-height:var(--nd-progress-strip-height);padding-block:0;box-sizing:border-box;align-items:center}
 }

@@ -243,7 +243,7 @@
    d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const r=rows.find(x=>x.id===b.dataset.d);qty[r.id]=Math.max(0,Math.min(r.max,qty[r.id]+Number(b.dataset.v)));paint();});
    d.querySelectorAll('[data-q]').forEach(inp=>inp.onchange=()=>{const r=rows.find(x=>x.id===inp.dataset.q);qty[r.id]=Math.max(0,Math.min(r.max,Math.floor(Number(String(inp.value).replace(/[^\d]/g,''))||0)));paint();});
    d.querySelector('.nd-qa-go').onclick=async ev=>{
-    const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';const at=new Date().toISOString(),lines=rows.map(r=>({line_id:r.id,qty:qty[r.id]})).filter(x=>x.qty>0);
+    shipping=readShipping(d);if(!shipping)return;const btn=ev.currentTarget;btn.disabled=true;btn.textContent='저장 중…';const at=new Date().toISOString(),lines=rows.map(r=>({line_id:r.id,qty:qty[r.id]})).filter(x=>x.qty>0);
     const ok=await saveDeliveries(q0,nq=>{nq.deliveries=nq.deliveries.map(x=>x.id===id?{...x,void_at:at,void_reason:lines.length?'고침':'취소'}:x);if(lines.length)nq.deliveries.push({id:crypto.randomUUID(),date,lines,memo:d0.memo||'',shipping,created_at:at,corrects:id});},lines.length?'납품 기록을 고쳤어요 · 재고 반영 완료':'납품을 취소했어요 · 재고 되돌림 완료');
     if(ok)d.close();else{btn.disabled=false;btn.textContent='다시 시도';}
    };
