@@ -629,3 +629,18 @@ test('parcel lookup supports added carriers before saving and in saved records w
  await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===1);assert.equal(await p.evaluate(()=>db.quotes[0].deliveries[0].shipping.carrier),'lotte');
  const link=p.locator('#qp-panel-flow a').filter({hasText:'배송 조회'});assert.equal(await link.getAttribute('href'),urls.lotte+'123456789012');await p.close();}finally{await b.close();}
 });
+
+test('dashboard stages open exactly their counted quotes on desktop and mobile and reset cleanly',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){const p=await b.newPage({viewport:{width,height:1000}});await prepare(p);
+ await p.evaluate(()=>{const base=db.quotes[0];db.quotes=['작성중','발송','수주','부분납품','납품','납품','취소'].map((status,i)=>({...structuredClone(base),id:'stage'+i,no:'STAGE'+i,status}));db.payments=[{id:'paid',quote_id:'stage5',company_id:'c',kind:'수금',amount:quoteAmount(db.quotes[5]),date:localDate()}];qtSel=null;renderQtList();renderQtDetail();});
+ for(const [stage,ids] of [['작성발송',['stage0','stage1']],['수주',['stage2','stage3']],['납품',['stage4']],['입금',['stage5']]]){
+ await p.evaluate(()=>{qtSel='stage5';renderQtDetail();});await open(p,'dash');const button=p.locator('.nd-db-stage[data-status="'+stage+'"]');assert.equal((await button.locator('b').innerText()).replace(/\s/g,''),ids.length+'건');await button.click();
+ await p.waitForFunction(()=>currentView==='quotes');assert.deepEqual((await p.locator('#qtList .list-item:visible').evaluateAll(es=>es.map(e=>e.dataset.id))).sort(),ids);
+ assert.deepEqual((await p.evaluate(()=>filteredQuotes().map(q=>q.id))).sort(),ids);assert.match(await p.locator('#qtCount').innerText(),new RegExp('^'+ids.length+' /'));
+ await p.locator('#qtList .list-item').first().click();await p.evaluate(()=>closeQuoteDetail());assert.deepEqual((await p.locator('#qtList .list-item:visible').evaluateAll(es=>es.map(e=>e.dataset.id))).sort(),ids);
+ }
+ await p.evaluate(()=>clearQtFilters());assert.equal(await p.locator('#qtList .list-item:visible').count(),6);
+ await open(p,'dash');await p.locator('.nd-db-stage[data-status="입금"]').click();await p.locator('#view-quotes .nd-chips button[data-v=""]').filter({visible:true}).first().click();assert.equal(await p.locator('#qtList .list-item:visible').count(),6);
+ await p.close();}}finally{await b.close();}
+});

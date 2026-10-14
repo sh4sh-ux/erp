@@ -160,3 +160,5 @@ Desktop quotation progress table dividers match item detail: header 1.5px solid 
 Quotation and purchase item summaries must not add a second top border after the item table. Keep the item row divider and the full-width separator before the grand total; `.qtotals` itself has no top border. Verify both forms at mobile and desktop sizes in light and dark themes.
 
 Parcel carrier choices and tracking links share one explicit HTTPS map (CJ, post, Hanjin, Logen, Lotte, Kyungdong). Input previews and saved records use the same URL builder, strip spaces/hyphens, and only enable lookup for 8–30 digits. Lookup opens the carrier site without saving a delivery or changing stock.
+
+Dashboard quotation-stage actions filter the shared `filteredQuotes` dataset using the same `stageOf` and paid calculation as the displayed counts. Never hide rendered rows to implement stage filtering. Opening a stage shows the list on mobile and clears stale selection/search/date filters. Search, count and CSV retain the stage; explicit status selection or clear-all resets it.

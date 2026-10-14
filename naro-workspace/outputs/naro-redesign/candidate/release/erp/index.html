@@ -13597,15 +13597,13 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   const paid=(db.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
   return paid>=total-0.5;
  }
- // 견적 진행 단계로 목록을 열 때: 저장된 상태 필터로 먼저 좁히고, 단계에 안 맞는 줄은 가린다(상태 필터를 바꾸면 풀린다).
+ // Filter the shared dataset so rows, count, empty state and CSV agree with dashboard stages.
  let stageFilter='';
- function applyStageFilter(){
-  const list=document.getElementById('qtList');if(!list)return;
-  list.querySelectorAll('.list-item[data-id]').forEach(el=>{const q=(db.quotes||[]).find(x=>x.id===el.dataset.id);el.hidden=!!stageFilter&&(!q||stageOf(q,quotePaid)!==stageFilter);});
- }
- if(typeof renderQtList==='function'){const base=renderQtList;renderQtList=function(){const r=base.apply(this,arguments);try{applyStageFilter();}catch{}return r;};}
- const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{applyStageFilter();}catch{}},0);};
- document.addEventListener('change',e=>{if(e.target?.id==='qtStatus'&&e.isTrusted)clearStage();},true);
+ if(typeof filteredQuotes==='function'){const base=filteredQuotes;filteredQuotes=function(){const rows=base.apply(this,arguments);return stageFilter?rows.filter(q=>stageOf(q,quotePaid)===stageFilter):rows;};}
+ if(typeof qtFiltersActive==='function'){const base=qtFiltersActive;qtFiltersActive=function(){return !!stageFilter||base.apply(this,arguments);};}
+ if(typeof clearQtFilters==='function'){const base=clearQtFilters;clearQtFilters=function(){stageFilter='';return base.apply(this,arguments);};}
+ const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>renderQtList(),0);};
+ document.addEventListener('change',e=>{if(e.target?.id==='qtStatus')clearStage();},true);
  document.addEventListener('click',e=>{if(e.target.closest?.('#view-quotes .nd-chips button'))clearStage();},true);
  function openQuotes(status,id){
   if(switchView('quotes')===false||currentView!=='quotes')return;
@@ -13615,8 +13613,10 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   if(st)status=st[4].length===1?st[4][0]:'';
   document.getElementById('qtStatus').value=status||'';
   document.getElementById('qtFrom').value='';document.getElementById('qtTo').value='';
-  if(id)qtSel=id;
+  qtSel=id||null;
+  if(!id){qtEditing=null;qtBaseline="";qtCopySourceNo="";szOpen=false;}
   renderQtList();renderQtDetail();
+  if(!id)window.QuotePresentation?.restoreList();
   if(id&&typeof rememberAppStep==='function')rememberAppStep(true);
  }
  function panel(title,body,extra=''){return `<section class="nd-db-card"><header class="nd-db-head"><h3>${title}</h3>${extra}</header>${body}</section>`;}
