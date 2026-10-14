@@ -137,3 +137,20 @@ Payment dot labels must be a single `.nd-payment-label` inline group; never expo
 Desktop rail headers share caption top 30px and title top 50px relative to the page header. Right header captions use `--nd-header-caption-line:13px`, with `--nd-header-title-gap:7px`. All detail tabs use `--nd-section-underline-color:var(--nd-blue)` for the selected underline; text state colors stay separate. Verify rendered title positions across every destination, not just font sizes.
 
 Desktop quote/purchase metadata aligns vertically with the left search field center using `--nd-header-meta-offset`. Quote progress steps center between the detail-tab divider and their lower divider using `--nd-progress-body-inset` and `--nd-progress-strip-height`. Check actual bounding-box centers without moving other body sections.
+
+## Quotation progress and supplied-material actions
+
+Progress sections reuse `.qt-sec-t` and its existing count role. Each heading owns
+an independent accessible disclosure; its summary and action pair stay visible
+when collapsed. Editing is the left action, adding/recording is the right action.
+Record actions use `.nd-record-action`: 84px wide, 30px tall on desktop, 44px tall
+on mobile, with the same neutral styling as item Edit. Supplied-material statement
+and entry actions reuse this geometry; quantity steppers keep their existing role.
+Tables use horizontal rules, matching header/value alignment for numeric columns.
+Balance labels use the supporting-label token rather than the grand-total role.
+
+Each partial delivery may carry optional `shipping` metadata (`method`, `carrier`,
+`tracking`). Existing records remain unchanged; corrections void the original and
+append a replacement, preserving the audit trail and existing stock reconciliation.
+Carrier lookup uses an explicit HTTPS carrier URL map. No automatic shipping or
+invoice service integration is implied by recording these details.
