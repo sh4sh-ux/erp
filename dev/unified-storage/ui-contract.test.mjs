@@ -581,3 +581,27 @@ test('delivery shipping stays unset until chosen and duplicate partial shipments
  assert.equal(await page.evaluate(()=>db.stock_moves.filter(m=>m.quote_id==='q').reduce((n,m)=>n+(m.kind==='입고'?m.qty:-m.qty),0)),-40);
  await page.close();}finally{await browser.close();}
 });
+
+test('progress dividers match items and arrowless disclosures retain pointer and keyboard behavior',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440])for(const theme of ['light','dark']){
+  const page=await browser.newPage({viewport:{width,height:1000},deviceScaleFactor:2});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await prepare(page);await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await open(page,'quotes');
+  const reference=await page.evaluate(()=>{const rule=e=>{const s=getComputedStyle(e);return [s.borderBottomWidth,s.borderBottomStyle,s.borderBottomColor]};return {head:rule(document.querySelector('#qtForm .qline.head')),row:rule(document.querySelector('#qtForm .qline:not(.head)'))}});
+  await page.locator('#qp-tab-flow').click();
+  const actual=await page.evaluate(()=>{const rule=e=>{const s=getComputedStyle(e);return [s.borderBottomWidth,s.borderBottomStyle,s.borderBottomColor]};return {heads:[...document.querySelectorAll('.nd-record-table th')].map(rule),rows:[...document.querySelectorAll('.nd-record-table td')].map(rule),totals:getComputedStyle(document.querySelector('.nd-record-totals')).borderTopWidth}});
+  if(width>=1024){for(const r of actual.heads)assert.deepEqual(r,reference.head,`${width} ${theme} header`);for(const r of actual.rows)assert.deepEqual(r,reference.row,`${width} ${theme} row`);}else{for(const r of [...actual.heads,...actual.rows])assert.deepEqual(r.slice(0,2),['1px','solid']);}assert.equal(actual.totals,'0px');
+  for(const type of ['delivery','payment','tax']){
+   const toggle=page.locator(`[data-record-toggle=${type}]`),body=page.locator('#nd-record-'+type);
+   assert.ok(['none','normal','""'].includes(await toggle.evaluate(e=>getComputedStyle(e,'::before').content)));
+   await toggle.click();assert.equal(await body.isVisible(),false);assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+   await toggle.focus();await page.keyboard.press('Enter');assert.equal(await body.isVisible(),true);
+   await page.keyboard.press('Space');assert.equal(await body.isVisible(),false);
+   await toggle.click();assert.equal(await body.isVisible(),true);assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+   for(const other of ['delivery','payment','tax'].filter(t=>t!==type))assert.equal(await page.locator('#nd-record-'+other).isVisible(),true);
+  }
+  assert.deepEqual(errors,[]);
+  if(evidence&&theme==='light'){await page.screenshot({path:resolve(evidence,`progress-dividers-${width}.png`),fullPage:true});}
+  await page.close();
+ }}finally{await browser.close();}
+});

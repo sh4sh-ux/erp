@@ -154,3 +154,5 @@ Each partial delivery may carry optional `shipping` metadata (`method`, `carrier
 append a replacement, preserving the audit trail and existing stock reconciliation.
 Carrier lookup uses an explicit HTTPS carrier URL map. No automatic shipping or
 invoice service integration is implied by recording these details.
+
+Desktop quotation progress table dividers match item detail: header 1.5px solid #D4D4D8 (dark: --nd-line), rows 1px solid --ws-line. Mobile retains its existing 1px --nd-line-2 rules. Do not draw a second border above payment totals. Disclosure headings have no arrow; keep native button semantics, aria-expanded/aria-controls, click, Enter and Space behavior. Verify rendered rules against item rows in desktop/mobile and light/dark.
