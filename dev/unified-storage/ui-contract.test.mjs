@@ -605,3 +605,13 @@ test('progress dividers match items and arrowless disclosures retain pointer and
   await page.close();
  }}finally{await browser.close();}
 });
+
+ test('quote and purchase totals have no duplicate outer separator and retain the grand total line',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1024,1440])for(const theme of ['light','dark']){
+ const p=await b.newPage({viewport:{width,height:1000}});await prepare(p);await p.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+ for(const view of ['quotes','purchases']){await open(p,view);const form=view==='quotes'?'qtForm':'puForm';
+ const styles=await p.locator('#'+form+' .qtotals').evaluate(e=>{const g=e.querySelector('.grand');return {outer:getComputedStyle(e).borderTopWidth,grand:getComputedStyle(g).borderTopWidth,line:getComputedStyle(g,'::before').borderTopWidth,content:getComputedStyle(g,'::before').content};});
+ assert.equal(styles.outer,'0px',view+' '+width+' '+theme);assert.equal(styles.grand,'0px');assert.equal(styles.line,'1px');assert.notEqual(styles.content,'none');
+ }await p.close();}}finally{await b.close();}
+ });
