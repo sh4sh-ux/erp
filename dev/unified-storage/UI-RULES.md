@@ -158,3 +158,5 @@ invoice service integration is implied by recording these details.
 Desktop quotation progress table dividers match item detail: header 1.5px solid #D4D4D8 (dark: --nd-line), rows 1px solid --ws-line. Mobile retains its existing 1px --nd-line-2 rules. Do not draw a second border above payment totals. Disclosure headings have no arrow; keep native button semantics, aria-expanded/aria-controls, click, Enter and Space behavior. Verify rendered rules against item rows in desktop/mobile and light/dark.
 
 Quotation and purchase item summaries must not add a second top border after the item table. Keep the item row divider and the full-width separator before the grand total; `.qtotals` itself has no top border. Verify both forms at mobile and desktop sizes in light and dark themes.
+
+Parcel carrier choices and tracking links share one explicit HTTPS map (CJ, post, Hanjin, Logen, Lotte, Kyungdong). Input previews and saved records use the same URL builder, strip spaces/hyphens, and only enable lookup for 8–30 digits. Lookup opens the carrier site without saving a delivery or changing stock.
