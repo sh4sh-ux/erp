@@ -304,3 +304,5 @@ html body #appView #qtForm .nd-quote-link{border:0;background:none;padding:0;fon
  html body #appView #qtForm{--quote-table-head-rule:1.5px solid #D4D4D8;--quote-table-row-rule:1px solid var(--ws-line)}
  html[data-theme="dark"] body #appView #qtForm{--quote-table-head-rule:1.5px solid var(--nd-line)}
 }
+
+.nd-qa-sheet #ndShipLookup{display:inline-block;margin-top:6px;font:inherit;color:var(--primary);text-decoration:underline}.nd-qa-sheet #ndShipLookup[aria-disabled="true"]{color:var(--nd-ink-3);text-decoration:none;cursor:default}

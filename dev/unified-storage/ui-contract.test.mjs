@@ -615,3 +615,17 @@ test('progress dividers match items and arrowless disclosures retain pointer and
  assert.equal(styles.outer,'0px',view+' '+width+' '+theme);assert.equal(styles.grand,'0px');assert.equal(styles.line,'1px');assert.notEqual(styles.content,'none');
  }await p.close();}}finally{await b.close();}
  });
+
+test('parcel lookup supports added carriers before saving and in saved records without extra writes',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{const p=await b.newPage({viewport:{width:1440,height:1000}});await prepare(p);await open(p,'quotes');
+ await p.evaluate(()=>{const q=db.quotes[0];q.status='수주';q.deliveries=[];q.delivered_at='';window.shippingWrites=0;Table.save=async()=>{shippingWrites++;};renderQtDetail();});await p.locator('#qp-tab-flow').click();await p.locator('[data-rec=part]').click();await p.locator('#ndShipMethod').selectOption('택배');
+ assert.equal(await p.locator('#ndShipCarrier').inputValue(),'cj');
+ const urls={logen:'https://www.ilogen.com/web/personal/trace/',lotte:'https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=',kd:'https://kdexp.com/basicNewDelivery.kd?barcode='};
+ for(const [carrier,url] of Object.entries(urls)){await p.locator('#ndShipCarrier').selectOption(carrier);await p.locator('#ndShipTracking').fill('1234-5678 9012');assert.equal(await p.locator('#ndShipLookup').getAttribute('href'),url+'123456789012');}
+ await p.locator('#ndShipTracking').fill('abc');assert.equal(await p.locator('#ndShipLookup').getAttribute('href'),null);
+ await p.locator('#ndShipTracking').fill('123456789012');await p.locator('#ndShipCarrier').selectOption('lotte');
+ const popupPromise=p.waitForEvent('popup');await p.locator('#ndShipLookup').click();const popup=await popupPromise;await popup.close();assert.equal(await p.evaluate(()=>shippingWrites),0);assert.equal(await p.evaluate(()=>db.quotes[0].deliveries.length),0);
+ await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===1);assert.equal(await p.evaluate(()=>db.quotes[0].deliveries[0].shipping.carrier),'lotte');
+ const link=p.locator('#qp-panel-flow a').filter({hasText:'배송 조회'});assert.equal(await link.getAttribute('href'),urls.lotte+'123456789012');await p.close();}finally{await b.close();}
+});
