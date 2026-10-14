@@ -556,3 +556,8 @@ test('progress records share item typography/actions, collapse independently, an
  await page.setViewportSize({width:390,height:844});await page.locator('#qp-tab-flow').click();assert.equal(await page.locator('[data-rec=pay]').evaluate(e=>e.getBoundingClientRect().height),44);
  await page.close();}finally{await browser.close();}
 });
+
+test('quotation header amount shares the record-title baseline',async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{const page=await browser.newPage({viewport:{width:1440,height:1000}});await prepare(page);await open(page,'quotes');const rows=await page.evaluate(()=>['.qs-val.co','.qs-amt-v','.qs-k','.qs-amt-k'].map(s=>{const el=document.querySelector('#qtForm '+s),r=el.getBoundingClientRect(),c=getComputedStyle(el);return {selector:s,top:r.top,height:r.height,line:c.lineHeight,margin:c.marginBottom};}));assert.ok(Math.abs(rows[0].top-rows[1].top)<1,JSON.stringify(rows));}finally{await browser.close();}
+});

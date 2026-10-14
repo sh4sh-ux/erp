@@ -1110,6 +1110,7 @@ const NaroCompanyLedger=(()=>{
  // Material detail uses the quote panel anatomy; native controls keep their handlers.
  let materialDesignOwner=null,materialDesignTab='overview',materialDesignForm=null;
  function materialDetailDesign(){
+  document.querySelectorAll('#view-materials #mm_detail,#view-materials #mm_statement,#view-materials .material-section-head button').forEach(b=>b.classList.add('nd-record-action'));
   const detail=document.querySelector('#view-materials .material-detail'),head=detail?.querySelector('.material-detail-head');if(!head)return;
   const balance=detail.querySelector('.material-balance-hero');if(balance&&balance.parentElement!==head)head.append(balance);
   const owner=document.getElementById('mm_statement_company')?.value;
