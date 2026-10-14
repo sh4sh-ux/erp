@@ -27,3 +27,10 @@ test('납품 기록 바로잡기: 취소됨 표시(void_at)와 새 기록 추가
  assert.throws(()=>validateExtendedChange('quotes',[fixed],[{...fixed,deliveries:[{...fixed.deliveries[0],void_at:undefined},fixed.deliveries[1]]}],s2),{code:'VALIDATION'});
  assert.throws(()=>validateExtendedChange('quotes',[fixed],[{...fixed,deliveries:[fixed.deliveries[1]]}],s2),{code:'VALIDATION'});
 });
+test('parcel metadata is retained when a partial delivery is corrected',()=>{
+ const shipping={method:'택배',carrier:'cj',tracking:'123456789012'},delivery={...q.deliveries[0],shipping};
+ const old={...q,deliveries:[delivery]},snapshot={...snap,quotes:[old]};
+ const corrected={...old,deliveries:[{...delivery,void_at:'2026-10-14T00:00:00.000Z',void_reason:'고침'},{...delivery,id:'d2',lines:[{line_id:'l1',qty:1}],corrects:delivery.id}]};
+ assert.doesNotThrow(()=>validateExtendedChange('quotes',[old],[corrected],snapshot));
+ assert.throws(()=>validateExtendedChange('quotes',[old],[{...old,deliveries:[{...delivery,shipping:{...shipping,tracking:'999999999999'}}]}],snapshot),{code:'VALIDATION'});
+});

@@ -268,3 +268,32 @@ html body #appView .list-item{content-visibility:auto;contain-intrinsic-size:aut
 .nd-co-opt.on,.nd-co-opt:hover{background:var(--nd-fill,#F1F2F6)}
 .nd-co-empty{margin:10px;font-size:13px;color:var(--nd-ink-3,#8A8F99)}
 .nd-co-new{height:38px;border:1px dashed var(--nd-line,#DADDE5);border-radius:10px;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--nd-blue,#4355E8);cursor:pointer}
+/* Open record tables use the quotation section/row hierarchy. */
+html body #appView #qtForm .nd-rec{display:block}
+html body #appView #qtForm .nd-record-section{margin:0 0 28px}
+html body #appView #qtForm .nd-record-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+html body #appView #qtForm .nd-record-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+html body #appView #qtForm .nd-record-toggle::before{content:'⌄';color:var(--nd-ink-3);font-size:12px;width:12px}
+html body #appView #qtForm .nd-record-toggle[aria-expanded=false]::before{content:'›'}
+html body #appView #qtForm .nd-record-actions{display:flex;gap:8px;flex:none}
+html body #appView #qtForm .nd-record-scroll{overflow-x:auto}
+html body #appView #qtForm .nd-record-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}
+html body #appView #qtForm .nd-record-table th{font-weight:400;font-size:var(--nd-label-size);color:var(--nd-ink-3);border-bottom:1px solid var(--nd-line)}
+html body #appView #qtForm .nd-record-table :is(th,td){padding:14px 17px;border-bottom:1px solid var(--nd-line-2);vertical-align:middle}
+html body #appView #qtForm .nd-record-table .num{text-align:right;white-space:nowrap;font-family:var(--nd-number-font);font-variant-numeric:tabular-nums}
+html body #appView #qtForm .nd-record-table a,.nd-quote-link{color:var(--nd-blue);text-decoration:underline;text-underline-offset:3px}
+html body #appView #qtForm .nd-record-table small{font:inherit;color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-record-table .void{color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-record-totals{padding:14px 17px 0;border-top:1px solid var(--nd-line-2)}
+html body #appView #qtForm .nd-record-totals>div{display:flex;justify-content:flex-end;align-items:center;gap:24px;padding:4px 0}
+html body #appView #qtForm .nd-record-totals span{font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-record-totals b{min-width:122px;text-align:right;font:600 14px/20px var(--nd-number-font);font-variant-numeric:tabular-nums}
+html body #appView #qtForm .nd-record-empty{color:var(--nd-ink-3);font-size:var(--nd-label-size)}
+.nd-record-pick{display:block;width:100%;padding:14px;text-align:left;border:0;border-bottom:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);cursor:pointer}
+html body #appView #qtForm .nd-quote-link{border:0;background:none;padding:0;font:inherit;cursor:pointer}
+@media(max-width:780px){
+ html body #appView #qtForm .nd-record-heading{align-items:flex-start;flex-wrap:wrap}
+ html body #appView #qtForm .nd-record-actions{margin-left:auto}
+ html body #appView #qtForm .nd-record-table{min-width:600px}
+}
+.nd-qa-fields label[hidden]{display:none!important}
