@@ -250,3 +250,15 @@
  html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:relative;top:var(--nd-header-meta-offset)}
  html body #appView[data-layout-system] .shell .main #qtForm .nd-next {margin-top:calc(-1 * var(--nd-progress-body-inset));min-height:var(--nd-progress-strip-height);padding-block:0;box-sizing:border-box;align-items:center}
 }
+
+/* One secondary-action geometry for quotation progress records. */
+html body #appView[data-layout-system] .shell .main #view-quotes .nd-record-action {
+ width:84px!important;min-width:84px!important;height:30px!important;min-height:30px!important;
+ padding:0 8px!important;border:1px solid var(--nd-line)!important;border-radius:9px!important;
+ background:var(--nd-surface)!important;color:var(--nd-ink)!important;
+ font:600 12.5px/1 var(--nd-ui-font)!important;letter-spacing:normal!important;box-shadow:none!important;
+}
+html body #appView[data-layout-system] .shell .main #view-quotes .nd-record-action:disabled{opacity:.45;cursor:default}
+@media(max-width:1023px){
+ html body #appView[data-layout-system] .shell .main #view-quotes .nd-record-action{height:44px!important;min-height:44px!important}
+}
