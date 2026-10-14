@@ -63,7 +63,7 @@
  /* Section headings; preserve smaller, muted count chips next to the heading. */
  html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
   h3,h4,.cp-sech h3,.cp-grph h4,.pp-section-head h4,.nd-db-range-heading h3,
-  .ops-section-title,.qt-sec-t,.qp-products>h3,.material-records-title,.nd-sa-table-title
+  .ops-section-title,.qt-sec-t,.qp-products>h3,.material-records-title,.material-section-head h3,.nd-sa-table-title
  ) {
   font:600 var(--nd-section-size)/var(--nd-section-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;color:var(--nd-ink)!important;
@@ -248,7 +248,7 @@
 @media screen and (min-width:1024px) {
  html body #appView[data-layout-system] {--nd-header-meta-center:111px;--nd-progress-body-inset:24px;--nd-progress-strip-height:75px}
  html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero {position:relative!important}
- html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:absolute;top:var(--nd-header-meta-center);left:var(--panel-inset);right:var(--panel-inset);margin:0!important;transform:translateY(-50%)}
+ html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:absolute;top:var(--nd-header-meta-center);left:0;right:0;margin:0!important;transform:translateY(-50%)}
  html body #appView[data-layout-system] .shell .main #qtForm .nd-next {margin-top:calc(-1 * var(--nd-progress-body-inset));min-height:var(--nd-progress-strip-height);padding-block:0;box-sizing:border-box;align-items:center}
 }
 
@@ -257,4 +257,15 @@
  html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-k,.cp-amt>.k,.pp-amount>span,.material-detail-head>.material-balance-hero>span,.nd-sa-header-amount>.nd-sa-label,.workspace-heading>.scr-hero>.lbl) {display:block!important;line-height:var(--nd-header-caption-line)!important;margin:0!important;order:-1}
  html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-v,.cp-amt>.v,.pp-amount>strong,.material-detail-head>.material-balance-hero>strong,.nd-sa-header-amount>strong,.workspace-heading>.scr-hero>.big) {margin:0!important;order:0}
  html body #appView[data-layout-system] .shell .main #view-ar>.workspace-heading>.scr-hero {top:30px!important}
+}
+/* One secondary-action geometry for quotation records and supplied materials. */
+html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-materials) .nd-record-action {
+ width:84px!important;min-width:84px!important;height:30px!important;min-height:30px!important;
+ padding:0 8px!important;border:1px solid var(--nd-line)!important;border-radius:9px!important;
+ background:var(--nd-surface)!important;color:var(--nd-ink)!important;
+ font:600 12.5px/1 var(--nd-ui-font)!important;letter-spacing:normal!important;box-shadow:none!important;
+}
+html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-materials) .nd-record-action:disabled{opacity:.45;cursor:default}
+@media(max-width:1023px){
+ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-materials) .nd-record-action{height:44px!important;min-height:44px!important}
 }
