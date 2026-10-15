@@ -174,3 +174,21 @@ html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans)
  html body #appView #view-materials .mp-sec{flex-wrap:wrap}
  html body #appView #view-materials .mp-rchips{width:100%;overflow-x:auto}
 }
+/* 견적서 작업 줄 아래 '업체 제공 자재' 칸 — 옅은 배경(위 줄에 딸린 내용), 줄 구분선과 같은 선 */
+html body #appView :is(#qtForm,#puForm) .mp-qsup{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:8px var(--nd-in,12px) 10px calc(var(--nd-in,12px) + 16px);border-bottom:var(--quote-table-row-rule,1px solid var(--nd-line-2));background:var(--nd-tint-open);font:400 12.5px/20px var(--sans);color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-k{flex:none;font-size:var(--nd-label-size);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup select{width:auto;min-width:220px;max-width:100%;height:34px;padding:0 30px 0 10px;border:1px solid var(--nd-line);border-radius:9px;background-color:var(--nd-surface);font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup input{width:56px;height:34px;padding:0 8px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);text-align:center;font:600 13px/20px var(--nd-number-font);color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup b{font-weight:600;color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-bal{color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-bal.warn{color:var(--nd-amber,#E98300);font-weight:600}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.view{padding-top:6px;padding-bottom:8px}
+html body #appView #view-materials .mp-naver{display:inline-block;margin-right:2px;padding:0 5px;border-radius:5px;background:color-mix(in srgb,#03C75A 12%,transparent);font:600 11px/18px var(--sans);color:#03A64A;vertical-align:1px}
+html[data-theme="dark"] body #appView #view-materials .mp-naver{color:#3DDC84}
+html body #appView #view-materials .mp-oname{font:600 13px/20px var(--sans);white-space:nowrap}
+.mp-sheet .mp-use{display:flex;flex-direction:column;gap:6px}
+.mp-sheet .mp-hint{margin:0;padding:10px 12px;border-radius:10px;background:var(--nd-blue-soft);font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card{margin:10px 0 0;padding:10px 12px;border:0;border-radius:10px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card select{flex:1 1 100%;min-width:0;height:40px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card input{height:40px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card .mp-qsup-k{width:100%}

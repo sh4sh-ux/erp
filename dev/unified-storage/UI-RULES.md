@@ -144,6 +144,14 @@ functions (`buildMaterialMove` → `persistMaterialMove` / `updateMaterialMove` 
   [받음 · 작업에 사용 · 반환 · 불량·분실]. Editing keeps `materialDraft`/`materialEditingId`, so
   the `mm_save` '저장됨' rule applies unchanged. Cancelling marks the record void (never deletes).
 - No planned/expected usage is shown (사용자 결정 10/15).
+- 'Orders' = quotes and Naver (스마트스토어) orders. A 작업에 사용 record asks "어디에 썼나요?"
+  [견적 · 네이버 주문 · 기타]; it is stored only in the existing fields (`quote_id`, `source`
+  = '스마트스토어'/'기타', `order_no`). Naver orders group by order number, or by date when the number is
+  blank (one line for a day's batch). Naver is shown with a small green 네이버 badge.
+- Quote work lines may name the supplied material they use: `line.supplied_material` +
+  `line.supplied_per_unit` (default 1), edited in a tinted sub-row under the work line, shown only when
+  the customer has supplied materials or the line already names one. Picking that quote in the record
+  sheet fills material, work item, remaining work quantity and per-unit amount.
 
 ## Before changing a screen
 
