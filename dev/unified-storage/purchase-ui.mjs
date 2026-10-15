@@ -613,6 +613,8 @@ export function installPurchaseUI({port,features=()=>true}){
    pays:pays(p).map(x=>({date:x.date||'',kind:x.kind,amount:Number(x.amount)||0,method:x.method||'',refund:!!x.refund}))};
  });
  const open=id=>{if(typeof g.switchView==='function'&&g.switchView('purchases')===false)return;select(id);};
- g.NaroPurchases={render,load,vendor,open,state:()=>structuredClone({status:st.status,count:rows().length})};
+ // 입금·출금 화면의 '아직 안 준 돈': 목록의 '미출금'과 같은 기준(입고된 원화 매입 중 줄 돈이 남은 것). 불러오기 전이면 null.
+ const payables=()=>st.status!=='ready'?null:rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.currency==='KRW'&&gotOf(p)>0).map(p=>{const ps=payState(p);return {id:p.id,no:p.no,vendor_id:p.vendor_id,open:Math.round(ps.due-ps.paid)};}).filter(x=>x.open>0);
+ g.NaroPurchases={render,load,vendor,open,payables,state:()=>structuredClone({status:st.status,count:rows().length})};
  return {onMessage};
 }

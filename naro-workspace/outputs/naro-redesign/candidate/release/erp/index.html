@@ -14507,222 +14507,197 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
  renderDash=refinedDashboard;renderers.dash=refinedDashboard;
  if(typeof currentView!=='undefined'&&currentView==='dash'&&typeof db!=='undefined')refinedDashboard();
 })();
-</script><style id="naro-payment-panel">/* Shared quote/company anatomy. Approved ledger refinements follow below. */
+</script><style id="naro-payment-panel">/* 입금·출금(10/15 시안 확정, UI-RULES 'Payments'): 왼쪽 = 제목·건수 / 도구 / 탭 / 날짜별 목록,
+   오른쪽 = 견적서와 같은 머리 · 본문 · 아래 바. 머리 좌표는 Header Contract(다른 화면과 같은 선)를 지킨다. */
 #view-payments>.pp-detail[hidden]{display:none!important}
 @media all{
  html body #appView #view-payments.pp-detail-open>.workspace-heading,
  html body #appView #view-payments.pp-detail-open>.workspace-right{display:none!important}
- html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) 46px minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
- html body #appView .pp-detail .pp-head{display:flex;justify-content:space-between;gap:24px;padding:30px 28px 0;min-width:0;border-bottom:1px solid var(--nd-line)}
+ html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
+ html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px;min-width:0;border-bottom:1px solid var(--nd-line)}
  html body #appView .pp-detail .pp-title{min-width:0}
  html body #appView .pp-detail .pp-caption{display:block;font:600 11px/13px var(--sans);color:var(--nd-ink-3);letter-spacing:.8px}
  html body #appView .pp-detail h3{margin:8px 0 0;padding:0;font:700 24px/30px var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--nd-ink)}
- html body #appView .pp-detail .pp-meta{display:flex;align-items:center;gap:10px;margin-top:10px;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
- html body #appView .pp-detail .pp-badge{padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600}
- html body #appView .pp-detail .pp-badge.in{color:#16834a;background:#eaf7ef}
- html body #appView .pp-detail .pp-badge.out{color:#ba403b;background:#fceeed}
+ html body #appView .pp-detail .pp-meta{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:3px;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
  html body #appView .pp-detail .pp-amount{text-align:right;flex-shrink:0;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
- html body #appView .pp-detail .pp-amount strong{display:block;margin-top:6px;font:700 24px/30px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink)}
- html body #appView .pp-detail .pp-tabs{display:flex;gap:24px;padding:0 28px;border-bottom:1px solid var(--nd-line)}
- html body #appView .pp-detail .pp-tabs button{height:46px;min-height:0;padding:0 2px;border:0;border-radius:0;background:none;box-shadow:none;font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
- html body #appView .pp-detail .pp-tabs button[aria-selected=true]{border-bottom:2px solid var(--nd-ink);color:var(--nd-ink);font-weight:700}
- html body #appView .pp-detail .pp-body{overflow-y:auto;min-height:0;padding:28px 28px 40px}
- html body #appView .pp-detail .pp-section+.pp-section{margin-top:36px}
- html body #appView .pp-detail .pp-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:32px;margin-bottom:12px}
- html body #appView .pp-detail h4{margin:0;font:700 14px/22px var(--sans);color:var(--nd-ink)}
- html body #appView .pp-detail h4 span{margin-left:8px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
- html body #appView .pp-detail .pp-muted{color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
- html body #appView .pp-detail .pp-fields{margin:0;border-top:1px solid var(--nd-line)}
- html body #appView .pp-detail .pp-fields>div{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
- html body #appView .pp-detail dt{color:var(--nd-ink-2)}
- html body #appView .pp-detail dd{margin:0;font-weight:500;overflow-wrap:anywhere}
- html body #appView .pp-detail .pp-link{border:0;background:none;padding:0;font:inherit;color:var(--nd-blue)}
- html body #appView .pp-detail .pp-memo{margin:0;padding:18px 0;border-top:1px solid var(--nd-line);font:400 13px/22px var(--sans);white-space:pre-wrap;overflow-wrap:anywhere}
- html body #appView .pp-detail .pp-actions{display:flex;align-items:center;gap:8px;padding:14px 28px;border-top:1px solid var(--nd-line);background:var(--nd-surface)}
- html body #appView .pp-detail .btn{flex:0 0 auto;white-space:nowrap;height:40px;min-height:0;padding:0 14px;font:500 13px/20px var(--sans);border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink-2);box-shadow:none}
- html body #appView .pp-detail .pp-delete{color:#d73329}
- html body #appView .pp-detail .pp-spacer{flex:1}
- html body #appView .pp-detail .pp-saved{white-space:nowrap;padding:10px 48px;border-radius:9px;background:var(--nd-fill);font:500 13px/20px var(--sans);color:var(--nd-ink-3)}
- html body #appView .pp-detail .pp-empty{padding:64px 20px;text-align:center;color:var(--nd-ink-3)}
- html body #appView .pp-detail .pp-empty p{font:400 13px/22px var(--sans)}
- html body #appView .pp-detail .pp-quote-lines{border-top:1px solid var(--nd-line)}
- html body #appView .pp-detail .pp-quote-lines>div{display:flex;justify-content:space-between;gap:24px;padding:18px 0;border-bottom:1px solid var(--nd-line);font:400 13px/20px var(--sans)}
- html body #appView .pp-detail small{color:var(--nd-ink-3);font:inherit}
- html body #appView .pp-detail button:focus-visible{outline:2px solid var(--nd-blue);outline-offset:3px}
+ html body #appView .pp-detail .pp-amount strong{display:block;margin-top:6px;font:700 24px/30px var(--sans);font-variant-numeric:tabular-nums;color:var(--nd-ink);white-space:nowrap}
+ html body #appView .pp-detail .pp-body{overflow-y:auto;min-height:0;padding:24px 28px 32px}
+ html body #appView .pp-detail button:focus-visible,html body #appView .pp-detail tr:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
 }
 html body #appView .pp-detail .pp-back{display:none}
-html body #appView .pp-detail .pp-route{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr);gap:20px;align-items:center;padding:22px 0;border-block:1px solid var(--nd-line)}
-html body #appView .pp-detail .pp-route div{min-width:0}
-html body #appView .pp-detail .pp-route span:not(.pp-arrow),html body #appView .pp-detail .pp-metrics span{display:block;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
-html body #appView .pp-detail .pp-route strong{display:block;margin-top:6px;font:600 17px/26px var(--sans);overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-arrow{color:var(--nd-blue);font-size:24px;text-align:center}
-html body #appView .pp-detail .pp-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:18px 0;border-block:1px solid var(--nd-line)}
-html body #appView .pp-detail .pp-metrics>div{padding:0 20px;border-left:1px solid var(--nd-line)}
-html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0;border:0}
-html body #appView .pp-detail .pp-metrics strong{display:block;margin-top:8px;font:600 20px/28px var(--sans);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-timeline{margin:0;padding:0;list-style:none}
-html body #appView .pp-detail .pp-timeline li{position:relative;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--nd-line)}
-html body #appView .pp-detail .pp-dot{width:8px;height:8px;border:2px solid var(--nd-ink-3);border-radius:50%}
-html body #appView .pp-detail .current .pp-dot{border-color:var(--nd-blue);background:var(--nd-blue)}
-html body #appView .pp-detail .pp-event{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:3px 0;font:600 14px/22px var(--sans)}
-html body #appView .pp-detail .pp-current{color:var(--nd-blue);font:500 11px/18px var(--sans)}
-html body #appView .pp-detail .pp-timeline strong{font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
-html body #appView .pp-detail .pp-in{color:#16934f}
-@media(min-width:1024px){html body #appView .pp-detail .pp-back{display:none}}
-@media(max-width:1023px){
- html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
- html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
- html body #appView #view-payments.pp-detail-open::after{display:none!important}
- html body #appView #view-payments>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
- html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
- html body #appView .pp-detail .pp-back span{font-size:14px}
- html body #appView .pp-detail .pp-head{padding:20px 16px;gap:12px;min-height:110px}
- html body #appView .pp-detail h3{font-size:18px;line-height:26px;margin-top:8px}
- html body #appView .pp-detail .pp-amount strong{font-size:20px;line-height:26px;margin-top:8px}
- html body #appView .pp-detail .pp-meta{flex-wrap:wrap;gap:5px;font-size:11px}
- html body #appView .pp-detail .pp-tabs{padding:0 16px;gap:0}
- html body #appView .pp-detail .pp-tabs button{flex:1;height:48px;font-size:14px}
- html body #appView .pp-detail .pp-tabs button[aria-selected=true]{color:var(--nd-blue);border-color:var(--nd-blue)}
- html body #appView .pp-detail .pp-body{padding:24px 16px 32px;overflow:visible;flex:1}
- html body #appView .pp-detail .pp-route{gap:10px;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);padding:16px 0}
- html body #appView .pp-detail .pp-route strong{font-size:15px;line-height:22px}
- html body #appView .pp-detail .pp-metrics>div{padding:0 10px}
- html body #appView .pp-detail .pp-metrics strong{font-size:15px;line-height:22px}
- html body #appView .pp-detail .pp-fields>div{grid-template-columns:90px minmax(0,1fr);gap:12px}
- html body #appView .pp-detail .pp-actions{position:sticky;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));gap:8px;z-index:5}
- html body #appView .pp-detail .pp-actions>[data-pp=overview],html body #appView .pp-detail .pp-spacer{display:none}
- html body #appView .pp-detail .pp-actions .btn{padding:0 12px;height:44px}
- html body #appView .pp-detail .pp-saved{flex:1;padding:12px 4px;text-align:center;font-size:12px}
- html body #appView .pp-detail .pp-timeline li{gap:10px;grid-template-columns:10px minmax(0,1fr) auto}
- html body #appView .pp-detail .pp-timeline strong{font-size:14px}
-}
-@media(max-width:360px){
- html body #appView .pp-detail .pp-timeline strong{grid-column:2/-1}
- html body #appView .pp-detail .pp-metrics strong{font-size:13px}
- html body #appView .pp-detail .pp-amount strong{font-size:17px}
-}
-@media(min-width:1024px) and (max-width:1200px){
- html body #appView .pp-detail .pp-saved{padding-inline:16px}
- html body #appView .pp-detail .pp-fields>div{grid-template-columns:140px minmax(0,1fr);gap:20px}
-}
-/* Approved history layout: unobtrusive totals, date groups, selected record. */
-html body #appView .pp-detail .pp-tabs{justify-content:space-between;align-items:center}
-html body #appView .pp-detail .pp-tab-title{align-self:stretch;display:flex;align-items:center;border-bottom:2px solid var(--nd-ink);font:600 14px/20px var(--sans)}
-html body #appView .pp-detail .pp-metrics{border-top:0;padding:0 0 26px;margin-bottom:26px;grid-template-columns:1fr 1fr .65fr}
-html body #appView .pp-detail .pp-metrics strong{font:600 22px/30px var(--sans);letter-spacing:-.4px;font-variant-numeric:tabular-nums}
-html body #appView .pp-detail .pp-metrics small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0}
-html body #appView .pp-detail .pp-in{color:var(--success,#16934f)}
-html body #appView .pp-detail .pp-day+.pp-day{margin-top:28px}
-html body #appView .pp-detail .pp-day-head{display:flex;justify-content:space-between;padding:0 0 12px;border-bottom:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
-html body #appView .pp-detail .pp-records{list-style:none;padding:0;margin:0}
-html body #appView .pp-detail .pp-records li{padding:20px 12px;border-bottom:1px solid var(--nd-line)}
-html body #appView .pp-detail .pp-record-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;font:600 14px/22px var(--sans)}
-html body #appView .pp-detail .pp-record-name{min-width:0;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-record-top strong{flex-shrink:0;font:600 16px/24px var(--sans);font-variant-numeric:tabular-nums}
-html body #appView .pp-detail .pp-current{display:inline-block;margin-left:8px;font:400 11px/18px var(--sans);color:var(--nd-blue-ink,var(--nd-blue))}
-html body #appView .pp-detail .pp-record-meta{margin:6px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3);white-space:pre-wrap;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-selected-record{background:none;box-shadow:none}
-html body #appView .pp-detail .pp-note{margin:24px 0 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-overview{display:block;text-align:left;flex:none;margin:0 calc(-1 * var(--panel-inset));padding:20px var(--panel-inset);border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:500 14px/22px var(--sans)}
-html body #appView #view-payments .pp-overview>span{display:flex;justify-content:space-between;gap:10px}
-html body #appView #view-payments .pp-overview strong{font-weight:600;font-variant-numeric:tabular-nums}
-html body #appView #view-payments .pp-overview small{display:block;margin-top:6px;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-overview.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
-@media(max-width:1023px){
- html body #appView .pp-detail .pp-tabs button{flex:none;font-size:12px}
- html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr .6fr;gap:0;padding-bottom:22px}
- html body #appView .pp-detail .pp-metrics>div{padding:0 10px;min-width:0}
- html body #appView .pp-detail .pp-metrics>div:first-child{padding-left:0}
- html body #appView .pp-detail .pp-metrics strong{font-size:18px;line-height:26px;letter-spacing:-.4px}
- html body #appView .pp-detail .pp-metrics small{font-size:11px}
- html body #appView .pp-detail .pp-records li{padding:18px 10px}
- html body #appView .pp-detail .pp-record-top{gap:10px}
- html body #appView .pp-detail .pp-record-top strong{font-size:15px}
- html body #appView .pp-detail .pp-saved{display:none}
- html body #appView .pp-detail .pp-actions{justify-content:space-between}
- html body #appView .pp-detail .pp-head{flex-wrap:wrap}
- html body #appView .pp-detail .pp-amount{margin-left:auto}
-}
-@media(max-width:360px){html body #appView .pp-detail .pp-metrics strong{font-size:16px}}
-/* Reuse the dashboard number contract, not the body-font shorthand. */
+/* 숫자는 대시보드 숫자 규칙 그대로 */
 html body #appView #view-payments :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
-html body #appView #view-payments :is(.pbr-amt,.pp-overview strong,.pp-record-top strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums}
-html body #appView #view-payments .pbr .pbr-amt{color:var(--nd-ink)!important}
+html body #appView #view-payments :is(.pp-row-am,.pp-table .pp-c-num,.pp-msum b,.pp-todo b,.pp-qpick b){font-family:var(--nd-number-font)!important;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+html body #appView #view-payments .neg{color:var(--nd-red,#E53E3E)!important}
+html body #appView #view-payments .in{color:var(--nd-green-fill,#1DAD53)}
+
+/* ---------- 왼쪽: 탭 · (기간 칩) · 날짜별 목록 ---------- */
 html body #appView #view-payments .workspace-left>.nd-chips{display:flex!important;flex:none}
-html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
-/* Keep recovery available, but separate it from search criteria and contain it
-   within the popover's padded area rather than a full-width oversized field. */
+html body #appView #view-payments .workspace-left>.panel-b-index,
+html body #appView #view-payments .workspace-left>:is(.pp-list-scope,.pp-overview){display:none!important}
+html body #appView #view-payments .workspace-left>.pp-list{flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 calc(-1 * var(--panel-inset,20px));padding-bottom:24px}
+html body #appView #view-payments .pp-list .pp-dg{padding:16px var(--panel-inset,20px) 6px;font:600 11.5px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;width:100%;margin:0;padding:12px var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+@media(hover:hover){html body #appView #view-payments .pp-row:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
+html body #appView #view-payments .pp-row.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
+html body #appView #view-payments .pp-row-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
+html body #appView #view-payments .pp-row-am{font-size:14px;font-weight:600;line-height:20px;text-align:right;white-space:nowrap;color:var(--nd-ink)}
+html body #appView #view-payments .pp-row-am.in{color:var(--nd-green-fill,#1DAD53)}
+html body #appView #view-payments .pp-row-mt{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView #view-payments .pp-badge{flex:none;padding:1px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2);font:600 11px/18px var(--sans);font-style:normal;white-space:nowrap}
+html body #appView #view-payments .pp-badge.in{color:var(--nd-green-fill,#1DAD53);background:var(--nd-green-soft,rgba(29,173,83,.10))}
+html body #appView #view-payments .pp-fchips{display:flex;gap:6px;padding:10px var(--panel-inset,20px) 2px}
+html body #appView #view-payments .pp-fchip{display:inline-flex;align-items:center;gap:6px;height:28px;min-height:0;padding:0 12px;border:0;border-radius:999px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font:600 12px/1 var(--sans);box-shadow:none}
+html body #appView #view-payments .pp-empty{margin:0;padding:48px var(--panel-inset,20px);text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-payments>.page-head>.pp-count{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
+
+/* ---------- 오른쪽 본문 ---------- */
+/* 한 줄 요약: 상자 없이 숫자 셋 + 비율 막대 하나 */
+html body #appView .pp-detail .pp-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;padding:0;border:0}
+html body #appView .pp-detail .pp-flow>div{min-width:0;padding:0 20px}
+html body #appView .pp-detail .pp-flow>div:first-child{padding-left:0}
+html body #appView .pp-detail .pp-flow>div+div{border-left:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-flow span{display:flex;align-items:center;gap:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-flow strong{display:block;margin-top:4px;color:var(--nd-ink);white-space:nowrap}
+html body #appView .pp-detail .pp-flow strong small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0;color:var(--nd-ink-3)}
+html body #appView #view-payments .pp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nd-ink-3)}
+html body #appView #view-payments .pp-dot.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView #view-payments .pp-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;background:var(--nd-line-2)}
+html body #appView #view-payments .pp-bar>span{display:block;min-width:2px;border-radius:3px}
+html body #appView #view-payments .pp-bar>.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView #view-payments .pp-bar>.out{background:var(--nd-ink-3);opacity:.45}
+html body #appView .pp-detail .pp-body>.pp-bar{margin-top:14px}
+/* 할 일: 못 받은 돈 · 안 준 돈 → 해당 화면으로 */
+html body #appView .pp-detail .pp-todo{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));margin-top:22px;border-block:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-todo>button{display:flex;justify-content:space-between;align-items:center;gap:10px;min-width:0;margin:0;padding:14px 16px 14px 0;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+html body #appView .pp-detail .pp-todo>button+button{padding-left:16px;border-left:1px solid var(--nd-line)}
+@media(hover:hover){html body #appView .pp-detail .pp-todo>button:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
+html body #appView .pp-detail .pp-todo span{display:flex;flex-direction:column;min-width:0}
+html body #appView .pp-detail .pp-todo small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView .pp-detail .pp-todo b{font-size:15px;font-weight:600;line-height:22px}
+html body #appView .pp-detail .pp-todo em{flex:none;font:400 13px/18px var(--sans);font-style:normal;color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:var(--nd-sec-head-h,30px);margin:26px 0 6px}
+html body #appView .pp-detail h4{margin:0;font:600 14px/22px var(--sans);color:var(--nd-ink)}
+html body #appView .pp-detail h4 small{margin-left:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail :is(.pp-section-head button,.pp-link){padding:2px 0;min-height:0;height:auto;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12.5px/20px var(--sans);cursor:pointer}
+/* 표: 견적서 품목 표와 같은 선(머리 1.5px · 줄 1px, 같은 토큰) */
+html body #appView .pp-detail{--quote-table-head-rule:1px solid var(--nd-line);--quote-table-row-rule:1px solid var(--nd-line-2)}
+@media(min-width:1024px){html body #appView .pp-detail{--quote-table-head-rule:1.5px solid #D4D4D8;--quote-table-row-rule:1px solid var(--ws-line,var(--nd-line-2))}html[data-theme="dark"] body #appView .pp-detail{--quote-table-head-rule:1.5px solid var(--nd-line)}}
+html body #appView .pp-detail .pp-table{width:100%;border-collapse:collapse;table-layout:fixed;font:400 13.5px/20px var(--sans)}
+html body #appView .pp-detail .pp-table th{padding:10px 12px;border-bottom:var(--quote-table-head-rule);text-align:left;font:500 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-table td{padding:12px;border-bottom:var(--quote-table-row-rule);vertical-align:middle;color:var(--nd-ink)}
+html body #appView .pp-detail .pp-table tbody tr{cursor:pointer}
+@media(hover:hover){html body #appView .pp-detail .pp-table tbody tr:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
+html body #appView .pp-detail .pp-table tbody tr.on{background:var(--nd-blue-soft)}
+html body #appView .pp-detail .pp-table .pp-c-date{width:72px;white-space:nowrap;color:var(--nd-ink-2)}
+html body #appView .pp-detail .pp-table .pp-c-method{width:96px;text-align:center;color:var(--nd-ink-2)}
+html body #appView .pp-detail .pp-table .pp-c-num{width:128px;text-align:right;font-weight:600;white-space:nowrap}
+html body #appView .pp-detail .pp-table .pp-c-amt{display:none}
+html body #appView #view-payments .pp-hint{font-style:normal}
+html body #appView .pp-detail .pp-table td>.pp-t-nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .pp-detail .pp-table td>small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-empty{padding:48px 20px;text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-note{margin:20px 0 0;font:400 11.5px/18px var(--sans);color:var(--nd-ink-3)}
+/* 상세: 견적의 받을 돈 진행 · 칸 */
+html body #appView .pp-detail .pp-prog>div:first-child{display:flex;justify-content:space-between;gap:12px;font:400 13.5px/20px var(--sans);color:var(--nd-ink-2)}
+html body #appView .pp-detail .pp-prog b{color:var(--nd-ink);font-weight:600}
+html body #appView .pp-detail .pp-pbar{height:6px;margin-top:8px;border-radius:3px;background:var(--nd-line-2);overflow:hidden}
+html body #appView .pp-detail .pp-pbar>span{display:block;height:100%;border-radius:3px;background:var(--nd-green-fill,#1DAD53)}
+html body #appView .pp-detail .pp-prog+.pp-section-head{margin-top:24px}
+html body #appView .pp-detail .pp-kv{display:grid;grid-template-columns:120px minmax(0,1fr);margin:24px 0 0;border-top:1px solid var(--nd-line)}
+html body #appView .pp-detail .pp-kv>*{margin:0;padding:12px 0;border-bottom:1px solid var(--nd-line-2);font:400 13.5px/20px var(--sans);overflow-wrap:anywhere}
+html body #appView .pp-detail .pp-kv dt{color:var(--nd-ink-3)}
+html body #appView .pp-detail .pp-chip{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:5px;font:600 11.5px/1 var(--sans)}
+html body #appView .pp-detail .pp-chip.ok{background:var(--nd-green-soft,rgba(29,173,83,.10));color:var(--nd-green-fill,#1DAD53)}
+html body #appView .pp-detail .pp-chip.warn{background:var(--nd-amber-soft,rgba(255,149,0,.12));color:var(--nd-amber,#FF9500)}
+/* 아래 바: 견적서와 같은 자리·모양 — 왼쪽 보조, 오른쪽 파란 주 버튼 하나 */
+html body #appView .pp-detail .pp-abar{display:flex;align-items:center;gap:8px;padding:12px 28px;border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+html body #appView .pp-detail .pp-sp{flex:1}
+html body #appView .pp-detail .pp-btn{flex:none;height:40px;min-height:0;padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);box-shadow:none;font:500 13.5px/1 var(--sans);color:var(--nd-ink);white-space:nowrap;cursor:pointer}
+html body #appView .pp-detail .pp-btn.pp-primary{border-color:var(--nd-blue);background:var(--nd-blue);color:#fff;font-weight:600}
+html body #appView .pp-detail .pp-more{width:40px;padding:0;font-size:18px;line-height:1}
+html body #appView .pp-detail .pp-menu-host{position:relative;display:inline-flex}
+html body #appView .pp-detail .pp-menu{position:absolute;left:0;bottom:calc(100% + 6px);z-index:20;min-width:160px;padding:6px;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-surface);box-shadow:0 10px 30px rgba(0,0,0,.14)}
+html body #appView .pp-detail .pp-menu>button{display:block;width:100%;height:40px;min-height:0;padding:0 12px;border:0;border-radius:8px;background:none;box-shadow:none;text-align:left;font:500 13.5px/1 var(--sans);color:var(--nd-red,#E53E3E);cursor:pointer}
+html body #appView .pp-detail .pp-menu>button:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}
+
+/* ---------- 입력 창: 견적 고르기 · 고치는 중 안내 ---------- */
+html body #appView #payEntry.pp-has-pick .pf-quote{display:none!important}
+html body #appView #payEntry .pp-qpick{grid-column:1/-1;display:grid;gap:6px}
+/* PC 입력 칸 순서: 거래처 → 어느 건 → 금액·날짜 → 방법·메모 (폰은 기존 순서: 금액이 맨 위) */
+@media(min-width:1024px){
+ html body #appView #payEntry.pp-has-pick .pay-add{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:"kind kind" "co co" "pick pick" "amt date" "method memo" "btn btn"!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-kind{grid-area:kind!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-co{grid-area:co!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pp-qpick{grid-area:pick!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-amt{grid-area:amt!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-date{grid-area:date!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-method{grid-area:method!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-memo{grid-area:memo!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-btn{grid-area:btn!important}
+}
+}
+html body #appView #payEntry .pp-qpick-k{font:500 12px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #payEntry .pp-qpick>button{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:48px;margin:0;padding:8px 12px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);box-shadow:none;text-align:left;color:var(--nd-ink);font:500 13.5px/18px var(--sans);cursor:pointer}
+html body #appView #payEntry .pp-qpick>button[aria-pressed=true]{border-color:var(--nd-blue);background:var(--nd-blue-soft)}
+html body #appView #payEntry .pp-qpick>button small{display:block;font:400 12px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #payEntry .pp-qpick>button b{flex:none;font-weight:600}
+html body #appView #payEntry .pp-edit-note{grid-column:1/-1;margin:0;padding:10px 12px;border-radius:10px;background:var(--nd-amber-soft,rgba(255,149,0,.12));font:500 12.5px/18px var(--sans);color:var(--nd-ink)}
+
+/* ---------- 필터 창 ---------- */
 html body #appView .nd-pay-filter>.nd-trash-field{margin:0!important;padding:12px 16px!important;gap:6px;border-top:1px solid var(--nd-line);background:var(--nd-fill)}
 html body #appView .nd-pay-filter>.nd-trash-field .nd-trash-go{height:32px;min-height:32px;padding:0;border:0;background:none;text-align:left;font:400 12px/20px var(--sans);box-shadow:none}
 html body #appView .nd-pay-filter>.nd-trash-field>span{font:500 11px/16px var(--sans)}
 html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter{gap:12px}
 html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter label:not([hidden]){margin:0 0 14px!important}
 html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font:400 14px/20px var(--sans)!important}
-@media(max-width:1023px){
- html body #appView #view-payments .pp-record-top strong{font-size:15px!important}
- html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
-}
-/* Approved refined ledger: two quiet totals, one money column, real history. */
-html body #appView #view-payments>.pp-detail{grid-template-rows:var(--panel-head,144px) minmax(0,1fr)}
-html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px}
-html body #appView .pp-detail .pp-meta{grid-column:1/-1;margin-top:3px}
-html body #appView .pp-detail .pp-amount strong{white-space:nowrap}
-html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:24px;margin-bottom:0;padding-bottom:26px}
-html body #appView .pp-detail .pp-metrics>div{padding:0;min-width:0}
-html body #appView .pp-detail .pp-metrics>div+div{padding-left:24px}
-html body #appView .pp-detail .pp-metrics>div>span{display:flex;justify-content:space-between;gap:8px}
-html body #appView .pp-detail .pp-metrics strong{margin-top:10px;color:var(--nd-ink)}
-/* Desktop: 28px inset + 54px totals + 12px gap + 1px border =
-   the left panel's 47px tabs + 48px scope row. Mobile keeps its own spacing. */
-@media(min-width:1024px){
- html body #appView .pp-detail .pp-metrics{padding-bottom:12px}
-}
-html body #appView .pp-detail .pp-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 16px}
-html body #appView .pp-detail h4{font-weight:600}
-html body #appView .pp-detail h4 small{margin-left:6px;padding:2px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-3);font:400 11px/18px var(--sans)}
-html body #appView .pp-detail :is(.pp-section-head button,.pp-company-link,.pp-record-delete){padding:4px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
-html body #appView .pp-detail .pp-columns{display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;gap:16px;padding:10px 12px;border-block:1px solid var(--nd-line);color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
-html body #appView .pp-detail .pp-columns>span:last-child{text-align:right;padding-right:24px}
-html body #appView .pp-detail .pp-day+.pp-day{margin-top:0}
-html body #appView .pp-detail .pp-day-head{padding:22px 12px 8px;border:0}
-html body #appView .pp-detail .pp-records li{padding:0}
-html body #appView .pp-detail .pp-record{margin:0;padding:0;border:0;border-radius:0;background:none}
-html body #appView .pp-detail .pp-record summary{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) 80px 132px;align-items:start;gap:16px;padding:18px 12px;min-height:80px;cursor:pointer;background:none;font:400 14px/22px var(--sans)}
-html body #appView .pp-detail .pp-record summary::-webkit-details-marker{display:none}
-html body #appView .pp-detail .pp-record summary::after{display:none}
-html body #appView .pp-detail .pp-record-name{min-width:0;font-weight:500}
-html body #appView .pp-detail .pp-record-name>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html body #appView .pp-detail .pp-record-name small{display:flex;align-items:center;gap:6px;min-width:0;margin-top:7px;color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
-html body #appView .pp-detail .pp-preview{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html body #appView .pp-detail .pp-method{font:400 12px/22px var(--sans);color:var(--nd-ink-3)}
-html body #appView .pp-detail .pp-inline-method{display:none}
-html body #appView .pp-detail .pp-record summary>strong{display:flex;justify-content:flex-end;align-items:center;gap:12px;white-space:nowrap;color:var(--nd-ink)}
-html body #appView .pp-detail .pp-chevron{width:6px;height:6px;border-right:1.5px solid var(--nd-ink-3);border-bottom:1.5px solid var(--nd-ink-3);transform:rotate(45deg);margin:0 3px 4px;flex:none}
-html body #appView .pp-detail .pp-record[open] .pp-chevron{transform:rotate(225deg);margin-bottom:0}
-html body #appView .pp-detail .pp-record[open]{background:none}
-html body #appView .pp-detail .pp-record.pp-selected-record{background:none;box-shadow:none}
-html body #appView .pp-detail .pp-selected-record>summary{background:none;box-shadow:none}
-html body #appView .pp-detail .pp-record-more{display:grid;align-items:baseline;grid-template-columns:72px minmax(0,1fr);gap:10px 16px;margin:0;padding:6px 16px 20px;font:400 12px/20px var(--sans)}
-html body #appView .pp-detail .pp-record-more dt{color:var(--nd-ink-3)}
-html body #appView .pp-detail .pp-record-more dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
-html body #appView .pp-detail .pp-record-more .pp-record-delete{padding:0;margin:0;vertical-align:baseline;font:inherit;color:var(--danger,#d73329)}
-html body #appView .pp-detail .pp-note{margin:24px 0 8px;font-size:11px}
-html body #appView #view-payments .pp-badge{padding:1px 5px;border-radius:4px;background:var(--nd-fill);color:var(--nd-ink-2);font:500 11px/18px var(--sans);font-style:normal;white-space:nowrap}
-html body #appView #view-payments .pp-badge.in{color:var(--success,#16934f);background:color-mix(in srgb,var(--success,#16934f) 10%,transparent)}
-html body #appView .pp-detail summary:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
-html body #appView #view-payments :is(.pp-record summary>strong,.pp-mobile-row strong){font-family:var(--nd-number-font)!important;font-size:14px!important;font-weight:600!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums;white-space:nowrap}
-html body #appView #view-payments .pp-list-scope{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:none;padding:12px 0;font:400 12px/20px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-list-scope button{padding:2px 0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:400 12px/20px var(--sans)}
-html body #appView #view-payments>.pp-mobile-list{display:none}
 html body #appView .nd-pay-filter .pp-pop-close{margin-left:auto;border:0;background:none;box-shadow:none;color:var(--nd-ink-3);font:400 20px/24px var(--sans);width:32px;height:32px}
 html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;justify-content:space-between}
 html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
-/* Native month presets hide these labels; when showing them in the popup,
-   restore the full shared field layout, not only display:flex. */
 html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap;margin:0 0 14px!important;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
+html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+html body #appView #view-payments>.pp-mobile-list{display:none}
+
+@media(min-width:1024px) and (max-width:1200px){
+ html body #appView .pp-detail .pp-table .pp-c-method{display:none}
+ html body #appView .pp-detail .pp-table .pp-c-date{width:60px}
+ html body #appView .pp-detail .pp-table .pp-c-num{width:100px}
+ html body #appView .pp-detail .pp-flow>div{padding:0 12px}
+}
+/* ---------- 폰 ---------- */
 @media(max-width:1023px){
- html body #appView #view-payments>.pp-mobile-list{display:block}
+ html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
+ html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
+ html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
+ html body #appView #view-payments.pp-detail-open::after{display:none!important}
+ html body #appView #view-payments>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
+ html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
+ html body #appView .pp-detail .pp-back span{font-size:14px}
+ html body #appView .pp-detail .pp-head{padding:20px 16px;gap:14px 12px;min-height:126px}
+ html body #appView .pp-detail .pp-amount{margin-left:auto;font-size:12px;line-height:18px}
+ html body #appView .pp-detail .pp-meta{font-size:12px;line-height:18px;margin-top:0;gap:8px}
+ html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
+ html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
+ html body #appView #view-payments .pp-detail .pp-amount strong.neg{color:var(--nd-red,#E53E3E)!important}
+ html body #appView .pp-detail .pp-body{padding:20px 16px 24px;overflow:visible;flex:1}
+ html body #appView .pp-detail .pp-flow>div{padding:0 10px}
+ html body #appView .pp-detail .pp-flow>div:first-child{padding-left:0}
+ html body #appView .pp-detail .pp-flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html body #appView .pp-detail .pp-flow>div:nth-child(3){display:none}
+ html body #appView .pp-detail .pp-todo{grid-template-columns:1fr}
+ html body #appView .pp-detail .pp-todo>button+button{padding-left:0;border-left:0;border-top:1px solid var(--nd-line)}
+ html body #appView .pp-detail .pp-table .pp-c-method,html body #appView .pp-detail .pp-table .pp-c-io,html body #appView #view-payments .pp-hint{display:none}
+ html body #appView .pp-detail .pp-table .pp-c-amt{display:table-cell}
+ html body #appView .pp-detail .pp-table .pp-c-date{width:52px;padding-left:0}
+ html body #appView .pp-detail .pp-table .pp-c-num{width:92px;padding-right:0}
+ html body #appView .pp-detail .pp-table th,html body #appView .pp-detail .pp-table td{padding-inline:8px}
+ html body #appView .pp-detail .pp-kv{grid-template-columns:84px minmax(0,1fr)}
+ html body #appView .pp-detail .pp-abar{position:sticky;bottom:0;z-index:5;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+ html body #appView .pp-detail .pp-abar .pp-btn{height:44px}
+ html body #appView .pp-detail .pp-abar .pp-more{width:44px}
+ /* 목록 */
+ html body #appView #view-payments>.pp-mobile-list{display:block;margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
  html body #appView .shell .main #view-payments>.page-head{margin-bottom:0!important}
  html body #appView #view-payments:not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
  html body #appView #view-payments.pp-entry-open>.pp-mobile-list{display:none}
@@ -14730,87 +14705,71 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  html body #appView #view-payments>.page-head h2{padding-right:0}
  html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px 44px!important}
  html body #appView #view-payments .nd-tools .nd-tadd{display:flex!important}
- html body #appView #view-payments>.pp-mobile-list{margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
+ html body #appView #view-payments .pp-msum{display:block;width:100%;margin:0;padding:4px 20px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+ html body #appView #view-payments .pp-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ html body #appView #view-payments .pp-msum-top small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView #view-payments .pp-msum-top b{font-size:20px;font-weight:700;line-height:28px}
+ html body #appView #view-payments .pp-msum>.pp-bar{margin-top:8px}
+ html body #appView #view-payments .pp-msum-io{display:flex;justify-content:space-between;margin-top:6px}
+ html body #appView #view-payments .pp-msum-io small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
  html body #appView #view-payments .pp-kind-tabs{display:flex}
- html body #appView #view-payments .pp-kind-tabs button{flex:1;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
+ html body #appView #view-payments .pp-kind-tabs button{flex:1;height:48px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
  html body #appView #view-payments .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
- html body #appView #view-payments .pp-list-scope{padding:12px 20px}
- html body #appView #view-payments .pp-mobile-row{display:block;width:100%;padding:20px;text-align:left;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;box-shadow:none;background:none;color:var(--nd-ink);font:400 14px/22px var(--sans)}
- html body #appView #view-payments .pp-mobile-row>span{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
- html body #appView #view-payments .pp-mobile-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
- html body #appView #view-payments .pp-mobile-row small{display:flex;gap:6px;align-items:center;margin-top:8px;color:var(--nd-ink-3);font:400 12px/20px var(--sans)}
- html body #appView .pp-detail .pp-back{margin-left:16px}
- html body #appView .pp-detail .pp-head{padding:20px 16px;gap:14px 12px;min-height:126px}
- html body #appView .pp-detail .pp-amount{font-size:12px;line-height:18px}
- html body #appView .pp-detail .pp-meta{font-size:12px;line-height:18px;margin-top:0}
- html body #appView .pp-detail .pp-body{padding:24px 16px 32px}
- html body #appView .pp-detail .pp-metrics{grid-template-columns:1fr 1fr;gap:16px;padding-bottom:24px}
- html body #appView .pp-detail .pp-metrics>div{padding:0}
- html body #appView .pp-detail .pp-metrics>div+div{padding-left:16px}
- html body #appView .pp-detail .pp-metrics>div>span>small{display:none}
- html body #appView .pp-detail .pp-columns,html body #appView .pp-detail .pp-method{display:none}
- html body #appView .pp-detail .pp-record summary{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:18px 0;min-height:88px}
- html body #appView .pp-detail .pp-record-name>span{white-space:normal;overflow-wrap:anywhere}
- html body #appView .pp-detail .pp-record-name small{display:flex;flex-wrap:wrap}
- html body #appView .pp-detail .pp-inline-method{display:inline}
- html body #appView .pp-detail .pp-record summary>strong{gap:8px}
- html body #appView .pp-detail .pp-day-head{padding-inline:0}
- html body #appView .pp-detail .pp-record-more{padding-inline:0}
- html body #appView #view-payments .pp-detail .pp-metrics strong{letter-spacing:normal!important}
- /* Quote detail contract: outer gutter 12px, content inset 16px; heading 19px/1.4. */
- html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
- html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
+ html body #appView #view-payments .pp-mobile-list>.pp-kind-tabs{border-bottom:1px solid var(--nd-line)}
+ html body #appView #view-payments .pp-mobile-list .pp-list{--panel-inset:20px}
+ html body #appView #view-payments .pp-mobile-list .pp-row{padding-block:14px}
 }
-
 @media(max-width:780px){
  html body #appView #view-payments>.page-head{padding-bottom:20px!important}
 }
-</style><script id="naro-payment-panel-script">/* Read-only presentation. Native filters, entry and confirmed deletion remain
-   authoritative; no persistence or accounting calculation changes. */
+@media(max-width:360px){
+ html body #appView #view-payments .pp-detail .pp-amount strong{font-size:17px!important}
+}
+/* 입력 창을 열었을 때: 예전 합계 상자·접기 줄은 숨기고 입력만(머리는 '새 기록' / '기록 고치기') */
+html body #appView #view-payments.pp-entry-open .workspace-right>.ops-summary{display:none!important}
+html body #appView #view-payments.pp-entry-open #payEntry>summary{display:none!important}
+html body #appView #view-payments.pp-entry-open .workspace-right>.card:has(#payEntry)>:not(#payEntry){display:none!important}
+html body #appView #view-payments.pp-entry-open .workspace-right>.nd-pay-company-card{display:none!important}
+html body #appView #payEntry .pp-qpick>.pp-qpick-k{padding-left:16px;font:400 12px/16px var(--sans)!important;color:var(--nd-ink-3)!important}
+html body #appView .pp-detail .pp-meta>*{margin:0!important;align-self:center}
+/* 폰 입력 칸 순서: 거래처 → 어느 건 → 금액 → 날짜 → 방법 → 메모 */
+@media(max-width:1023px){
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-co{order:1!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pp-qpick{order:2!important;align-self:stretch;width:100%}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-amt{order:3!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-date{order:4!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-method{order:5!important}
+ html body #appView #payEntry.pp-has-pick .pay-add>.pf-memo{order:6!important}
+ html body #appView #payEntry .pp-qpick>.pp-qpick-k{padding-left:0;text-align:left;font:600 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important}
+}
+</style><script id="naro-payment-panel-script">/* 입금·출금 화면(10/15 시안 확정 — UI-RULES 'Payments'). 입금·출금 = 돈이 실제로 오간 기록.
+   기본 앱의 필터·입력 창·저장(addPayment·deletePayment)이 그대로 기준이고, 여기서는 보여 주기와
+   '고치기'(새 기록 저장 → 원래 기록 지우기, 견적서 진행 탭과 같은 규칙)만 더한다. */
 (()=>{
  const desk=matchMedia('(min-width:1024px)');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const paymentLabel=s=>'<span class="nd-payment-label">'+esc(s).replace('입금·출금','입금<i class="nd-payment-dot">·</i>출금')+'</span>';
- const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
- const signed=n=>(n>0?'+':n<0?'−':'')+won(Math.abs(n));
- const company=p=>(data()?.companies||[]).find(c=>c.id===p?.company_id)?.name||'거래처 없음';
- const kindTitle=()=>value('payFilter')==='수금'?'전체 입금':value('payFilter')==='지급'?'전체 출금':'전체 입금·출금';
- const state={id:null,mobileOpen:false,signature:''};
+ const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
+ const won=n=>num(n)+'원';
+ const state={id:null,mobileOpen:false,signature:'',listSig:'',mobileSig:'',editing:null,menu:false};
  let queued=false;
  const data=()=>{try{return db;}catch{return null;}};
  const value=id=>document.getElementById(id)?.value||'';
  const records=()=>[...document.querySelectorAll('#payTbl tbody tr .rm')].map(b=>b.dataset.id);
  const get=id=>(data()?.payments||[]).find(p=>p.id===id&&!p.void_at);
- // Header tools are installed once, but the responsive left panel is recreated.
- // Restore its native-select tabs on every mount, without cloning form controls.
- function syncLeft(left,index,ids){
-  if(!left||!index)return;
-  const select=document.getElementById('payFilter');
-  let tabs=left.querySelector(':scope>.nd-chips');
-  if(select&&!tabs){
-   tabs=document.createElement('div');tabs.className='nd-chips pp-kind-tabs';
-   tabs.setAttribute('role','group');tabs.setAttribute('aria-label','입출금 구분');
-   for(const [value,label] of [['','전체'],['수금','입금'],['지급','출금']]){
-    const b=document.createElement('button');b.type='button';b.dataset.v=value;b.textContent=label;
-    b.onclick=()=>{select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}));};tabs.append(b);
-   }
-   left.insertBefore(tabs,left.querySelector('.pp-overview')||index);
-  }
-  if(tabs&&select)for(const b of tabs.querySelectorAll('button')){
-   const pressed=String(b.dataset.v===select.value);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);
-  }
-  let scope=left.querySelector('.pp-list-scope');
-  if(!scope){scope=document.createElement('div');scope.className='pp-list-scope';(tabs||index).after(scope);}
-  const scopeHTML=`<span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button>`;
-  if(scope.innerHTML!==scopeHTML)scope.innerHTML=scopeHTML;
-  index.querySelectorAll('button').forEach((b,i)=>{
-   const p=get(ids[i]);if(!p)return;
-   const amount=b.querySelector('.pbr-amt'),sub=b.querySelector('.pbr-sub');
-   if(amount&&amount.textContent!==won(p.amount))amount.textContent=won(p.amount);
-   const text=[p.date,p.kind==='지급'?'출금':'입금',p.method].filter(Boolean).join(' · ');
-   if(sub&&sub.textContent!==text)sub.textContent=text;
-  });
- }
+ const company=id=>(data()?.companies||[]).find(c=>c.id===id);
+ const coName=id=>company(id)?.name||'거래처 없음';
+ const isIn=p=>p.kind!=='지급';
+ const kindWord=p=>p.refund?'환불':isIn(p)?'입금':'출금';
+ const quoteOf=p=>p?.quote_id?(data()?.quotes||[]).find(q=>q.id===p.quote_id):null;
+ const purchaseOf=p=>p?.purchase_id?window.NaroPurchases?.vendor?.(p.company_id)?.find(x=>x.id===p.purchase_id):null;
+ const docNo=p=>quoteOf(p)?.no||purchaseOf(p)?.no||'';
+ const fn=name=>{try{const f=globalThis[name];return typeof f==='function'?f:null;}catch{return null;}};
+ const amountOf=q=>{const f=fn('quoteAmount');return f?Number(f(q))||0:0;};
+ const paidOf=q=>(data()?.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
+ const WD='일월화수목금토';
+ function dayLabel(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');if(!m)return d||'날짜 없음';const t=new Date(+m[1],+m[2]-1,+m[3]);return `${+m[2]}월 ${+m[3]}일 (${WD[t.getDay()]})`;}
+ const short=d=>{const m=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||'');return m?`${m[1]}.${m[2]}`:(d||'');};
  const period=()=>({mode:value('payPeriod'),month:value('payMonth'),from:value('payFrom'),to:value('payTo')});
  function inPeriod(p,c=period()){
   const date=String(p.date||'');
@@ -14820,95 +14779,225 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
  }
  function periodLabel(){
   const c=period();
-  return c.mode==='month'?c.month.replace('-','년 ')+'월':c.mode==='range'?`${c.from||'처음'} – ${c.to||'현재'}`:'전체 기간';
+  return c.mode==='month'?c.month.replace(/^(\d{4})-0?(\d{1,2})$/,'$1년 $2월'):c.mode==='range'?`${c.from||'처음'} – ${c.to||'현재'}`:'전체 기간';
  }
+ const thisMonth=()=>{const f=fn('localMonth');return f?f():new Date().toISOString().slice(0,7);};
+ // 기본(이번 달)이 아닌 기간일 때만 칩으로 보인다 — 늘 있던 '일자·건수·초기화' 줄은 없앴다.
+ const periodChanged=()=>{const c=period();return !(c.mode==='month'&&c.month===thisMonth());};
+ const kindNote=()=>value('payFilter')==='수금'?'입금만':value('payFilter')==='지급'?'출금만':'';
+ const rowsOf=ids=>ids.map(get).filter(Boolean);
+ const totals=rows=>rows.reduce((s,p)=>{s[isIn(p)?'in':'out']+=Number(p.amount)||0;s[isIn(p)?'nIn':'nOut']++;s.count++;return s;},{in:0,out:0,nIn:0,nOut:0,count:0});
  function history(p){
   const ids=new Set(records());
   return (data()?.payments||[]).filter(x=>!x.void_at&&(p?(p.company_id?x.company_id===p.company_id:x.id===p.id)&&inPeriod(x):ids.has(x.id)))
    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created_at||'').localeCompare(String(a.created_at||'')));
  }
- const totals=rows=>rows.reduce((s,p)=>{s[p.kind==='지급'?'out':'in']+=Number(p.amount)||0;s.count++;return s;},{in:0,out:0,count:0});
- function documentNo(p){
-  if(p.purchase_id)return window.NaroPurchases?.vendor(p.company_id)?.find(q=>q.id===p.purchase_id)?.no||'';
-  return (data()?.quotes||[]).find(q=>q.id===p.quote_id&&(!q.company_id||q.company_id===p.company_id))?.no||'';
+ // 받을 돈 = 받을 금액 화면과 같은 계산 · 줄 돈 = 매입 화면의 '미출금'과 같은 계산
+ function receivable(){const f=fn('arData');if(!f)return null;try{const open=f().filter(r=>r.open>0);return {sum:open.reduce((s,r)=>s+r.open,0),n:open.length};}catch{return null;}}
+ function payable(){const list=window.NaroPurchases?.payables?.();if(!list)return null;return {sum:list.reduce((s,x)=>s+x.open,0),n:list.length};}
+ const signedAmount=p=>`${isIn(p)?'+':'−'}${won(p.amount)}`;
+ function listMarkup(ids){
+  const rows=rowsOf(ids);if(!rows.length)return '<p class="pp-empty">이 기간에 입금·출금 기록이 없어요.</p>';
+  const groups=new Map();for(const p of rows){const k=p.date||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(p);}
+  return [...groups].map(([d,items])=>`<div class="pp-dg">${esc(dayLabel(d))}</div>${items.map(p=>{
+   const meta=[docNo(p)||p.memo||'',p.method||''].filter(Boolean).join(' · ');
+   return `<button type="button" class="pp-row${p.id===state.id?' on':''}" data-pp="record" data-id="${esc(p.id)}"${p.id===state.id?' aria-current="true"':''}><span class="pp-row-nm">${esc(coName(p.company_id))}</span><span class="pp-row-am${isIn(p)&&!p.refund?' in':''}">${signedAmount(p)}</span><span class="pp-row-mt"><b class="pp-badge ${isIn(p)?'in':'out'}">${kindWord(p)}</b>${esc(meta)}</span></button>`;}).join('')}`).join('');
  }
- function markup(p){
-  const rows=history(p),sum=totals(rows),co=(data()?.companies||[]).find(c=>c.id===p?.company_id);
-  const title=p?co?.name||'거래처 없음':kindTitle();
-  const groups=new Map();for(const row of rows){const day=row.date||'날짜 없음';if(!groups.has(day))groups.set(day,[]);groups.get(day).push(row);}
-  const metric=(label,n,count)=>`<div><span>${label}<small>${count}건</small></span><strong>${Math.round(n).toLocaleString('ko-KR')}<small>원</small></strong></div>`;
+ const chipsMarkup=()=>periodChanged()?`<div class="pp-fchips"><button type="button" class="pp-fchip" data-pp="reset" aria-label="기간을 이번 달로">${esc(periodLabel())} <span aria-hidden="true">✕</span></button></div>`:'';
+ const barMarkup=sum=>`<span class="pp-bar" aria-hidden="true">${sum.in||sum.out?`<span class="in" style="flex:${sum.in}"></span><span class="out" style="flex:${sum.out}"></span>`:''}</span>`;
+ function flowMarkup(sum){
+  const net=sum.in-sum.out;
+  return `<section class="pp-metrics pp-flow" aria-label="기간 합계"><div><span><i class="pp-dot in"></i>입금 · ${sum.nIn}건</span><strong>${num(sum.in)}<small>원</small></strong></div><div><span><i class="pp-dot out"></i>출금 · ${sum.nOut}건</span><strong>${num(sum.out)}<small>원</small></strong></div><div><span>차액<em class="pp-hint"> (입금 − 출금)</em></span><strong class="${net<0?'neg':''}">${net<0?'−':''}${num(Math.abs(net))}<small>원</small></strong></div></section>${barMarkup(sum)}`;
+ }
+ function overviewMarkup(){
+  const ids=records(),rows=rowsOf(ids),sum=totals(rows),net=sum.in-sum.out,ar=receivable(),ap=payable(),label=periodLabel();
+  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액 ›</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입 ›</em></button>`:''}</section>`:'';
+  const table=rows.length?`<table class="pp-table"><thead><tr><th class="pp-c-date">날짜</th><th>거래처 · 연결</th><th class="pp-c-method">방법</th><th class="pp-c-num pp-c-io">입금</th><th class="pp-c-num pp-c-io">출금</th><th class="pp-c-num pp-c-amt">금액</th></tr></thead><tbody>${rows.map(p=>`<tr data-pp="record" data-id="${esc(p.id)}" tabindex="0"><td class="pp-c-date">${esc(short(p.date))}</td><td><span class="pp-t-nm">${esc(coName(p.company_id))}</span><small>${esc([p.refund?'환불':'',docNo(p)?(p.purchase_id?'매입 ':'견적 ')+docNo(p):'',p.memo||''].filter(Boolean).join(' · ')||'연결 없음')}</small></td><td class="pp-c-method">${esc(p.method||'—')}</td><td class="pp-c-num pp-c-io in">${isIn(p)?num(p.amount):''}</td><td class="pp-c-num pp-c-io">${isIn(p)?'':num(p.amount)}</td><td class="pp-c-num pp-c-amt${isIn(p)&&!p.refund?' in':''}">${isIn(p)?'+':'−'}${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">이 기간에 입금·출금 기록이 없어요.<br>아래 [＋ 입금·출금 기록]으로 시작하세요.</div>';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
-   <header class="pp-head"><div class="pp-title"><span class="pp-caption">${p?'거래처':'입출금 현황'}</span><h3 title="${esc(title)}">${p?esc(title):paymentLabel(title)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong>${signed(sum.in-sum.out)}</strong></div><div class="pp-meta">${esc(periodLabel())} · ${p?'거래처 기록':'조회된 기록'}</div></header>
-   <div class="pp-body" id="pp-body"><section class="pp-metrics" aria-label="조회 결과 합계">${metric('입금 합계',sum.in,rows.filter(x=>x.kind!=='지급').length)}${metric('출금 합계',sum.out,rows.filter(x=>x.kind==='지급').length)}</section>
-   <div class="pp-section-head"><h4>${p?'거래처 입출금 내역':'입출금 내역'} <small>${sum.count}건</small></h4>${p?'<button type="button" data-pp="overview">전체 내역</button>':''}</div>
-   <div class="pp-columns" aria-hidden="true"><span>거래 내용</span><span>결제수단</span><span>금액</span></div>
-   ${[...groups].map(([date,items])=>`<section class="pp-day"><div class="pp-day-head"><span>${esc(date)}</span><span>${items.length}건</span></div><ol class="pp-records">${items.map(x=>{
-    const incoming=x.kind!=='지급',name=p?`${x.refund?'환불 ':''}${incoming?'입금':'출금'}`:(data()?.companies||[]).find(c=>c.id===x.company_id)?.name||'거래처 없음';
-    const doc=documentNo(x),type=(x.refund?'환불 ':'')+(incoming?'입금':'출금');
-    return `<li><details class="pp-record${x.id===p?.id?' pp-selected-record':''}" data-record="${esc(x.id)}"${x.id===p?.id?' aria-current="true"':''}><summary><div class="pp-record-name"><span>${esc(name)}</span><small>${!p?`<b class="pp-badge ${incoming?'in':'out'}">${type}</b>`:''}<span class="pp-inline-method">${esc(x.method||'미기록')}</span><span class="pp-preview">${esc(x.memo||doc||'')}</span></small></div><span class="pp-method">${esc(x.method||'미기록')}</span><strong>${won(x.amount)}<i class="pp-chevron" aria-hidden="true"></i></strong></summary><dl class="pp-record-more"><dt>거래일</dt><dd>${esc(x.date||'미기록')}</dd><dt>구분</dt><dd>${type} · ${esc(x.method||'결제수단 미기록')}</dd>${doc?`<dt>문서번호</dt><dd>${esc(doc)}</dd>`:''}<dt>메모</dt><dd>${esc(x.memo||'메모 없음')}</dd><dt>기록 관리</dt><dd><button type="button" class="pp-record-delete" data-pp="delete-record" data-id="${esc(x.id)}">이 기록 삭제</button></dd></dl></details></li>`;
-   }).join('')}</ol></section>`).join('')||'<div class="pp-empty">표시할 입출금 기록이 없습니다.</div>'}
-   <p class="pp-note">${p?'선택 기간의 거래처 입금·출금을 모두 표시합니다. ':''}차액은 통장 잔액과 다릅니다.</p>${co?'<button type="button" class="pp-company-link" data-pp="company">거래처 보기 ›</button>':''}</div>`;
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">입출금 현황</span><h3 title="${esc(label)}">${esc(label)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong class="${net<0?'neg':''}">${net<0?'−':''}${won(Math.abs(net))}</strong></div><div class="pp-meta">${sum.count}건${kindNote()?' · '+kindNote():''}</div></header>
+   <div class="pp-body" id="pp-body">${flowMarkup(sum)}${todo}<div class="pp-section-head"><h4>${esc(label.replace(/^\d{4}년 /,''))} 내역 <small>${sum.count}건</small></h4></div>${table}<p class="pp-note">차액은 이 기간의 입금 − 출금이에요. 통장 잔액과는 달라요.</p></div>
+   <div class="pp-abar"><button type="button" class="pp-btn" data-pp="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button></div>`;
+ }
+ function detailMarkup(p){
+  const q=quoteOf(p),pu=purchaseOf(p),co=company(p.company_id),word=kindWord(p);
+  let prog='',chip='',rest=0,list,title;
+  if(q){
+   const due=amountOf(q),paid=paidOf(q);rest=Math.max(0,due-paid);
+   chip=due>0?(rest<=0.5?'<span class="pp-chip ok">다 받음</span>':'<span class="pp-chip warn">일부 입금</span>'):'';
+   prog=due>0?`<section class="pp-prog"><div><span>받을 돈 ${won(due)} 중</span><b>${rest<=0.5?'다 받았어요':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
+   list=(data()?.payments||[]).filter(x=>x.quote_id===q.id&&!x.void_at);title='이 견적의 입금·환불';
+  }else if(p.purchase_id){list=(data()?.payments||[]).filter(x=>x.purchase_id===p.purchase_id&&!x.void_at);title='이 매입의 출금';}
+  else{list=history(p);title=`이 거래처의 입출금 · ${periodLabel()}`;}
+  list=list.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.created_at||'').localeCompare(String(b.created_at||'')));
+  const docBtn=q?`<button type="button" class="pp-link" data-pp="doc">${esc(q.no||'견적서')}</button>`:pu?`<button type="button" class="pp-link" data-pp="doc">${esc(pu.no||'매입')}</button>`:'';
+  const created=String(p.created_at||'').slice(0,10);
+  const docLink=q?'<button type="button" data-pp="doc">견적서 열기 ›</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기 ›</button>':'';
+  return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">${word}</span><h3 title="${esc(co?.name||'거래처 없음')}">${esc(co?.name||'거래처 없음')}</h3></div><div class="pp-amount"><span>${word}액</span><strong>${won(p.amount)}</strong></div><div class="pp-meta">${docBtn}<span>${esc(p.date||'날짜 없음')}</span><span>${esc(p.method||'방법 미기록')}</span>${chip}</div></header>
+   <div class="pp-body" id="pp-body">${prog}
+    <div class="pp-section-head"><h4>${esc(title)} <small>${list.length}건</small></h4>${docLink}</div>
+    <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
+    <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)} ›</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
+   </div>
+   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">고치기</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button>'}</div>`;
+ }
+ const markup=p=>p?detailMarkup(p):overviewMarkup();
+ function syncLeft(left,ids){
+  if(!left)return;
+  const select=document.getElementById('payFilter');
+  let tabs=left.querySelector(':scope>.nd-chips');
+  if(select&&!tabs){
+   tabs=document.createElement('div');tabs.className='nd-chips pp-kind-tabs';
+   tabs.setAttribute('role','group');tabs.setAttribute('aria-label','입출금 구분');
+   for(const [v,label] of [['','전체'],['수금','입금'],['지급','출금']]){
+    const b=document.createElement('button');b.type='button';b.dataset.v=v;b.textContent=label;
+    b.onclick=()=>{select.value=v;select.dispatchEvent(new Event('change',{bubbles:true}));};tabs.append(b);
+   }
+   left.insertBefore(tabs,left.querySelector('.panel-b-index'));
+  }
+  if(tabs&&select)for(const b of tabs.querySelectorAll('button')){const pressed=String(b.dataset.v===select.value);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);}
+  left.querySelectorAll(':scope>.pp-list-scope,:scope>.pp-overview').forEach(x=>x.remove());
+  let list=left.querySelector(':scope>.pp-list');
+  if(!list){list=document.createElement('div');list.className='pp-list';list.setAttribute('aria-label','입출금 기록');left.append(list);}
+  const html=chipsMarkup()+listMarkup(ids);
+  if(html!==state.listSig||!list.firstChild){list.innerHTML=html;state.listSig=html;}
+ }
+ // 제목 옆 건수(견적서와 같은 자리)
+ function syncCount(v,ids){
+  const head=v.querySelector(':scope>.page-head'),h2=head?.querySelector('h2');if(!h2)return;
+  let c=head.querySelector(':scope>.pp-count');if(!c){c=document.createElement('span');c.className='count pp-count';h2.after(c);}
+  const t=ids.length+'건';if(c.textContent!==t)c.textContent=t;
  }
  function mobileList(v,ids){
   let list=v.querySelector(':scope>.pp-mobile-list');
   if(!list){list=document.createElement('div');list.className='pp-mobile-list';v.append(list);}
-  const sum=totals(history(null));
-  const html=`<div class="pp-kind-tabs" role="group" aria-label="입출금 구분">${[['','전체'],['수금','입금'],['지급','출금']].map(([k,t])=>`<button type="button" data-pp="kind" data-kind="${k}" aria-pressed="${value('payFilter')===k}">${t}</button>`).join('')}</div><div class="pp-list-scope"><span>${esc(periodLabel())} · ${ids.length}건</span><button type="button" data-pp="reset">초기화</button></div><button type="button" class="pp-mobile-row" data-pp="overview"><span><b>${paymentLabel(kindTitle())}</b><strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small></button>${ids.map(id=>{const p=get(id);return p?`<button type="button" class="pp-mobile-row" data-pp="record" data-id="${esc(id)}"><span><b>${esc(company(p))}</b><strong>${won(p.amount)}</strong></span><small>${esc(p.date)} · <em class="pp-badge ${p.kind==='지급'?'out':'in'}">${p.kind==='지급'?'출금':'입금'}</em> · ${esc(p.method||'미기록')}</small></button>`:'';}).join('')||'<p class="pp-empty">표시할 입출금 기록이 없습니다.</p>'}`;
-  if(list.innerHTML!==html)list.innerHTML=html;
+  const sum=totals(rowsOf(ids)),net=sum.in-sum.out;
+  const html=`<button type="button" class="pp-msum" data-pp="overview"><span class="pp-msum-top"><small>${esc(periodLabel())} 차액 (입금 − 출금)</small><b class="${net<0?'neg':''}">${net<0?'−':''}${won(Math.abs(net))}</b></span>${barMarkup(sum)}<span class="pp-msum-io"><small>입금 ${num(sum.in)}</small><small>출금 ${num(sum.out)}</small></span></button><div class="pp-kind-tabs" role="group" aria-label="입출금 구분">${[['','전체'],['수금','입금'],['지급','출금']].map(([k,t])=>`<button type="button" data-pp="kind" data-kind="${k}" aria-pressed="${value('payFilter')===k}">${t}</button>`).join('')}</div><div class="pp-list">${chipsMarkup()}${listMarkup(ids)}</div>`;
+  if(html!==state.mobileSig||!list.firstChild){list.innerHTML=html;state.mobileSig=html;}
  }
  function show(id){
   const v=document.getElementById('view-payments');
   if(!v||!get(id)||!records().includes(id)||document.getElementById('payEntry')?.open)return false;
-  state.id=id;state.mobileOpen=true;render();if(!desk.matches)v.querySelector('.pp-back')?.scrollIntoView({block:'start'});return true;
+  state.id=id;state.mobileOpen=true;state.menu=false;render();if(!desk.matches)v.querySelector('.pp-back')?.scrollIntoView({block:'start'});return true;
  }
  function render(){
   const v=document.getElementById('view-payments');if(!v)return;
-  const ids=records();if(state.id&&!ids.includes(state.id)){state.id=null;state.signature='';}
-  v.classList.toggle('pp-entry-open',!!document.getElementById('payEntry')?.open);
+  const ids=records();if(state.id&&!ids.includes(state.id)){state.id=null;state.signature='';state.menu=false;}
+  const entryOpen=!!document.getElementById('payEntry')?.open;
+  v.classList.toggle('pp-entry-open',entryOpen);
+  syncCount(v,ids);
   if(!desk.matches)mobileList(v,ids);
-  const p=get(state.id),left=v.querySelector('.workspace-left'),index=left?.querySelector('.panel-b-index');
-  syncLeft(left,index,ids);
-  let all=left?.querySelector('.pp-overview');
-  if(index&&!all){all=document.createElement('button');all.type='button';all.className='pp-overview';all.dataset.pp='overview';index.before(all);}
-  if(all){const sum=totals(history(null)),html=`<span>${paymentLabel(kindTitle())} <strong>${signed(sum.in-sum.out)}</strong></span><small>조회 합계 · 입금 − 출금</small>`;if(all.innerHTML!==html)all.innerHTML=html;all.classList.toggle('on',!p);}
+  syncLeft(v.querySelector('.workspace-left'),ids);
+  syncEntry();
+  const p=get(state.id);
   let host=v.querySelector(':scope>.pp-detail');
-  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!document.getElementById('payEntry')?.open;
+  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!entryOpen;
   v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);
   if(!active){if(host)host.hidden=true;return;}
-  if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','입출금 상세 내역');v.append(host);}
+  if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','입출금 상세');v.append(host);}
   host.hidden=false;const html=markup(p);
-  if(html!==state.signature||!host.firstChild){const expanded=[...host.querySelectorAll('details[open]')].map(x=>x.dataset.record);host.innerHTML=html;host.querySelectorAll('details').forEach(x=>{x.open=expanded.includes(x.dataset.record);});state.signature=html;}
+  if(html!==state.signature||!host.firstChild){
+   const same=host.dataset.for===(p?.id||''),top=host.querySelector('.pp-body')?.scrollTop||0;
+   host.innerHTML=html;host.dataset.for=p?.id||'';if(same){const b=host.querySelector('.pp-body');if(b)b.scrollTop=top;}state.signature=html;
+  }
   v.querySelectorAll('#payTbl tbody tr').forEach(r=>r.classList.toggle('panel-b-selected',!!p&&r.querySelector('.rm')?.dataset.id===state.id));
-  v.querySelectorAll('.panel-b-index button').forEach((b,i)=>{const selected=!!p&&ids[i]===state.id;b.classList.toggle('on',selected);if(selected)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');});
  }
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});};
- function syncFilterDates(){
-  const pop=document.querySelector('.nd-pay-filter');if(!pop?.querySelector('#payFrom'))return;
-  const c=period();if(c.mode==='range')return;
-  let from='',to='';
-  if(c.mode==='month'&&/^\d{4}-\d{2}$/.test(c.month)){
-   const [y,m]=c.month.split('-').map(Number);from=c.month+'-01';to=c.month+'-'+new Date(y,m,0).getDate();
+ // ---------- 입력 창: 거래처를 고르면 남은 금액이 있는 견적이 뜨고, 누르면 금액이 채워진다 ----------
+ const set=(id,v)=>{const el=document.getElementById(id);if(!el)return;el.value=v;el.dispatchEvent(new Event('change',{bubbles:true}));};
+ function syncEntry(){
+  const entry=document.getElementById('payEntry');if(!entry)return;
+  if(!entry.open&&state.editing)state.editing=null;
+  const co=entry.querySelector('.pf-co'),kind=value('payKind'),cid=value('payCo');
+  const open=fn('openQuotesOf'),bal=fn('quoteBalance');
+  let qs=[];try{qs=entry.open&&kind==='수금'&&cid&&open&&bal?open(cid):[];}catch{qs=[];}
+  let pick=entry.querySelector('.pp-qpick');
+  entry.classList.toggle('pp-has-pick',!!qs.length);
+  if(!qs.length)pick?.remove();
+  else if(co){
+   if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 돈인가요?');co.after(pick);}
+   const cur=value('payQuote');
+   const html=`<span class="pp-qpick-k">어느 건의 돈인가요? · 남은 금액이 있는 견적</span>${qs.map(q=>`<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><b>${won(bal(q))}</b></button>`).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
+   if(pick.innerHTML!==html)pick.innerHTML=html;
   }
-  for(const [id,v] of [['payFrom',from],['payTo',to]]){const input=document.getElementById(id);if(input&&input.value!==v){input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));}}
+  const head=document.querySelector('#view-payments>.workspace-heading');
+  if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 고치기`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
+  let note=entry.querySelector('.pp-edit-note');const orig=state.editing&&(data()?.payments||[]).find(x=>x.id===state.editing);
+  if(orig){if(!note){note=document.createElement('p');note.className='pp-edit-note';(entry.querySelector('.pay-add')||entry).prepend(note);}const t=`고치는 중 · 원래 기록(${short(orig.date)} · ${won(orig.amount)})은 저장하면 새 기록으로 바뀌어요.`;if(note.textContent!==t)note.textContent=t;}
+  else note?.remove();
+ }
+ function openEntry(kind,fill={}){
+  const f=fn('openPaymentEntry');if(f)f(kind);else{const e=document.getElementById('payEntry');if(e)e.open=true;set('payKind',kind);}
+  setTimeout(()=>{
+   if(fill.company_id)set('payCo',fill.company_id);
+   if(fill.quote_id!==undefined){
+    const s=document.getElementById('payQuote');
+    if(s&&fill.quote_id&&![...s.options].some(o=>o.value===fill.quote_id)){const q=(data()?.quotes||[]).find(x=>x.id===fill.quote_id);if(q){const o=document.createElement('option');o.value=q.id;o.textContent=q.no||'견적';s.append(o);}}
+    set('payQuote',fill.quote_id||'');
+   }
+   if(fill.date){const d=document.getElementById('payDate');if(d)d.value=fill.date;}
+   if(fill.method)set('payMethod',fill.method);
+   if(fill.amount!==undefined){const a=document.getElementById('payAmt');if(a)a.value=fill.amount?num(fill.amount):'';}
+   if(fill.memo!==undefined){const m=document.getElementById('payMemo');if(m)m.value=fill.memo||'';}
+   syncEntry();
+  },0);
+ }
+ // 고치기: 새 기록이 저장된 뒤에 원래 기록을 지운다(저장소는 기록 수정을 받지 않고 추가·삭제만 받는다 — 견적서 진행 탭과 같음).
+ function wrapAdd(){
+  const base=fn('addPayment');if(!base||base.ndPayEdit)return;
+  const wrapped=async function(){
+   const before=new Set((data()?.payments||[]).map(p=>p.id)),orig=state.editing;
+   const r=await base.apply(this,arguments);
+   const added=(data()?.payments||[]).find(p=>!before.has(p.id));
+   if(added&&orig&&(data()?.payments||[]).some(p=>p.id===orig)){
+    state.editing=null;const next=db.payments.filter(p=>p.id!==orig),save=fn('saveTable');
+    if(save&&await save('payments',next)){db.payments=next;state.id=added.id;const e=document.getElementById('payEntry');if(e)e.open=false;fn('renderPay')?.();fn('toast')?.('입금·출금 기록을 고쳤어요');}
+    else fn('toast')?.('새 기록은 저장했지만 원래 기록을 지우지 못했어요. 원래 기록을 골라 삭제해 주세요.');
+   }else if(added)state.id=added.id;
+   schedule();return r;
+  };
+  wrapped.ndPayEdit=true;globalThis.addPayment=wrapped;
  }
  function mount(){
   const v=document.getElementById('view-payments');if(!v)return;
+  wrapAdd();
   v.addEventListener('click',ev=>{
+   const pq=ev.target.closest('[data-pq]');
+   if(pq){const id=pq.dataset.pq;set('payQuote',id);const q=(data()?.quotes||[]).find(x=>x.id===id),bal=fn('quoteBalance'),a=document.getElementById('payAmt');if(a&&q&&bal)a.value=num(bal(q));syncEntry();return;}
    const b=ev.target.closest('[data-pp]');if(!b)return;const p=get(state.id);
+   if(b.dataset.pp!=='menu'&&state.menu)state.menu=false;
    switch(b.dataset.pp){
     case 'record':show(b.dataset.id);break;
     case 'kind':{const s=document.getElementById('payFilter');s.value=b.dataset.kind;s.dispatchEvent(new Event('change',{bubbles:true}));break;}
     case 'reset':state.id=null;document.getElementById('payClear')?.click();break;
-    case 'delete-record':if(get(b.dataset.id)&&typeof deletePayment==='function')deletePayment(b.dataset.id);break;
     case 'overview':state.id=null;state.mobileOpen=true;render();break;
     case 'back':state.mobileOpen=false;render();break;
-    case 'company':if(p&&typeof switchView==='function'&&switchView('companies')!==false){coSel=p.company_id;renderCoList();renderCoDetail();}break;
-    case 'delete':if(p&&typeof deletePayment==='function')deletePayment(p.id);break;
+    case 'menu':state.menu=!state.menu;state.signature='';render();break;
+    case 'delete':if(p&&fn('deletePayment'))deletePayment(p.id);break;
+    case 'edit':if(p){state.editing=p.id;openEntry(p.kind==='지급'?'지급':'수금',{company_id:p.company_id,quote_id:p.quote_id||'',date:p.date,method:p.method,amount:p.amount,memo:p.memo});}break;
+    case 'rest':{const q=quoteOf(p);if(q)openEntry('수금',{company_id:q.company_id,quote_id:q.id,amount:Math.max(0,amountOf(q)-paidOf(q))});break;}
+    case 'add':openEntry('수금');break;
+    case 'export':[...document.querySelectorAll('.nd-nav-act')].find(x=>x.textContent.includes('데이터 내보내기'))?.click();break;
+    case 'ar':fn('switchView')?.('ar');break;
+    case 'purchases':fn('switchView')?.('purchases');break;
+    case 'doc':{
+     const q=quoteOf(p);
+     if(q){if(fn('switchView')?.('quotes')!==false){qtSel=q.id;fn('renderQtList')?.();fn('renderQtDetail')?.();}}
+     else if(p?.purchase_id&&fn('switchView')?.('purchases')!==false)window.NaroPurchases?.open?.(p.purchase_id);
+     break;
+    }
+    case 'company':if(p&&fn('switchView')?.('companies')!==false){coSel=p.company_id;fn('renderCoList')?.();fn('renderCoDetail')?.();}break;
    }
   });
+  v.addEventListener('keydown',ev=>{
+   if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('tr[data-pp="record"]')){ev.preventDefault();show(ev.target.dataset.id);}
+   if(ev.key==='Escape'&&state.menu){state.menu=false;state.signature='';render();}
+  });
+  document.addEventListener('click',ev=>{if(state.menu&&!ev.target.closest?.('.pp-menu-host')){state.menu=false;state.signature='';schedule();}});
   v.addEventListener('change',schedule);v.addEventListener('input',schedule);
   document.addEventListener('change',e=>{
    if(e.target.matches?.('.nd-pay-filter #payFrom,.nd-pay-filter #payTo'))document.getElementById('payPeriod').value='range';
+   if(e.target.matches?.('#payKind,#payCo,#payQuote'))schedule();
   },true);
   document.addEventListener('click',()=>queueMicrotask(()=>{
    syncFilterDates();
@@ -14918,6 +15007,15 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
   document.getElementById('payEntry')?.addEventListener('toggle',schedule);
   new MutationObserver(schedule).observe(v,{childList:true,subtree:true});
   desk.addEventListener('change',schedule);schedule();
+ }
+ function syncFilterDates(){
+  const pop=document.querySelector('.nd-pay-filter');if(!pop?.querySelector('#payFrom'))return;
+  const c=period();if(c.mode==='range')return;
+  let from='',to='';
+  if(c.mode==='month'&&/^\d{4}-\d{2}$/.test(c.month)){
+   const [y,m]=c.month.split('-').map(Number);from=c.month+'-01';to=c.month+'-'+new Date(y,m,0).getDate();
+  }
+  for(const [id,v] of [['payFrom',from],['payTo',to]]){const input=document.getElementById(id);if(input&&input.value!==v){input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));}}
  }
  window.NaroPaymentPanel={open:show};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();

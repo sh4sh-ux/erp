@@ -22,7 +22,7 @@ function fixture(){
 test('company history includes all directions and unlinked payments in period, never another company or voids',()=>{
  const {api,db}=fixture(),rows=api.history(db.payments[0]);
  assert.deepEqual(Array.from(rows,x=>x.id),['p','r','unlinked']);
- assert.deepEqual({...api.totals(rows)},{in:120000,out:10000,count:3});
+ assert.deepEqual({...api.totals(rows)},{in:120000,out:10000,nIn:2,nOut:1,count:3});
 });
 test('overview respects the native filtered list',()=>{
  const {api}=fixture();assert.deepEqual(Array.from(api.history(null),x=>x.id),['p','other','unlinked']);
@@ -36,37 +36,44 @@ test('unnamed counterparties do not get merged together',()=>{
  const {api,db}=fixture();delete db.payments[0].company_id;delete db.payments[1].company_id;
  assert.deepEqual(Array.from(api.history(db.payments[0]),x=>x.id),['p']);
 });
-test('header net and summary match records; selected record and refunds visible without route or document blocks',()=>{
- const {api,db}=fixture(),html=api.markup(db.payments[0]);
- assert.match(html,/>검증 거래처<\/h3>/);assert.match(html,/>\+110,000원<\/strong>/);
- assert.match(html,/120,000<small>원/);assert.match(html,/10,000<small>원/);assert.match(html,/<small>3건<\/small>/);
- assert.match(html,/환불 출금/);assert.equal((html.match(/aria-current="true"/g)||[]).length,1);
- assert.doesNotMatch(html,/이번 입금의 흐름|연결 견적|pp-route|777,777|888,888|999,999/);
+test('overview header says 차액 (입금 − 출금) without a plus sign; numbers match the native list',()=>{
+ const {api}=fixture(),html=api.markup(null);
+ assert.match(html,/입출금 현황/);assert.match(html,/>2026년 10월<\/h3>/);
+ assert.match(html,/<span>차액 · 입금 − 출금<\/span><strong class="">1,008,888원<\/strong>/);
+ assert.doesNotMatch(html,/>\+[\d,]+원<\/strong>/);
+ assert.match(html,/입금 · 3건/);assert.match(html,/출금 · 0건/);assert.match(html,/차액<em class="pp-hint"> \(입금 − 출금\)/);
+ assert.match(html,/<th class="pp-c-num pp-c-io">입금<\/th><th class="pp-c-num pp-c-io">출금<\/th><th class="pp-c-num pp-c-amt">금액<\/th>/);
+ assert.doesNotMatch(html,/들어온 돈|나간 돈|남은 돈|pp-overview|pp-list-scope|초기화/);
+ assert.match(html,/data-pp="add">＋ 입금·출금 기록/);
 });
-test('approved ledger has two metrics, one unsigned money column and expandable actual records',()=>{
+test('record detail: quote-linked list, current row marked once, edit and delete actions, no voided or other-company rows',()=>{
  const {api,db}=fixture(),html=api.markup(db.payments[0]);
- assert.match(html,/거래처 입출금 내역/);assert.match(html,/결제수단<\/span><span>금액/);
- assert.equal((html.match(/<details class="pp-record/g)||[]).length,3);
- assert.match(html,/>100,000원<i class="pp-chevron/);
- assert.doesNotMatch(html,/선택한 기록<|pp-tabs|거래 건수/);
- assert.match(js,/case 'delete-record':if\(get\(b.dataset.id\)/);
- assert.match(css,/grid-template-columns:1fr 1fr/);
+ assert.match(html,/<span class="pp-caption">입금<\/span><h3 title="검증 거래처">검증 거래처<\/h3>/);
+ assert.match(html,/<span>입금액<\/span><strong>100,000원<\/strong>/);
+ assert.match(html,/이 견적의 입금·환불 <small>1건<\/small>/);assert.match(html,/견적서 열기 ›/);
+ assert.equal((html.match(/aria-current="true"/g)||[]).length,1);
+ assert.match(html,/data-pp="edit">고치기/);assert.match(html,/data-pp="menu"/);
+ assert.doesNotMatch(html,/777,777|888,888|999,999/);
+ const refund=api.markup(db.payments[1]);assert.match(refund,/<span class="pp-caption">환불<\/span>/);assert.match(refund,/이 거래처의 입출금/);
 });
 test('counterparty, document and memo are escaped; empty overview is safe',()=>{
  const {api,db,ids}=fixture();db.companies[0].name='<img>';db.quotes[0].no='<svg>';db.payments[0].memo='<script> & "';
  const html=api.markup(db.payments[0]);assert.doesNotMatch(html,/<img|<svg|<script/);assert.match(html,/&lt;script&gt; &amp; &quot;/);
- ids.length=0;assert.match(api.markup(null),/표시할 입출금 기록이 없습니다/);
+ ids.length=0;assert.match(api.markup(null),/이 기간에 입금·출금 기록이 없어요/);
 });
-test('no storage, network or replacement input controls; existing confirmed deletion preserved',()=>{
- assert.doesNotMatch(js,/fetch\(|localStorage|sessionStorage|saveTable|cloneNode|<input|<select|<textarea/);
- assert.match(js,/deletePayment\(p.id\)/);assert.match(js,/switchView\('companies'\)!==false/);
+test('no network or browser storage; edits save the new record before removing the original (append then delete, like quote progress)',()=>{
+ assert.doesNotMatch(js,/fetch\(|localStorage|sessionStorage|cloneNode|<input|<select|<textarea/);
+ assert.match(js,/deletePayment\(p.id\)/);
+ const w=js.slice(js.indexOf('function wrapAdd'),js.indexOf('function mount'));
+ assert.ok(w.indexOf('await base.apply')<w.indexOf("save('payments',next)"),'original is removed only after the new record is saved');
+ assert.match(w,/if\(added&&orig&&/);assert.match(w,/filter\(p=>p.id!==orig\)/);
 });
-test('left tabs are restored independently of one-time header setup; amounts remain unsigned in list',()=>{
- assert.match(js,/syncLeft\(left,index,ids\)/);
+test('left list: kind tabs restored, date groups, signed amounts, no scope row; title count beside the heading',()=>{
  assert.match(js,/if\(select&&!tabs\)/);
  assert.match(js,/\[\['','전체'\],\['수금','입금'\],\['지급','출금'\]\]/);
- assert.match(js,/amount.textContent=won\(p.amount\)/);
- assert.match(css,/\.pbr \.pbr-amt\{color:var\(--nd-ink\)!important/);
+ assert.match(js,/class="pp-dg"/);assert.match(js,/signedAmount\(p\)/);
+ assert.match(js,/c.className='count pp-count'/);
+ assert.match(css,/\.workspace-left>\.panel-b-index,\s*html body #appView #view-payments \.workspace-left>:is\(\.pp-list-scope,\.pp-overview\)\{display:none!important\}/);
 });
 test('summary uses dashboard numeric tokens and recovery footer stays inside padding',()=>{
  assert.match(css,/font-family:var\(--nd-number-font\)!important;font-size:var\(--nd-stat-size\)!important;font-weight:var\(--nd-stat-weight\)!important/);
@@ -83,15 +90,15 @@ test('payment date labels remain above inputs even when native month mode hides 
  assert.match(css,/:is\(#payFromLabel,#payToLabel\)\{display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap/);
  assert.doesNotMatch(css,/:is\(#payFromLabel,#payToLabel\)\[hidden\]\{display:flex!important\}/);
 });
-test('desktop totals divider matches tabs plus scope height without changing mobile spacing',()=>{
- assert.match(css,/@media\(min-width:1024px\)\{\s*html body #appView \.pp-detail \.pp-metrics\{padding-bottom:12px\}/);
- assert.equal(28+20+10+24+12+1,47+48);
- assert.match(css,/\.pp-metrics\{grid-template-columns:1fr 1fr;gap:16px;padding-bottom:24px\}/);
+test('tables reuse the quote table rules and selection uses the soft fill, never a heavy stripe in the detail',()=>{
+ assert.match(css,/\.pp-table th\{[^}]*border-bottom:var\(--quote-table-head-rule\)/);
+ assert.match(css,/--quote-table-head-rule:1\.5px solid #D4D4D8/);
+ assert.match(css,/\.pp-table tbody tr\.on\{background:var\(--nd-blue-soft\)\}/);
+ assert.match(css,/\.pp-row\.on\{background:var\(--nd-blue-soft\);box-shadow:inset 3px 0 0 var\(--nd-blue\)/);
+ assert.match(css,/tr:focus-visible\{outline:2px solid var\(--nd-blue\)/);
 });
-test('detail records have no selected stripe or background while master selection and keyboard focus remain',()=>{
- assert.match(css,/\.pp-selected-record>summary\{background:none;box-shadow:none\}/);
- assert.match(css,/\.pp-record\[open\]\{background:none\}/);
- assert.doesNotMatch(css,/\.pp-selected-record[^\{]*\{[^}]*var\(--nd-blue/);
- assert.match(css,/\.pp-overview\.on\{background:var\(--nd-blue-soft\);box-shadow:inset 3px 0 0 var\(--nd-blue\)/);
- assert.match(css,/summary:focus-visible\{outline:2px solid var\(--nd-blue\)/);
+test('entry: open quotes of the company are offered and fill the remaining amount; PC keeps 거래처 → 어느 건 → 금액',()=>{
+ assert.match(js,/open\(cid\)/);assert.match(js,/a.value=num\(bal\(q\)\)/);
+ assert.match(css,/grid-template-areas:"kind kind" "co co" "pick pick" "amt date" "method memo" "btn btn"/);
+ assert.match(css,/#payEntry\.pp-has-pick \.pf-quote\{display:none!important\}/);
 });
