@@ -155,3 +155,8 @@ html body #appView #view-settings .cp-grpb .nd-addr-detail{margin-top:0}
 html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:18px}
 html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
 @media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:16px}}
+/* 최근 입금·출금의 견적·매입 번호 = 그 문서로 가는 링크(거래 내역의 '견적서 열기 ›'와 같은 동작) */
+html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;height:auto;min-height:0;margin-left:8px;padding:0;border:0;background:none;box-shadow:none;font:400 12px/20px var(--sans);color:var(--nd-blue);cursor:pointer}
+html body #appView #coForm.cp .cp-pr .cp-qlink:hover{text-decoration:underline;text-underline-offset:3px}
+html body #appView #coForm.cp .cp-pr .cp-qlink:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px;border-radius:3px}
+@media(max-width:1023px){html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;font-size:12.5px}}
