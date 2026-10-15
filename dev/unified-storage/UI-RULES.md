@@ -84,8 +84,10 @@ the phone bottom tab bar's labeled 더보기 tab: it is a navigation tab, not a 
 
 - Icon: three dots in a vertical line, 16px in rows and 17–18px in action bars, `--nd-ink-2`.
 - Button: 36×36 in rows (44px touch area on phones), no border, `--nd-tint-open` on hover/open.
-- Popover: its **right edge lines up with the button's right edge**. Row menus open 4px below
-  the button; bottom-bar menus open 8px above it. It never extends past the screen
+- Popover: its **right edge lines up with the content's right edge** — the same line as the
+  table's right end and the section buttons ([납품 추가] etc.), not inside it. Row menus open 4px
+  below the button; bottom-bar menus open 8px above it, right edge on the bar's right end.
+- Focus ring: only for keyboard focus (`:focus-visible`), never after a mouse/touch tap. It never extends past the screen
   (`max-width: 100vw - 32px`).
 - Item: 16px icon + name (14px/20px, 500) + optional one-line description (12px, `--nd-ink-3`).
   Destructive items come last, after a 1px `--nd-line-2` divider, in `--nd-red`.

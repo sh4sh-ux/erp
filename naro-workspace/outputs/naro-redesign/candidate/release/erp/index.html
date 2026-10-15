@@ -10391,8 +10391,10 @@ html body #appView #qtForm .nd-pl-empty{padding:14px var(--quote-table-pad-x)}
  html body #appView #qtForm .nd-pl-sub{padding:0 44px 0 calc(var(--quote-table-pad-x) + 12px)}
  html body #appView #qtForm .nd-pl-note{padding:10px var(--quote-table-pad-x)}
 }
-/* 더보기 메뉴 규칙(UI-RULES 'More menus'): 세로 점(⋮) 버튼, 창의 오른쪽 끝 = 버튼 오른쪽 끝, 버튼 바로 아래 4px. 위치는 openMenu가 계산한다. */
+/* 더보기 메뉴 규칙(UI-RULES 'More menus'): 세로 점(⋮) 버튼, 창의 오른쪽 끝 = 표·[추가] 버튼과 같은 오른쪽 끝 선, 버튼 아래 4px. 위치는 openMenu가 정한다. */
 html body #appView :is(#qtForm,#puForm) .nd-rec-menu{left:auto!important;max-width:calc(100vw - 32px)}
+html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus:not(:focus-visible){outline:none;box-shadow:none}
+html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus-visible{outline:2px solid var(--nd-blue);outline-offset:0}
 
 /* 매입 화면 — 모양은 견적서 규칙을 그대로 복사해 쓴다(purchase-ui.mjs mirrorQuoteStyles). 여기에는 매입에만 있는 것만. */
 /* 마무리 안 된 입고·용량 알림(목록 카드 칩 아래) */
@@ -12713,7 +12715,7 @@ const NaroOrderImport=(()=>{
   const el=document.createElement('div');el.className='nd-rec-menu';el.setAttribute('role','menu');
   el.innerHTML=items.map((it,i)=>`<button type="button" role="menuitem" data-i="${i}" class="${it.danger?'danger':''}">${MI[it.icon||(it.danger?'del':'edit')]}<span><b>${e(it.t)}</b>${it.sub?`<small>${e(it.sub)}</small>`:''}</span></button>`).join('');
   el.addEventListener('click',ev=>{const b=ev.target.closest('[data-i]');if(!b)return;const it=items[Number(b.dataset.i)];closeMenu();it.fn();});
-  btn.closest('.nd-rec-row').append(el);const row=btn.closest('.nd-rec-row'),rr=row.getBoundingClientRect(),br=btn.getBoundingClientRect();el.style.right=Math.round(rr.right-br.right)+'px';el.style.top=Math.round(br.bottom-rr.top+4)+'px';btn.setAttribute('aria-expanded','true');menu={btn,el};
+  btn.closest('.nd-rec-row').append(el);const row=btn.closest('.nd-rec-row'),rr=row.getBoundingClientRect(),br=btn.getBoundingClientRect();el.style.right='0px';el.style.top=Math.round(br.bottom-rr.top+4)+'px';btn.setAttribute('aria-expanded','true');menu={btn,el};
  }
  document.addEventListener('click',ev=>{if(menu&&!ev.target.closest?.('.nd-rec-menu')&&!ev.target.closest?.('.nd-rec-more'))closeMenu();},true);
  async function saveDeliveries(q,mutate,ok){

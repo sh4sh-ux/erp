@@ -420,5 +420,7 @@ html body #appView #qtForm .nd-pl-empty{padding:14px var(--quote-table-pad-x)}
  html body #appView #qtForm .nd-pl-sub{padding:0 44px 0 calc(var(--quote-table-pad-x) + 12px)}
  html body #appView #qtForm .nd-pl-note{padding:10px var(--quote-table-pad-x)}
 }
-/* 더보기 메뉴 규칙(UI-RULES 'More menus'): 세로 점(⋮) 버튼, 창의 오른쪽 끝 = 버튼 오른쪽 끝, 버튼 바로 아래 4px. 위치는 openMenu가 계산한다. */
+/* 더보기 메뉴 규칙(UI-RULES 'More menus'): 세로 점(⋮) 버튼, 창의 오른쪽 끝 = 표·[추가] 버튼과 같은 오른쪽 끝 선, 버튼 아래 4px. 위치는 openMenu가 정한다. */
 html body #appView :is(#qtForm,#puForm) .nd-rec-menu{left:auto!important;max-width:calc(100vw - 32px)}
+html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus:not(:focus-visible){outline:none;box-shadow:none}
+html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus-visible{outline:2px solid var(--nd-blue);outline-offset:0}

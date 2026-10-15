@@ -531,7 +531,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const el=document.createElement('div');el.className='nd-rec-menu';el.setAttribute('role','menu');
   el.innerHTML=items.map((it,i)=>`<button type="button" role="menuitem" data-i="${i}" class="${it.danger?'danger':''}"><span><b>${esc(it.t)}</b>${it.sub?`<small>${esc(it.sub)}</small>`:''}</span></button>`).join('');
   el.addEventListener('click',ev=>{const b=ev.target.closest('[data-i]');if(!b)return;const it=items[Number(b.dataset.i)];closeMenu();it.fn();});
-  btn.closest('.nd-rec-row').append(el);const row=btn.closest('.nd-rec-row'),rr=row.getBoundingClientRect(),br=btn.getBoundingClientRect();el.style.right=Math.round(rr.right-br.right)+'px';el.style.top=Math.round(br.bottom-rr.top+4)+'px';btn.setAttribute('aria-expanded','true');menu={btn,el};
+  btn.closest('.nd-rec-row').append(el);const row=btn.closest('.nd-rec-row'),rr=row.getBoundingClientRect(),br=btn.getBoundingClientRect();el.style.right='0px';el.style.top=Math.round(br.bottom-rr.top+4)+'px';btn.setAttribute('aria-expanded','true');menu={btn,el};
  }
  document.addEventListener('click',ev=>{
   if(menu&&!ev.target.closest?.('.nd-rec-menu')&&!ev.target.closest?.('.nd-rec-more'))closeMenu();
