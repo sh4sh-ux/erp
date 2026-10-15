@@ -424,3 +424,29 @@ html body #appView #qtForm .nd-pl-empty{padding:14px var(--quote-table-pad-x)}
 html body #appView :is(#qtForm,#puForm) .nd-rec-menu{left:auto!important;max-width:calc(100vw - 32px)}
 html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus:not(:focus-visible){outline:none;box-shadow:none}
 html body #appView :is(#qtForm,#puForm) .nd-rec-more:focus-visible{outline:2px solid var(--nd-blue);outline-offset:0}
+/* 송장 여러 개(UI-RULES 'Parcels'): 한 줄 = [택배사][번호 · 조회 ↗][×]. 2개 이상일 때만 개수와 ×가 보인다. */
+html body .nd-qa-sheet .nd-qa-parcels{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+html body .nd-qa-sheet .nd-qa-parcels[hidden],html body .nd-qa-sheet .nd-qa-parcels [hidden]{display:none!important}
+html body .nd-qa-sheet .nd-qa-pcount{font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-3)}
+html body .nd-qa-sheet .nd-qa-pcount b{font-weight:600;color:var(--nd-ink-2)}
+html body .nd-qa-sheet .nd-qa-parcel{display:grid;grid-template-columns:minmax(120px,38%) minmax(0,1fr) auto;gap:8px;align-items:center}
+html body .nd-qa-sheet .nd-qa-parcel label{gap:0}
+html body .nd-qa-sheet .nd-qa-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html body .nd-qa-sheet .nd-qa-parcel [data-pt]{padding-right:64px;font-family:var(--nd-number-font)}
+html body .nd-qa-sheet .nd-qa-look{position:absolute;right:12px;top:50%;transform:translateY(-50%);font:600 var(--nd-label-size)/20px var(--sans);color:var(--nd-blue);text-decoration:none}
+html body .nd-qa-sheet .nd-qa-look[aria-disabled="true"]{color:var(--nd-ink-3);opacity:.6;pointer-events:none}
+html body .nd-qa-sheet #ndShipLookup{bottom:auto}
+html body .nd-qa-sheet .nd-qa-prm{width:36px;height:36px;border:0;border-radius:9px;background:none;color:var(--nd-ink-3);font:400 18px/1 var(--sans);cursor:pointer}
+html body .nd-qa-sheet .nd-qa-prm:hover{background:var(--nd-tint-open);color:var(--nd-ink)}
+html body .nd-qa-sheet .nd-qa-padd{height:40px;border:1px dashed var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-blue);font:600 13px/1 var(--sans);cursor:pointer}
+html body .nd-qa-sheet .nd-qa-padd:hover{background:var(--nd-tint-hover)}
+@media(max-width:1023px){html body .nd-qa-sheet .nd-qa-parcel{grid-template-columns:minmax(110px,36%) minmax(0,1fr) auto}html body .nd-qa-sheet .nd-qa-padd{height:44px}}
+html body #appView #qtForm .nd-pl-note i.nd-pl-trk{font-style:normal;margin:0 4px;color:var(--nd-ink-3)}
+html body .nd-qa-sheet .nd-qa-padd{display:flex!important;align-items:center;justify-content:center;gap:4px;width:100%;padding:0!important;box-shadow:none}
+@media(max-width:1023px){
+ html body .nd-qa-sheet .nd-qa-parcel{grid-template-columns:minmax(96px,32%) minmax(0,1fr) auto;gap:6px}
+ html body .nd-qa-sheet .nd-qa-parcel [data-pt]{padding-left:10px;padding-right:52px}
+ html body .nd-qa-sheet .nd-qa-parcel [data-pc]{padding-left:10px;padding-right:26px;background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%}
+ html body .nd-qa-sheet .nd-qa-look{right:10px}
+ html body .nd-qa-sheet .nd-qa-prm{width:32px}
+}

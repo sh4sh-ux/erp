@@ -630,3 +630,26 @@ test('parcel lookup supports added carriers before saving and in saved records w
  await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===1);assert.equal(await p.evaluate(()=>db.quotes[0].deliveries[0].shipping.carrier),'lotte');
  const link=p.locator('#nd-record-delivery a.nd-pl-ext');assert.equal(await link.getAttribute('href'),urls.lotte+'123456789012');await p.close();}finally{await b.close();}
 });
+
+test('a delivery keeps several parcels with one lookup each and stays backward compatible with one parcel',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [1440,390]){const p=await b.newPage({viewport:{width,height:1000}});const errors=[];p.on('pageerror',e=>errors.push(e.message));await prepare(p);await open(p,'quotes');
+ await p.evaluate(()=>{const q=db.quotes[0];q.status='수주';q.deliveries=[];q.delivered_at='';Table.save=async()=>{};renderQtDetail();});await p.locator('#qp-tab-flow').click();
+ await p.locator('[data-rec=part]').click();await p.locator('#ndShipMethod').selectOption('택배');
+ assert.equal(await p.locator('#ndShipParcels [data-prm]').count(),0,'a single parcel has no remove button');
+ await p.locator('#ndShipTracking').fill('312345678901');await p.locator('[data-padd]').click();
+ assert.equal(await p.locator('#ndShipParcels [data-pr]').count(),2);assert.equal(await p.locator('#ndShipParcels [data-prm]').count(),2);
+ await p.locator('#ndShipParcels [data-pc]').nth(1).selectOption('post');await p.locator('#ndShipParcels [data-pt]').nth(1).fill('6850123456789');await p.locator('#ndShipParcels [data-pt]').nth(1).dispatchEvent('change');
+ assert.equal(await p.locator('#ndShipParcels .nd-qa-look').nth(1).getAttribute('href'),'https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=6850123456789');
+ await p.locator('#ndShipParcels [data-pt]').nth(1).fill('abc');await p.locator('.nd-qa-go').click();assert.equal(await p.evaluate(()=>db.quotes[0].deliveries.length),0,'invalid parcel numbers block saving');
+ await p.locator('#ndShipParcels [data-pt]').nth(1).fill('6850123456789');await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===1);
+ assert.deepEqual(await p.evaluate(()=>db.quotes[0].deliveries[0].shipping),{method:'택배',carrier:'cj',tracking:'312345678901',parcels:[{carrier:'cj',tracking:'312345678901'},{carrier:'post',tracking:'6850123456789'}]});
+ assert.match(await p.locator('#nd-record-delivery [data-pl-open]').innerText(),/송장 2개/);
+ await p.locator('#nd-record-delivery [data-pl-open]').click();const links=p.locator('#nd-record-delivery .nd-pl-note a.nd-pl-ext');assert.equal(await links.count(),2);
+ assert.equal(await links.nth(0).getAttribute('href'),'https://trace.cjlogistics.com/next/tracking.html?wblNo=312345678901');
+ await p.locator('[data-rm-d]').click();await p.locator('.nd-rec-menu [data-i="0"]').click();assert.equal(await p.locator('#ndShipParcels [data-pr]').count(),2);
+ await p.locator('#ndShipParcels [data-prm]').first().click();assert.equal(await p.locator('#ndShipTracking').inputValue(),'6850123456789');assert.match(await p.locator('.nd-qa-after').innerText(),/배송 정보만 바뀌어요/);
+ await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===2);
+ assert.deepEqual(await p.evaluate(()=>db.quotes[0].deliveries[1].shipping),{method:'택배',carrier:'post',tracking:'6850123456789'},'one parcel is stored in the original shape');
+ assert.ok(await p.evaluate(()=>!!db.quotes[0].deliveries[0].void_at));assert.deepEqual(errors,[]);await p.close();}}finally{await b.close();}
+});

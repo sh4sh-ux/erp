@@ -92,6 +92,19 @@ the phone bottom tab bar's labeled 더보기 tab: it is a navigation tab, not a 
 - Item: 16px icon + name (14px/20px, 500) + optional one-line description (12px, `--nd-ink-3`).
   Destructive items come last, after a 1px `--nd-line-2` divider, in `--nd-red`.
 
+## Parcels (택배 송장)
+
+A delivery can carry several tracking numbers. Storage stays backward compatible: one
+parcel is saved as `shipping={method:'택배',carrier,tracking}` exactly as before; two or more
+add `parcels:[{carrier,tracking}]` while `carrier`/`tracking` keep the first parcel.
+
+- Entry: one row per parcel = [carrier select][number field with 조회 ↗ inside][×].
+  The count ("송장 N개") and × show only when there are 2 or more. ＋ 송장 추가 (dashed, 40px,
+  44px on phones) is under the rows; at most 10 parcels. Every number is 8–30 digits.
+- List: 1 parcel shows carrier · number · 조회 ↗ in the row. 2 or more show
+  "carrier (외 N곳) · 송장 N개"; the opened row lists "송장 1, 송장 2 …", each with its own 조회 ↗.
+- Lookup opens one carrier page per parcel; there is no combined lookup.
+
 ## Before changing a screen
 
 1. Find the role in this table and the registered selectors in `ui-contract.css`.
