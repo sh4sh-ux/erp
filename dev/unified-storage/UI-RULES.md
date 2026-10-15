@@ -129,6 +129,22 @@ height as the section action button: `--nd-sec-head-h` = 30px on desktop, 44px u
 The title is vertically centred in that row, so the first heading of every tab lands on the
 same line whether or not the section has a button (정보's 기본 정보 has none).
 
+## Supplied materials (업체 제공 자재)
+
+`material-panel.js` draws the whole screen in the quote layout and keeps the original save
+functions (`buildMaterialMove` → `persistMaterialMove` / `updateMaterialMove` / `voidMaterialMove`).
+
+- Left: [업체 · 자재 · 견적 · 기록] tabs, then filter chips [보유 중 · 오래 보관(90일+) · 다 씀 · 전체]
+  for 업체/자재. Each row has a thin bar: 보유 (blue) · 사용 (light blue) · 반환·불량 (gray).
+- Right: header (업체 · 남은 수량) → 받음 bar (받음 = 보유 + 사용 + 반환·불량) → tabs
+  [자재 · 기록 · 견적 · 정보] → bottom bar [재고내역서] … [＋ 기록].
+- Tables use the quote table tokens; opened rows use `--nd-tint-open`; row menus use ⋮ aligned
+  to the table's right edge.
+- The record sheet uses the delivery-sheet parts and the segmented control
+  [받음 · 작업에 사용 · 반환 · 불량·분실]. Editing keeps `materialDraft`/`materialEditingId`, so
+  the `mm_save` '저장됨' rule applies unchanged. Cancelling marks the record void (never deletes).
+- No planned/expected usage is shown (사용자 결정 10/15).
+
 ## Before changing a screen
 
 1. Find the role in this table and the registered selectors in `ui-contract.css`.
