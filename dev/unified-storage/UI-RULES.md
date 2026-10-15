@@ -134,24 +134,34 @@ same line whether or not the section has a button (정보's 기본 정보 has no
 `material-panel.js` draws the whole screen in the quote layout and keeps the original save
 functions (`buildMaterialMove` → `persistMaterialMove` / `updateMaterialMove` / `voidMaterialMove`).
 
-- Left: [업체 · 자재 · 견적 · 기록] tabs, then filter chips [보유 중 · 오래 보관(90일+) · 다 씀 · 전체]
-  for 업체/자재. Each row has a thin bar: 보유 (blue) · 사용 (light blue) · 반환·불량 (gray).
-- Right: header (업체 · 남은 수량) → 받음 bar (받음 = 보유 + 사용 + 반환·불량) → tabs
-  [자재 · 기록 · 견적 · 정보] → bottom bar [재고내역서] … [＋ 기록].
+- Left: [업체 · 자재] tabs only, then chips [보유 중 · 다 씀 · 전체]. Rows are two lines (name · 수량 /
+  meta); a "N일째 보관" tag marks materials untouched for 90+ days. No per-row bars on the left.
+- Right: header (업체 · 남은 수량) → 받음 bar with legend (보유 · 사용 · 반환·불량) → tabs
+  [자재 · 기록 · 정보] → bottom bar [재고내역서] … [＋ 기록]. One ＋ 기록 button only (bottom bar).
+- 자재 table: 자재 | 받음 | 사용·반환 | 남음 | 남은 비율(bar only) | ⋮. It must fit a 1024px-wide window
+  without clipping (no percentage text; the bar's tooltip carries it).
 - Tables use the quote table tokens; opened rows use `--nd-tint-open`; row menus use ⋮ aligned
   to the table's right edge.
 - The record sheet uses the delivery-sheet parts and the segmented control
   [받음 · 작업에 사용 · 반환 · 불량·분실]. Editing keeps `materialDraft`/`materialEditingId`, so
   the `mm_save` '저장됨' rule applies unchanged. Cancelling marks the record void (never deletes).
 - No planned/expected usage is shown (사용자 결정 10/15).
-- 'Orders' = quotes and Naver (스마트스토어) orders. A 작업에 사용 record asks "어디에 썼나요?"
-  [견적 · 네이버 주문 · 기타]; it is stored only in the existing fields (`quote_id`, `source`
-  = '스마트스토어'/'기타', `order_no`). Naver orders group by order number, or by date when the number is
-  blank (one line for a day's batch). Naver is shown with a small green 네이버 badge.
+- A 작업에 사용 record asks "어디에 썼나요?" [견적 · 네이버 주문 · 기타], stored only in the existing
+  fields (`quote_id`, `source` = '스마트스토어'/'기타', `order_no`). The 기록 tab shows the quote link or a green
+  네이버 badge with the order number, and has a [네이버] chip. There is no separate orders tab (사용자 결정 10/15).
 - Quote work lines may name the supplied material they use: `line.supplied_material` +
   `line.supplied_per_unit` (default 1), edited in a tinted sub-row under the work line, shown only when
   the customer has supplied materials or the line already names one. Picking that quote in the record
   sheet fills material, work item, remaining work quantity and per-unit amount.
+
+## Panel dividers
+
+Left and right panels share their horizontal rules. On desktop the header rule sits on one line
+(left list header and right record header are both `--panel-head` tall), and the left list tab row and
+the right detail tab row are both `--nd-detail-tab-height` (46px) + a 1px `--nd-line` rule, so their
+rules form one straight line across the screen (44px + 1px under 1024px). Tables below follow
+'Quote panel tables'. `ui-contract.test.mjs` checks the tab-row line for quotes and supplied materials
+at 1100 and 1440, light and dark.
 
 ## Before changing a screen
 

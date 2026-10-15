@@ -491,7 +491,7 @@ test('material detail reuses quote tabs, typography and insets while preserving 
   assert.equal(await page.locator('[data-mp-open="합성 자재"]').isVisible(),true);assert.equal(await page.locator('.mp-hrow').count(),0);
   const before=await page.evaluate(()=>JSON.stringify(db.material_moves));
   await page.locator('[data-material-panel=history]').click();assert.equal(await page.locator('.mp-hrow').first().isVisible(),true);assert.equal(await page.locator('[data-mp-open]').count(),0);
-  for(const k of ['orders','info','materials'])await page.locator(`[data-material-panel=${k}]`).click();
+  for(const k of ['history','info','materials'])await page.locator(`[data-material-panel=${k}]`).click();
   await page.locator('.mp-bar [data-mp-new]').click();await page.locator('dialog[open] [data-mm="memo"]').fill('입력 보존');await page.locator('dialog[open] [data-mp-kind="반환"]').click();
   assert.equal(await page.locator('dialog[open] [data-mm="memo"]').inputValue(),'입력 보존','switching the record kind keeps typed values');
   await page.locator('dialog[open] [data-x]').click();assert.equal(await page.evaluate(()=>JSON.stringify(db.material_moves)),before,'tab navigation and a closed sheet never write');
@@ -672,3 +672,15 @@ test('first section heading lands on the same line in 품목·진행·정보, an
 });
 
 test('header amounts and quantities share title and caption coordinates across destinations',async()=>{const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});try{for(const width of [1024,1440]){const p=await b.newPage({viewport:{width,height:1000}});await prepare(p);for(const v of ['quotes','purchases','companies','payments','materials','sales','ar']){await open(p,v);const positions=await p.evaluate(v=>{const root=document.getElementById('view-'+v),top=root.querySelector('.page-head').getBoundingClientRect().top;const map=(selector)=>[...root.querySelectorAll(selector)].filter(e=>e.getBoundingClientRect().height).map(e=>e.getBoundingClientRect().top-top);return {labels:map('.qs-amt-k,.cp-amt>.k,.pp-amount>span,.material-detail-head>.material-balance-hero>span,.nd-sa-header-amount>.nd-sa-label,.workspace-heading>.scr-hero>.lbl'),values:map('.qs-amt-v,.cp-amt>.v,.pp-amount>strong,.material-detail-head>.material-balance-hero>strong,.nd-sa-header-amount>strong,.workspace-heading>.scr-hero>.big')};},v);assert.ok(positions.labels.length&&positions.values.length,v+' numeric header exists');for(const y of positions.labels)assert.ok(Math.abs(y-30)<1,v+' caption '+y);for(const y of positions.values)assert.ok(Math.abs(y-50)<1,v+' amount '+y);}await p.close();}}finally{await b.close();}});
+
+test('left list tab row and right detail tab row share one divider line (quotes and supplied materials)',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [1100,1440])for(const theme of ['light','dark']){const p=await b.newPage({viewport:{width,height:1000}});await prepare(p);await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+  await open(p,'quotes');
+  const q=await p.evaluate(()=>{const l=document.querySelector('#view-quotes .nd-chips'),r=document.querySelector('#qtForm .qp-tabs').parentElement;return [l.getBoundingClientRect().bottom,r.getBoundingClientRect().bottom,getComputedStyle(l).borderBottomColor,getComputedStyle(r).borderBottomColor];});
+  await open(p,'materials');await p.locator('.mp-ltabs').waitFor();
+  const m=await p.evaluate(()=>{const l=document.querySelector('#view-materials .mp-ltabs'),r=document.querySelector('#view-materials .nd-material-tabs'),lh=l.getBoundingClientRect(),rh=r.getBoundingClientRect();return [lh.bottom,rh.bottom,getComputedStyle(l).borderBottomWidth,getComputedStyle(r).borderBottomWidth,getComputedStyle(l).borderBottomColor,getComputedStyle(r).borderBottomColor];});
+  assert.ok(Math.abs(m[0]-m[1])<1,`${width} ${theme} materials ${JSON.stringify(m)}`);assert.equal(m[2],m[3]);assert.equal(m[4],m[5]);
+  assert.ok(Math.abs(m[1]-q[1])<1,`${width} ${theme} materials tab line matches quotes ${JSON.stringify([m,q])}`);
+  await p.close();}}finally{await b.close();}
+});
