@@ -700,3 +700,19 @@ test('dashboard progress stages open the matching quote list with a visible, cle
   assert.equal(await p.locator('#qtList .list-item[data-id][hidden]').count(),0,width+' clear shows every row');
   await p.close();}}finally{await b.close();}
 });
+
+test('option columns (색상·규격/옵션) and quantity sit centred under their headers in quote rows and every table',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{const p=await b.newPage({viewport:{width:1440,height:1000}});await prepare(p);
+  await p.evaluate(()=>{db.quotes[0].lines.push({id:'w',item_id:'__free__',name:'할인',qty:1,price:-1000,spec:''});});
+  await open(p,'quotes');
+  const r=await p.evaluate(()=>{const c=e=>{const b=e.getBoundingClientRect();return b.left+b.width/2;};const h=document.querySelector('#qtForm .qline.head'),hs=h.querySelectorAll('.dual>span');
+   return {head:[c(hs[0]),c(hs[1]),c(h.children[2])],rows:[...document.querySelectorAll('#qtForm .qline:not(.head)')].map(row=>{const d=row.querySelector(':scope>.dual'),one=row.querySelector(':scope>[data-f=spec],:scope>[data-f=vspec]');return {color:d?c(d.children[0]):null,spec:c(d?d.children[1]:one),qty:c(row.querySelector('[data-f=qty]')),ta:[...row.querySelectorAll('.dual>*,[data-f=spec],[data-f=vspec],[data-f=qty]')].map(e=>getComputedStyle(e).textAlign)};})};});
+  assert.ok(r.rows.length>=2);
+  for(const row of r.rows){if(row.color!==null)assert.ok(Math.abs(row.color-r.head[0])<1,'color '+JSON.stringify(r));assert.ok(Math.abs(row.spec-r.head[1])<1,'spec '+JSON.stringify(r));assert.ok(Math.abs(row.qty-r.head[2])<1,'qty '+JSON.stringify(r));assert.ok(row.ta.every(a=>a==='center'),'centred text '+row.ta);}
+  assert.ok(r.rows.some(x=>x.color===null),'colourless line keeps spec under its header');
+  await open(p,'stock');await p.waitForTimeout(150);
+  const t=await p.evaluate(()=>[...document.querySelectorAll('#appView table')].filter(t=>t.getClientRects().length&&[...t.tHead?.rows[0]?.cells||[]].some(th=>/^(색상|규격\/옵션)$/.test(th.textContent.trim()))).map(t=>[...t.querySelectorAll('th,td')].filter(e=>e.classList.contains('nd-opt-col')).map(e=>getComputedStyle(e).textAlign)));
+  assert.ok(t.length,'a stock table with option columns is visible');for(const a of t)assert.ok(a.length&&a.every(x=>x==='center'),JSON.stringify(t));
+  await p.close();}finally{await b.close();}
+});

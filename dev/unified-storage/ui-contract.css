@@ -294,3 +294,13 @@ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-mater
  html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-v,.cp-amt>.v,.pp-amount>strong,.material-detail-head>.material-balance-hero>strong,.nd-sa-header-amount>strong,.workspace-heading>.scr-hero>.big) {margin:0!important;order:0}
  html body #appView[data-layout-system] .shell .main #view-ar>.workspace-heading>.scr-hero {top:30px!important}
 }
+
+/* Option columns (UI-RULES): 색상·규격/옵션은 모든 표에서 가운데. 머리와 값이 같은 선에 온다. */
+html body :is(th,td).nd-opt-col{text-align:center!important}
+html body #appView :is(#qtForm,#puForm) .qline .dual{gap:8px!important}
+html body #appView :is(#qtForm,#puForm) .qline:not(.head) .dual>:is(select,input),
+html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){padding-left:8px!important;padding-right:8px!important;text-align:center!important;text-align-last:center!important}
+/* 색상이 없는 줄(작업·직접 입력)은 규격 칸만 — 규격/옵션 머리 아래 반쪽에 둔다 */
+html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){justify-self:end!important;width:calc(50% - 4px)!important}
+/* 수량은 인쇄 견적서처럼 가운데 — 머리(가운데)와 같은 선 */
+html body #appView :is(#qtForm,#puForm) .qline:not(.head)>[data-f="qty"]{padding-left:8px!important;padding-right:8px!important;text-align:center!important}
