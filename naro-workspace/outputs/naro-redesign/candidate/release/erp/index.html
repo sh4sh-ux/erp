@@ -14372,7 +14372,14 @@ html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){dis
   /* Background tints (UI-RULES 'Background tints'): row hover < opened row/inline note. --nd-fill itself is for controls only. */
   --nd-tint-hover:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface));
   --nd-tint-open:color-mix(in srgb,var(--nd-fill) 55%,var(--nd-surface));
+  /* Segmented control (UI-RULES 'Segmented controls'): same as the dashboard 연간·월별·일별. */
+  --nd-seg-h:44px;--nd-seg-pad:4px;--nd-seg-radius:10px;--nd-seg-item-radius:7px;--nd-seg-size:12px;
+  --nd-seg-bg:color-mix(in srgb,var(--nd-fill) 50%,var(--nd-surface));--nd-seg-ring:inset 0 0 0 1px var(--nd-line-2);
+  --nd-seg-ink:var(--nd-ink-3);--nd-seg-on-bg:var(--nd-surface);--nd-seg-on-ink:var(--nd-blue);--nd-seg-on-shadow:0 1px 4px #20294012;
+  /* Section heading row (UI-RULES 'Section heading rows'): as tall as the section action button. */
+  --nd-sec-head-h:30px;
  }
+ @media (max-width:1023px){:root,html body #appView[data-layout-system]{--nd-sec-head-h:44px}}
  /* Receipt numeric glyphs for existing number cells and numeric entry fields. */
  html body #appView[data-layout-system] :is(.num,.amt,.money,.nd-cl-number,.nd-sa-num,.nd-sa-n,.nd-sa-margin,.item-num-inp,input[type=number],input[inputmode=numeric]) {
   font-family:var(--nd-number-font)!important;
@@ -14622,6 +14629,14 @@ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-mater
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases) :is(#qtForm,#puForm) .qs-amt-k{
   line-height:var(--nd-header-caption-line)!important;margin-bottom:var(--nd-header-title-gap)!important;
  }
+}
+@media screen{
+ /* Segmented controls in dialogs share the dashboard period tabs. */
+ html body .nd-qa-sheet .nd-qa-seg{display:flex;gap:4px;height:var(--nd-seg-h);padding:var(--nd-seg-pad);box-sizing:border-box;border:0;border-radius:var(--nd-seg-radius);background:var(--nd-seg-bg);box-shadow:var(--nd-seg-ring);overflow:visible}
+ html body .nd-qa-sheet .nd-qa-seg button{flex:1;height:auto;min-height:0;padding:0 10px;border:0;border-radius:var(--nd-seg-item-radius);background:transparent;color:var(--nd-seg-ink);font:500 var(--nd-seg-size)/1 var(--nd-ui-font);cursor:pointer}
+ html body .nd-qa-sheet .nd-qa-seg button[aria-selected="true"]{background:var(--nd-seg-on-bg);color:var(--nd-seg-on-ink);font-weight:600;box-shadow:var(--nd-seg-on-shadow)}
+ /* Quote/purchase tab panels: every section heading row is as tall as the action button, title centred. */
+ html body #appView :is(#qtForm,#puForm) #qp-panel-basic .qt-sec-t{display:flex;align-items:center;min-height:var(--nd-sec-head-h);margin-top:0;margin-bottom:0;box-sizing:border-box}
 }
 </style></body>
 </html>

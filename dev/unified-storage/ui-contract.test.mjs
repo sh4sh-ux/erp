@@ -653,3 +653,16 @@ test('a delivery keeps several parcels with one lookup each and stays backward c
  assert.deepEqual(await p.evaluate(()=>db.quotes[0].deliveries[1].shipping),{method:'택배',carrier:'post',tracking:'6850123456789'},'one parcel is stored in the original shape');
  assert.ok(await p.evaluate(()=>!!db.quotes[0].deliveries[0].void_at));assert.deepEqual(errors,[]);await p.close();}}finally{await b.close();}
 });
+
+test('first section heading lands on the same line in 품목·진행·정보, and dialog segments match the dashboard period tabs',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [1440,390])for(const theme of ['light','dark']){const p=await b.newPage({viewport:{width,height:1000}});await prepare(p);await p.evaluate(t=>document.documentElement.dataset.theme=t,theme);await open(p,'quotes');
+ await p.evaluate(()=>{const q=db.quotes[0];q.status='수주';q.deliveries=[];q.delivered_at='';Table.save=async()=>{};renderQtDetail();});
+ const centers={};for(const tab of ['items','flow','basic']){await p.locator('#qp-tab-'+tab).click();centers[tab]=await p.evaluate(tab=>{const h=[...document.querySelectorAll(`#qp-panel-${tab} :is(.qt-sec-t,h3)`)].find(e=>e.getClientRects().length&&e.getBoundingClientRect().height>0);const r=h.getBoundingClientRect();return r.top+r.height/2;},tab);}
+ assert.ok(Math.abs(centers.items-centers.flow)<1&&Math.abs(centers.flow-centers.basic)<1,`${width} ${theme} ${JSON.stringify(centers)}`);
+ await p.locator('#qp-tab-flow').click();await p.locator('[data-rec=part]').click();
+ const seg=await p.locator('.nd-qa-seg').evaluate(e=>{const s=getComputedStyle(e),on=getComputedStyle(e.querySelector('[aria-selected="true"]')),off=getComputedStyle(e.querySelector('[aria-selected="false"]'));return {h:e.getBoundingClientRect().height,r:s.borderRadius,pad:s.paddingTop,size:on.fontSize,onWeight:on.fontWeight,onInk:on.color,onBg:on.backgroundColor,offBg:off.backgroundColor,itemR:on.borderRadius};});
+ const ref=await p.evaluate(()=>{const t=document.createElement('div');t.style.cssText='color:var(--nd-blue);background:var(--nd-surface)';document.body.append(t);const s=getComputedStyle(t),v=[s.color,s.backgroundColor];t.remove();return v;});
+ assert.deepEqual([seg.h,seg.r,seg.pad,seg.size,seg.onWeight,seg.itemR],[44,'10px','4px','12px','600','7px'],`${width} ${theme}`);assert.equal(seg.onInk,ref[0]);assert.equal(seg.onBg,ref[1]);assert.equal(seg.offBg,'rgba(0, 0, 0, 0)');
+ await p.close();}}finally{await b.close();}
+});

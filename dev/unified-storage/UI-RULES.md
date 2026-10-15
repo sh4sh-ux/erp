@@ -105,6 +105,27 @@ add `parcels:[{carrier,tracking}]` while `carrier`/`tracking` keep the first par
   "carrier (외 N곳) · 송장 N개"; the opened row lists "송장 1, 송장 2 …", each with its own 조회 ↗.
 - Lookup opens one carrier page per parcel; there is no combined lookup.
 
+## Segmented controls
+
+Every segmented choice (dashboard 연간·월별·일별, delivery and purchase-receipt 남은 수량 전부·일부만)
+looks the same. Use the `--nd-seg-*` tokens in `ui-contract.css`.
+
+| Part | Value |
+| --- | --- |
+| Track | 44px tall, 4px padding, radius 10px, `--nd-fill` 50% on surface, 1px inset `--nd-line-2` ring |
+| Item | equal width, radius 7px, 12px text, `--nd-ink-3` |
+| Selected | surface background, `--nd-blue` text, 600, shadow `0 1px 4px #20294012` |
+
+Never use a dark (ink) filled selected item for a segmented control; dark filled pills are only
+for the filter chips listed above.
+
+## Section heading rows
+
+In the quote/purchase right panel (품목 · 진행 · 정보), every section heading row has the same
+height as the section action button: `--nd-sec-head-h` = 30px on desktop, 44px under 1024px.
+The title is vertically centred in that row, so the first heading of every tab lands on the
+same line whether or not the section has a button (정보's 기본 정보 has none).
+
 ## Before changing a screen
 
 1. Find the role in this table and the registered selectors in `ui-contract.css`.
