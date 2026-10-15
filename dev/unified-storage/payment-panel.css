@@ -1,10 +1,10 @@
 /* 입금·출금(10/15 시안 확정, UI-RULES 'Payments'): 왼쪽 = 제목·건수 / 도구 / 탭 / 날짜별 목록,
    오른쪽 = 견적서와 같은 머리 · 본문 · 아래 바. 머리 좌표는 Header Contract(다른 화면과 같은 선)를 지킨다. */
-#view-payments>.pp-detail[hidden]{display:none!important}
+:is(#view-payments,#view-ar)>.pp-detail[hidden]{display:none!important}
 @media all{
- html body #appView #view-payments.pp-detail-open>.workspace-heading,
- html body #appView #view-payments.pp-detail-open>.workspace-right{display:none!important}
- html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>.workspace-heading,
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>.workspace-right{display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
  html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px;min-width:0;border-bottom:1px solid var(--nd-line)}
  html body #appView .pp-detail .pp-title{min-width:0}
  html body #appView .pp-detail .pp-caption{display:block;font:600 11px/13px var(--sans);color:var(--nd-ink-3);letter-spacing:.8px}
@@ -17,30 +17,30 @@
 }
 html body #appView .pp-detail .pp-back{display:none}
 /* 숫자는 대시보드 숫자 규칙 그대로 */
-html body #appView #view-payments :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
-html body #appView #view-payments :is(.pp-row-am,.pp-table .pp-c-num,.pp-msum b,.pp-todo b,.pp-qpick b){font-family:var(--nd-number-font)!important;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
-html body #appView #view-payments .neg{color:var(--nd-red,#E53E3E)!important}
-html body #appView #view-payments .in{color:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
+html body #appView :is(#view-payments,#view-ar) :is(.pp-row-am,.pp-table .pp-c-num,.pp-msum b,.pp-todo b,.pp-qpick b){font-family:var(--nd-number-font)!important;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+html body #appView :is(#view-payments,#view-ar) .neg{color:var(--nd-red,#E53E3E)!important}
+html body #appView :is(#view-payments,#view-ar) .in{color:var(--nd-green-fill,#1DAD53)}
 
 /* ---------- 왼쪽: 탭 · (기간 칩) · 날짜별 목록 ---------- */
-html body #appView #view-payments .workspace-left>.nd-chips{display:flex!important;flex:none}
-html body #appView #view-payments .workspace-left>.panel-b-index,
-html body #appView #view-payments .workspace-left>:is(.pp-list-scope,.pp-overview){display:none!important}
-html body #appView #view-payments .workspace-left>.pp-list{flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 calc(-1 * var(--panel-inset,20px));padding-bottom:24px}
-html body #appView #view-payments .pp-list .pp-dg{padding:16px var(--panel-inset,20px) 6px;font:600 11.5px/16px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;width:100%;margin:0;padding:12px var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
-@media(hover:hover){html body #appView #view-payments .pp-row:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
-html body #appView #view-payments .pp-row.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
-html body #appView #view-payments .pp-row-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
-html body #appView #view-payments .pp-row-am{font-size:14px;font-weight:600;line-height:20px;text-align:right;white-space:nowrap;color:var(--nd-ink)}
-html body #appView #view-payments .pp-row-am.in{color:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-row-mt{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html body #appView #view-payments .pp-badge{flex:none;padding:1px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2);font:600 11px/18px var(--sans);font-style:normal;white-space:nowrap}
-html body #appView #view-payments .pp-badge.in{color:var(--nd-green-fill,#1DAD53);background:var(--nd-green-soft,rgba(29,173,83,.10))}
-html body #appView #view-payments .pp-fchips{display:flex;gap:6px;padding:10px var(--panel-inset,20px) 2px}
-html body #appView #view-payments .pp-fchip{display:inline-flex;align-items:center;gap:6px;height:28px;min-height:0;padding:0 12px;border:0;border-radius:999px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font:600 12px/1 var(--sans);box-shadow:none}
-html body #appView #view-payments .pp-empty{margin:0;padding:48px var(--panel-inset,20px);text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments>.page-head>.pp-count{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.nd-chips{display:flex!important;flex:none}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.panel-b-index,
+html body #appView :is(#view-payments,#view-ar) .workspace-left>:is(.pp-list-scope,.pp-overview){display:none!important}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.pp-list{flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 calc(-1 * var(--panel-inset,20px));padding-bottom:24px}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-dg{padding:16px var(--panel-inset,20px) 6px;font:600 11.5px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .pp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;width:100%;margin:0;padding:12px var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+@media(hover:hover){html body #appView :is(#view-payments,#view-ar) .pp-row:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
+html body #appView :is(#view-payments,#view-ar) .pp-row.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-am{font-size:14px;font-weight:600;line-height:20px;text-align:right;white-space:nowrap;color:var(--nd-ink)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-am.in{color:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-mt{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView :is(#view-payments,#view-ar) .pp-badge{flex:none;padding:1px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2);font:600 11px/18px var(--sans);font-style:normal;white-space:nowrap}
+html body #appView :is(#view-payments,#view-ar) .pp-badge.in{color:var(--nd-green-fill,#1DAD53);background:var(--nd-green-soft,rgba(29,173,83,.10))}
+html body #appView :is(#view-payments,#view-ar) .pp-fchips{display:flex;gap:6px;padding:10px var(--panel-inset,20px) 2px}
+html body #appView :is(#view-payments,#view-ar) .pp-fchip{display:inline-flex;align-items:center;gap:6px;height:28px;min-height:0;padding:0 12px;border:0;border-radius:999px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font:600 12px/1 var(--sans);box-shadow:none}
+html body #appView :is(#view-payments,#view-ar) .pp-empty{margin:0;padding:48px var(--panel-inset,20px);text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar)>.page-head>.pp-count{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
 
 /* ---------- 오른쪽 본문 ---------- */
 /* 한 줄 요약: 상자 없이 숫자 셋 + 비율 막대 하나 */
@@ -51,12 +51,12 @@ html body #appView .pp-detail .pp-flow>div+div{border-left:1px solid var(--nd-li
 html body #appView .pp-detail .pp-flow span{display:flex;align-items:center;gap:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
 html body #appView .pp-detail .pp-flow strong{display:block;margin-top:4px;color:var(--nd-ink);white-space:nowrap}
 html body #appView .pp-detail .pp-flow strong small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0;color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nd-ink-3)}
-html body #appView #view-payments .pp-dot.in{background:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;background:var(--nd-line-2)}
-html body #appView #view-payments .pp-bar>span{display:block;min-width:2px;border-radius:3px}
-html body #appView #view-payments .pp-bar>.in{background:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-bar>.out{background:var(--nd-ink-3);opacity:.45}
+html body #appView :is(#view-payments,#view-ar) .pp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .pp-dot.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;background:var(--nd-line-2)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>span{display:block;min-width:2px;border-radius:3px}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>.out{background:var(--nd-ink-3);opacity:.45}
 html body #appView .pp-detail .pp-body>.pp-bar{margin-top:14px}
 /* 할 일: 못 받은 돈 · 안 준 돈 → 해당 화면으로 */
 html body #appView .pp-detail .pp-todo{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));margin-top:22px;border-block:1px solid var(--nd-line)}
@@ -147,8 +147,8 @@ html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;jus
 html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
 html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap;margin:0 0 14px!important;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
-html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
-html body #appView #view-payments>.pp-mobile-list{display:none}
+html body #appView :is(#view-payments,#view-ar) .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+html body #appView :is(#view-payments,#view-ar)>.pp-mobile-list{display:none}
 
 @media(min-width:1024px) and (max-width:1200px){
  html body #appView .pp-detail .pp-table .pp-c-method{display:none}
@@ -159,18 +159,18 @@ html body #appView #view-payments>.pp-mobile-list{display:none}
 /* ---------- 폰 ---------- */
 @media(max-width:1023px){
  html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
- html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
- html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
- html body #appView #view-payments.pp-detail-open::after{display:none!important}
- html body #appView #view-payments>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>:not(.pp-detail){display:none!important}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open::after{display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
  html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
  html body #appView .pp-detail .pp-back span{font-size:14px}
  html body #appView .pp-detail .pp-head{padding:20px 16px;gap:14px 12px;min-height:126px}
  html body #appView .pp-detail .pp-amount{margin-left:auto;font-size:12px;line-height:18px}
  html body #appView .pp-detail .pp-meta{font-size:12px;line-height:18px;margin-top:0;gap:8px}
  html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
- html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
- html body #appView #view-payments .pp-detail .pp-amount strong.neg{color:var(--nd-red,#E53E3E)!important}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail h3,html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong.neg{color:var(--nd-red,#E53E3E)!important}
  html body #appView .pp-detail .pp-body{padding:20px 16px 24px;overflow:visible;flex:1}
  html body #appView .pp-detail .pp-flow>div{padding:0 10px}
  html body #appView .pp-detail .pp-flow>div:first-child{padding-left:0}
@@ -188,33 +188,33 @@ html body #appView #view-payments>.pp-mobile-list{display:none}
  html body #appView .pp-detail .pp-abar .pp-btn{height:44px}
  html body #appView .pp-detail .pp-abar .pp-more{width:44px}
  /* 목록 */
- html body #appView #view-payments>.pp-mobile-list{display:block;margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
- html body #appView .shell .main #view-payments>.page-head{margin-bottom:0!important}
- html body #appView #view-payments:not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-mobile-list{display:block;margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
+ html body #appView .shell .main :is(#view-payments,#view-ar)>.page-head{margin-bottom:0!important}
+ html body #appView :is(#view-payments,#view-ar):not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
  html body #appView #view-payments.pp-entry-open>.pp-mobile-list{display:none}
  html body #appView #view-payments .nd-pay-record{display:none!important}
- html body #appView #view-payments>.page-head h2{padding-right:0}
+ html body #appView :is(#view-payments,#view-ar)>.page-head h2{padding-right:0}
  html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px 44px!important}
  html body #appView #view-payments .nd-tools .nd-tadd{display:flex!important}
- html body #appView #view-payments .pp-msum{display:block;width:100%;margin:0;padding:4px 20px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
- html body #appView #view-payments .pp-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
- html body #appView #view-payments .pp-msum-top small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
- html body #appView #view-payments .pp-msum-top b{font-size:20px;font-weight:700;line-height:28px}
- html body #appView #view-payments .pp-msum>.pp-bar{margin-top:8px}
- html body #appView #view-payments .pp-msum-io{display:flex;justify-content:space-between;margin-top:6px}
- html body #appView #view-payments .pp-msum-io small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
- html body #appView #view-payments .pp-kind-tabs{display:flex}
- html body #appView #view-payments .pp-kind-tabs button{flex:1;height:48px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
- html body #appView #view-payments .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
- html body #appView #view-payments .pp-mobile-list>.pp-kind-tabs{border-bottom:1px solid var(--nd-line)}
- html body #appView #view-payments .pp-mobile-list .pp-list{--panel-inset:20px}
- html body #appView #view-payments .pp-mobile-list .pp-row{padding-block:14px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum{display:block;width:100%;margin:0;padding:4px 20px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top b{font-size:20px;font-weight:700;line-height:28px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum>.pp-bar{margin-top:8px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-io{display:flex;justify-content:space-between;margin-top:6px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-io small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs{display:flex}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs button{flex:1;height:48px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list>.pp-kind-tabs{border-bottom:1px solid var(--nd-line)}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list .pp-list{--panel-inset:20px}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list .pp-row{padding-block:14px}
 }
 @media(max-width:780px){
- html body #appView #view-payments>.page-head{padding-bottom:20px!important}
+ html body #appView :is(#view-payments,#view-ar)>.page-head{padding-bottom:20px!important}
 }
 @media(max-width:360px){
- html body #appView #view-payments .pp-detail .pp-amount strong{font-size:17px!important}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong{font-size:17px!important}
 }
 /* 입력 창을 열었을 때: 예전 합계 상자·접기 줄은 숨기고 입력만(머리는 '새 기록' / '기록 고치기') */
 html body #appView #view-payments.pp-entry-open .workspace-right>.ops-summary{display:none!important}

@@ -73,7 +73,7 @@ test('left list: kind tabs restored, date groups, signed amounts, no scope row; 
  assert.match(js,/\[\['','전체'\],\['수금','입금'\],\['지급','출금'\]\]/);
  assert.match(js,/class="pp-dg"/);assert.match(js,/signedAmount\(p\)/);
  assert.match(js,/c.className='count pp-count'/);
- assert.match(css,/\.workspace-left>\.panel-b-index,\s*html body #appView #view-payments \.workspace-left>:is\(\.pp-list-scope,\.pp-overview\)\{display:none!important\}/);
+ assert.match(css,/\.workspace-left>\.panel-b-index,\s*html body #appView :is\(#view-payments,#view-ar\) \.workspace-left>:is\(\.pp-list-scope,\.pp-overview\)\{display:none!important\}/);
 });
 test('summary uses dashboard numeric tokens and recovery footer stays inside padding',()=>{
  assert.match(css,/font-family:var\(--nd-number-font\)!important;font-size:var\(--nd-stat-size\)!important;font-weight:var\(--nd-stat-weight\)!important/);

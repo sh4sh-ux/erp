@@ -1,0 +1,21 @@
+/* 받을 금액(10/16 시안, UI-RULES 'Receivables'): 입금·출금과 같은 부품(.pp-*)을 그대로 쓰고(payment-panel.css가 #view-ar에도 걸린다),
+   여기에는 받을 금액에만 있는 것 — 얼마나 오래(30일 · 60일) 칩과 막대 — 만 둔다. */
+html body #appView #view-ar .ap-age{display:inline-flex;align-items:center;flex:none;height:18px;padding:0 6px;border-radius:5px;font:600 11px/1 var(--sans);font-variant-numeric:tabular-nums}
+html body #appView #view-ar .ap-age.ap-mid{background:var(--nd-amber-soft,rgba(255,149,0,.12));color:var(--nd-amber,#FF9500)}
+html body #appView #view-ar .ap-age.ap-old{background:var(--nd-red-soft,rgba(229,62,62,.10));color:var(--nd-red,#E53E3E)}
+html body #appView #view-ar .ap-agebar>.a0,html body #appView #view-ar .ap-aging .a0{background:var(--nd-blue)}
+html body #appView #view-ar .ap-agebar>.a1,html body #appView #view-ar .ap-aging .a1{background:var(--nd-amber,#FF9500)}
+html body #appView #view-ar .ap-agebar>.a2,html body #appView #view-ar .ap-aging .a2{background:var(--nd-red,#E53E3E)}
+html body #appView #view-ar .pp-detail .ap-agebar{margin-top:4px}
+html body #appView #view-ar .ap-aging{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-ar .ap-aging span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+html body #appView #view-ar .ap-aging i{width:8px;height:8px;border-radius:2px}
+html body #appView #view-ar .ap-aging b{font-weight:600;color:var(--nd-ink);font-family:var(--nd-number-font);font-variant-numeric:tabular-nums}
+html body #appView #view-ar .pp-table .ap-c-age{width:88px}
+html body #appView #view-ar .pp-table .ap-c-wide{width:112px}
+html body #appView #view-ar .pp-table td .pp-link{font-size:13.5px}
+html body #appView #view-ar .ap-qlink{margin-left:6px}
+html body #appView #view-ar .pp-row-mt .ap-age{margin-right:2px}
+@media(max-width:1200px){html body #appView #view-ar .pp-table .ap-c-wide{display:none}}
+html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
+@media(max-width:1023px){html body #appView #view-ar .pp-detail .pp-table .ap-c-age{width:60px}html body #appView #view-ar .pp-detail .pp-flow>div{padding:0 10px}}

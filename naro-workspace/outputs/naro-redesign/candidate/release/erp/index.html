@@ -11254,7 +11254,7 @@ const NaroCompanyLedger=(()=>{
   sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar,#view-sales>.filter-bar',
    chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']],mafter:'#view-sales>.page-head'},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar','#view-sales>.filter-bar']},
   ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
-   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
+   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처'],['quote','견적']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
   settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
  let pop=null;
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}
@@ -14521,11 +14521,11 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 })();
 </script><style id="naro-payment-panel">/* 입금·출금(10/15 시안 확정, UI-RULES 'Payments'): 왼쪽 = 제목·건수 / 도구 / 탭 / 날짜별 목록,
    오른쪽 = 견적서와 같은 머리 · 본문 · 아래 바. 머리 좌표는 Header Contract(다른 화면과 같은 선)를 지킨다. */
-#view-payments>.pp-detail[hidden]{display:none!important}
+:is(#view-payments,#view-ar)>.pp-detail[hidden]{display:none!important}
 @media all{
- html body #appView #view-payments.pp-detail-open>.workspace-heading,
- html body #appView #view-payments.pp-detail-open>.workspace-right{display:none!important}
- html body #appView #view-payments>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>.workspace-heading,
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>.workspace-right{display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-detail{grid-column:2;grid-row:1/-1;min-width:0;min-height:0;display:grid;grid-template-rows:var(--panel-head,144px) minmax(0,1fr) auto;background:var(--nd-surface);color:var(--nd-ink);overflow:hidden}
  html body #appView .pp-detail .pp-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;gap:10px 24px;padding:30px 28px 20px;min-width:0;border-bottom:1px solid var(--nd-line)}
  html body #appView .pp-detail .pp-title{min-width:0}
  html body #appView .pp-detail .pp-caption{display:block;font:600 11px/13px var(--sans);color:var(--nd-ink-3);letter-spacing:.8px}
@@ -14538,30 +14538,30 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 }
 html body #appView .pp-detail .pp-back{display:none}
 /* 숫자는 대시보드 숫자 규칙 그대로 */
-html body #appView #view-payments :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
-html body #appView #view-payments :is(.pp-row-am,.pp-table .pp-c-num,.pp-msum b,.pp-todo b,.pp-qpick b){font-family:var(--nd-number-font)!important;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
-html body #appView #view-payments .neg{color:var(--nd-red,#E53E3E)!important}
-html body #appView #view-payments .in{color:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) :is(.pp-amount strong,.pp-metrics strong){font-family:var(--nd-number-font)!important;font-size:var(--nd-stat-size)!important;font-weight:var(--nd-stat-weight)!important;line-height:1.2!important;letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums}
+html body #appView :is(#view-payments,#view-ar) :is(.pp-row-am,.pp-table .pp-c-num,.pp-msum b,.pp-todo b,.pp-qpick b){font-family:var(--nd-number-font)!important;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+html body #appView :is(#view-payments,#view-ar) .neg{color:var(--nd-red,#E53E3E)!important}
+html body #appView :is(#view-payments,#view-ar) .in{color:var(--nd-green-fill,#1DAD53)}
 
 /* ---------- 왼쪽: 탭 · (기간 칩) · 날짜별 목록 ---------- */
-html body #appView #view-payments .workspace-left>.nd-chips{display:flex!important;flex:none}
-html body #appView #view-payments .workspace-left>.panel-b-index,
-html body #appView #view-payments .workspace-left>:is(.pp-list-scope,.pp-overview){display:none!important}
-html body #appView #view-payments .workspace-left>.pp-list{flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 calc(-1 * var(--panel-inset,20px));padding-bottom:24px}
-html body #appView #view-payments .pp-list .pp-dg{padding:16px var(--panel-inset,20px) 6px;font:600 11.5px/16px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;width:100%;margin:0;padding:12px var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
-@media(hover:hover){html body #appView #view-payments .pp-row:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
-html body #appView #view-payments .pp-row.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
-html body #appView #view-payments .pp-row-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
-html body #appView #view-payments .pp-row-am{font-size:14px;font-weight:600;line-height:20px;text-align:right;white-space:nowrap;color:var(--nd-ink)}
-html body #appView #view-payments .pp-row-am.in{color:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-row-mt{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html body #appView #view-payments .pp-badge{flex:none;padding:1px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2);font:600 11px/18px var(--sans);font-style:normal;white-space:nowrap}
-html body #appView #view-payments .pp-badge.in{color:var(--nd-green-fill,#1DAD53);background:var(--nd-green-soft,rgba(29,173,83,.10))}
-html body #appView #view-payments .pp-fchips{display:flex;gap:6px;padding:10px var(--panel-inset,20px) 2px}
-html body #appView #view-payments .pp-fchip{display:inline-flex;align-items:center;gap:6px;height:28px;min-height:0;padding:0 12px;border:0;border-radius:999px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font:600 12px/1 var(--sans);box-shadow:none}
-html body #appView #view-payments .pp-empty{margin:0;padding:48px var(--panel-inset,20px);text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-payments>.page-head>.pp-count{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.nd-chips{display:flex!important;flex:none}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.panel-b-index,
+html body #appView :is(#view-payments,#view-ar) .workspace-left>:is(.pp-list-scope,.pp-overview){display:none!important}
+html body #appView :is(#view-payments,#view-ar) .workspace-left>.pp-list{flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 calc(-1 * var(--panel-inset,20px));padding-bottom:24px}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-dg{padding:16px var(--panel-inset,20px) 6px;font:600 11.5px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .pp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;width:100%;margin:0;padding:12px var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+@media(hover:hover){html body #appView :is(#view-payments,#view-ar) .pp-row:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}}
+html body #appView :is(#view-payments,#view-ar) .pp-row.on{background:var(--nd-blue-soft);box-shadow:inset 3px 0 0 var(--nd-blue)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-am{font-size:14px;font-weight:600;line-height:20px;text-align:right;white-space:nowrap;color:var(--nd-ink)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-am.in{color:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-row-mt{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;font:400 12px/18px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView :is(#view-payments,#view-ar) .pp-badge{flex:none;padding:1px 6px;border-radius:5px;background:var(--nd-fill);color:var(--nd-ink-2);font:600 11px/18px var(--sans);font-style:normal;white-space:nowrap}
+html body #appView :is(#view-payments,#view-ar) .pp-badge.in{color:var(--nd-green-fill,#1DAD53);background:var(--nd-green-soft,rgba(29,173,83,.10))}
+html body #appView :is(#view-payments,#view-ar) .pp-fchips{display:flex;gap:6px;padding:10px var(--panel-inset,20px) 2px}
+html body #appView :is(#view-payments,#view-ar) .pp-fchip{display:inline-flex;align-items:center;gap:6px;height:28px;min-height:0;padding:0 12px;border:0;border-radius:999px;background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font:600 12px/1 var(--sans);box-shadow:none}
+html body #appView :is(#view-payments,#view-ar) .pp-empty{margin:0;padding:48px var(--panel-inset,20px);text-align:center;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar)>.page-head>.pp-count{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
 
 /* ---------- 오른쪽 본문 ---------- */
 /* 한 줄 요약: 상자 없이 숫자 셋 + 비율 막대 하나 */
@@ -14572,12 +14572,12 @@ html body #appView .pp-detail .pp-flow>div+div{border-left:1px solid var(--nd-li
 html body #appView .pp-detail .pp-flow span{display:flex;align-items:center;gap:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
 html body #appView .pp-detail .pp-flow strong{display:block;margin-top:4px;color:var(--nd-ink);white-space:nowrap}
 html body #appView .pp-detail .pp-flow strong small{margin-left:3px;font:400 12px/18px var(--sans);letter-spacing:0;color:var(--nd-ink-3)}
-html body #appView #view-payments .pp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nd-ink-3)}
-html body #appView #view-payments .pp-dot.in{background:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;background:var(--nd-line-2)}
-html body #appView #view-payments .pp-bar>span{display:block;min-width:2px;border-radius:3px}
-html body #appView #view-payments .pp-bar>.in{background:var(--nd-green-fill,#1DAD53)}
-html body #appView #view-payments .pp-bar>.out{background:var(--nd-ink-3);opacity:.45}
+html body #appView :is(#view-payments,#view-ar) .pp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--nd-ink-3)}
+html body #appView :is(#view-payments,#view-ar) .pp-dot.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar{display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;background:var(--nd-line-2)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>span{display:block;min-width:2px;border-radius:3px}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>.in{background:var(--nd-green-fill,#1DAD53)}
+html body #appView :is(#view-payments,#view-ar) .pp-bar>.out{background:var(--nd-ink-3);opacity:.45}
 html body #appView .pp-detail .pp-body>.pp-bar{margin-top:14px}
 /* 할 일: 못 받은 돈 · 안 준 돈 → 해당 화면으로 */
 html body #appView .pp-detail .pp-todo{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));margin-top:22px;border-block:1px solid var(--nd-line)}
@@ -14668,8 +14668,8 @@ html body #appView .nd-pay-filter .nd-pop-hd{display:flex;align-items:center;jus
 html body #appView .nd-pay-filter label:has(:is(#payFilter,#payPeriod,#payMonth)){display:none!important}
 html body #appView .nd-pay-filter :is(#payFromLabel,#payToLabel){display:flex!important;flex-direction:column;align-items:stretch;gap:7px;min-width:0;white-space:nowrap;margin:0 0 14px!important;font:500 12px/16px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-pay-filter .nd-trash-field:has(.nd-trash-go:disabled){display:none!important}
-html body #appView #view-payments .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
-html body #appView #view-payments>.pp-mobile-list{display:none}
+html body #appView :is(#view-payments,#view-ar) .nd-tsearch input{font:400 var(--nd-search-font-size)/20px var(--sans)!important;letter-spacing:0!important}
+html body #appView :is(#view-payments,#view-ar)>.pp-mobile-list{display:none}
 
 @media(min-width:1024px) and (max-width:1200px){
  html body #appView .pp-detail .pp-table .pp-c-method{display:none}
@@ -14680,18 +14680,18 @@ html body #appView #view-payments>.pp-mobile-list{display:none}
 /* ---------- 폰 ---------- */
 @media(max-width:1023px){
  html body #appView .nd-pay-filter .nd-pop-body.nd-pop-filter :is(select,input:not([type=checkbox])){font-size:16px!important}
- html body #appView #view-payments.pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
- html body #appView #view-payments.pp-detail-open>:not(.pp-detail){display:none!important}
- html body #appView #view-payments.pp-detail-open::after{display:none!important}
- html body #appView #view-payments>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open{padding:0 12px!important;background:var(--nd-bg,#eef0f4)}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open>:not(.pp-detail){display:none!important}
+ html body #appView :is(#view-payments,#view-ar).pp-detail-open::after{display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-detail{display:flex;padding:0!important;flex-direction:column;grid-column:auto;grid-row:auto;overflow:visible;min-height:calc(100dvh - 24px);border-radius:20px 20px 0 0;margin:0!important}
  html body #appView .pp-detail .pp-back{display:flex;align-items:center;gap:10px;width:fit-content;height:48px;margin:12px 16px 0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 28px/1 var(--sans)}
  html body #appView .pp-detail .pp-back span{font-size:14px}
  html body #appView .pp-detail .pp-head{padding:20px 16px;gap:14px 12px;min-height:126px}
  html body #appView .pp-detail .pp-amount{margin-left:auto;font-size:12px;line-height:18px}
  html body #appView .pp-detail .pp-meta{font-size:12px;line-height:18px;margin-top:0;gap:8px}
  html body #appView .pp-detail .pp-caption{font:400 12px/18px var(--sans);letter-spacing:normal;color:var(--nd-ink-2)}
- html body #appView #view-payments .pp-detail h3,html body #appView #view-payments .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
- html body #appView #view-payments .pp-detail .pp-amount strong.neg{color:var(--nd-red,#E53E3E)!important}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail h3,html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong{font:700 19px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif!important;letter-spacing:normal!important;color:var(--nd-ink)}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong.neg{color:var(--nd-red,#E53E3E)!important}
  html body #appView .pp-detail .pp-body{padding:20px 16px 24px;overflow:visible;flex:1}
  html body #appView .pp-detail .pp-flow>div{padding:0 10px}
  html body #appView .pp-detail .pp-flow>div:first-child{padding-left:0}
@@ -14709,33 +14709,33 @@ html body #appView #view-payments>.pp-mobile-list{display:none}
  html body #appView .pp-detail .pp-abar .pp-btn{height:44px}
  html body #appView .pp-detail .pp-abar .pp-more{width:44px}
  /* 목록 */
- html body #appView #view-payments>.pp-mobile-list{display:block;margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
- html body #appView .shell .main #view-payments>.page-head{margin-bottom:0!important}
- html body #appView #view-payments:not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
+ html body #appView :is(#view-payments,#view-ar)>.pp-mobile-list{display:block;margin:0 -4px!important;padding:0!important;background:var(--nd-surface)}
+ html body #appView .shell .main :is(#view-payments,#view-ar)>.page-head{margin-bottom:0!important}
+ html body #appView :is(#view-payments,#view-ar):not(.pp-detail-open):not(.pp-entry-open)>:not(.page-head):not(.pp-mobile-list):not(dialog){display:none!important}
  html body #appView #view-payments.pp-entry-open>.pp-mobile-list{display:none}
  html body #appView #view-payments .nd-pay-record{display:none!important}
- html body #appView #view-payments>.page-head h2{padding-right:0}
+ html body #appView :is(#view-payments,#view-ar)>.page-head h2{padding-right:0}
  html body #appView #view-payments .nd-tools{grid-template-columns:minmax(0,1fr) 44px 44px!important}
  html body #appView #view-payments .nd-tools .nd-tadd{display:flex!important}
- html body #appView #view-payments .pp-msum{display:block;width:100%;margin:0;padding:4px 20px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
- html body #appView #view-payments .pp-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
- html body #appView #view-payments .pp-msum-top small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
- html body #appView #view-payments .pp-msum-top b{font-size:20px;font-weight:700;line-height:28px}
- html body #appView #view-payments .pp-msum>.pp-bar{margin-top:8px}
- html body #appView #view-payments .pp-msum-io{display:flex;justify-content:space-between;margin-top:6px}
- html body #appView #view-payments .pp-msum-io small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
- html body #appView #view-payments .pp-kind-tabs{display:flex}
- html body #appView #view-payments .pp-kind-tabs button{flex:1;height:48px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
- html body #appView #view-payments .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
- html body #appView #view-payments .pp-mobile-list>.pp-kind-tabs{border-bottom:1px solid var(--nd-line)}
- html body #appView #view-payments .pp-mobile-list .pp-list{--panel-inset:20px}
- html body #appView #view-payments .pp-mobile-list .pp-row{padding-block:14px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum{display:block;width:100%;margin:0;padding:4px 20px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-top b{font-size:20px;font-weight:700;line-height:28px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum>.pp-bar{margin-top:8px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-io{display:flex;justify-content:space-between;margin-top:6px}
+ html body #appView :is(#view-payments,#view-ar) .pp-msum-io small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs{display:flex}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs button{flex:1;height:48px;border:0;border-bottom:2px solid transparent;border-radius:0;padding:0;background:none;box-shadow:none;font:500 14px/20px var(--sans);color:var(--nd-ink-2)}
+ html body #appView :is(#view-payments,#view-ar) .pp-kind-tabs button[aria-pressed=true]{border-bottom-color:var(--nd-blue);color:var(--nd-blue);font-weight:600}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list>.pp-kind-tabs{border-bottom:1px solid var(--nd-line)}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list .pp-list{--panel-inset:20px}
+ html body #appView :is(#view-payments,#view-ar) .pp-mobile-list .pp-row{padding-block:14px}
 }
 @media(max-width:780px){
- html body #appView #view-payments>.page-head{padding-bottom:20px!important}
+ html body #appView :is(#view-payments,#view-ar)>.page-head{padding-bottom:20px!important}
 }
 @media(max-width:360px){
- html body #appView #view-payments .pp-detail .pp-amount strong{font-size:17px!important}
+ html body #appView :is(#view-payments,#view-ar) .pp-detail .pp-amount strong{font-size:17px!important}
 }
 /* 입력 창을 열었을 때: 예전 합계 상자·접기 줄은 숨기고 입력만(머리는 '새 기록' / '기록 고치기') */
 html body #appView #view-payments.pp-entry-open .workspace-right>.ops-summary{display:none!important}
@@ -15030,6 +15030,190 @@ html body #appView .pp-detail .pp-meta>*{margin:0!important;align-self:center}
   for(const [id,v] of [['payFrom',from],['payTo',to]]){const input=document.getElementById(id);if(input&&input.value!==v){input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));}}
  }
  window.NaroPaymentPanel={open:show};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
+})();
+</script><style id="naro-ar-panel">/* 받을 금액(10/16 시안, UI-RULES 'Receivables'): 입금·출금과 같은 부품(.pp-*)을 그대로 쓰고(payment-panel.css가 #view-ar에도 걸린다),
+   여기에는 받을 금액에만 있는 것 — 얼마나 오래(30일 · 60일) 칩과 막대 — 만 둔다. */
+html body #appView #view-ar .ap-age{display:inline-flex;align-items:center;flex:none;height:18px;padding:0 6px;border-radius:5px;font:600 11px/1 var(--sans);font-variant-numeric:tabular-nums}
+html body #appView #view-ar .ap-age.ap-mid{background:var(--nd-amber-soft,rgba(255,149,0,.12));color:var(--nd-amber,#FF9500)}
+html body #appView #view-ar .ap-age.ap-old{background:var(--nd-red-soft,rgba(229,62,62,.10));color:var(--nd-red,#E53E3E)}
+html body #appView #view-ar .ap-agebar>.a0,html body #appView #view-ar .ap-aging .a0{background:var(--nd-blue)}
+html body #appView #view-ar .ap-agebar>.a1,html body #appView #view-ar .ap-aging .a1{background:var(--nd-amber,#FF9500)}
+html body #appView #view-ar .ap-agebar>.a2,html body #appView #view-ar .ap-aging .a2{background:var(--nd-red,#E53E3E)}
+html body #appView #view-ar .pp-detail .ap-agebar{margin-top:4px}
+html body #appView #view-ar .ap-aging{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:10px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-ar .ap-aging span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+html body #appView #view-ar .ap-aging i{width:8px;height:8px;border-radius:2px}
+html body #appView #view-ar .ap-aging b{font-weight:600;color:var(--nd-ink);font-family:var(--nd-number-font);font-variant-numeric:tabular-nums}
+html body #appView #view-ar .pp-table .ap-c-age{width:88px}
+html body #appView #view-ar .pp-table .ap-c-wide{width:112px}
+html body #appView #view-ar .pp-table td .pp-link{font-size:13.5px}
+html body #appView #view-ar .ap-qlink{margin-left:6px}
+html body #appView #view-ar .pp-row-mt .ap-age{margin-right:2px}
+@media(max-width:1200px){html body #appView #view-ar .pp-table .ap-c-wide{display:none}}
+html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
+@media(max-width:1023px){html body #appView #view-ar .pp-detail .pp-table .ap-c-age{width:60px}html body #appView #view-ar .pp-detail .pp-flow>div{padding:0 10px}}
+</style><script id="naro-ar-panel-script">/* 받을 금액 화면(10/16 시안 — UI-RULES 'Receivables'). 받을 금액 = 납품한 금액 − 받은 금액(입금).
+   누구에게 얼마를, 얼마나 오래(가장 오래된 미입금 납품부터 며칠) 못 받았는지 보여 주고 바로 입금을 기록한다.
+   계산은 기본 앱(arData · deliveredLines · quoteTotals · quoteAmount · quotePaid)을 그대로 쓰고, 저장은 하지 않는다.
+   입금 기록은 입금·출금 화면의 입력 창(openPaymentEntry)을 연다. 모양은 입금·출금과 같은 부품(.pp-*)을 쓴다. */
+(()=>{
+ const desk=matchMedia('(min-width:1024px)');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
+ const won=n=>num(n)+'원';
+ const state={cid:null,quote:null,mobileOpen:false,sig:'',listSig:'',mobileSig:''};
+ let queued=false;
+ const data=()=>{try{return db;}catch{return null;}};
+ const fn=name=>{try{const f=globalThis[name];return typeof f==='function'?f:null;}catch{return null;}};
+ const value=id=>document.getElementById(id)?.value||'';
+ const coName=id=>(data()?.companies||[]).find(c=>c.id===id)?.name||'거래처 없음';
+ const today=()=>{const f=fn('localDate');return f?f():new Date().toISOString().slice(0,10);};
+ const days=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return null;const a=new Date(d+'T00:00:00'),b=new Date(today()+'T00:00:00');return Math.max(0,Math.round((b-a)/864e5));};
+ const short=d=>{const m=/^\d{4}-(\d{2})-(\d{2})$/.exec(d||'');return m?`${m[1]}.${m[2]}`:'';};
+ // 얼마나 오래: 30일 · 60일 기준(시안 확정). 30일 넘으면 주황, 60일 넘으면 빨강 칩.
+ const ageCls=n=>n==null?'':n>60?'ap-old':n>30?'ap-mid':'';
+ const ageChip=n=>n==null?'':ageCls(n)?`<b class="ap-age ${ageCls(n)}">${n}일</b>`:`${n}일`;
+ const live=q=>(q?.deliveries||[]).filter(d=>!d.void_at);
+ const delAmt=(q,d)=>{try{return fn('quoteTotals')({lines:fn('deliveredLines')(q,d)}).total||0;}catch{return 0;}};
+ const qPaid=q=>(data()?.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
+ // 견적 하나: 납품액 − 받은 돈. 받은 돈은 오래된 납품부터 채운다 → 남은 첫 납품의 날짜가 '얼마나 오래'의 기준.
+ function quoteOpen(q){
+  const ds=live(q).map(d=>({date:d.date||q.delivered_at||'',amt:delAmt(q,d)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const delivered=ds.reduce((s,d)=>s+d.amt,0),paid=qPaid(q),open=delivered-paid;
+  let left=paid,oldest=null;for(const d of ds){if(left>=d.amt-0.5){left-=d.amt;continue;}oldest=d.date;break;}
+  return {q,delivered,paid,open,oldest,age:open>0.5?days(oldest):null,last:ds.at(-1)?.date||''};
+ }
+ // 거래처: 받을 금액은 받을 금액 화면과 같은 계산(arData). 얼마나 오래 = 남은 견적 중 가장 오래된 것.
+ function companies(){
+  const f=fn('arData');if(!f)return [];let rows=[];try{rows=f();}catch{return [];}
+  const qs=(data()?.quotes||[]).filter(q=>q.status!=='취소');
+  return rows.map(r=>{const opens=qs.filter(q=>q.company_id===r.cid).map(quoteOpen).filter(x=>x.open>0.5).sort((a,b)=>(a.oldest||'').localeCompare(b.oldest||''));
+   const age=opens.length?Math.max(...opens.map(x=>x.age??0)):null;
+   return {...r,name:coName(r.cid),opens,age};});
+ }
+ const showAll=()=>value('arFilter')==='all';
+ const visible=list=>list.filter(r=>showAll()||r.open>0.5).filter(r=>{const q=(document.querySelector('#view-ar .nd-tsearch input')?.value||'').trim().toLowerCase();return !q||r.name.toLowerCase().includes(q);});
+ const sortOld=list=>list.slice().sort((a,b)=>(b.age??-1)-(a.age??-1)||b.open-a.open);
+ const quoteMode=()=>value('arView')==='quote';
+ function buckets(list){const b=[0,0,0];for(const r of list)for(const o of r.opens){const n=o.age??0;b[n>60?2:n>30?1:0]+=o.open;}return b;}
+ function listMarkup(list){
+  if(quoteMode()){
+   const qs=list.flatMap(r=>r.opens.map(o=>({...o,cid:r.cid,name:r.name}))).sort((a,b)=>(b.age??-1)-(a.age??-1));
+   if(!qs.length)return '<p class="pp-empty">받을 돈이 남은 견적이 없어요.</p>';
+   return qs.map(o=>`<button type="button" class="pp-row${state.quote===o.q.id?' on':''}" data-ap="quote" data-id="${esc(o.cid)}" data-q="${esc(o.q.id)}"><span class="pp-row-nm">${esc(o.name)}</span><span class="pp-row-am">${won(o.open)}</span><span class="pp-row-mt">${ageCls(o.age)?ageChip(o.age):''}${esc(o.q.no||'견적')} · ${short(o.oldest)} 납품${ageCls(o.age)?'':` · ${o.age}일`}</span></button>`).join('');
+  }
+  if(!list.length)return `<p class="pp-empty">${showAll()?'거래처가 없어요.':'받을 돈이 남은 거래처가 없어요.'}</p>`;
+  return list.map(r=>`<button type="button" class="pp-row${state.cid===r.cid&&!state.quote?' on':''}" data-ap="co" data-id="${esc(r.cid)}"><span class="pp-row-nm">${esc(r.name)}</span><span class="pp-row-am">${r.open>0.5?won(r.open):'다 받음'}</span><span class="pp-row-mt">${ageCls(r.age)?ageChip(r.age):''}${r.opens.length?`견적 ${r.opens.length}건`:'남은 견적 없음'}${r.age!=null&&!ageCls(r.age)?` · ${r.age}일`:''} · ${r.lastPay?'마지막 입금 '+short(r.lastPay):'입금 없음'}</span></button>`).join('');
+ }
+ const barMarkup=b=>`<span class="pp-bar ap-agebar" aria-hidden="true">${b[0]+b[1]+b[2]?`<span class="a0" style="flex:${b[0]}"></span><span class="a1" style="flex:${b[1]}"></span><span class="a2" style="flex:${b[2]}"></span>`:''}</span>`;
+ function overviewMarkup(all){
+  const list=sortOld(visible(all)),open=all.filter(r=>r.open>0.5),total=open.reduce((s,r)=>s+r.open,0),nq=open.reduce((s,r)=>s+r.opens.length,0);
+  const pending=all.reduce((s,r)=>s+Math.max(0,r.pending),0),npend=(data()?.quotes||[]).filter(q=>q.status!=='취소'&&all.some(r=>r.cid===q.company_id)&&(fn('quoteAmount')?.(q)||0)-(fn('deliveredAmount')?.(q)||0)>0.5&&['수주','부분납품'].includes(q.status)).length;
+  const untaxed=all.reduce((s,r)=>s+r.untaxed,0),nunt=all.reduce((s,r)=>s+r.untaxedCount,0),b=buckets(open);
+  const table=list.length?`<table class="pp-table ap-table"><thead><tr><th>거래처</th><th class="pp-c-method">견적</th><th class="pp-c-num">받을 금액</th><th class="pp-c-method ap-c-age">얼마나 오래</th><th class="pp-c-method">마지막 입금</th></tr></thead><tbody>${list.map(r=>`<tr data-ap="co" data-id="${esc(r.cid)}" tabindex="0"><td><span class="pp-t-nm">${esc(r.name)}</span></td><td class="pp-c-method">${r.opens.length}건</td><td class="pp-c-num">${r.open>0.5?num(r.open):'0'}</td><td class="pp-c-method ap-c-age">${r.age==null?'—':ageChip(r.age)}</td><td class="pp-c-method">${r.lastPay?short(r.lastPay):'—'}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">받을 돈이 남은 거래처가 없어요.</div>';
+  return `<button type="button" class="pp-back" data-ap="back">‹ <span>받을 금액</span></button>
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">받을 금액 현황</span><h3>오늘 기준</h3></div><div class="pp-amount"><span>받을 금액 · 납품 − 입금</span><strong>${won(total)}</strong></div><div class="pp-meta"><span>${today().replace(/-/g,'.')}</span><span>${open.length}곳 · 견적 ${nq}건</span></div></header>
+   <div class="pp-body" id="ap-body">
+    <section class="pp-metrics pp-flow" aria-label="받을 금액 요약"><div><span>받을 금액 · ${nq}건</span><strong>${num(total)}<small>원</small></strong></div><div><span>납품 전 금액 · ${npend}건</span><strong>${num(pending)}<small>원</small></strong></div><div><span>계산서 미발행 · ${nunt}건</span><strong>${num(untaxed)}<small>원</small></strong></div></section>
+    <div class="pp-section-head"><h4>얼마나 오래 <small>가장 오래된 미입금 납품 기준</small></h4></div>
+    ${barMarkup(b)}<div class="ap-aging"><span><i class="a0"></i>30일 안 <b>${won(b[0])}</b></span><span><i class="a1"></i>31–60일 <b>${won(b[1])}</b></span><span><i class="a2"></i>61일 넘음 <b>${won(b[2])}</b></span></div>
+    <div class="pp-section-head"><h4>거래처별 <small>${list.length}곳 · 오래된 순</small></h4></div>${table}
+    <p class="pp-note">받을 금액은 납품한 금액에서 받은 금액(입금)을 뺀 것이에요. 수주만 하고 아직 납품하지 않은 금액(납품 전 금액)은 더하지 않아요.</p>
+   </div>
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay">＋ 입금 기록</button></div>`;
+ }
+ // 입금을 채울 견적: 견적 탭에서 고른 것, 아니면 가장 오래된 것.
+ const pick=r=>r.opens.find(o=>o.q.id===state.quote)||r.opens[0];
+ function detailMarkup(r){
+  const pays=(data()?.payments||[]).filter(p=>p.company_id===r.cid&&p.kind==='수금'&&!p.void_at).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,3);
+  const qno=id=>(data()?.quotes||[]).find(q=>q.id===id)?.no||'';
+  const pct=r.delivered>0?Math.min(100,Math.max(0,r.paid/r.delivered*100)):0,first=pick(r);
+  const linked=r.opens.reduce((s,o)=>s+o.open,0),diff=Math.round(linked-Math.max(0,r.open));
+  return `<button type="button" class="pp-back" data-ap="back">‹ <span>받을 금액</span></button>
+   <header class="pp-head"><div class="pp-title"><span class="pp-caption">거래처</span><h3 title="${esc(r.name)}">${esc(r.name)}</h3></div><div class="pp-amount"><span>받을 금액</span><strong>${won(Math.max(0,r.open))}</strong></div><div class="pp-meta"><span>견적 ${r.opens.length}건</span>${r.age!=null?`<span>가장 오래된 납품 ${r.age}일 전</span>`:''}<span>${r.lastPay?'마지막 입금 '+short(r.lastPay):'입금 없음'}</span></div></header>
+   <div class="pp-body" id="ap-body">
+    <section class="pp-prog"><div><span>납품 ${won(r.delivered)} 중 ${won(r.paid)} 받음</span><b>${Math.round(pct)}%</b></div><div class="pp-pbar"><span style="width:${pct.toFixed(1)}%"></span></div></section>
+    <div class="pp-section-head"><h4>받을 돈이 남은 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
+    ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th></tr></thead><tbody>${r.opens.map(o=>`<tr class="${state.quote===o.q.id?'on':''}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">받을 돈이 남은 견적이 없어요.</div>'}
+    ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
+    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기 ›</button></div>
+    ${pays.length?`<table class="pp-table ap-table"><tbody>${pays.map(p=>`<tr><td class="pp-c-date">${short(p.date)}</td><td><span class="pp-t-nm">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="doc" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span></td><td class="pp-c-num">${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
+   </div>
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기 ›</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'＋ 입금 기록'}</button></div>`;
+ }
+ function syncLeft(v,list){
+  const left=v.querySelector('.workspace-left');if(!left)return;
+  left.querySelectorAll(':scope>.workspace-record-index,:scope>.panel-b-index').forEach(x=>{if(!x.hidden)x.hidden=true;});
+  // 거래처 | 견적 탭: 기본 앱의 칩 줄이 왼쪽에 못 들어가는 경우가 있어 여기서 만든다(입금·출금의 탭과 같은 자리·모양).
+  let tabs=left.querySelector(':scope>.nd-chips');if(!tabs){tabs=document.createElement('div');tabs.className='nd-chips ap-tabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','받을 금액 보기');tabs.innerHTML=[['co','거래처'],['quote','견적']].map(([k,t])=>`<button type="button" data-ap="mode" data-mode="${k}">${t}</button>`).join('');left.append(tabs);}
+  const mode=value('arView')||'co';tabs.querySelectorAll('button').forEach(x=>{const on=String((x.dataset.mode||x.dataset.v)===mode);if(x.getAttribute('aria-pressed')!==on)x.setAttribute('aria-pressed',on);});
+  let el=left.querySelector(':scope>.pp-list');if(!el){el=document.createElement('div');el.className='pp-list';el.setAttribute('aria-label','받을 금액 목록');left.append(el);}
+  const html=listMarkup(list);if(html!==state.listSig||!el.firstChild){el.innerHTML=html;state.listSig=html;}
+ }
+ function syncCount(v,n){const head=v.querySelector(':scope>.page-head'),h2=head?.querySelector('h2');if(!h2)return;let c=head.querySelector(':scope>.pp-count');if(!c){c=document.createElement('span');c.className='count pp-count';h2.after(c);}const t=n+'곳';if(c.textContent!==t)c.textContent=t;}
+ function mobileList(v,all,list){
+  let el=v.querySelector(':scope>.pp-mobile-list');if(!el){el=document.createElement('div');el.className='pp-mobile-list';v.append(el);}
+  const open=all.filter(r=>r.open>0.5),total=open.reduce((s,r)=>s+r.open,0),b=buckets(open);
+  const html=`<button type="button" class="pp-msum" data-ap="overview"><span class="pp-msum-top"><small>받을 금액 · 오늘 기준</small><b>${won(total)}</b></span>${barMarkup(b)}<span class="pp-msum-io"><small>30일 안 ${num(b[0])}</small><small>30일 넘음 ${num(b[1]+b[2])}</small></span></button><div class="pp-kind-tabs" role="group" aria-label="받을 금액 보기">${[['co','거래처'],['quote','견적']].map(([k,t])=>`<button type="button" data-ap="mode" data-mode="${k}" aria-pressed="${(value('arView')||'co')===k}">${t}</button>`).join('')}</div><div class="pp-list">${listMarkup(list)}</div>`;
+  if(html!==state.mobileSig||!el.firstChild){el.innerHTML=html;state.mobileSig=html;}
+ }
+ function render(){
+  const v=document.getElementById('view-ar');if(!v)return;
+  v.classList.add('ap-on');
+  const all=companies(),list=sortOld(visible(all));
+  if(state.cid&&!all.some(r=>r.cid===state.cid)){state.cid=null;state.quote=null;}
+  syncCount(v,all.filter(r=>r.open>0.5).length);
+  if(!desk.matches)mobileList(v,all,list);
+  syncLeft(v,list);
+  const r=all.find(x=>x.cid===state.cid);
+  const active=desk.matches?true:state.mobileOpen;
+  v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);
+  let host=v.querySelector(':scope>.pp-detail');
+  if(!active){if(host)host.hidden=true;return;}
+  if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','받을 금액 상세');v.append(host);}
+  host.hidden=false;const html=r?detailMarkup(r):overviewMarkup(all);
+  if(html!==state.sig||!host.firstChild){host.innerHTML=html;state.sig=html;}
+ }
+ const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;try{render();}catch(e){console.error(e);}});};
+ const set=(id,val)=>{const el=document.getElementById(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}));};
+ // 입금 기록: 입금·출금 화면의 입력 창을 열고, 가장 오래된 견적과 그 남은 금액을 채운다.
+ function pay(cid){
+  const sv=fn('switchView');if(sv&&sv('payments')===false)return;
+  const open=fn('openPaymentEntry');if(open)open('수금');
+  if(!cid)return;
+  const r=companies().find(x=>x.cid===cid),first=r&&pick(r);
+  setTimeout(()=>{set('payCo',cid);setTimeout(()=>{
+   const s=document.getElementById('payQuote');
+   if(first&&s){if(![...s.options].some(o=>o.value===first.q.id)){const o=document.createElement('option');o.value=first.q.id;o.textContent=first.q.no||'견적';s.append(o);}set('payQuote',first.q.id);}
+   const a=document.getElementById('payAmt');if(a)a.value=num(first?first.open:Math.max(0,r?.open||0));
+  },0);},0);
+ }
+ function mount(){
+  const v=document.getElementById('view-ar');if(!v)return;
+  const f=document.getElementById('arFilter');if(f){for(const o of f.options){const t=o.value==='all'?'다 받은 곳도 보기':'받을 돈 있는 곳만';if(o.textContent!==t)o.textContent=t;}}
+  v.addEventListener('click',ev=>{
+   const b=ev.target.closest('[data-ap]');if(!b)return;
+   switch(b.dataset.ap){
+    case 'co':state.cid=b.dataset.id;state.quote=null;state.mobileOpen=true;state.sig='';render();if(!desk.matches)v.querySelector('.pp-back')?.scrollIntoView({block:'start'});break;
+    case 'quote':state.cid=b.dataset.id;state.quote=b.dataset.q;state.mobileOpen=true;state.sig='';render();break;
+    case 'overview':state.cid=null;state.quote=null;state.mobileOpen=true;state.sig='';render();break;
+    case 'back':state.mobileOpen=false;if(desk.matches){state.cid=null;state.quote=null;}render();break;
+    case 'mode':set('arView',b.dataset.mode);break;
+    case 'pay':pay(b.dataset.id||state.cid);break;
+    case 'payments':fn('switchView')?.('payments');break;
+    case 'export':[...document.querySelectorAll('.nd-nav-act')].find(x=>x.textContent.includes('데이터 내보내기'))?.click();break;
+    case 'company':if(state.cid&&fn('switchView')?.('companies')!==false){try{coSel=state.cid;}catch{}fn('renderCoList')?.();fn('renderCoDetail')?.();}break;
+    case 'doc':{const id=b.dataset.q;if(fn('switchView')?.('quotes')!==false){try{qtSel=id;}catch{}fn('renderQtList')?.();fn('renderQtDetail')?.();}break;}
+   }
+  });
+  v.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('tr[data-ap="co"]')){ev.preventDefault();ev.target.click();}});
+  v.addEventListener('change',schedule);v.addEventListener('input',schedule);
+  document.addEventListener('change',e=>{if(e.target?.id==='arView'||e.target?.id==='arFilter'){state.sig='';schedule();}},true);
+  new MutationObserver(schedule).observe(v,{childList:true,subtree:true});
+  desk.addEventListener('change',schedule);schedule();
+ }
+ window.NaroArPanel={render:schedule,companies};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
 })();
 </script><style id="naro-ui-contract">/* Shared screen typography contract. Loaded last, after feature styles.

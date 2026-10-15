@@ -411,7 +411,7 @@ const NaroCompanyLedger=(()=>{
   sales:{search:'#view-sales .workspace-left>input.panel-b-search',ph:'거래처 검색',filter:'#view-sales .workspace-left>.filter-bar,#view-sales>.filter-bar',
    chips:{select:'slStatus',host:'#view-sales .workspace-left',before:'#view-sales .workspace-left>.panel-b-index',items:[['수주','수주만'],['all','모든 상태']],mafter:'#view-sales>.page-head'},hide:['#view-sales .workspace-left>input.panel-b-search','#view-sales .workspace-left>.filter-bar','#view-sales>.filter-bar']},
   ar:{search:'#view-ar .filter-bar input[type="search"]',ph:'거래처 검색',filterSelect:'#arFilter',
-   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처별'],['quote','건별']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
+   chips:{select:'arView',host:'#view-ar .workspace-left',before:'#view-ar .workspace-left>.workspace-record-index',items:[['co','거래처'],['quote','견적']],mafter:'#view-ar>.page-head'},hide:['#view-ar .workspace-left>.filter-bar','#view-ar>.filter-bar']},
   settings:{search:'#view-settings .workspace-left>input.panel-b-search',ph:'설정 검색',hide:['#view-settings .workspace-left>input.panel-b-search']}};
  let pop=null;
  function closePop(){if(pop){pop.el.remove();pop.btn.setAttribute('aria-expanded','false');pop.restore?.();pop=null;}}

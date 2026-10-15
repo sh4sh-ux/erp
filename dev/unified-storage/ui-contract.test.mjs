@@ -85,7 +85,7 @@ async function open(page,view){
   if(view==='items'){itSel='i';renderItDetail();}
  },view);
  await page.waitForTimeout(80);
- if(view==='payments'&&await page.locator('.pp-mobile-list').isVisible())await page.locator('.pp-mobile-list .pp-row').first().click();
+ if(view==='payments'&&await page.locator('#view-payments .pp-mobile-list').isVisible())await page.locator('#view-payments .pp-mobile-list .pp-row').first().click();
  if(view==='purchases'){
   await page.waitForTimeout(100);
   const item=page.locator('#puList .list-item').first();if(await item.isVisible())await item.click();
