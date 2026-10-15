@@ -199,3 +199,8 @@ html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card .mp-qsup-k{width:100%}
 html body #appView #view-materials .mp-row{gap:2px}
 html body #appView #view-materials .mp-sum{gap:0;padding-bottom:20px}
 html body #appView #view-materials .mp-sum-top{margin-bottom:10px}
+/* 칩 없음(10/15): 보유 중이 먼저, 다 쓴 것은 맨 아래 한 줄로 접어 둔다 */
+html body #appView #view-materials .mp-done{display:flex;align-items:center;gap:6px;width:100%;min-height:44px;padding:0 var(--panel-inset,20px);border:0;border-bottom:1px solid var(--nd-line-2);background:transparent;text-align:left;font:500 12.5px/18px var(--sans);color:var(--nd-ink-3);cursor:pointer}
+html body #appView #view-materials .mp-done:hover{background:var(--nd-tint-hover);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-done[aria-expanded="true"]~.mp-row{opacity:.72}
+@media screen and (max-width:780px){html body #appView #view-materials .mp-done{padding:0 16px}}
