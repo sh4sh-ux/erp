@@ -684,3 +684,19 @@ test('left list tab row and right detail tab row share one divider line (quotes 
   assert.ok(Math.abs(m[1]-q[1])<1,`${width} ${theme} materials tab line matches quotes ${JSON.stringify([m,q])}`);
   await p.close();}}finally{await b.close();}
 });
+
+test('dashboard progress stages open the matching quote list with a visible, clearable filter bar',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){const p=await b.newPage({viewport:{width,height:900}});await prepare(p);await open(p,'dash');
+  const stage=p.locator('.nd-db-stage').first();await stage.waitFor();
+  assert.ok(await stage.locator('svg').count()>=2,width+' stage row ends with a chevron');
+  const label=(await stage.locator('.nd-db-stage-name strong').textContent()).trim();
+  await stage.click();await p.locator('#view-quotes .nd-stage-bar').waitFor();
+  const r=await p.evaluate(()=>{const bar=document.querySelector('#view-quotes .nd-stage-bar'),bb=bar.getBoundingClientRect();return {view:document.querySelector('#view-quotes').offsetParent!==null,text:bar.textContent,h:bb.height,one:[...bar.querySelector('span').children].every(e=>Math.abs(e.getBoundingClientRect().top-bar.querySelector('b').getBoundingClientRect().top)<4),on:!!document.querySelector('.quote-list-card.nd-stage-on')};});
+  assert.ok(r.view,width+' quotes view shown');assert.ok(r.text.includes(label)&&/\d+건/.test(r.text),width+' bar names stage and count '+r.text);
+  assert.ok(r.h<=45&&r.one,width+' bar stays on one 44px line '+JSON.stringify(r));assert.ok(r.on);
+  await p.locator('[data-stage-clear]').click();
+  assert.equal(await p.locator('#view-quotes .nd-stage-bar').count(),0,width+' clear removes the bar');
+  assert.equal(await p.locator('#qtList .list-item[data-id][hidden]').count(),0,width+' clear shows every row');
+  await p.close();}}finally{await b.close();}
+});

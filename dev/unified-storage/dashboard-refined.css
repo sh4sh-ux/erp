@@ -245,3 +245,15 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){disp
 #appView #view-dash.nd-dashboard .nd-db-tabs{background:var(--nd-db-soft);box-shadow:inset 0 0 0 1px var(--nd-line-2)}
 html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt){border-radius:6px}
 @media (hover:hover){html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-receipt):hover{background:color-mix(in srgb,var(--nd-blue) 6%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--nd-blue) 6%,transparent)}}
+/* 견적 진행 단계 → 견적서 목록: 단계 줄에 › , 목록 위에 걸러진 단계 표시 줄 */
+#appView #view-dash.nd-dashboard .nd-db-stage>svg{flex:none;width:16px;height:16px;color:var(--nd-ink-3);margin-left:2px}
+#appView #view-dash.nd-dashboard .nd-db-stage:hover{background:var(--nd-tint-hover,var(--nd-fill))}
+#appView #view-dash.nd-dashboard .nd-db-stage:hover>svg{color:var(--nd-ink-2)}
+#appView #view-quotes .nd-stage-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:0 var(--panel-inset,20px);border-bottom:1px solid var(--nd-line-2);background:var(--nd-blue-soft);font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+#appView #view-quotes .nd-stage-bar>span{display:flex;align-items:baseline;gap:4px;min-width:0;white-space:nowrap}
+#appView #view-quotes .nd-stage-bar b{flex:none;font-weight:600;color:var(--nd-blue-ink,var(--nd-blue))}
+#appView #view-quotes .nd-stage-bar small{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--nd-ink-3)}
+#appView #view-quotes .nd-stage-bar em{flex:none;margin-left:2px;font-style:normal;font-weight:600;color:var(--nd-ink)}
+#appView #view-quotes .nd-stage-bar button{flex:none;height:28px;padding:0 10px;border:1px solid var(--nd-line);border-radius:999px;background:var(--nd-surface);font:500 12px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer}
+#appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]{color:var(--nd-ink-2)!important;border-bottom-color:transparent!important;font-weight:500!important}
+#appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]::after{display:none!important}

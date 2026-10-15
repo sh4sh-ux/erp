@@ -112,8 +112,17 @@
  let stageFilter='';
  function applyStageFilter(){
   const list=document.getElementById('qtList');if(!list)return;
-  list.querySelectorAll('.list-item[data-id]').forEach(el=>{const q=(db.quotes||[]).find(x=>x.id===el.dataset.id);el.hidden=!!stageFilter&&(!q||stageOf(q,quotePaid)!==stageFilter);});
+  let n=0;list.querySelectorAll('.list-item[data-id]').forEach(el=>{const q=(db.quotes||[]).find(x=>x.id===el.dataset.id);el.hidden=!!stageFilter&&(!q||stageOf(q,quotePaid)!==stageFilter);if(!el.hidden)n++;});
+  // 걸러진 상태를 목록 위에 보인다: 어떤 단계인지 · 몇 건 · [✕ 해제]. 그동안 상태 탭의 선택 표시는 끈다(탭과 단계가 다르므로).
+  const card=list.closest('.quote-list-card')||list.parentElement;let bar=card.querySelector(':scope>.nd-stage-bar');
+  card.classList.toggle('nd-stage-on',!!stageFilter);
+  if(!stageFilter){bar?.remove();return;}
+  const st=stages.find(x=>x[0]===stageFilter);
+  if(!bar){bar=document.createElement('div');bar.className='nd-stage-bar';bar.setAttribute('role','status');list.before(bar);}
+  const html=`<span>견적 진행 · <b>${st[1]}</b> <small>(${st[2]})</small> <em>${n}건</em></span><button type="button" data-stage-clear aria-label="단계 거르기 해제">✕ 해제</button>`;
+  if(bar.innerHTML!==html)bar.innerHTML=html;
  }
+ document.addEventListener('click',e=>{if(e.target.closest?.('[data-stage-clear]')){stageFilter='';try{applyStageFilter();}catch{}}});
  if(typeof renderQtList==='function'){const base=renderQtList;renderQtList=function(){const r=base.apply(this,arguments);try{applyStageFilter();}catch{}return r;};}
  const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{applyStageFilter();}catch{}},0);};
  document.addEventListener('change',e=>{if(e.target?.id==='qtStatus'&&e.isTrusted)clearStage();},true);
@@ -241,7 +250,7 @@
   const qs=recent(db.quotes),stagesNow=progress(db.quotes,quotePaid);
   const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
   const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
-  const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b></button>`).join('');
+  const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b>${icon('chevron')}</button>`).join('');
   root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,prepaid>0?`미리 받은 돈 ${Math.round(prepaid).toLocaleString('ko-KR')}원`:'전체 납품 − 입금','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
    +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
