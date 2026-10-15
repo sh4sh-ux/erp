@@ -450,3 +450,9 @@ html body .nd-qa-sheet .nd-qa-padd{display:flex!important;align-items:center;jus
  html body .nd-qa-sheet .nd-qa-look{right:10px}
  html body .nd-qa-sheet .nd-qa-prm{width:32px}
 }
+/* 펼친 칸 다듬기(10/15): 세부 줄 34px, 위아래 4px — 옅은 배경은 유지(위 줄에 딸린 내용이라는 표시, UI-RULES 'Background tints'). */
+html body #appView #qtForm .nd-pl-x{padding:4px 0}
+html body #appView #qtForm .nd-pl-sub{min-height:34px}
+html body #appView #qtForm .nd-pl-note{padding-top:6px;padding-bottom:8px;gap:4px}
+/* 대표 송장 + 나머지 개수 */
+html body #appView #qtForm .nd-pl-more{flex:none;padding:1px 6px;border-radius:6px;background:var(--nd-fill);font:600 11px/16px var(--nd-number-font);color:var(--nd-ink-2)}

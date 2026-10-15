@@ -101,8 +101,11 @@ add `parcels:[{carrier,tracking}]` while `carrier`/`tracking` keep the first par
 - Entry: one row per parcel = [carrier select][number field with 조회 ↗ inside][×].
   The count ("송장 N개") and × show only when there are 2 or more. ＋ 송장 추가 (dashed, 40px,
   44px on phones) is under the rows; at most 10 parcels. Every number is 8–30 digits.
-- List: 1 parcel shows carrier · number · 조회 ↗ in the row. 2 or more show
-  "carrier (외 N곳) · 송장 N개"; the opened row lists "송장 1, 송장 2 …", each with its own 조회 ↗.
+- List: the row always shows the first parcel as the representative — carrier · number · 조회 ↗ —
+  plus a `+N` badge when there are more. The opened row lists "송장 1, 송장 2 …", each with its own 조회 ↗.
+- An opened row keeps the light `--nd-tint-open` background (its sub-lines belong to the row above);
+  sub-lines are 34px and are never separated by table dividers.
+- 고친 기록 names only what changed (수량 a → b · 날짜 · 배송 정보 수정 · 메모 수정); never "250개 → 250개".
 - Lookup opens one carrier page per parcel; there is no combined lookup.
 
 ## Segmented controls

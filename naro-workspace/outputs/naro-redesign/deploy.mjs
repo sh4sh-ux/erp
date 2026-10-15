@@ -14,7 +14,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {installMetadataConfig} from './install-metadata.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url)),dir=resolve(here,'candidate');
-const PIN={files:74,aggregate:'2f8d9e619621956f595586147f64e59d62ff5c60f5c7bf1dd7ba2534e9163904',
+const PIN={files:74,aggregate:'4ffbefcad72e0569cb1014fa4e1062348ce24a4da0a4de02029b1c524b5d4fc9',
  auth:{'google-oauth.mjs':'2c1375a6bf250fd57ed1a9ae3debddac8d717277b6f5b67f61c113f66e3b609e','dropbox-oauth.mjs':'cb9acb7020a10be20dbf05f11ad3e908f60ebe3a5faa441a3e03e0ca0ffbc403'}};
 const endpoint='https://firebasehosting.googleapis.com/v1beta1/',site='https://naro-biz.web.app/';
 const out=resolve(process.env.NARO_DEPLOY_LOG_DIR||here,'deploy-log');

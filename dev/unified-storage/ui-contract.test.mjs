@@ -644,13 +644,14 @@ test('a delivery keeps several parcels with one lookup each and stays backward c
  await p.locator('#ndShipParcels [data-pt]').nth(1).fill('abc');await p.locator('.nd-qa-go').click();assert.equal(await p.evaluate(()=>db.quotes[0].deliveries.length),0,'invalid parcel numbers block saving');
  await p.locator('#ndShipParcels [data-pt]').nth(1).fill('6850123456789');await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===1);
  assert.deepEqual(await p.evaluate(()=>db.quotes[0].deliveries[0].shipping),{method:'택배',carrier:'cj',tracking:'312345678901',parcels:[{carrier:'cj',tracking:'312345678901'},{carrier:'post',tracking:'6850123456789'}]});
- assert.match(await p.locator('#nd-record-delivery [data-pl-open]').innerText(),/송장 2개/);
+ assert.match(await p.locator('#nd-record-delivery [data-pl-open]').innerText(),/312345678901[\s\S]*\+1/);assert.equal(await p.locator('#nd-record-delivery [data-pl-open] a.nd-pl-ext').getAttribute('href'),'https://trace.cjlogistics.com/next/tracking.html?wblNo=312345678901','the first parcel is the representative lookup');
  await p.locator('#nd-record-delivery [data-pl-open]').click();const links=p.locator('#nd-record-delivery .nd-pl-note a.nd-pl-ext');assert.equal(await links.count(),2);
  assert.equal(await links.nth(0).getAttribute('href'),'https://trace.cjlogistics.com/next/tracking.html?wblNo=312345678901');
  await p.locator('[data-rm-d]').click();await p.locator('.nd-rec-menu [data-i="0"]').click();assert.equal(await p.locator('#ndShipParcels [data-pr]').count(),2);
  await p.locator('#ndShipParcels [data-prm]').first().click();assert.equal(await p.locator('#ndShipTracking').inputValue(),'6850123456789');assert.match(await p.locator('.nd-qa-after').innerText(),/배송 정보만 바뀌어요/);
  await p.locator('.nd-qa-go').click();await p.waitForFunction(()=>db.quotes[0].deliveries.length===2);
  assert.deepEqual(await p.evaluate(()=>db.quotes[0].deliveries[1].shipping),{method:'택배',carrier:'post',tracking:'6850123456789'},'one parcel is stored in the original shape');
+ await p.locator('#nd-record-delivery [data-pl-open]').click();const fix=await p.locator('#nd-record-delivery .nd-pl-note').innerText();assert.match(fix,/배송 정보 수정/);assert.doesNotMatch(fix,/수량/,'an unchanged quantity is not reported as a change');
  assert.ok(await p.evaluate(()=>!!db.quotes[0].deliveries[0].void_at));assert.deepEqual(errors,[]);await p.close();}}finally{await b.close();}
 });
 
