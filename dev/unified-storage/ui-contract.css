@@ -310,3 +310,24 @@ html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-her
 html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-val.co{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero{grid-template-columns:minmax(0,1fr) auto!important}
 html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-amount{min-width:max-content}
+/* Header third line (UI-RULES 'Header third line'): 견적서의 '번호 · 날짜 · [상태]' 줄과 같은 자리.
+   줄 높이 22px. PC = 줄 가운데가 머리 위에서 111px(--nd-header-meta-center, 제목 아래 20px).
+   폰 = 제목 바로 아래 12px. 입금·출금 · 거래처 · 업체 제공 자재 · 매출 집계의 세 번째 줄이 모두 여기에 맞춘다. */
+html body #appView[data-layout-system] .shell .main :is(#view-payments .pp-detail .pp-meta,#coForm.cp .cp-meta,#view-materials .mp-meta){min-height:22px;line-height:22px;align-items:center}
+html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{height:22px;flex-wrap:nowrap;overflow:visible}
+html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta>*{min-height:0!important;height:auto!important;line-height:20px!important;padding-block:0!important}
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{margin-top:10px!important}
+ html body #appView[data-layout-system] .shell .main #coForm.cp .cp-meta{margin-top:20px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .mp-meta{margin-top:20px!important}
+}
+@media (max-width:1023px){
+ html body #appView[data-layout-system] .shell .main #view-payments .pp-detail h3{margin-top:4px!important}
+ html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{margin-top:-4px!important}
+ html body #appView[data-layout-system] .shell .main #coForm.cp .cp-meta{margin-top:12px!important}
+ html body #appView[data-layout-system] .shell .main #view-materials .mp-meta{margin-top:12px!important}
+}
+@media screen and (min-width:1024px){
+ html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-header-bottom{margin-top:20px!important;align-items:flex-start!important}
+ html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-period{min-height:22px;line-height:22px;align-items:center}
+}
