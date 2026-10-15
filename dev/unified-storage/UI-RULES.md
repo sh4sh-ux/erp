@@ -356,3 +356,16 @@ lowers 받을 금액 / 미출금. Cash flow is 입금 − 출금, not sales + pu
 - Entry: choosing a company with open quotes shows them as choices with their remaining amount;
   choosing one fills the amount. Order is 거래처 → 어느 건 → 금액 → 날짜 → 방법 → 메모. While the
   entry is open the old summary cards are hidden and the header reads 새 입금 기록 / 입금 기록 고치기.
+
+## Purchases follow quotes
+
+The purchase detail uses the quote anatomy everywhere: same header (매입처 · amount; meta row
+`번호 날짜 [상태]` with no dot separators), same tabs, and the 진행 tab uses the quote progress list
+(`.nd-record-section.nd-pl`): heading = name + summary (amber "N 남음") + one outline action on the
+right, then a table with a header rule and one-line records (날짜 · 내용 · 수량/금액 · ⋯). Sections are
+입고 · 출금 · 반품 · 계산서. No boxed cards or progress bars inside the tab; the step row above keeps the
+one blue next action. Header number buttons keep text height on phones (the hit area grows with a
+pseudo-element) so the meta row never pushes outside the header.
+The header amount never wraps or clips: the hero grid is `minmax(0,1fr) auto`, the amount keeps
+its full width on one line, and a long company name shortens with an ellipsis instead (phones
+included — e.g. 2,216,500원 with a 20-character company name at 390px).

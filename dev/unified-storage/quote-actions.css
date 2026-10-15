@@ -471,3 +471,6 @@ html body #appView #qtForm.nd-view .qp-card-bottom{display:none!important}
 html body #appView :is(#qtForm,#puForm) .qp-card-bottom{margin-top:10px}
 html body #appView :is(#qtForm,#puForm) .qp-card-more{margin-left:auto;min-height:44px;padding:0 2px 0 12px;border:0;background:none;font:500 13px/1 var(--sans);color:var(--nd-ink-3)}
 html body #appView :is(#qtForm,#puForm) .qp-cards .qp-card{padding:14px 0}
+/* 머리 번호(버튼)는 글자 높이 그대로 — 폰의 44px 버튼 규칙 때문에 번호 줄이 커져 머리 밖으로 잘리던 것. 누르는 범위는 보이지 않게 넓힌다. */
+html body #appView #qtForm .qp-metadata>.nd-quote-link{position:relative;min-height:0!important;height:auto!important;padding:0!important;line-height:inherit}
+html body #appView #qtForm .qp-metadata>.nd-quote-link::after{content:'';position:absolute;inset:-13px -6px}

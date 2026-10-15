@@ -21,3 +21,5 @@ html[data-theme="dark"] #view-purchases .pu-banner.warn{color:var(--nd-amber)}
 /* [삭제됨] 칩이 생겨 6개가 되면 같은 너비 대신 글자 너비로(넘치면 옆으로 밀기) */
 #appView #view-purchases .nd-chips:has(>button:nth-child(6)){overflow-x:auto;scrollbar-width:none}
 #appView #view-purchases .nd-chips:has(>button:nth-child(6))>button{flex:0 0 auto!important;padding:0 8px!important}
+/* 머리 번호 줄: 견적서와 같이 '번호 날짜 [상태]' — 번호 앞뒤에 점을 넣지 않는다(견적서 번호는 버튼이라 점이 없다) */
+html body #appView #puForm .qp-metadata>.pu-no{font:inherit;font-weight:400;color:var(--nd-ink-2)}

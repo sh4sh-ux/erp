@@ -10442,6 +10442,9 @@ html body #appView #qtForm.nd-view .qp-card-bottom{display:none!important}
 html body #appView :is(#qtForm,#puForm) .qp-card-bottom{margin-top:10px}
 html body #appView :is(#qtForm,#puForm) .qp-card-more{margin-left:auto;min-height:44px;padding:0 2px 0 12px;border:0;background:none;font:500 13px/1 var(--sans);color:var(--nd-ink-3)}
 html body #appView :is(#qtForm,#puForm) .qp-cards .qp-card{padding:14px 0}
+/* 머리 번호(버튼)는 글자 높이 그대로 — 폰의 44px 버튼 규칙 때문에 번호 줄이 커져 머리 밖으로 잘리던 것. 누르는 범위는 보이지 않게 넓힌다. */
+html body #appView #qtForm .qp-metadata>.nd-quote-link{position:relative;min-height:0!important;height:auto!important;padding:0!important;line-height:inherit}
+html body #appView #qtForm .qp-metadata>.nd-quote-link::after{content:'';position:absolute;inset:-13px -6px}
 
 /* 매입 화면 — 모양은 견적서 규칙을 그대로 복사해 쓴다(purchase-ui.mjs mirrorQuoteStyles). 여기에는 매입에만 있는 것만. */
 /* 마무리 안 된 입고·용량 알림(목록 카드 칩 아래) */
@@ -10466,6 +10469,8 @@ html[data-theme="dark"] #view-purchases .pu-banner.warn{color:var(--nd-amber)}
 /* [삭제됨] 칩이 생겨 6개가 되면 같은 너비 대신 글자 너비로(넘치면 옆으로 밀기) */
 #appView #view-purchases .nd-chips:has(>button:nth-child(6)){overflow-x:auto;scrollbar-width:none}
 #appView #view-purchases .nd-chips:has(>button:nth-child(6))>button{flex:0 0 auto!important;padding:0 8px!important}
+/* 머리 번호 줄: 견적서와 같이 '번호 날짜 [상태]' — 번호 앞뒤에 점을 넣지 않는다(견적서 번호는 버튼이라 점이 없다) */
+html body #appView #puForm .qp-metadata>.pu-no{font:inherit;font-weight:400;color:var(--nd-ink-2)}
 
 /* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
 html body #appView #coForm.cp{--cp-x:28px}
@@ -15326,5 +15331,11 @@ html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[d
 html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){justify-self:end!important;width:calc(50% - 4px)!important}
 /* 수량은 인쇄 견적서처럼 가운데 — 머리(가운데)와 같은 선 */
 html body #appView :is(#qtForm,#puForm) .qline:not(.head)>[data-f="qty"]{padding-left:8px!important;padding-right:8px!important;text-align:center!important}
+/* 머리 금액은 한 줄 — 폰에서 '2,200,000원'이 두 줄로 꺾여 머리가 높아지고 번호 줄이 잘리던 것. 길면 거래처 이름이 줄어든다. */
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-amt-v{white-space:nowrap}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-info{min-width:0}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-val.co{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero{grid-template-columns:minmax(0,1fr) auto!important}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-amount{min-width:max-content}
 </style></body>
 </html>

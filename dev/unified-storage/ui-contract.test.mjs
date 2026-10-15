@@ -720,3 +720,16 @@ test('option columns (색상·규격/옵션) and quantity sit centred under thei
   assert.ok(t.length,'a stock table with option columns is visible');for(const a of t)assert.ok(a.length&&a.every(x=>x==='center'),JSON.stringify(t));
   await p.close();}finally{await b.close();}
 });
+
+test('purchase progress uses the quote progress list and header numbers stay inside the header on phones',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ try{for(const width of [390,1440]){const p=await b.newPage({viewport:{width,height:900}});await prepare(p);
+  await open(p,'quotes');
+  const q=await p.evaluate(()=>{const h=document.querySelector('#qtForm .qt-hero'),m=document.querySelector('#qtForm .qp-metadata');return {hero:h.getBoundingClientRect().bottom,meta:m.getBoundingClientRect().bottom,h:m.getBoundingClientRect().height};});
+  assert.ok(q.meta<=q.hero+0.5&&q.h<=24,width+' quote number row fits the header '+JSON.stringify(q));
+  await open(p,'purchases');await p.locator('#puForm').waitFor();
+  await p.locator('#pp-tab-flow').click();await p.waitForTimeout(150);
+  const r=await p.evaluate(()=>{const f=document.querySelector('#puForm');return {sections:[...f.querySelectorAll('.nd-record-section.nd-pl .nd-record-toggle')].map(x=>x.firstChild.textContent.trim()),cards:f.querySelectorAll('.nd-rec-card').length,dots:getComputedStyle(f.querySelector('.qp-metadata>.pu-no')||document.body,'::before').content};});
+  assert.deepEqual(r.sections,['입고','출금','반품','계산서'],width+' '+JSON.stringify(r));assert.equal(r.cards,0,'no boxed cards');
+  await p.close();}}finally{await b.close();}
+});
