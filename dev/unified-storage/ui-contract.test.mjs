@@ -688,13 +688,17 @@ test('left list tab row and right detail tab row share one divider line (quotes 
 test('dashboard progress stages open the matching quote list with a visible, clearable filter bar',async()=>{
  const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
  try{for(const width of [390,1440]){const p=await b.newPage({viewport:{width,height:900}});await prepare(p);await open(p,'dash');
-  const stage=p.locator('.nd-db-stage').first();await stage.waitFor();
+  await p.evaluate(()=>{const c=JSON.parse(JSON.stringify(db.quotes[0]));c.id='q2';c.no='Q-FIXTURE-2';c.status='작성중';c.deliveries=[];delete c.delivered_at;db.quotes.push(c);switchView('quotes');switchView('dash');});await p.waitForTimeout(120);
+  const stage=p.locator('.nd-db-stage[data-status="작성발송"]');await stage.waitFor();
   assert.ok(await stage.locator('svg').count()>=2,width+' stage row ends with a chevron');
   const label=(await stage.locator('.nd-db-stage-name strong').textContent()).trim();
   await stage.click();await p.locator('#view-quotes .nd-stage-bar').waitFor();
   const r=await p.evaluate(()=>{const bar=document.querySelector('#view-quotes .nd-stage-bar'),bb=bar.getBoundingClientRect();return {view:document.querySelector('#view-quotes').offsetParent!==null,text:bar.textContent,h:bb.height,one:[...bar.querySelector('span').children].every(e=>Math.abs(e.getBoundingClientRect().top-bar.querySelector('b').getBoundingClientRect().top)<4),on:!!document.querySelector('.quote-list-card.nd-stage-on')};});
   assert.ok(r.view,width+' quotes view shown');assert.ok(r.text.includes(label)&&/\d+건/.test(r.text),width+' bar names stage and count '+r.text);
   assert.ok(r.h<=45&&r.one,width+' bar stays on one 44px line '+JSON.stringify(r));assert.ok(r.on);
+  const f=await p.evaluate(()=>{const rows=[...document.querySelectorAll('#qtList .list-item[data-id]')];return {shown:rows.filter(e=>e.getClientRects().length).map(e=>e.dataset.id),hiddenShown:rows.filter(e=>e.hidden&&e.getClientRects().length).length,count:document.getElementById('qtCount').textContent,bar:document.querySelector('.nd-stage-bar').textContent};});
+  assert.deepEqual(f.shown,['q2'],width+' only quotes in the stage are visible '+JSON.stringify(f));assert.equal(f.hiddenShown,0);
+  assert.match(f.bar,/단계만 보는 중 · 1건/);assert.match(f.count,/^1 \/ 2건$/,width+' title count follows the stage');
   await p.locator('[data-stage-clear]').click();
   assert.equal(await p.locator('#view-quotes .nd-stage-bar').count(),0,width+' clear removes the bar');
   assert.equal(await p.locator('#qtList .list-item[data-id][hidden]').count(),0,width+' clear shows every row');

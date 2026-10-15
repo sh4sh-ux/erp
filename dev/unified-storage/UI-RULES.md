@@ -303,6 +303,9 @@ above the rows — "견적 진행 · <stage> (<hint>) N건" with a `✕ 해제` 
 underline is neutralised while it is on (`.quote-list-card.nd-stage-on`). The bar stays on one
 line: the hint truncates with an ellipsis first, the stage name and count never wrap. `✕ 해제`
 or choosing a status tab removes the filter and the bar; search narrows within it. Verify at 390 and 1440.
+The bar reads "<stage> 단계만 보는 중 · N건 <hint>" with a `전체 보기` button, the title count shows
+`N / 전체건`, and rows outside the stage are really hidden (`.list-item[hidden]` beats the row's flex
+display). When no quote is in the stage the list says so ("지금 <stage> 단계인 견적이 없어요.").
 
 ## Option columns (색상 · 규격/옵션)
 
@@ -314,3 +317,12 @@ padding so the text centre is the column centre (no hidden arrow gap). A line wi
 (작업 · 직접 입력) puts its spec field in the spec half, under the 규격/옵션 header, never across
 both columns. Quantity is centred (header and value), like the printed quote; unit price and
 amount stay right-aligned. Phone item cards are not tables and keep their own layout.
+
+## Phone item cards (견적서 · 매입)
+
+A phone item card reads like one table row folded into two lines. Line 1: item name + gray item
+code on the left, the line amount (bold) on the right. Line 2: colour · spec on the left,
+`수량 × 단가` on the right (view mode) or `단가 / 단위` (edit mode, where the stepper shows the
+quantity). Only while editing does a third line appear: quantity stepper on the left and
+`편집 ›` on the right. Work lines use the same two lines. Cards are separated by a straight
+full-width rule with 14px vertical padding.

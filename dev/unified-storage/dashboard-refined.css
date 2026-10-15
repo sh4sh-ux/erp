@@ -257,3 +257,8 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 #appView #view-quotes .nd-stage-bar button{flex:none;height:28px;padding:0 10px;border:1px solid var(--nd-line);border-radius:999px;background:var(--nd-surface);font:500 12px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer}
 #appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]{color:var(--nd-ink-2)!important;border-bottom-color:transparent!important;font-weight:500!important}
 #appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]::after{display:none!important}
+
+/* 단계 거르기: 가려진 줄은 목록의 display 규칙보다 우선해 숨긴다(줄이 flex라 [hidden]이 무시되던 버그) */
+#appView #view-quotes #qtList .list-item[hidden]{display:none!important}
+#appView #view-quotes .nd-stage-empty{margin:0;padding:40px var(--panel-inset,20px);text-align:center;font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
+#appView #view-quotes .nd-stage-bar small{margin-left:4px}

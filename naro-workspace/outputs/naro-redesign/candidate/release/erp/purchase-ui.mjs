@@ -221,9 +221,9 @@ export function installPurchaseUI({port,features=()=>true}){
     <span class="amt" data-amt="${i}">${n0((l.qty||0)*(l.unit_price||0))}</span>
     <button type="button" class="rm" data-rm="${i}" title="행 삭제" aria-label="행 삭제">${RM}</button></div>`;}).join('');
   const cards=mob.matches?`<div class="qp-cards"><section class="qp-products"><h3>품목 ${p.lines.filter(l=>l.item_id).length}건${editBtn(p)}</h3>
-   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong><span class="qp-muted">편집 ›</span></button>
-    ${optLabel(l)?`<p class="qp-muted">${optLabel(l)}</p>`:''}<div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div>
-    <div class="qp-card-amount"><strong>${money((l.qty||0)*(l.unit_price||0))}</strong><small class="qp-muted">${money(l.unit_price)} / ${esc(it?.unit||'EA')}</small></div></div></article>`;}).join('')}
+   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${money((l.qty||0)*(l.unit_price||0))}</strong></div></div>
+    <div class="qp-card-sub"><p class="qp-muted">${optLabel(l)}</p><small class="qp-unit">${money(l.unit_price)}<span class="qp-per"> / ${esc(it?.unit||'EA')}</span></small></div>
+    <div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div><button class="qp-card-more" type="button" data-qp-more="${i}">편집 ›</button></div></article>`;}).join('')}
    <div class="nd-addrow"><button class="qp-add nd-gi-plus nd-gi-f" type="button" data-act="addline">품목 추가</button><button class="btn-line-add qp-add" type="button" data-act="size">⊞ 옵션별 한번에</button></div></section></div>`:'';
   return `<div class="qt-sec-t">품목 <span class="cnt">${cnt}</span>${mob.matches?'':editBtn(p)}</div>
    ${cards}
@@ -588,7 +588,7 @@ export function installPurchaseUI({port,features=()=>true}){
   f.querySelectorAll('.qline [data-f]:not(.ip-btn)').forEach(el=>el.addEventListener('change',()=>{const i=Number(el.dataset.idx),k=el.dataset.f;
    edit(p=>{const l=p.lines[i];if(!l)return;if(k==='qty')l.qty=num(el.value);else if(k==='price')l.unit_price=num(el.value);else if(k==='lcolor'){if(el.value)l.color=el.value;else delete l.color;}else if(k==='vspec'){if(el.value)l.spec=el.value;else delete l.spec;l.unit_price=buyOf(itemOf(l.item_id),l.spec)||l.unit_price;}});}));
   f.querySelectorAll('.qline [data-rm]').forEach(b=>b.onclick=()=>edit(p=>{p.lines.splice(Number(b.dataset.rm),1);if(!p.lines.length)p.lines.push(blank());}));
-  f.querySelectorAll('[data-qp-edit]').forEach(b=>b.onclick=()=>{if(st.editing)lineEditor(Number(b.dataset.qpEdit));});
+  f.querySelectorAll('[data-qp-edit],[data-qp-more]').forEach(b=>b.onclick=()=>{if(st.editing)lineEditor(Number(b.dataset.qpEdit??b.dataset.qpMore));});
   f.querySelectorAll('[data-qstep]').forEach(b=>b.onclick=()=>edit(p=>{const l=p.lines[Number(b.dataset.qstep)];if(l)l.qty=Math.max(0,(l.qty||0)+Number(b.dataset.v));}));
   const vendorHeader=f.querySelector('.quote-summary .co'),vendorSelect=f.querySelector('#pu_co');
   if(vendorHeader&&vendorSelect&&!vendorSelect.disabled){
