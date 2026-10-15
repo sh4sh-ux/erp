@@ -256,8 +256,9 @@
 }
 
 @media screen and (min-width:1024px) {
- html body #appView[data-layout-system] {--nd-header-meta-offset:14px;--nd-progress-body-inset:24px;--nd-progress-strip-height:75px}
- html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:relative;top:var(--nd-header-meta-offset)}
+ html body #appView[data-layout-system] {--nd-header-meta-center:111px;--nd-progress-body-inset:24px;--nd-progress-strip-height:75px}
+ html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero {position:relative!important}
+ html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero>.qp-metadata {position:absolute;top:var(--nd-header-meta-center);left:0;right:0;margin:0!important;transform:translateY(-50%)} /* .qt-hero already sits inside the panel inset; adding it again pushed the row 28px right */
  html body #appView[data-layout-system] .shell .main #qtForm .nd-next {margin-top:calc(-1 * var(--nd-progress-body-inset));min-height:var(--nd-progress-strip-height);padding-block:0;box-sizing:border-box;align-items:center}
 }
 /* One secondary-action geometry for quotation records and supplied materials. */
@@ -273,7 +274,7 @@ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-mater
 }
 @media screen and (min-width:1024px){
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases) :is(#qtForm,#puForm) .qs-amt-k{
-  line-height:var(--nd-header-caption-line)!important;margin-bottom:var(--nd-header-title-gap)!important;
+  line-height:var(--nd-header-caption-line)!important;margin-bottom:0!important; /* PR #62/#66: the column gap below supplies the caption→value spacing; a margin here doubled it */
  }
 }
 @media screen{
@@ -283,4 +284,13 @@ html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-mater
  html body .nd-qa-sheet .nd-qa-seg button[aria-selected="true"]{background:var(--nd-seg-on-bg);color:var(--nd-seg-on-ink);font-weight:600;box-shadow:var(--nd-seg-on-shadow)}
  /* Quote/purchase tab panels: every section heading row is as tall as the action button, title centred. */
  html body #appView :is(#qtForm,#puForm) #qp-panel-basic .qt-sec-t{display:flex;align-items:center;min-height:var(--nd-sec-head-h);margin-top:0;margin-bottom:0;box-sizing:border-box}
+}
+
+/* PR #62: numeric header alignment, applied on current release base. */
+
+@media screen and (min-width:1024px) {
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amount,.cp-amt,.pp-amount,.material-detail-head>.material-balance-hero,.nd-sa-header-amount,.workspace-heading>.scr-hero) {display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:var(--nd-header-title-gap)!important}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-k,.cp-amt>.k,.pp-amount>span,.material-detail-head>.material-balance-hero>span,.nd-sa-header-amount>.nd-sa-label,.workspace-heading>.scr-hero>.lbl) {display:block!important;line-height:var(--nd-header-caption-line)!important;margin:0!important;order:-1}
+ html body #appView[data-layout-system] .shell .main .view:is(#view-quotes,#view-purchases,#view-companies,#view-payments,#view-materials,#view-sales,#view-ar) :is(.qs-amt-v,.cp-amt>.v,.pp-amount>strong,.material-detail-head>.material-balance-hero>strong,.nd-sa-header-amount>strong,.workspace-heading>.scr-hero>.big) {margin:0!important;order:0}
+ html body #appView[data-layout-system] .shell .main #view-ar>.workspace-heading>.scr-hero {top:30px!important}
 }
