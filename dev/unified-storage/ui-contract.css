@@ -304,3 +304,9 @@ html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[d
 html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){justify-self:end!important;width:calc(50% - 4px)!important}
 /* 수량은 인쇄 견적서처럼 가운데 — 머리(가운데)와 같은 선 */
 html body #appView :is(#qtForm,#puForm) .qline:not(.head)>[data-f="qty"]{padding-left:8px!important;padding-right:8px!important;text-align:center!important}
+/* 머리 금액은 한 줄 — 폰에서 '2,200,000원'이 두 줄로 꺾여 머리가 높아지고 번호 줄이 잘리던 것. 길면 거래처 이름이 줄어든다. */
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-amt-v{white-space:nowrap}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-info{min-width:0}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-val.co{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero{grid-template-columns:minmax(0,1fr) auto!important}
+html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-hero .qs-amount{min-width:max-content}
