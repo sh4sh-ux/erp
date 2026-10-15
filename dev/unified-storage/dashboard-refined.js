@@ -116,15 +116,21 @@
   // 걸러진 상태를 목록 위에 보인다: 어떤 단계인지 · 몇 건 · [✕ 해제]. 그동안 상태 탭의 선택 표시는 끈다(탭과 단계가 다르므로).
   const card=list.closest('.quote-list-card')||list.parentElement;let bar=card.querySelector(':scope>.nd-stage-bar');
   card.classList.toggle('nd-stage-on',!!stageFilter);
-  if(!stageFilter){bar?.remove();return;}
+  // 제목 옆 건수도 단계 건수로(‘8 / 31건’) — 목록을 다시 그리면 원래 건수로 돌아온다.
+  const cnt=document.getElementById('qtCount');
+  if(cnt&&stageFilter){const all=(cnt.textContent.match(/(\d[\d,]*)\s*건/)||[])[1]||String((db.quotes||[]).length);const t=`${n} / ${all}건`;if(cnt.textContent!==t)cnt.textContent=t;}
+  if(!stageFilter){bar?.remove();card.querySelector(':scope>.nd-stage-empty')?.remove();return;}
   const st=stages.find(x=>x[0]===stageFilter);
   if(!bar){bar=document.createElement('div');bar.className='nd-stage-bar';bar.setAttribute('role','status');list.before(bar);}
-  const html=`<span>견적 진행 · <b>${st[1]}</b> <small>(${st[2]})</small> <em>${n}건</em></span><button type="button" data-stage-clear aria-label="단계 거르기 해제">✕ 해제</button>`;
+  const html=`<span><b>${st[1]}</b> 단계만 보는 중 · <em>${n}건</em> <small>${st[2]}</small></span><button type="button" data-stage-clear aria-label="단계 거르기 해제, 전체 견적 보기">전체 보기</button>`;
   if(bar.innerHTML!==html)bar.innerHTML=html;
+  // 단계에 맞는 견적이 없으면 목록 자리에 그렇게 적는다(빈 목록은 '안 걸러졌나?'로 보인다).
+  let empty=card.querySelector(':scope>.nd-stage-empty');
+  if(n){empty?.remove();}else{if(!empty){empty=document.createElement('p');empty.className='nd-stage-empty';bar.after(empty);}const t=`지금 ${st[1]} 단계인 견적이 없어요.`;if(empty.textContent!==t)empty.textContent=t;}
  }
- document.addEventListener('click',e=>{if(e.target.closest?.('[data-stage-clear]')){stageFilter='';try{applyStageFilter();}catch{}}});
+ document.addEventListener('click',e=>{if(e.target.closest?.('[data-stage-clear]')){stageFilter='';try{renderQtList();}catch{try{applyStageFilter();}catch{}}}});
  if(typeof renderQtList==='function'){const base=renderQtList;renderQtList=function(){const r=base.apply(this,arguments);try{applyStageFilter();}catch{}return r;};}
- const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{applyStageFilter();}catch{}},0);};
+ const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{renderQtList();}catch{try{applyStageFilter();}catch{}}},0);};
  document.addEventListener('change',e=>{if(e.target?.id==='qtStatus'&&e.isTrusted)clearStage();},true);
  document.addEventListener('click',e=>{if(e.target.closest?.('#view-quotes .nd-chips button'))clearStage();},true);
  function openQuotes(status,id){

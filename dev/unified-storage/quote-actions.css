@@ -456,3 +456,18 @@ html body #appView #qtForm .nd-pl-sub{min-height:34px}
 html body #appView #qtForm .nd-pl-note{padding-top:6px;padding-bottom:8px;gap:4px}
 /* 대표 송장 + 나머지 개수 */
 html body #appView #qtForm .nd-pl-more{flex:none;padding:1px 6px;border-radius:6px;background:var(--nd-fill);font:600 11px/16px var(--nd-number-font);color:var(--nd-ink-2)}
+/* 폰 품목 카드(견적서·매입 공통, UI-RULES 'Phone item cards'): 1줄 = 품명·품번 | 금액, 2줄 = 옵션 | 수량 × 단가. 편집 중에만 3줄 = 수량 조절 | 편집 › */
+html body #appView :is(#qtForm,#puForm) .qp-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-edit{display:block;flex:1;min-width:0;width:auto;min-height:0!important;height:auto!important;padding:0!important;text-align:left}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-amount{flex:none;text-align:right;white-space:nowrap}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-amount>strong{font-size:15px;font-weight:700}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:4px}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub>p{margin:0;min-width:0;font-size:13px;color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub>.qp-unit{flex:none;display:inline;white-space:nowrap;font-size:13px;color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .qp-unit>.qp-qty{display:none}
+html body #appView #qtForm.nd-view .qp-unit>.qp-qty{display:inline;color:var(--nd-ink-2)}
+html body #appView #qtForm.nd-view .qp-unit>.qp-per{display:none}
+html body #appView #qtForm.nd-view .qp-card-bottom{display:none!important}
+html body #appView :is(#qtForm,#puForm) .qp-card-bottom{margin-top:10px}
+html body #appView :is(#qtForm,#puForm) .qp-card-more{margin-left:auto;min-height:44px;padding:0 2px 0 12px;border:0;background:none;font:500 13px/1 var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .qp-cards .qp-card{padding:14px 0}

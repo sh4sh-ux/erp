@@ -193,6 +193,31 @@ for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name)
  const to="const title = el('strong', '', item ? item.name || '' : line.name || '품목 선택');\n        if (item && item.code) title.append(' ', el('small', 'qp-code', item.code));\n        edit.append(title, el('span', 'qp-muted', '편집 ›'));";
  if(!qp.includes(from))throw Error('QP_CARD_NAME_BOUNDARY');
  qp=qp.replace(from,to);
+ // 폰 품목 카드(10/15 사용자 요청): 금액은 품명과 같은 줄 오른쪽, 둘째 줄 = 옵션 | 수량 × 단가. 수량 조절(편집 중)만 셋째 줄.
+ const cardFrom=`        edit.append(title, el('span', 'qp-muted', '편집 ›'));
+        card.append(edit, el('p', 'qp-muted', [line.color, line.spec].filter(Boolean).join(' · ')));
+        const bottom = el('div', 'qp-card-bottom');
+        if (!n) bottom.append(stepper(index, line.qty));
+        else bottom.append(el('span', 'qp-muted', \`\${fmt(line.qty)}\${line.unit || '개'}\${isDecorationWorkLine(line) ? line.auto_qty === false ? ' · 수동 수량' : ' · 전체 수량 연동' : ''}\`));
+        const amount = el('div', 'qp-card-amount');
+        amount.append(el('strong', '', \`\${$(\`[data-amt="\${index}"]\`).textContent}원\`), el('small', 'qp-muted', \`\${won(line.price)} / \${line.unit || '개'}\`));
+        bottom.append(amount); card.append(bottom); group.append(card);`;
+ const cardTo=`        edit.append(title);
+        const amount = el('div', 'qp-card-amount');
+        amount.append(el('strong', '', \`\${$(\`[data-amt="\${index}"]\`).textContent}원\`));
+        const head = el('div', 'qp-card-head'); head.append(edit, amount);
+        const unitName = line.unit && line.unit !== 'EA' ? line.unit : '개';
+        const price = el('small', 'qp-unit');
+        price.append(el('span', 'qp-qty', \`\${fmt(line.qty)}\${unitName} × \`), won(line.price), el('span', 'qp-per', \` / \${line.unit || '개'}\`));
+        const sub = el('div', 'qp-card-sub'); sub.append(el('p', 'qp-muted', [line.color, line.spec].filter(Boolean).join(' · ')), price);
+        card.append(head, sub);
+        const bottom = el('div', 'qp-card-bottom');
+        if (!n) bottom.append(stepper(index, line.qty));
+        else bottom.append(el('span', 'qp-muted', \`\${fmt(line.qty)}\${line.unit || '개'}\${isDecorationWorkLine(line) ? line.auto_qty === false ? ' · 수동 수량' : ' · 전체 수량 연동' : ''}\`));
+        bottom.append(button('편집 ›', () => openEdit(line), 'qp-card-more'));
+        card.append(bottom); group.append(card);`;
+ if(!qp.includes(cardFrom))throw Error('QP_CARD_LAYOUT_BOUNDARY');
+ qp=qp.replace(cardFrom,cardTo);
  // 견적서 탭 = 품목 · 진행 · 정보(10/8 시안 — 사용자 확정). 진행 = 납품 기록 · 입금 · 계산서(발행일·발행 안 함)를 한 곳에,
  // 정보 = 견적일자·거래처·유효기간·비고(+ 맨 아래 '상태 직접 바꾸기'). 상태는 머리 단계 줄 버튼(quote-actions.js)이 주로 바꾼다.
  const tabsFrom=`    const sections = Array.from(form.querySelectorAll(':scope > .qt-sec'));

@@ -10427,6 +10427,21 @@ html body #appView #qtForm .nd-pl-sub{min-height:34px}
 html body #appView #qtForm .nd-pl-note{padding-top:6px;padding-bottom:8px;gap:4px}
 /* 대표 송장 + 나머지 개수 */
 html body #appView #qtForm .nd-pl-more{flex:none;padding:1px 6px;border-radius:6px;background:var(--nd-fill);font:600 11px/16px var(--nd-number-font);color:var(--nd-ink-2)}
+/* 폰 품목 카드(견적서·매입 공통, UI-RULES 'Phone item cards'): 1줄 = 품명·품번 | 금액, 2줄 = 옵션 | 수량 × 단가. 편집 중에만 3줄 = 수량 조절 | 편집 › */
+html body #appView :is(#qtForm,#puForm) .qp-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-edit{display:block;flex:1;min-width:0;width:auto;min-height:0!important;height:auto!important;padding:0!important;text-align:left}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-amount{flex:none;text-align:right;white-space:nowrap}
+html body #appView :is(#qtForm,#puForm) .qp-card-head>.qp-card-amount>strong{font-size:15px;font-weight:700}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:4px}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub>p{margin:0;min-width:0;font-size:13px;color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .qp-card-sub>.qp-unit{flex:none;display:inline;white-space:nowrap;font-size:13px;color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .qp-unit>.qp-qty{display:none}
+html body #appView #qtForm.nd-view .qp-unit>.qp-qty{display:inline;color:var(--nd-ink-2)}
+html body #appView #qtForm.nd-view .qp-unit>.qp-per{display:none}
+html body #appView #qtForm.nd-view .qp-card-bottom{display:none!important}
+html body #appView :is(#qtForm,#puForm) .qp-card-bottom{margin-top:10px}
+html body #appView :is(#qtForm,#puForm) .qp-card-more{margin-left:auto;min-height:44px;padding:0 2px 0 12px;border:0;background:none;font:500 13px/1 var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .qp-cards .qp-card{padding:14px 0}
 
 /* 매입 화면 — 모양은 견적서 규칙을 그대로 복사해 쓴다(purchase-ui.mjs mirrorQuoteStyles). 여기에는 매입에만 있는 것만. */
 /* 마무리 안 된 입고·용량 알림(목록 카드 칩 아래) */
@@ -14202,6 +14217,11 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 #appView #view-quotes .nd-stage-bar button{flex:none;height:28px;padding:0 10px;border:1px solid var(--nd-line);border-radius:999px;background:var(--nd-surface);font:500 12px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer}
 #appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]{color:var(--nd-ink-2)!important;border-bottom-color:transparent!important;font-weight:500!important}
 #appView #view-quotes .quote-list-card.nd-stage-on>.nd-chips>button[aria-pressed="true"]::after{display:none!important}
+
+/* 단계 거르기: 가려진 줄은 목록의 display 규칙보다 우선해 숨긴다(줄이 flex라 [hidden]이 무시되던 버그) */
+#appView #view-quotes #qtList .list-item[hidden]{display:none!important}
+#appView #view-quotes .nd-stage-empty{margin:0;padding:40px var(--panel-inset,20px);text-align:center;font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
+#appView #view-quotes .nd-stage-bar small{margin-left:4px}
 </style><script id="naro-dashboard-script">/* Dashboard presentation only. Read the active in-memory workspace; never retain a
    dataset, write a ledger, migrate statuses, or perform network/storage operations. */
 (() => {
@@ -14320,15 +14340,21 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   // 걸러진 상태를 목록 위에 보인다: 어떤 단계인지 · 몇 건 · [✕ 해제]. 그동안 상태 탭의 선택 표시는 끈다(탭과 단계가 다르므로).
   const card=list.closest('.quote-list-card')||list.parentElement;let bar=card.querySelector(':scope>.nd-stage-bar');
   card.classList.toggle('nd-stage-on',!!stageFilter);
-  if(!stageFilter){bar?.remove();return;}
+  // 제목 옆 건수도 단계 건수로(‘8 / 31건’) — 목록을 다시 그리면 원래 건수로 돌아온다.
+  const cnt=document.getElementById('qtCount');
+  if(cnt&&stageFilter){const all=(cnt.textContent.match(/(\d[\d,]*)\s*건/)||[])[1]||String((db.quotes||[]).length);const t=`${n} / ${all}건`;if(cnt.textContent!==t)cnt.textContent=t;}
+  if(!stageFilter){bar?.remove();card.querySelector(':scope>.nd-stage-empty')?.remove();return;}
   const st=stages.find(x=>x[0]===stageFilter);
   if(!bar){bar=document.createElement('div');bar.className='nd-stage-bar';bar.setAttribute('role','status');list.before(bar);}
-  const html=`<span>견적 진행 · <b>${st[1]}</b> <small>(${st[2]})</small> <em>${n}건</em></span><button type="button" data-stage-clear aria-label="단계 거르기 해제">✕ 해제</button>`;
+  const html=`<span><b>${st[1]}</b> 단계만 보는 중 · <em>${n}건</em> <small>${st[2]}</small></span><button type="button" data-stage-clear aria-label="단계 거르기 해제, 전체 견적 보기">전체 보기</button>`;
   if(bar.innerHTML!==html)bar.innerHTML=html;
+  // 단계에 맞는 견적이 없으면 목록 자리에 그렇게 적는다(빈 목록은 '안 걸러졌나?'로 보인다).
+  let empty=card.querySelector(':scope>.nd-stage-empty');
+  if(n){empty?.remove();}else{if(!empty){empty=document.createElement('p');empty.className='nd-stage-empty';bar.after(empty);}const t=`지금 ${st[1]} 단계인 견적이 없어요.`;if(empty.textContent!==t)empty.textContent=t;}
  }
- document.addEventListener('click',e=>{if(e.target.closest?.('[data-stage-clear]')){stageFilter='';try{applyStageFilter();}catch{}}});
+ document.addEventListener('click',e=>{if(e.target.closest?.('[data-stage-clear]')){stageFilter='';try{renderQtList();}catch{try{applyStageFilter();}catch{}}}});
  if(typeof renderQtList==='function'){const base=renderQtList;renderQtList=function(){const r=base.apply(this,arguments);try{applyStageFilter();}catch{}return r;};}
- const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{applyStageFilter();}catch{}},0);};
+ const clearStage=()=>{if(!stageFilter)return;stageFilter='';setTimeout(()=>{try{renderQtList();}catch{try{applyStageFilter();}catch{}}},0);};
  document.addEventListener('change',e=>{if(e.target?.id==='qtStatus'&&e.isTrusted)clearStage();},true);
  document.addEventListener('click',e=>{if(e.target.closest?.('#view-quotes .nd-chips button'))clearStage();},true);
  function openQuotes(status,id){
