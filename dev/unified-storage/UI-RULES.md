@@ -326,3 +326,33 @@ code on the left, the line amount (bold) on the right. Line 2: colour · spec on
 quantity). Only while editing does a third line appear: quantity stepper on the left and
 `편집 ›` on the right. Work lines use the same two lines. Cards are separated by a straight
 full-width rule with 14px vertical padding.
+
+## Payments (입금·출금)
+
+Definition: 입금·출금 is the record of money that actually moved. Quotes and purchases create
+money owed (받을 돈 / 줄 돈); a payment settles it, and linking it to the quote or purchase is what
+lowers 받을 금액 / 미출금. Cash flow is 입금 − 출금, not sales + purchases.
+
+- Words: 입금 · 출금 · 차액 (입금 − 출금). No "+" on the net; a negative net shows − in red.
+  Inside a quote, the unpaid part is 남은 금액 (never 차액).
+- Left panel: title with the count beside it (same place as 견적서), search · filter · ＋, kind tabs
+  [전체 | 입금 | 출금], then rows grouped by date ("10월 13일 (화)"). Row = company | signed amount
+  (입금 green +, 출금 −) / kind badge · quote or purchase no (or memo) · method. No permanent
+  period/count/reset row and no summary row inside the list: a period chip with ✕ appears only when
+  the period is not this month.
+- Right panel, nothing selected: header 입출금 현황 · period · 차액. Body: three numbers on one line
+  (입금 · 출금 · 차액) with one ratio bar, then shortcuts 아직 못 받은 돈 (→ 받을 금액, same as arData)
+  and 아직 안 준 돈 (→ 매입, same as the purchase list's 미출금), then the period table
+  (날짜 · 거래처·연결 · 방법 · 입금 · 출금). The method column hides at ≤1200px.
+- Right panel, record selected: header 입금/출금/환불 · company · amount; meta = document link · date ·
+  method · state chip (일부 입금 / 다 받음). Body: 받을 돈 progress for a linked quote, the records of
+  that quote/purchase (or this company in the period) with the current row in soft blue, memo ·
+  company · record date.
+- Bottom bar matches the quote bar: left secondary ([⋮] with 이 기록 삭제, 고치기 / 내보내기),
+  right one blue primary (남은 N원 입금 기록 when a linked quote still has money left, else
+  ＋ 입금·출금 기록).
+- 고치기 = save the new record first, then remove the original (storage accepts append and delete,
+  not edits — same as quote progress). The entry shows "고치는 중 …" while editing.
+- Entry: choosing a company with open quotes shows them as choices with their remaining amount;
+  choosing one fills the amount. Order is 거래처 → 어느 건 → 금액 → 날짜 → 방법 → 메모. While the
+  entry is open the old summary cards are hidden and the header reads 새 입금 기록 / 입금 기록 고치기.
