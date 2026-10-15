@@ -226,6 +226,7 @@ const NaroCompanyLedger=(()=>{
  /* 업체 제공 자재: received = 보유 + 사용 + 반환·불량 for the selected material, as one stacked bar (blue ramp).
     Reads the same ledger the screen already shows; draws only. */
  function materialGraph(){
+  if(document.getElementById('materialContent')?.dataset.mp==='1')return; // material-panel.js가 그린 새 화면
   const root=document.getElementById('materialContent'),hero=root?.querySelector('.material-balance-hero');if(!hero||root.querySelector('.nd-mat'))return;
   let cid,name,rows;try{cid=materialSelectedCompanyId;name=materialSelectedName;rows=db.material_moves;}catch{return;}
   rows=(rows||[]).filter(m=>!m.void_at&&m.company_id===cid&&m.material===name);
@@ -1110,6 +1111,7 @@ const NaroCompanyLedger=(()=>{
  // Material detail uses the quote panel anatomy; native controls keep their handlers.
  let materialDesignOwner=null,materialDesignTab='overview',materialDesignForm=null;
  function materialDetailDesign(){
+  if(document.getElementById('materialContent')?.dataset.mp==='1')return; // material-panel.js가 그린 새 화면
   document.querySelectorAll('#view-materials #mm_detail,#view-materials #mm_statement,#view-materials .material-section-head button').forEach(b=>b.classList.add('nd-record-action'));
   const detail=document.querySelector('#view-materials .material-detail'),head=detail?.querySelector('.material-detail-head');if(!head)return;
   const balance=detail.querySelector('.material-balance-hero');if(balance&&balance.parentElement!==head)head.append(balance);

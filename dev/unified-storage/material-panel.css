@@ -1,0 +1,176 @@
+/* 업체 제공 자재(material-panel.js). 표·구분선·여백·배경·메뉴는 견적서와 같은 토큰을 쓴다
+   (UI-RULES: Quote panel tables · Background tints · More menus · Segmented controls · Section heading rows). */
+html body #appView #view-materials .mp-master{--quote-table-head-rule:1px solid var(--nd-line-2);--quote-table-row-rule:1px solid var(--nd-line-2);--quote-table-pad-x:12px;--quote-table-head-h:38px;--quote-table-row-h:48px}
+@media(min-width:1024px){
+ html body #appView #view-materials .mp-master{--quote-table-head-rule:1.5px solid #D4D4D8;--quote-table-row-rule:1px solid var(--ws-line,var(--nd-line-2));--quote-table-pad-x:17px}
+ html[data-theme="dark"] body #appView #view-materials .mp-master{--quote-table-head-rule:1.5px solid var(--nd-line)}
+}
+/* 왼쪽 */
+html body #appView #view-materials .mp-ltabs{display:flex;gap:22px;height:44px;align-items:flex-end;padding:0 var(--panel-inset,20px);border-bottom:1px solid var(--nd-line);box-sizing:border-box;flex:none}
+html body #appView #view-materials .mp-ltabs button{position:relative;height:44px;padding:0 0 1px;border:0;background:none;font:500 13px/20px var(--sans);color:var(--nd-ink-2);cursor:pointer}
+html body #appView #view-materials .mp-ltabs button[aria-selected="true"]{color:var(--nd-blue);font-weight:600}
+html body #appView #view-materials .mp-ltabs button[aria-selected="true"]::after{content:'';position:absolute;left:-4px;right:-4px;bottom:-1px;height:2px;background:var(--nd-blue)}
+html body #appView #view-materials .mp-chips{display:flex;flex-wrap:nowrap;gap:6px;padding:12px var(--panel-inset,20px) 10px;overflow-x:auto;scrollbar-width:none;flex:none}
+html body #appView #view-materials .mp-chips button{flex:none;height:28px;padding:0 11px;border:1px solid var(--nd-line);border-radius:999px;background:var(--nd-surface);font:500 12px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer;white-space:nowrap}
+html body #appView #view-materials .mp-chips button b{font-weight:700}
+html body #appView #view-materials .mp-chips button.warn b{color:var(--nd-amber,#E98300)}
+html body #appView #view-materials .mp-chips button[aria-pressed="true"]{background:var(--nd-pill-active-bg,#161A23);border-color:var(--nd-pill-active-bg,#161A23);color:var(--nd-pill-active-ink,#fff);font-weight:600}
+html body #appView #view-materials .mp-chips button[aria-pressed="true"] b{color:inherit}
+html body #appView #view-materials .mp-row{display:flex!important;flex-direction:column;align-items:stretch;gap:3px;width:100%;padding:14px var(--panel-inset,20px)!important;text-align:left;cursor:pointer;font:inherit;color:var(--nd-ink)}
+html body #appView #view-materials .mp-row .mp-r1,html body #appView #view-materials .mp-row .mp-r2{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+html body #appView #view-materials .mp-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14px/20px var(--sans)}
+html body #appView #view-materials .mp-row.active b{color:var(--nd-blue-ink,var(--nd-blue))}
+html body #appView #view-materials .mp-row .mp-v{flex:none;font:600 14px/20px var(--nd-number-font)}
+html body #appView #view-materials .mp-row small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-row[data-void] :is(b,.mp-v){color:var(--nd-ink-3);font-weight:400}
+html body #appView #view-materials .mp-k{margin-left:4px;font-weight:400;color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-tag{flex:none;padding:2px 6px;border-radius:5px;background:var(--nd-fill);font:600 11px/16px var(--sans);color:var(--nd-ink-2);white-space:nowrap}
+html body #appView #view-materials .mp-tag.warn{background:color-mix(in srgb,var(--nd-amber,#E98300) 12%,transparent);color:var(--nd-amber,#E98300)}
+html body #appView #view-materials .mp-mini,html body #appView #view-materials .mp-track{display:flex;gap:2px;height:4px;margin-top:6px;border-radius:2px;background:var(--nd-line-2);overflow:hidden}
+html body #appView #view-materials :is(.mp-mini,.mp-track,.mp-leg) i{display:block;flex:none}
+html body #appView #view-materials :is(.mp-mini,.mp-track) i.h,html body #appView #view-materials .mp-leg i.h,html body #appView #view-materials .mp-dot.in{background:var(--nd-blue)}
+html body #appView #view-materials :is(.mp-mini,.mp-track) i.u,html body #appView #view-materials .mp-leg i.u,html body #appView #view-materials .mp-dot.use{background:color-mix(in srgb,var(--nd-blue) 35%,var(--nd-surface))}
+html body #appView #view-materials :is(.mp-mini,.mp-track) i.o,html body #appView #view-materials .mp-leg i.o,html body #appView #view-materials .mp-dot.ret{background:var(--nd-ink-4,#C3C6CE)}
+html body #appView #view-materials .mp-dot{display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;vertical-align:1px}
+html body #appView #view-materials .mp-empty{margin:0;padding:14px var(--panel-inset,20px);font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
+/* 오른쪽 머리 */
+html body #appView #view-materials .mp-detail .material-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+html body #appView #view-materials .mp-meta{margin-top:8px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-detail .nd-material-tabs{display:flex;gap:28px;padding:0 var(--panel-inset,32px);border-bottom:1px solid var(--nd-line)}
+html body #appView #view-materials .mp-detail .nd-material-tabs em{margin-left:4px;font-style:normal;font-weight:400;color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-body{padding:20px var(--panel-inset,32px) 24px}
+html body #appView #view-materials .mp-sum{display:flex;align-items:center;gap:24px;padding-bottom:18px;border-bottom:1px solid var(--nd-line-2)}
+html body #appView #view-materials .mp-sum-bar{flex:1;min-width:0}
+html body #appView #view-materials .mp-sum-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-sum-top b{font-weight:600;color:var(--nd-ink)}
+html body #appView #view-materials .mp-track{height:8px;margin:0;border-radius:4px}
+html body #appView #view-materials .mp-leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:9px;font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-leg>span{display:inline-flex;align-items:center;gap:6px}
+html body #appView #view-materials .mp-leg i{width:8px;height:8px;border-radius:50%}
+html body #appView #view-materials .mp-leg b{font:600 13px/18px var(--nd-number-font);color:var(--nd-ink)}
+html body #appView #view-materials .mp-add{flex:none;height:30px;min-height:30px;padding:0 13px;border-radius:9px;font:600 13px/1 var(--sans)}
+/* 표: 품목 표와 같은 선·여백 */
+html body #appView #view-materials .mp-sec{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--nd-sec-head-h,30px);margin:22px 0 10px}
+html body #appView #view-materials .mp-sec .qt-sec-t{display:flex;align-items:center;gap:8px;margin:0;font:600 var(--nd-section-size,14px)/var(--nd-section-line,22px) var(--sans);color:var(--nd-ink)}
+html body #appView #view-materials .mp-sec .cnt{font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-row-t{position:relative;display:grid;align-items:center;column-gap:16px;min-height:var(--quote-table-row-h);padding:0 var(--quote-table-pad-x);border-bottom:var(--quote-table-row-rule);font:400 var(--nd-body-size,14px)/var(--nd-body-line,20px) var(--sans);color:var(--nd-ink)}
+html body #appView #view-materials .mp-th{min-height:var(--quote-table-head-h);border-bottom:var(--quote-table-head-rule);font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--ink-3,var(--nd-ink-3))}
+html body #appView #view-materials .mp-g6{grid-template-columns:minmax(0,1.5fr) 64px 64px 80px 72px minmax(110px,1fr) 26px}
+html body #appView #view-materials .mp-g5{grid-template-columns:52px 96px minmax(0,1fr) minmax(0,1.3fr) 70px 26px}
+html body #appView #view-materials .mp-g4q{grid-template-columns:150px minmax(0,1fr) 90px 80px}
+html body #appView #view-materials .mp-row-t .num{text-align:right;white-space:nowrap;font-family:var(--nd-number-font);font-variant-numeric:tabular-nums}
+html body #appView #view-materials .mp-row-t .mp-d{text-align:left;font-size:var(--nd-label-size);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+html body #appView #view-materials .mp-b{font-weight:600}
+html body #appView #view-materials .mp-src{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-kind{display:flex;align-items:center;font-size:13px;white-space:nowrap}
+html body #appView #view-materials .mp-kind small{margin-left:6px;font-size:11px;color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-kind .mp-pd{display:none}
+html body #appView #view-materials .mp-pct{display:flex;flex-direction:column;gap:2px;min-width:0}
+html body #appView #view-materials .mp-pct .mp-mini{margin-top:0}
+html body #appView #view-materials .mp-pct small{font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView #view-materials .mp-two{display:flex;flex-direction:column;min-width:0}
+html body #appView #view-materials .mp-two b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #view-materials .mp-two small{font-size:12px;color:var(--nd-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #view-materials .mp-qlink{padding:0;border:0;background:none;font:600 12.5px/18px var(--sans);color:var(--nd-blue);cursor:pointer;white-space:nowrap}
+html body #appView #view-materials .mp-qlink:hover{text-decoration:underline;text-underline-offset:3px}
+html body #appView #view-materials .mp-act{display:flex;justify-content:flex-end;margin-right:-10px}
+html body #appView #view-materials .mp-dots{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:var(--nd-ink-2);cursor:pointer}
+html body #appView #view-materials .mp-dots:hover,html body #appView #view-materials .mp-dots[aria-expanded="true"]{background:var(--nd-tint-open)}
+html body #appView #view-materials .mp-dots:focus:not(:focus-visible){outline:none}
+html body #appView #view-materials [data-mp-open]{cursor:pointer}
+html body #appView #view-materials [data-mp-open]:hover{background:var(--nd-tint-hover)}
+html body #appView #view-materials [data-mp-open]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView #view-materials .mp-rec.on>.mp-main{border-bottom-color:transparent;background:var(--nd-tint-open)}
+html body #appView #view-materials .mp-x{padding:4px 0;border-bottom:var(--quote-table-row-rule);background:var(--nd-tint-open)}
+html body #appView #view-materials .mp-sub{display:grid;grid-template-columns:52px 72px minmax(0,1fr) 72px;column-gap:16px;align-items:center;min-height:34px;padding:0 calc(var(--quote-table-pad-x) + 26px) 0 calc(var(--quote-table-pad-x) + 16px);font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-sub .mp-k{margin:0}
+html body #appView #view-materials .mp-sub .mp-k.in{color:var(--nd-blue)}
+html body #appView #view-materials .mp-more-link{display:block;margin:2px 0 4px calc(var(--quote-table-pad-x) + 16px);padding:0;border:0;background:none;font:600 12.5px/20px var(--sans);color:var(--nd-blue);cursor:pointer}
+html body #appView #view-materials .mp-hrow.gone{color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-hrow.gone .mp-nm{font-weight:400;text-decoration:line-through}
+html body #appView #view-materials .mp-hrow.flash{background:var(--nd-blue-soft);transition:background .6s}
+html body #appView #view-materials .mp-month{padding:16px var(--quote-table-pad-x) 6px;font:600 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-month span{margin-left:4px;font-weight:400;color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-rchips{display:flex;gap:6px}
+html body #appView #view-materials .mp-rchips button{height:28px;padding:0 11px;border:1px solid var(--nd-line);border-radius:999px;background:var(--nd-surface);font:500 12px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer;white-space:nowrap}
+html body #appView #view-materials .mp-rchips button[aria-pressed="true"]{background:var(--nd-pill-active-bg,#161A23);border-color:var(--nd-pill-active-bg,#161A23);color:var(--nd-pill-active-ink,#fff);font-weight:600}
+html body #appView #view-materials .mp-line{padding:14px var(--quote-table-pad-x);border-top:var(--quote-table-head-rule);border-bottom:var(--quote-table-row-rule)}
+html body #appView #view-materials .mp-info{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+html body #appView #view-materials .mp-info label{display:flex;flex-direction:column;gap:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-info input{height:40px;padding:0 12px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);font:400 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #view-materials .mp-info .btn{height:40px}
+html body #appView #view-materials .mp-kv{display:grid;grid-template-columns:80px minmax(0,1fr);margin:0}
+html body #appView #view-materials .mp-kv :is(dt,dd){margin:0;padding:12px var(--quote-table-pad-x);border-bottom:var(--quote-table-row-rule);font:400 14px/20px var(--sans)}
+html body #appView #view-materials .mp-kv dt{color:var(--nd-ink-3);font-size:13px}
+html body #appView #view-materials .mp-kv dd{overflow-wrap:anywhere}
+/* 메뉴(⋮) */
+html body #appView #view-materials .mp-menu{position:absolute;right:0;z-index:5;min-width:232px;max-width:calc(100vw - 32px);padding:6px;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-raised,var(--nd-surface));box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.08)}
+html body #appView #view-materials .mp-menu button{display:flex;align-items:flex-start;gap:10px;width:100%;min-height:48px;padding:9px 10px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer;color:var(--nd-ink)}
+html body #appView #view-materials .mp-menu button>svg{flex:none;margin-top:2px;color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-menu button>span{display:flex;flex-direction:column;gap:1px}
+html body #appView #view-materials .mp-menu b{font:500 14px/20px var(--sans)}
+html body #appView #view-materials .mp-menu small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-menu button:hover{background:var(--nd-tint-open)}
+html body #appView #view-materials .mp-menu button.danger{position:relative;margin-top:4px}
+html body #appView #view-materials .mp-menu button.danger::before{content:'';position:absolute;left:10px;right:10px;top:-3px;border-top:1px solid var(--nd-line-2)}
+html body #appView #view-materials .mp-menu button.danger :is(b,svg){color:var(--nd-red)}
+/* 아래 버튼 줄 */
+html body #appView #view-materials .mp-bar{position:sticky;bottom:0;z-index:4;display:flex;align-items:center;gap:8px;padding:14px var(--panel-inset,32px);border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+html body #appView #view-materials .mp-bar .mp-sp{flex:1}
+html body #appView #view-materials .mp-bar .btn{height:40px;min-height:40px;padding:0 16px;border-radius:10px;font:600 13px/1 var(--sans)}
+html body #appView #view-materials .mp-bar .btn.save{padding:0 22px}
+html body #appView #view-materials .mp-detail{display:flex;flex-direction:column;min-height:100%}
+html body #appView #view-materials .mp-detail>.mp-body{flex:1}
+html body #appView #view-materials .mp-detail>.material-detail-head{order:1!important}
+html body #appView #view-materials .mp-detail>.nd-material-tabs{order:2!important}
+html body #appView #view-materials .mp-detail>.mp-body{order:3!important}
+html body #appView #view-materials .mp-detail>.mp-bar{order:4!important}
+html body #appView #view-materials .mp-bar>.btn{flex:none!important;width:auto!important;margin:0!important}
+html body #appView #view-materials .mp-blank{display:flex;flex-direction:column;align-items:flex-start;gap:10px;max-width:420px;margin:72px auto;padding:0 24px}
+html body #appView #view-materials .mp-blank b{font:650 18px/26px var(--sans)}
+html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans);color:var(--nd-ink-2)}
+.mp-sheet .mp-warn{color:var(--nd-red)}
+.mp-sheet .nd-qa-seg button{white-space:nowrap}
+/* 폰(≤780, 목록 → 상세): 표는 두 줄, 머리 칸 숨김, 버튼 44px */
+@media screen and (max-width:780px){
+ html body #appView #view-materials:not(.nd-mm-open) .mp-detail{display:none!important}
+ html body #appView #view-materials .mp-ltabs{padding:0 16px}
+ html body #appView #view-materials .mp-chips{padding:12px 16px 10px}
+ html body #appView #view-materials .mp-row{padding:14px 16px!important}
+ html body #appView #view-materials.nd-mm-open .mp-detail .nd-material-tabs{padding:0 16px;gap:24px;margin-top:12px}
+ html body #appView #view-materials.nd-mm-open .mp-body{padding:16px}
+ html body #appView #view-materials.nd-mm-open .mp-bar{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+ html body #appView #view-materials.nd-mm-open .mp-detail .material-detail-head{display:flex!important;align-items:flex-end}
+ html body #appView #view-materials.nd-mm-open .mp-detail .material-balance-hero{order:0;margin:0!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;text-align:right}
+ html body #appView #view-materials.nd-mm-open .mp-detail .material-balance-hero>span{order:-1!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
+ html body #appView #view-materials.nd-mm-open .mp-detail .material-balance-hero strong{font:650 22px/30px var(--nd-number-font)!important;letter-spacing:normal}
+ html body #appView #view-materials .mp-bar>.btn{flex:1!important;height:44px;min-height:44px}
+ html body #appView #view-materials .mp-bar .mp-sp{display:none}
+ html body #appView #view-materials .mp-add{display:none}
+ html body #appView #view-materials .mp-sum{padding-bottom:14px}
+ html body #appView #view-materials .mp-th{display:none}
+ html body #appView #view-materials .mp-g6.mp-main{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "pct pct act";row-gap:4px;padding:10px 0 10px var(--quote-table-pad-x)}
+ html body #appView #view-materials .mp-g6.mp-main>span:nth-child(2),html body #appView #view-materials .mp-g6.mp-main>span:nth-child(3),html body #appView #view-materials .mp-g6.mp-main>span:nth-child(4){display:none}
+ html body #appView #view-materials .mp-g6.mp-main .mp-nm{grid-area:nm}
+ html body #appView #view-materials .mp-g6.mp-main .mp-b{grid-area:b}
+ html body #appView #view-materials .mp-g6.mp-main .mp-pct{grid-area:pct}
+ html body #appView #view-materials .mp-g6.mp-main .mp-act{grid-area:act;margin-right:0}
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "meta meta act";row-gap:2px;padding:10px 0 10px var(--quote-table-pad-x)}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-nm{grid-area:nm}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-b{grid-area:b}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-act{grid-area:act;margin-right:0}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-d{grid-area:meta;display:none}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-kind{grid-area:meta;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-src{display:none}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-kind .mp-pd{display:inline;font-size:12px}
+ html body #appView #view-materials .mp-g4q{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"q b" "w w";row-gap:2px;padding:10px var(--quote-table-pad-x)}
+ html body #appView #view-materials .mp-g4q>span:nth-child(1){grid-area:q}
+ html body #appView #view-materials .mp-g4q>span:nth-child(2){grid-area:w}
+ html body #appView #view-materials .mp-g4q>span:nth-child(3){display:none}
+ html body #appView #view-materials .mp-g4q>.mp-b{grid-area:b}
+ html body #appView #view-materials .mp-sub{grid-template-columns:44px 52px minmax(0,1fr) auto;padding:6px 44px 6px calc(var(--quote-table-pad-x) + 4px)}
+ html body #appView #view-materials .mp-sub .mp-src{white-space:normal;overflow:visible}
+ html body #appView #view-materials .mp-sec{flex-wrap:wrap}
+ html body #appView #view-materials .mp-rchips{width:100%;overflow-x:auto}
+}
