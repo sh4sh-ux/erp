@@ -733,3 +733,15 @@ test('purchase progress uses the quote progress list and header numbers stay ins
   assert.deepEqual(r.sections,['입고','출금','반품','계산서'],width+' '+JSON.stringify(r));assert.equal(r.cards,0,'no boxed cards');
   await p.close();}}finally{await b.close();}
 });
+
+test('header third line (번호 · 날짜 · 상태) sits at the quote position on every detail header',async()=>{
+ const b=await chromium.launch({headless:true,...(process.env.NARO_BROWSER_EXECUTABLE?{executablePath:process.env.NARO_BROWSER_EXECUTABLE}:{})});
+ const roles={quotes:['#qtForm .qs-val.co','#qtForm .qp-metadata'],purchases:['#puForm .qs-val.co','#puForm .qp-metadata'],payments:['.pp-detail .pp-head h3','.pp-detail .pp-meta'],companies:['#coForm .co-title-name','#coForm .cp-meta'],materials:['#view-materials .material-detail-head h3','#view-materials .mp-meta'],sales:['.nd-sa-title','.nd-sa-period']};
+ try{for(const [width,want] of [[1440,61],[390,53]]){const p=await b.newPage({viewport:{width,height:900}});await prepare(p);const seen=[];
+  for(const [view,[t,m]] of Object.entries(roles)){if(width<1024&&view==='sales')continue;await open(p,view);await p.waitForTimeout(150);
+   const r=await p.evaluate(([t,m])=>{const q=s=>[...document.querySelectorAll(s)].find(x=>x.getClientRects().length&&x.getBoundingClientRect().width>0);const T=q(t),M=q(m);if(!T||!M)return null;const a=T.getBoundingClientRect(),c=M.getBoundingClientRect();return {center:c.top+c.height/2-a.top,h:c.height};},[t,m]);
+   if(!r)continue;seen.push(view);
+   assert.ok(Math.abs(r.center-want)<1.5,`${width} ${view} third line center ${r.center} (want ${want})`);assert.ok(Math.abs(r.h-22)<1.5,`${width} ${view} third line height ${r.h}`);}
+  assert.ok((width<1024?['quotes','purchases','payments']:['quotes','purchases','payments','companies','sales']).every(v=>seen.includes(v)),width+' measured '+seen.join(','));
+  await p.close();}}finally{await b.close();}
+});

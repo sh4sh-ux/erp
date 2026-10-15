@@ -377,3 +377,13 @@ original as a voided record for the audit trail; showing it would repeat the sam
 correction. Wherever a record names its document (견적 번호 · 매입 번호), that number is a blue link that
 opens the document — e.g. 거래처 › 최근 입금 → 견적서, 최근 출금 → 매입 — the same action as
 '견적서 열기 ›'.
+
+## Header third line
+
+Every right-panel detail header has the same three lines: eyebrow (caption) · title · third line
+(document no · date · state chip, or the screen's equivalent — contact · type, period, kind count).
+The third line is 22px tall and its centre sits at the quote's position: on PC 111px from the header
+top (`--nd-header-meta-center`, 20px under the title), on phones 12px under the title (centre 53px
+from the title top). Links and chips in it keep text height (no 44px button boxes). Applies to
+견적서 · 매입 · 입금·출금 · 거래처 · 업체 제공 자재 · 매출 집계, and every new header. A ui-contract test
+measures it at 1440 and 390.
