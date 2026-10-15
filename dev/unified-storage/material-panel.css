@@ -6,8 +6,8 @@ html body #appView #view-materials .mp-master{--quote-table-head-rule:1px solid 
  html[data-theme="dark"] body #appView #view-materials .mp-master{--quote-table-head-rule:1.5px solid var(--nd-line)}
 }
 /* 왼쪽 */
-html body #appView #view-materials .mp-ltabs{display:flex;gap:22px;height:44px;align-items:flex-end;padding:0 var(--panel-inset,20px);border-bottom:1px solid var(--nd-line);box-sizing:border-box;flex:none}
-html body #appView #view-materials .mp-ltabs button{position:relative;height:44px;padding:0 0 1px;border:0;background:none;font:500 13px/20px var(--sans);color:var(--nd-ink-2);cursor:pointer}
+html body #appView #view-materials .mp-ltabs{display:flex;gap:24px;height:calc(var(--nd-detail-tab-height,46px) + 1px);align-items:flex-end;padding:0 var(--panel-inset,20px);border-bottom:1px solid var(--nd-line);box-sizing:border-box;flex:none}
+html body #appView #view-materials .mp-ltabs button{position:relative;height:var(--nd-detail-tab-height,46px);padding:0;border:0;background:none;font:500 var(--nd-ui-tab-size,13px)/20px var(--sans);color:var(--nd-ink-2);cursor:pointer}
 html body #appView #view-materials .mp-ltabs button[aria-selected="true"]{color:var(--nd-blue);font-weight:600}
 html body #appView #view-materials .mp-ltabs button[aria-selected="true"]::after{content:'';position:absolute;left:-4px;right:-4px;bottom:-1px;height:2px;background:var(--nd-blue)}
 html body #appView #view-materials .mp-chips{display:flex;flex-wrap:nowrap;gap:6px;padding:12px var(--panel-inset,20px) 10px;overflow-x:auto;scrollbar-width:none;flex:none}
@@ -55,8 +55,8 @@ html body #appView #view-materials .mp-sec .qt-sec-t{display:flex;align-items:ce
 html body #appView #view-materials .mp-sec .cnt{font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-2)}
 html body #appView #view-materials .mp-row-t{position:relative;display:grid;align-items:center;column-gap:16px;min-height:var(--quote-table-row-h);padding:0 var(--quote-table-pad-x);border-bottom:var(--quote-table-row-rule);font:400 var(--nd-body-size,14px)/var(--nd-body-line,20px) var(--sans);color:var(--nd-ink)}
 html body #appView #view-materials .mp-th{min-height:var(--quote-table-head-h);border-bottom:var(--quote-table-head-rule);font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--ink-3,var(--nd-ink-3))}
-html body #appView #view-materials .mp-g6{grid-template-columns:minmax(0,1.5fr) 64px 64px 80px 72px minmax(110px,1fr) 26px}
-html body #appView #view-materials .mp-g5{grid-template-columns:52px 96px minmax(0,1fr) minmax(0,1.3fr) 70px 26px}
+html body #appView #view-materials .mp-g6{grid-template-columns:minmax(120px,1fr) 52px 64px 56px minmax(56px,120px) 26px;column-gap:12px}
+html body #appView #view-materials .mp-g5{grid-template-columns:48px 84px minmax(90px,1fr) minmax(0,1.2fr) 60px 26px}
 html body #appView #view-materials .mp-g4q{grid-template-columns:150px minmax(0,1fr) 90px 80px}
 html body #appView #view-materials .mp-row-t .num{text-align:right;white-space:nowrap;font-family:var(--nd-number-font);font-variant-numeric:tabular-nums}
 html body #appView #view-materials .mp-row-t .mp-d{text-align:left;font-size:var(--nd-label-size);color:var(--nd-ink-2)}
@@ -66,7 +66,8 @@ html body #appView #view-materials .mp-src{min-width:0;overflow:hidden;text-over
 html body #appView #view-materials .mp-kind{display:flex;align-items:center;font-size:13px;white-space:nowrap}
 html body #appView #view-materials .mp-kind small{margin-left:6px;font-size:11px;color:var(--nd-ink-3)}
 html body #appView #view-materials .mp-kind .mp-pd{display:none}
-html body #appView #view-materials .mp-pct{display:flex;flex-direction:column;gap:2px;min-width:0}
+html body #appView #view-materials .mp-pct{display:flex;flex-direction:row;align-items:center;gap:8px;min-width:0}
+html body #appView #view-materials .mp-pct .mp-mini{flex:1;min-width:40px}
 html body #appView #view-materials .mp-pct .mp-mini{margin-top:0}
 html body #appView #view-materials .mp-pct small{font:400 12px/16px var(--sans);color:var(--nd-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html body #appView #view-materials .mp-two{display:flex;flex-direction:column;min-width:0}
@@ -151,7 +152,7 @@ html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans)
  html body #appView #view-materials .mp-sum{padding-bottom:14px}
  html body #appView #view-materials .mp-th{display:none}
  html body #appView #view-materials .mp-g6.mp-main{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "pct pct act";row-gap:4px;padding:10px 0 10px var(--quote-table-pad-x)}
- html body #appView #view-materials .mp-g6.mp-main>span:nth-child(2),html body #appView #view-materials .mp-g6.mp-main>span:nth-child(3),html body #appView #view-materials .mp-g6.mp-main>span:nth-child(4){display:none}
+ html body #appView #view-materials .mp-g6.mp-main>span:nth-child(2),html body #appView #view-materials .mp-g6.mp-main>span:nth-child(3){display:none}
  html body #appView #view-materials .mp-g6.mp-main .mp-nm{grid-area:nm}
  html body #appView #view-materials .mp-g6.mp-main .mp-b{grid-area:b}
  html body #appView #view-materials .mp-g6.mp-main .mp-pct{grid-area:pct}
@@ -192,3 +193,9 @@ html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card{margin:10px 0 0;padding
 html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card select{flex:1 1 100%;min-width:0;height:40px}
 html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card input{height:40px}
 html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card .mp-qsup-k{width:100%}
+/* 구분선 맞춤(UI-RULES 'Panel dividers'): 왼쪽 탭 줄과 오른쪽 탭 줄은 같은 높이(탭 46 + 선 1) → 같은 선 */
+@media(max-width:1023px){html body #appView #view-materials .mp-ltabs{height:45px}html body #appView #view-materials .mp-ltabs button{height:44px}}
+/* 단순하게: 왼쪽 줄은 이름·수량·메타 두 줄, 오른쪽 요약은 막대와 숫자만 */
+html body #appView #view-materials .mp-row{gap:2px}
+html body #appView #view-materials .mp-sum{gap:0;padding-bottom:20px}
+html body #appView #view-materials .mp-sum-top{margin-bottom:10px}
