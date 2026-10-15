@@ -10786,6 +10786,20 @@ html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans)
  html body #appView #view-materials .mp-sec{flex-wrap:wrap}
  html body #appView #view-materials .mp-rchips{width:100%;overflow-x:auto}
 }
+/* 견적서 작업 줄 아래 '업체 제공 자재' 칸 — 옅은 배경(위 줄에 딸린 내용), 줄 구분선과 같은 선 */
+html body #appView :is(#qtForm,#puForm) .mp-qsup{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:8px var(--nd-in,12px) 10px calc(var(--nd-in,12px) + 16px);border-bottom:var(--quote-table-row-rule,1px solid var(--nd-line-2));background:var(--nd-tint-open);font:400 12.5px/20px var(--sans);color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-k{flex:none;font-size:var(--nd-label-size);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup select{width:auto;min-width:220px;max-width:100%;height:34px;padding:0 30px 0 10px;border:1px solid var(--nd-line);border-radius:9px;background-color:var(--nd-surface);font:400 13px/20px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup input{width:56px;height:34px;padding:0 8px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);text-align:center;font:600 13px/20px var(--nd-number-font);color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup b{font-weight:600;color:var(--nd-ink)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-bal{color:var(--nd-ink-3)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup .mp-qsup-bal.warn{color:var(--nd-amber,#E98300);font-weight:600}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.view{padding-top:6px;padding-bottom:8px}
+html body #appView #view-materials .mp-naver{display:inline-block;margin-right:2px;padding:0 5px;border-radius:5px;background:color-mix(in srgb,#03C75A 12%,transparent);font:600 11px/18px var(--sans);color:#03A64A;vertical-align:1px}
+html[data-theme="dark"] body #appView #view-materials .mp-naver{color:#3DDC84}
+html body #appView #view-materials .mp-oname{font:600 13px/20px var(--sans);white-space:nowrap}
+.mp-sheet .mp-use{display:flex;flex-direction:column;gap:6px}
+.mp-sheet .mp-hint{margin:0;padding:10px 12px;border-radius:10px;background:var(--nd-blue-soft);font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -13631,6 +13645,14 @@ const NaroOrderImport=(()=>{
  const daysSince=d=>d?Math.floor((Date.parse(today()+'T00:00:00Z')-Date.parse(d+'T00:00:00Z'))/864e5):0;
  const act=()=>(db.material_moves||[]).filter(m=>!m.void_at);
  const quoteOf=id=>(db.quotes||[]).find(q=>q.id===id);
+ // 주문 = 견적 또는 네이버(스마트스토어) 주문. 네이버는 주문번호로, 번호가 없으면 날짜로 묶는다(하루치 한 줄 기록).
+ const isNaver=m=>m.source==='스마트스토어';
+ const orderKey=m=>m.quote_id&&quoteOf(m.quote_id)?'q:'+m.quote_id:(m.kind==='작업 완료'&&isNaver(m))?'n:'+(m.order_no||'@'+m.date):null;
+ const NAVER='<span class="mp-naver">네이버</span>';
+ function orders(rows){const by=new Map();for(const m of rows){const k=orderKey(m);if(!k)continue;const e=by.get(k)||{key:k,cid:m.company_id,qid:m.quote_id&&quoteOf(m.quote_id)?m.quote_id:'',order_no:m.order_no||'',date:m.date||'',used:0,mats:new Set(),works:new Set(),memo:new Set(),last:''};
+  if(m.kind==='작업 완료'){e.used+=Number(m.qty)||0;e.works.add(`${m.work_name||'작업'}${m.work_qty?` ${n0(m.work_qty)}`:''}`);}if(m.memo)e.memo.add(m.memo);e.mats.add(m.material);if((m.date||'')>e.last)e.last=m.date;by.set(k,e);}
+  return [...by.values()].sort((a,b)=>(b.last||'').localeCompare(a.last||''));}
+ const orderTitle=e=>e.qid?esc(quoteOf(e.qid)?.no||'견적'):`${NAVER} ${e.order_no?esc(e.order_no):md(e.date)+' 주문'}`;
  /* 업체별 집계: 자재마다 받음·사용·반환·불량, 남음, 최근 기록. */
  function companyStats(cid){
   const mats=new Map();let last='';const quotes=new Set();
@@ -13639,7 +13661,7 @@ const NaroOrderImport=(()=>{
    const q=Number(m.qty)||0;
    if(m.kind==='받음')g.received+=q;else if(m.kind==='작업 완료')g.used+=q;else if(m.kind==='반환')g.returned+=q;else g.lost+=q;
    if((m.date||'')>g.last)g.last=m.date||'';if((m.date||'')>last)last=m.date||'';
-   if(m.quote_id)quotes.add(m.quote_id);mats.set(m.material,g);
+   const ok=orderKey(m);if(ok)quotes.add(ok);mats.set(m.material,g);
   }
   const list=[...mats.values()].map(g=>({...g,balance:g.received-g.used-g.returned-g.lost})).sort((a,b)=>b.balance-a.balance||a.name.localeCompare(b.name,'ko'));
   const sum=k=>list.reduce((s,g)=>s+g[k],0);
@@ -13650,7 +13672,8 @@ const NaroOrderImport=(()=>{
  const chipPass=s=>ui.chip==='all'||(ui.chip==='holding'&&s.balance>0)||(ui.chip==='stale'&&isStale(s))||(ui.chip==='done'&&s.balance<=0);
  const bar=(s,cls='mp-mini')=>{const t=Math.max(1,s.received);const w=v=>Math.max(0,v/t*100).toFixed(2)+'%';return `<span class="${cls}" aria-hidden="true">${s.balance>0?`<i class="h" style="width:${w(s.balance)}"></i>`:''}${s.used>0?`<i class="u" style="width:${w(s.used)}"></i>`:''}${s.out>0?`<i class="o" style="width:${w(s.out)}"></i>`:''}</span>`;};
  const srcText=m=>{const q=m.quote_id?quoteOf(m.quote_id):null,parts=[];
-  if(m.kind==='받음')parts.push([m.source,m.order_no].filter(Boolean).map(esc).join(' · '));
+  if(isNaver(m)&&!q)parts.push(`${NAVER}${m.order_no?` ${esc(m.order_no)}`:''}`);
+  else if(m.kind==='받음')parts.push([m.source,m.order_no].filter(Boolean).map(esc).join(' · '));
   if(m.kind==='작업 완료')parts.push(`${esc(m.work_name||'작업')}${m.work_qty?` ${n0(m.work_qty)}개${Number(m.per_unit)>1?` × ${n0(m.per_unit)}`:''}`:''}`);
   if(m.memo)parts.push(esc(m.memo));
   return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')} ›</button>`:''}`;};
@@ -13660,7 +13683,7 @@ const NaroOrderImport=(()=>{
  function leftHtml(ids,cid){
   const stats=ids.map(companyStats);
   const counts={holding:stats.filter(s=>s.balance>0).length,stale:stats.filter(isStale).length,done:stats.filter(s=>s.balance<=0).length,all:stats.length};
-  const tabs=[['company','업체'],['material','자재'],['quote','견적'],['record','기록']].map(([k,l])=>`<button type="button" role="tab" data-mp-lt="${k}" aria-selected="${ui.lt===k}">${l}</button>`).join('');
+  const tabs=[['company','업체'],['material','자재'],['order','주문'],['record','기록']].map(([k,l])=>`<button type="button" role="tab" data-mp-lt="${k}" aria-selected="${ui.lt===k}">${l}</button>`).join('');
   const chips=(ui.lt==='company'||ui.lt==='material')?`<div class="mp-chips" role="group" aria-label="보관 상태">${[['holding','보유 중'],['stale','오래 보관'],['done','다 씀'],['all','전체']].map(([k,l])=>`<button type="button" data-mp-chip="${k}" aria-pressed="${ui.chip===k}" class="${k==='stale'&&counts.stale?'warn':''}">${l} <b>${counts[k]}</b></button>`).join('')}</div>`:'';
   let rows='';
   const row=(attrs,on,title,value,meta,tag,extra,search)=>`<button type="button" class="material-owner mp-row${on?' active':''}" ${attrs}><span class="mp-r1"><b>${title}</b><span class="mp-v num">${value}</span></span><span class="mp-r2"><small>${meta}</small>${tag||''}</span>${extra||''}<span class="mp-find" hidden>${esc(search||'')}</span></button>`;
@@ -13672,16 +13695,14 @@ const NaroOrderImport=(()=>{
    rows=stats.flatMap(s=>s.list.map(g=>({...g,cid:s.cid,out:g.returned+g.lost}))).filter(g=>chipPass({...g,list:[g]})).sort((a,b)=>(b.last||'').localeCompare(a.last||'')).map(g=>{
     const tag=isStale(g)?`<span class="mp-tag warn">${n0(daysSince(g.last))}일째 보관</span>`:g.balance<=0?'<span class="mp-tag">다 씀</span>':'';
     return row(`data-mm-owner="${esc(g.cid)}" data-mp-pick="material" data-mp-name="${esc(g.name)}"`,g.cid===cid&&materialSelectedName===g.name,esc(g.name),`${n0(g.balance)}개`,`${esc(coName(g.cid))}${g.last?` · 최근 ${md(g.last)}`:''}`,tag,bar(g),coName(g.cid));}).join('');
-  }else if(ui.lt==='quote'){
-   const by=new Map();for(const m of act().filter(m=>m.quote_id&&quoteOf(m.quote_id))){const e=by.get(m.quote_id)||{qid:m.quote_id,cid:m.company_id,used:0,mats:new Set(),last:''};if(m.kind==='작업 완료')e.used+=Number(m.qty)||0;e.mats.add(m.material);if((m.date||'')>e.last)e.last=m.date;by.set(m.quote_id,e);}
-   rows=[...by.values()].sort((a,b)=>(b.last||'').localeCompare(a.last||'')).map(e=>{const q=quoteOf(e.qid);
-    return row(`data-mm-owner="${esc(e.cid)}" data-mp-pick="quote" data-mp-q="${esc(e.qid)}"`,false,esc(q.no||'견적'),`사용 ${n0(e.used)}개`,`${esc(coName(e.cid))} · ${esc([...e.mats].join(' · '))}`,q.status?`<span class="mp-tag">${esc(q.status)}</span>`:'','',[...e.mats].join(' ')+' '+coName(e.cid));}).join('');
+  }else if(ui.lt==='order'){
+   rows=orders(act()).map(e=>row(`data-mm-owner="${esc(e.cid)}" data-mp-pick="order"`,false,orderTitle(e),`사용 ${n0(e.used)}개`,`${esc(coName(e.cid))} · ${esc([...e.mats].join(' · '))}`,e.qid&&quoteOf(e.qid)?.status?`<span class="mp-tag">${esc(quoteOf(e.qid).status)}</span>`:'','',[...e.mats].join(' ')+' '+coName(e.cid)+' '+(e.order_no||'')+' 네이버'.repeat(e.qid?0:1)));
   }else{
    rows=(db.material_moves||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||'')).slice(0,200).map(m=>{
     const q=m.quote_id?quoteOf(m.quote_id):null;
     return row(`data-mm-owner="${esc(m.company_id)}" data-mp-pick="record" data-mp-rec="${esc(m.id)}"${m.void_at?' data-void="1"':''}`,false,`<i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${esc(m.material)} <span class="mp-k">${KIND[m.kind]||esc(m.kind)}</span>`,m.void_at?'취소됨':signed(m),`${esc(coName(m.company_id))} · ${md(m.date)}${q?` · ${esc(q.no||'')}`:''}`,'','',`${coName(m.company_id)} ${q?.no||''} ${m.memo||''} ${m.order_no||''}`);}).join('');
   }
-  const empty={company:'보관 중인 업체가 없어요',material:'자재가 없어요',quote:'견적에 연결된 자재 기록이 없어요',record:'기록이 없어요'}[ui.lt];
+  const empty={company:'보관 중인 업체가 없어요',material:'자재가 없어요',order:'견적·네이버 주문에 쓴 기록이 없어요',record:'기록이 없어요'}[ui.lt];
   return `<aside class="material-owners mp-left"><div class="material-owners-head"><h3>보유 업체</h3><span class="hint">${counts.holding}곳</span></div>
    <div class="mp-ltabs" role="tablist" aria-label="찾는 기준">${tabs}</div>${chips}
    <div class="material-owner-list mp-list">${rows||`<p class="mp-empty">${empty}</p>`}<button type="button" class="btn ghost material-new-owner" id="mm_new_receipt" hidden>+ 자재 받음</button></div></aside>`;
@@ -13693,8 +13714,8 @@ const NaroOrderImport=(()=>{
   const s=companyStats(cid),co=coById(cid)||{};
   const rows=(db.material_moves||[]).filter(m=>m.company_id===cid).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
   const live=rows.filter(m=>!m.void_at);
-  const quoteIds=[...s.quotes].filter(quoteOf);
-  const tabs=[['materials','자재',s.list.length],['history','기록',live.length],['quotes','견적',quoteIds.length],['info','정보','']].map(([k,l,c])=>`<button type="button" role="tab" class="qp-tab" data-material-panel="${k}" aria-selected="${ui.tab===k}">${l}${c!==''?`<em>${n0(c)}</em>`:''}</button>`).join('');
+  const ords=orders(live);
+  const tabs=[['materials','자재',s.list.length],['history','기록',live.length],['orders','주문',ords.length],['info','정보','']].map(([k,l,c])=>`<button type="button" role="tab" class="qp-tab" data-material-panel="${k}" aria-selected="${ui.tab===k}">${l}${c!==''?`<em>${n0(c)}</em>`:''}</button>`).join('');
   const t=Math.max(1,s.received),w=v=>(v/t*100).toFixed(2)+'%';
   const sum=`<div class="mp-sum"><div class="mp-sum-bar"><div class="mp-sum-top"><span>받은 수량 <b class="num">${n0(s.received)}개</b></span><span>받음 = 보유 + 사용 + 반환·불량</span></div>
    <span class="mp-track" aria-hidden="true">${s.balance>0?`<i class="h" style="width:${w(s.balance)}"></i>`:''}${s.used>0?`<i class="u" style="width:${w(s.used)}"></i>`:''}${s.out>0?`<i class="o" style="width:${w(s.out)}"></i>`:''}</span>
@@ -13710,17 +13731,16 @@ const NaroOrderImport=(()=>{
     const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기 ›</button>`:'';
     return `<div class="mp-rec${on?' on':''}"><div class="mp-row-t mp-g6 mp-main" data-mp-open="${esc(g.name)}" role="button" tabindex="0" aria-expanded="${on}"><span class="mp-nm">${esc(g.name)}</span><span class="num">${n0(g.received)}</span><span class="num">${n0(g.used)}</span><span class="num">${n0(g.returned+g.lost)}</span><span class="num mp-b">${n0(g.balance)}</span><span class="mp-pct">${bar({received:g.received,balance:g.balance,used:g.used,out:g.returned+g.lost},'mp-mini')}<small>${g.balance>0?`${pct}% 남음`:'다 씀'}${g.last?` · 최근 ${md(g.last)}`:''}</small></span><span class="mp-act"><button type="button" class="mp-dots" data-mp-mat="${esc(g.name)}" aria-label="${esc(g.name)} 메뉴" aria-expanded="false">${DOTS}</button></span></div>${on?`<div class="mp-x">${sub||'<p class="mp-empty">기록이 없어요</p>'}${more}</div>`:''}</div>`;}).join(''):`<p class="mp-empty mp-line">아직 자재가 없어요</p>`);
   }else if(ui.tab==='history'){
-   const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'));
-   const chips=[['all','전체'],['받음','받음'],['사용','사용'],['반환','반환·불량']].map(([k,l])=>`<button type="button" data-mp-rf="${k}" aria-pressed="${ui.rec===k}">${l}</button>`).join('');
+   const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'))||(ui.rec==='네이버'&&isNaver(m));
+   const chips=[['all','전체'],['받음','받음'],['사용','사용'],['반환','반환·불량'],['네이버','네이버']].map(([k,l])=>`<button type="button" data-mp-rf="${k}" aria-pressed="${ui.rec===k}">${l}</button>`).join('');
    const list=rows.filter(pass);let month='';
    const items=list.map(m=>{const mo=(m.date||'').slice(0,7),hd=mo!==month?`<div class="mp-month">${Number(mo.slice(5,7))||''}월 <span>${mo.slice(0,4)}</span></div>`:'';month=mo;
     return hd+`<div class="mp-row-t mp-g5 mp-hrow${m.void_at?' gone':''}${ui.flash===m.id?' flash':''}" data-mp-hrow="${esc(m.id)}"><span class="num mp-d">${md(m.date)}</span><span class="mp-kind"><i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${KIND[m.kind]||esc(m.kind)}<small class="mp-pd">${md(m.date)}${m.quote_id&&quoteOf(m.quote_id)?` · ${esc(quoteOf(m.quote_id).no||'')}`:''}</small>${m.void_at?'<small>취소됨</small>':''}</span><span class="mp-nm">${esc(m.material)}</span><span class="mp-src">${srcText(m)}</span><span class="num mp-b">${signed(m)}</span><span class="mp-act">${m.void_at?'':`<button type="button" class="mp-dots" data-mp-rm="${esc(m.id)}" aria-label="이 기록 메뉴" aria-expanded="false">${DOTS}</button>`}</span></div>`;}).join('');
-   body=`<div class="mp-sec"><span class="qt-sec-t">기록<span class="cnt">${n0(live.length)}건</span></span><div class="mp-rchips" role="group" aria-label="기록 구분">${chips}</div></div>`+(items?`<div class="mp-row-t mp-th mp-g5" aria-hidden="true"><span>날짜</span><span>구분</span><span>자재</span><span>출처 · 연결 견적</span><span class="num">수량</span><span></span></div>${items}`:`<p class="mp-empty mp-line">기록이 없어요</p>`);
-  }else if(ui.tab==='quotes'){
-   const items=quoteIds.map(id=>{const q=quoteOf(id),ms=live.filter(m=>m.quote_id===id),used=ms.filter(m=>m.kind==='작업 완료').reduce((a,m)=>a+(Number(m.qty)||0),0);
-    const works=[...new Set(ms.filter(m=>m.kind==='작업 완료').map(m=>`${m.work_name||'작업'}${m.work_qty?` ${n0(m.work_qty)}`:''}`))].join(' · ')||'작업 기록 없음';
-    return `<div class="mp-row-t mp-g4q"><span><button type="button" class="mp-qlink" data-mp-quote="${esc(id)}">${esc(q.no||'견적')} ›</button></span><span class="mp-two"><b>${esc(works)}</b><small>${esc([...new Set(ms.map(m=>m.material))].join(' · '))}</small></span><span>${q.status?`<span class="mp-tag">${esc(q.status)}</span>`:''}</span><span class="num mp-b">${n0(used)}</span></div>`;}).join('');
-   body=`<div class="mp-sec"><span class="qt-sec-t">연결 견적<span class="cnt">${quoteIds.length}건</span></span></div>`+(items?`<div class="mp-row-t mp-th mp-g4q" aria-hidden="true"><span>견적</span><span>작업 · 자재</span><span>상태</span><span class="num">쓴 자재</span></div>${items}`:`<p class="mp-empty mp-line">견적에 연결된 기록이 없어요. '작업에 사용'을 기록할 때 견적을 고르면 여기에 모여요.</p>`);
+   body=`<div class="mp-sec"><span class="qt-sec-t">기록<span class="cnt">${n0(live.length)}건</span></span><div class="mp-rchips" role="group" aria-label="기록 구분">${chips}</div></div>`+(items?`<div class="mp-row-t mp-th mp-g5" aria-hidden="true"><span>날짜</span><span>구분</span><span>자재</span><span>출처 · 연결 주문</span><span class="num">수량</span><span></span></div>${items}`:`<p class="mp-empty mp-line">기록이 없어요</p>`);
+  }else if(ui.tab==='orders'){
+   const items=ords.map(e=>{const q=e.qid?quoteOf(e.qid):null;
+    return `<div class="mp-row-t mp-g4q"><span>${q?`<button type="button" class="mp-qlink" data-mp-quote="${esc(e.qid)}">${esc(q.no||'견적')} ›</button>`:`<span class="mp-oname">${orderTitle(e)}</span>`}</span><span class="mp-two"><b>${esc([...e.works].join(' · ')||'작업 기록 없음')}</b><small>${esc([...e.mats,...e.memo].join(' · '))}</small></span><span>${q?(q.status?`<span class="mp-tag">${esc(q.status)}</span>`:''):'<span class="mp-tag">네이버</span>'}</span><span class="num mp-b">${n0(e.used)}</span></div>`;}).join('');
+   body=`<div class="mp-sec"><span class="qt-sec-t">연결 주문<span class="cnt">견적 ${ords.filter(e=>e.qid).length}건 · 네이버 ${ords.filter(e=>!e.qid).length}건</span></span></div>`+(items?`<div class="mp-row-t mp-th mp-g4q" aria-hidden="true"><span>주문</span><span>작업 · 자재</span><span>구분</span><span class="num">쓴 자재</span></div>${items}`:`<p class="mp-empty mp-line">주문에 연결된 기록이 없어요. '작업에 사용'을 기록할 때 견적이나 네이버 주문을 고르면 여기에 모여요.</p>`);
   }else{
    const kv=[['전화',co.phone],['이메일',co.email],['담당',co.manager||co.contact],['주소',co.address]].filter(([,v])=>v);
    body=`<div class="mp-sec"><span class="qt-sec-t">재고내역서</span></div>
@@ -13728,7 +13748,7 @@ const NaroOrderImport=(()=>{
     <div class="mp-sec"><span class="qt-sec-t">거래처</span><button type="button" class="nd-record-action" data-mp-company>거래처 열기</button></div>
     ${kv.length?`<dl class="mp-kv">${kv.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:'<p class="mp-empty mp-line">등록된 연락처가 없어요</p>'}`;
   }
-  return `<main class="material-detail mp-detail"><div class="material-detail-head"><div><div class="material-eyebrow">업체 제공 자재</div><h3>${esc(co.name||coName(cid))}</h3><div class="mp-meta">자재 ${s.list.length}종${quoteIds.length?` · 연결 견적 ${quoteIds.length}건`:''}${s.last?` · 최근 기록 ${md(s.last)}`:''}</div></div>
+  return `<main class="material-detail mp-detail"><div class="material-detail-head"><div><div class="material-eyebrow">업체 제공 자재</div><h3>${esc(co.name||coName(cid))}</h3><div class="mp-meta">자재 ${s.list.length}종${ords.length?` · 연결 주문 ${ords.length}건`:''}${s.last?` · 최근 기록 ${md(s.last)}`:''}</div></div>
    <div class="material-balance-hero"><span>남은 수량</span><strong>${n0(s.balance)}개</strong></div></div>
    <div class="qp-tabs nd-material-tabs" role="tablist" aria-label="자재 상세">${tabs}</div>
    <div class="mp-body">${sum}<section class="mp-panel" role="tabpanel">${body}</section></div>
@@ -13774,7 +13794,19 @@ const NaroOrderImport=(()=>{
   else{materialEditingId='';const latest=act().filter(m=>m.company_id===materialSelectedCompanyId&&m.material===opts.material).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
    materialDraft={...newMaterialDraft(opts.company??materialSelectedCompanyId),kind:opts.kind||(materialSelectedCompanyId&&companyStats(materialSelectedCompanyId).balance>0?'작업 완료':'받음'),material:opts.material||'',source:latest?.source||'직접 주문',work_qty:'',per_unit:'1'};}
   const d=materialDraft;
+  // 어디에 썼나요? (작업에 사용만): 견적 · 네이버 주문 · 기타 — 저장은 원래 칸(quote_id · source · order_no)에만 담는다.
+  let use=d.quote_id?'quote':isNaver(d)&&(edit||opts.use==='naver')?'naver':edit&&d.source==='기타'?'etc':(opts.use||'quote');
+  let hint='';
+  const autofill=()=>{hint='';if(edit||use!=='quote'||!d.quote_id)return;const q=quoteOf(d.quote_id);
+   const sup=(q?.lines||[]).filter(l=>l.supplied_material);if(!sup.length){hint='이 견적에는 쓰는 자재가 지정돼 있지 않아요 — 수량을 직접 넣어 주세요.';return;}
+   const l=sup.find(x=>x.supplied_material===d.material)||sup[0];
+   const done=act().filter(m=>m.quote_id===d.quote_id&&m.material===l.supplied_material&&m.kind==='작업 완료').reduce((a,m)=>a+(Number(m.work_qty)||0),0);
+   const left=Math.max(0,(Number(l.qty)||0)-done);
+   d.material=l.supplied_material;d.work_item_id=l.item_id&&l.item_id!=='__free__'?l.item_id:'';d.per_unit=String(Number(l.supplied_per_unit)||1);d.work_qty=left?String(left):'';
+   hint=`견적의 쓰는 자재로 채웠어요: ${esc(l.name||'작업')} ${n0(l.qty)}개 × ${n0(d.per_unit)}개씩${done?` · 이미 ${n0(done)}개 기록`:''}`;};
+  if(opts.quote){d.kind='작업 완료';d.quote_id=opts.quote;use='quote';autofill();}
   const paint=()=>{
+   if(!edit&&d.kind==='작업 완료'&&use==='quote'&&isNaver(d))d.source='직접 주문';
    const totals=materialBalances(),bal=Number(totals[materialKey(d)])||0;
    const kinds=[['받음','받음'],['작업 완료','작업에 사용'],['반환','반환'],['불량/분실','불량·분실']];
    const holding=materialHoldingCompanyIds(totals);
@@ -13797,22 +13829,26 @@ const NaroOrderImport=(()=>{
       ${!materialSelectedCompanyId||opts.pickCompany||edit?field('','업체',`<select data-mm="company_id">${opt('','업체 선택',d.company_id)}${cos.map(c=>opt(c.id,c.name,d.company_id)).join('')}</select>`):''}
       ${d.kind==='받음'?field('','자재',`<input data-mm="material" list="mp_names" value="${esc(d.material)}" placeholder="예: 모자 (검정)"><datalist id="mp_names">${materialChoices(d.company_id,totals).map(x=>opt(x.name,x.name,'')).join('')}</datalist>`)
        :field('','자재',`<select data-mm="material">${opt('','자재 선택',d.material)}${choices.map(x=>opt(x.name,`${x.name} — ${n0(x.balance)}개 남음`,d.material)).join('')}</select>`)}
-      ${d.kind==='작업 완료'?`${field('','연결 견적 (선택)',`<select data-mm="quote_id">${opt('','견적 없이 기록',d.quote_id)}${quotes.map(q=>opt(q.id,`${q.no||'견적'}${q.status?` · ${q.status}`:''}`,d.quote_id)).join('')}</select>`)}
+      ${d.kind==='작업 완료'?`<div class="nd-qa-wide mp-use"><span class="nd-qa-label">어디에 썼나요?</span><div class="nd-qa-seg" role="tablist" aria-label="쓴 곳">${[['quote','견적'],['naver','네이버 주문'],['etc','기타']].map(([k,l])=>`<button type="button" role="tab" data-mp-use="${k}" aria-selected="${use===k}">${l}</button>`).join('')}</div></div>
+        ${use==='quote'?field('','견적',`<select data-mm="quote_id">${opt('','견적 선택',d.quote_id)}${quotes.map(q=>opt(q.id,`${q.no||'견적'}${q.status?` · ${q.status}`:''}`,d.quote_id)).join('')}</select>`):use==='naver'?input('order_no','네이버 주문번호 (선택)','inputmode="numeric" placeholder="여러 건을 묶으면 비워 두세요"'):''}
         ${field('','작업 품목 (선택)',`<select data-mm="work_item_id">${opt('','지정 안 함',d.work_item_id)}${works.map(i=>opt(i.id,typeof itemLabel==='function'?itemLabel(i.name,i.code):i.name,d.work_item_id)).join('')}</select>`)}
         ${input('work_qty','작업 수량','inputmode="numeric" placeholder="예: 10"')}${input('per_unit','작업 1개당 자재','inputmode="numeric"')}`
        :input('qty','수량 (개)','inputmode="numeric" placeholder="예: 10"')}
       ${input('date','날짜','type="date"')}
-      ${d.kind==='받음'?`${field('','주문 경로',`<select data-mm="source">${['직접 주문','스마트스토어','기타'].map(k=>opt(k,k,d.source)).join('')}</select>`)}${input('order_no','주문번호 / 회차 (선택)')}`:''}
-      ${input('memo','메모 (선택)','placeholder="예: 1차 작업, 불량 사유"').replace('<label class="">','<label class="nd-qa-wide">')}
+      ${d.kind==='받음'?`${field('','주문 경로',`<select data-mm="source">${['직접 주문','스마트스토어','기타'].map(k=>opt(k,k==='스마트스토어'?'네이버 스마트스토어':k,d.source)).join('')}</select>`)}${input('order_no','주문번호 / 회차 (선택)')}`:''}
+      ${input('memo','메모 (선택)',`placeholder="${d.kind==='작업 완료'&&use==='naver'?'예: 셰프복 3벌 패치 부착 · 7건':'예: 1차 작업, 불량 사유'}"`).replace('<label class="">','<label class="nd-qa-wide">')}
      </div>
+     ${hint?`<p class="nd-qa-note mp-hint">${hint}</p>`:''}
      ${d.company_id&&d.material?`<p class="nd-qa-after">${qty>0?`<b>${esc(d.material)} ${n0(qty)}개</b>를 ${verb}(으)로 기록해요. 남은 수량 ${n0(base)} → <b>${n0(after)}개</b>`:`지금 남은 수량 <b>${n0(base)}개</b>`}${after<0?' · <b class="mp-warn">남은 수량보다 많아요</b>':''}</p>`:''}
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" id="mm_save" ${materialSaving?'disabled':''}>${label}</button></div>`);
+   s.querySelectorAll('[data-mp-use]').forEach(b=>b.onclick=()=>{if(use===b.dataset.mpUse)return;use=b.dataset.mpUse;hint='';
+    if(use==='quote'){if(isNaver(d)||d.source==='기타')d.source='직접 주문';d.order_no='';}else{d.quote_id='';d.source=use==='naver'?'스마트스토어':'기타';if(use==='etc')d.order_no='';}paint();});
    s.querySelectorAll('[data-mp-kind]').forEach(b=>b.onclick=()=>{if(d.kind===b.dataset.mpKind)return;d.kind=b.dataset.mpKind;if(d.kind!=='작업 완료'){d.work_qty='';d.per_unit='1';d.quote_id='';d.work_item_id='';}if(!edit&&d.kind!=='받음'&&!materialChoices(d.company_id,materialBalances(),true).some(x=>x.name===d.material))d.material='';paint();});
    s.querySelectorAll('[data-mm]').forEach(el=>{
     const k=el.dataset.mm;
     el.addEventListener('input',()=>{d[k]=el.value;if(['qty','work_qty','per_unit'].includes(k)){const go=s.querySelector('#mm_save');const q=d.kind==='작업 완료'?(Number(d.work_qty)||0)*(Number(d.per_unit)||0):(Number(d.qty)||0);if(!edit&&go)go.textContent=q>0&&d.material?`${n0(q)}개 ${KIND[d.kind]} 기록`:`${KIND[d.kind]} 기록`;}});
-    if(el.tagName==='SELECT'||k==='date'||['qty','work_qty','per_unit','material'].includes(k))el.addEventListener('change',()=>{d[k]=el.value;if(k==='company_id'){d.material='';d.quote_id='';}const keep=k;paint();if(['qty','work_qty','per_unit'].includes(keep))s.querySelector(`[data-mm="${keep}"]`)?.focus();});
+    if(el.tagName==='SELECT'||k==='date'||['qty','work_qty','per_unit','material'].includes(k))el.addEventListener('change',()=>{d[k]=el.value;if(k==='company_id'){d.material='';d.quote_id='';}if(k==='quote_id')autofill();const keep=k;paint();if(['qty','work_qty','per_unit'].includes(keep))s.querySelector(`[data-mm="${keep}"]`)?.focus();});
    });
    s.querySelector('#mm_save').onclick=async()=>{
     if(materialSaving)return;setMaterialSaving(true);
@@ -13840,7 +13876,7 @@ const NaroOrderImport=(()=>{
   if(t.matches('[data-mp-chip]')){ui.chip=t.dataset.mpChip;render();return;}
   if(t.matches('[data-mp-pick]')){materialSelectedCompanyId=t.dataset.mmOwner;const p=t.dataset.mpPick;
    if(p==='material'){materialSelectedName=t.dataset.mpName;ui.tab='materials';ui.open=new Set([t.dataset.mpName]);}
-   else if(p==='quote'){ui.tab='quotes';}else if(p==='record'){ui.tab='history';ui.rec='all';ui.flash=t.dataset.mpRec;}else{ui.open.clear();}
+   else if(p==='order'){ui.tab='orders';}else if(p==='record'){ui.tab='history';ui.rec='all';ui.flash=t.dataset.mpRec;}else{ui.open.clear();}
    render();return;}
   if(t.matches('[data-material-panel]')){ui.tab=t.dataset.materialPanel;render();return;}
   if(t.matches('[data-mp-tab]')){ui.tab=t.dataset.mpTab;render();return;}
@@ -13856,6 +13892,37 @@ const NaroOrderImport=(()=>{
  });
  document.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('#materialContent [data-mp-open]')){ev.preventDefault();ev.target.click();}});
  document.addEventListener('change',ev=>{if(ev.target.id==='mm_statement_date'&&ev.target.closest('#materialContent'))materialStatementDate=ev.target.value||today();});
+ /* ── 견적서 작업 줄: '업체 제공 자재' 칸 (사용자 결정 A, 10/15) ──
+    작업 줄 아래에 [쓰는 자재 ▾] × [1]개씩. line.supplied_material · line.supplied_per_unit로 저장(견적 저장 그대로, 비우면 예전과 같음).
+    거래처가 맡긴 자재가 있거나 이미 지정된 줄에만 보인다. 자재 화면 기록 창에서 이 견적을 고르면 수량이 채워진다. */
+ const qtQuote=()=>{try{return qtEditing||null;}catch{return null;}};
+ function decorateQuote(){
+  const f=document.getElementById('qtForm'),q=qtQuote();if(!f||!q||!Array.isArray(q.lines))return;
+  const view=f.classList.contains('nd-view'),totals=materialBalances();
+  const mats=q.company_id?materialChoices(q.company_id,totals):[];
+  f.querySelectorAll('.qlines>.qline[data-idx]:not(.head)').forEach(row=>{
+   const idx=Number(row.dataset.idx),l=q.lines[idx],it=l&&(db.items||[]).find(x=>x.id===l.item_id);
+   let box=row.nextElementSibling?.classList.contains('mp-qsup')?row.nextElementSibling:null;
+   const show=l&&it&&typeof isWork==='function'&&isWork(it)&&(mats.length||l.supplied_material)&&(!view||l.supplied_material);
+   if(!show){box?.remove();return;}
+   const per=Number(l.supplied_per_unit)||1,need=(Number(l.qty)||0)*per,bal=Number(totals[materialKey({company_id:q.company_id,material:l.supplied_material})])||0;
+   const key=JSON.stringify([view,idx,l.supplied_material||'',per,l.qty,mats.map(m=>m.name+m.balance)]);
+   if(box&&box.dataset.key===key)return;
+   if(!box){box=document.createElement('div');box.className='mp-qsup';row.after(box);}
+   box.dataset.key=key;box.classList.toggle('view',view);
+   const names=[...new Set([...mats.map(m=>m.name),l.supplied_material].filter(Boolean))];
+   box.innerHTML=view?`<span class="mp-qsup-k">업체 제공 자재</span><span><b>${esc(l.supplied_material)}</b> × ${n0(per)}개씩 = ${n0(need)}개 <span class="mp-qsup-bal">· 보유 ${n0(bal)}개</span></span>`
+    :`<span class="mp-qsup-k">업체 제공 자재</span><select data-sup-mat="${idx}" aria-label="업체 제공 자재"><option value="">없음 (우리 자재 사용)</option>${names.map(n=>{const m=mats.find(x=>x.name===n);return `<option value="${esc(n)}" ${n===l.supplied_material?'selected':''}>${esc(n)}${m?` — ${n0(m.balance)}개 보유`:''}</option>`;}).join('')}</select>
+     ${l.supplied_material?`<span class="mp-qsup-x">×</span><input data-sup-per="${idx}" inputmode="numeric" value="${per}" aria-label="작업 1개당 자재 수"><span class="mp-qsup-r">개씩 = <b>${n0(need)}개</b></span>${need>bal?`<span class="mp-qsup-bal warn">보유 ${n0(bal)}개</span>`:''}`:''}`;
+  });
+ }
+ document.addEventListener('change',ev=>{const t=ev.target,q=qtQuote();if(!q||!t.matches?.('[data-sup-mat],[data-sup-per]'))return;
+  const l=q.lines[Number(t.dataset.supMat??t.dataset.supPer)];if(!l)return;
+  if(t.matches('[data-sup-mat]')){if(t.value){l.supplied_material=t.value;l.supplied_per_unit=Number(l.supplied_per_unit)||1;}else{delete l.supplied_material;delete l.supplied_per_unit;}}
+  else l.supplied_per_unit=Math.max(1,Math.floor(Number(String(t.value).replace(/[^\d]/g,''))||1));
+  decorateQuote();});
+ let qtObs=null;const watchQuote=()=>{const v=document.getElementById('view-quotes');if(!v||qtObs)return;qtObs=new MutationObserver(()=>{if(!qtQueued){qtQueued=true;requestAnimationFrame(()=>{qtQueued=false;try{decorateQuote();}catch{}});}});qtObs.observe(v,{childList:true,subtree:true});};
+ let qtQueued=false;watchQuote();document.addEventListener('DOMContentLoaded',watchQuote);
  if(document.getElementById('view-materials')?.classList.contains('active')||document.getElementById('materialContent')?.childElementCount)render();
 })();
 </script><style id="naro-dashboard-style">/* Approved dashboard layout. Scope every rule; use the app's light/dark tokens. */

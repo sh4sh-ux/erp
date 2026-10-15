@@ -491,7 +491,7 @@ test('material detail reuses quote tabs, typography and insets while preserving 
   assert.equal(await page.locator('[data-mp-open="합성 자재"]').isVisible(),true);assert.equal(await page.locator('.mp-hrow').count(),0);
   const before=await page.evaluate(()=>JSON.stringify(db.material_moves));
   await page.locator('[data-material-panel=history]').click();assert.equal(await page.locator('.mp-hrow').first().isVisible(),true);assert.equal(await page.locator('[data-mp-open]').count(),0);
-  for(const k of ['quotes','info','materials'])await page.locator(`[data-material-panel=${k}]`).click();
+  for(const k of ['orders','info','materials'])await page.locator(`[data-material-panel=${k}]`).click();
   await page.locator('.mp-bar [data-mp-new]').click();await page.locator('dialog[open] [data-mm="memo"]').fill('입력 보존');await page.locator('dialog[open] [data-mp-kind="반환"]').click();
   assert.equal(await page.locator('dialog[open] [data-mm="memo"]').inputValue(),'입력 보존','switching the record kind keeps typed values');
   await page.locator('dialog[open] [data-x]').click();assert.equal(await page.evaluate(()=>JSON.stringify(db.material_moves)),before,'tab navigation and a closed sheet never write');
