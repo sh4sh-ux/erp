@@ -10629,6 +10629,11 @@ html body #appView #view-settings .cp-grpb .nd-addr-detail{margin-top:0}
 html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:18px}
 html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
 @media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:16px}}
+/* 최근 입금·출금의 견적·매입 번호 = 그 문서로 가는 링크(거래 내역의 '견적서 열기 ›'와 같은 동작) */
+html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;height:auto;min-height:0;margin-left:8px;padding:0;border:0;background:none;box-shadow:none;font:400 12px/20px var(--sans);color:var(--nd-blue);cursor:pointer}
+html body #appView #coForm.cp .cp-pr .cp-qlink:hover{text-decoration:underline;text-underline-offset:3px}
+html body #appView #coForm.cp .cp-pr .cp-qlink:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px;border-radius:3px}
+@media(max-width:1023px){html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;font-size:12.5px}}
 
 /* 업체 제공 자재(material-panel.js). 표·구분선·여백·배경·메뉴는 견적서와 같은 토큰을 쓴다
    (UI-RULES: Quote panel tables · Background tints · More menus · Segmented controls · Section heading rows). */
@@ -13487,12 +13492,14 @@ const NaroOrderImport=(()=>{
   const d=D(),pays=d.payments||[];
   return (d.quotes||[]).filter(q=>q.company_id===cid&&q.status!=='취소').map(q=>{
    const total=fn('quoteAmount',q)??0;
-   const dels=(q.deliveries||[]).map(x=>{const lines=fn('deliveredLines',q,x)||[];return {date:x.date||q.delivered_at||'',kind:'납품',text:`${money(lines.reduce((s,l)=>s+(Number(l.qty)||0),0))}개`,amount:0};});
+   // 고친 납품의 원래 기록(void_at = 취소 표시)은 빼고 지금 유효한 납품만 — 안 빼면 같은 납품이 고친 횟수만큼 겹쳐 보인다
+   const live=(q.deliveries||[]).filter(x=>!x.void_at);
+   const dels=live.map(x=>{const lines=fn('deliveredLines',q,x)||[];return {date:x.date||q.delivered_at||'',kind:'납품',text:`${money(lines.reduce((s,l)=>s+(Number(l.qty)||0),0))}개`,amount:0};});
    const delivered=fn('deliveredAmount',q)??0;
    const linked=pays.filter(p=>p.quote_id===q.id&&(p.kind==='수금'||(p.kind==='지급'&&p.refund)));
    const paid=linked.reduce((s,p)=>s+(p.kind==='수금'?1:-1)*(Number(p.amount)||0),0);
    const full=!!fn('quoteIsFullyDelivered',q);
-   const want=qtyOf(q.lines),got=(q.deliveries||[]).reduce((s,x)=>s+(fn('deliveredLines',q,x)||[]).reduce((a,l)=>a+(Number(l.qty)||0),0),0);
+   const want=qtyOf(q.lines),got=live.reduce((s,x)=>s+(fn('deliveredLines',q,x)||[]).reduce((a,l)=>a+(Number(l.qty)||0),0),0);
    const ev=[...dels,...linked.map(p=>({date:p.date||'',kind:p.kind==='수금'?'입금':'환불',text:[p.method,p.memo].filter(Boolean).join(' · ')||'입금',amount:(p.kind==='수금'?1:-1)*(Number(p.amount)||0)}))]
     .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
    if(!dels.length)ev.unshift({date:'',kind:'납품',text:want?`아직 납품 전 · ${money(want)}개 남음`:'아직 납품 전',amount:0,todo:true});
@@ -13527,7 +13534,7 @@ const NaroOrderImport=(()=>{
    const pct=r.delivered>0?Math.max(0,Math.min(100,Math.round(r.paid/r.delivered*100))):0;
    return {sell,amtLabel:'받을 금액',amt:Math.max(0,r.open),left:r.open,pct,verb:'받음',base:r.delivered,paid:r.paid,money:'받을 금액',payTitle:'최근 입금',payBtn:'입금 추가',dealTitle:'거래 내역',dealBtn:'새 견적',openLabel:'진행 중',
     line:[['최근 거래',md(recent)],['견적',`${deals.length}건`],['납품 누계',won(r.delivered)],['입금 누계',won(r.paid)]],
-    pays:pays.map(p=>({date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'입금',ref:(d.quotes.find(q=>q.id===p.quote_id)||{}).no||'',amount:Number(p.amount)||0})),
+    pays:pays.map(p=>{const q=d.quotes.find(x=>x.id===p.quote_id);return {date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'입금',ref:q?.no||'',go:q?q.id:'',goKind:'quote',amount:Number(p.amount)||0};}),
     deals,has:deals.length>0||pays.length>0||r.delivered>0};
   }
   const pays=(d.payments||[]).filter(p=>p.company_id===c.id&&p.kind==='지급').sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
@@ -13538,7 +13545,7 @@ const NaroOrderImport=(()=>{
   const pct=due>0?Math.max(0,Math.min(100,Math.round((due-left)/due*100))):0;
   return {sell,amtLabel:'줄 금액',amt:left,left,pct,verb:'지급',base:due,paid:due-left,money:'줄 금액',payTitle:'최근 출금',payBtn:'출금 추가',dealTitle:'매입 내역',dealBtn:'새 매입',openLabel:'남은 일',
    line:[['최근 거래',md(recent)],['매입',`${deals.length}건`],['매입 누계',won(due)],['출금 누계',won(paidAll)]],
-   pays:pays.map(p=>({date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'출금',ref:'',amount:Number(p.amount)||0})),
+   pays:pays.map(p=>{const pu=p.purchase_id?globalThis.NaroPurchases?.vendor?.(p.company_id)?.find(x=>x.id===p.purchase_id):null;return {date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'출금',ref:pu?.no||'',go:pu?pu.id:'',goKind:'purchase',amount:Number(p.amount)||0};}),
    deals,has:deals.length>0||pays.length>0,noPurchases:!globalThis.NaroPurchases?.vendor};
  }
 
@@ -13564,7 +13571,7 @@ const NaroOrderImport=(()=>{
     <div class="cp-stats">${s.line.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
    </div>
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기 ›'}</button>`:''}</div>
-    ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?`<span class="q">${esc(p.ref)}</span>`:''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
+    ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?(p.go?`<button type="button" class="q cp-qlink" data-cp-go="${esc(p.go)}" data-cp-kind="${p.goKind}" aria-label="${esc(p.ref)} ${p.goKind==='quote'?'견적서':'매입'} 열기">${esc(p.ref)}</button>`:`<span class="q">${esc(p.ref)}</span>`):''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
    </section>
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>
      <div class="cp-seg" role="group" aria-label="${esc(s.dealTitle)} 보기">${[['open',`${s.openLabel} ${open.length}`],['done',`끝남 ${done.length}`],['all','전체']].map(([v,t])=>`<button type="button" data-cp-seg="${v}" aria-pressed="${ui.seg===v}">${esc(t)}</button>`).join('')}</div>

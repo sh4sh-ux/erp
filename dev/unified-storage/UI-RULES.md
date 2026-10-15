@@ -369,3 +369,11 @@ pseudo-element) so the meta row never pushes outside the header.
 The header amount never wraps or clips: the hero grid is `minmax(0,1fr) auto`, the amount keeps
 its full width on one line, and a long company name shortens with an ellipsis instead (phones
 included — e.g. 2,216,500원 with a 20-character company name at 390px).
+
+## Corrected records and document links
+
+Lists that show delivery history use only live deliveries (`!void_at`). A corrected delivery keeps its
+original as a voided record for the audit trail; showing it would repeat the same delivery once per
+correction. Wherever a record names its document (견적 번호 · 매입 번호), that number is a blue link that
+opens the document — e.g. 거래처 › 최근 입금 → 견적서, 최근 출금 → 매입 — the same action as
+'견적서 열기 ›'.

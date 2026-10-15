@@ -18,3 +18,11 @@ test('vendors show 줄 금액 and sales customers 받을 금액',()=>{
  assert.match(js,/amtLabel:'받을 금액'/);
  assert.match(js,/amtLabel:'줄 금액'/);
 });
+test('quote history shows only live deliveries: corrected originals (void_at) are not listed or counted',()=>{
+ assert.match(js,/const live=\(q\.deliveries\|\|\[\]\)\.filter\(x=>!x\.void_at\)/);
+ assert.doesNotMatch(js,/\(q\.deliveries\|\|\[\]\)\.(map|reduce|forEach)/);
+});
+test('recent payments link their quote (or purchase) number to the document',()=>{
+ assert.match(js,/class="q cp-qlink" data-cp-go="\$\{esc\(p\.go\)\}" data-cp-kind="\$\{p\.goKind\}"/);
+ assert.match(js,/go:q\?q\.id:'',goKind:'quote'/);assert.match(js,/goKind:'purchase'/);
+});
