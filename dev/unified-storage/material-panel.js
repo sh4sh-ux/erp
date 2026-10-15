@@ -7,7 +7,7 @@
 (()=>{
  if(typeof renderMaterials!=='function'||typeof materialBalances!=='function')return;
  const STALE_DAYS=90;
- const ui={lt:'company',chip:'holding',tab:'materials',open:new Set(),rec:'all',flash:''};
+ const ui={lt:'company',showDone:false,tab:'materials',open:new Set(),rec:'all',flash:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const n0=v=>Math.round(Number(v)||0).toLocaleString('ko-KR');
  const md=d=>{const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||'');return m?`${Number(m[1])}.${m[2]}`:'';};
@@ -41,7 +41,6 @@
  }
  const companyIds=()=>[...new Set((db.material_moves||[]).map(m=>m.company_id))].filter(id=>coById(id));
  const isStale=s=>s.balance>0&&daysSince(s.last)>=STALE_DAYS;
- const chipPass=s=>ui.chip==='all'||(ui.chip==='holding'&&s.balance>0)||(ui.chip==='stale'&&isStale(s))||(ui.chip==='done'&&s.balance<=0);
  const bar=(s,cls='mp-mini')=>{const t=Math.max(1,s.received);const w=v=>Math.max(0,v/t*100).toFixed(2)+'%';return `<span class="${cls}" aria-hidden="true">${s.balance>0?`<i class="h" style="width:${w(s.balance)}"></i>`:''}${s.used>0?`<i class="u" style="width:${w(s.used)}"></i>`:''}${s.out>0?`<i class="o" style="width:${w(s.out)}"></i>`:''}</span>`;};
  const srcText=m=>{const q=m.quote_id?quoteOf(m.quote_id):null,parts=[];
   if(isNaver(m)&&!q)parts.push(`${NAVER}${m.order_no?` ${esc(m.order_no)}`:''}`);
@@ -56,17 +55,21 @@
   const stats=ids.map(companyStats);
   const counts={holding:stats.filter(s=>s.balance>0).length,stale:stats.filter(isStale).length,done:stats.filter(s=>s.balance<=0).length,all:stats.length};
   const tabs=[['company','업체'],['material','자재']].map(([k,l])=>`<button type="button" role="tab" data-mp-lt="${k}" aria-selected="${ui.lt===k}">${l}</button>`).join('');
-  const chips=(ui.lt==='company'||ui.lt==='material')?`<div class="mp-chips" role="group" aria-label="보관 상태">${[['holding','보유 중'],['done','다 씀'],['all','전체']].map(([k,l])=>`<button type="button" data-mp-chip="${k}" aria-pressed="${ui.chip===k}" class="${k==='stale'&&counts.stale?'warn':''}">${l} <b>${counts[k]}</b></button>`).join('')}</div>`:'';
+  const chips='';
   let rows='';
   const row=(attrs,on,title,value,meta,tag,extra,search)=>`<button type="button" class="material-owner mp-row${on?' active':''}" ${attrs}><span class="mp-r1"><b>${title}</b><span class="mp-v num">${value}</span></span><span class="mp-r2"><small>${meta}</small>${tag||''}</span>${extra||''}<span class="mp-find" hidden>${esc(search||'')}</span></button>`;
   if(ui.lt==='company'){
-   rows=stats.filter(chipPass).sort((a,b)=>(b.last||'').localeCompare(a.last||'')).map(s=>{const days=daysSince(s.last);
+   const crow=s=>{const days=daysSince(s.last);
     const tag=isStale(s)?`<span class="mp-tag warn">${n0(days)}일째 보관</span>`:s.balance<=0?'<span class="mp-tag">다 씀</span>':'';
-    return row(`data-mm-owner="${esc(s.cid)}" data-mp-pick="company"`,s.cid===cid,esc(coName(s.cid)),`${n0(s.balance)}개`,`자재 ${s.list.length}종${s.last?` · 최근 ${md(s.last)}`:''}`,tag,'',s.list.map(g=>g.name).join(' '));}).join('');
+    return row(`data-mm-owner="${esc(s.cid)}" data-mp-pick="company"`,s.cid===cid,esc(coName(s.cid)),`${n0(s.balance)}개`,`자재 ${s.list.length}종${s.last?` · 최근 ${md(s.last)}`:''}`,tag,'',s.list.map(g=>g.name).join(' '));};
+   const byLast=(a,b)=>(b.last||'').localeCompare(a.last||'');const live=stats.filter(s=>s.balance>0).sort(byLast),done=stats.filter(s=>s.balance<=0).sort(byLast);
+   rows=live.map(crow).join('')+(done.length?`<button type="button" class="mp-done" data-mp-done aria-expanded="${ui.showDone}">다 씀 ${done.length}곳 <span aria-hidden="true">${ui.showDone?'⌃':'›'}</span></button>${ui.showDone?done.map(crow).join(''):''}`:'');
   }else if(ui.lt==='material'){
-   rows=stats.flatMap(s=>s.list.map(g=>({...g,cid:s.cid,out:g.returned+g.lost}))).filter(g=>chipPass({...g,list:[g]})).sort((a,b)=>(b.last||'').localeCompare(a.last||'')).map(g=>{
+   const all=stats.flatMap(s=>s.list.map(g=>({...g,cid:s.cid,out:g.returned+g.lost}))).sort((a,b)=>(b.balance>0)-(a.balance>0)||(b.last||'').localeCompare(a.last||''));
+   const mrow=g=>{
     const tag=isStale(g)?`<span class="mp-tag warn">${n0(daysSince(g.last))}일째 보관</span>`:g.balance<=0?'<span class="mp-tag">다 씀</span>':'';
-    return row(`data-mm-owner="${esc(g.cid)}" data-mp-pick="material" data-mp-name="${esc(g.name)}"`,g.cid===cid&&materialSelectedName===g.name,esc(g.name),`${n0(g.balance)}개`,`${esc(coName(g.cid))}${g.last?` · 최근 ${md(g.last)}`:''}`,tag,'',coName(g.cid));}).join('');
+    return row(`data-mm-owner="${esc(g.cid)}" data-mp-pick="material" data-mp-name="${esc(g.name)}"`,g.cid===cid&&materialSelectedName===g.name,esc(g.name),`${n0(g.balance)}개`,`${esc(coName(g.cid))}${g.last?` · 최근 ${md(g.last)}`:''}`,tag,'',coName(g.cid));};
+   const mDone=all.filter(g=>g.balance<=0);rows=all.filter(g=>g.balance>0).map(mrow).join('')+(mDone.length?`<button type="button" class="mp-done" data-mp-done aria-expanded="${ui.showDone}">다 씀 ${mDone.length}종 <span aria-hidden="true">${ui.showDone?'⌃':'›'}</span></button>${ui.showDone?mDone.map(mrow).join(''):''}`:'');
   }
   const empty={company:'보관 중인 업체가 없어요',material:'자재가 없어요'}[ui.lt];
   return `<aside class="material-owners mp-left"><div class="material-owners-head"><h3>보유 업체</h3><span class="hint">${counts.holding}곳</span></div>
@@ -233,7 +236,7 @@
   const root=document.getElementById('materialContent');if(!root||!root.contains(ev.target)||root.dataset.mp!=='1')return;
   const t=ev.target.closest('button,[data-mp-open]');if(!t)return;
   if(t.matches('[data-mp-lt]')){ui.lt=t.dataset.mpLt;render();return;}
-  if(t.matches('[data-mp-chip]')){ui.chip=t.dataset.mpChip;render();return;}
+  if(t.matches('[data-mp-done]')){ui.showDone=!ui.showDone;render();return;}
   if(t.matches('[data-mp-pick]')){materialSelectedCompanyId=t.dataset.mmOwner;const p=t.dataset.mpPick;
    if(p==='material'){materialSelectedName=t.dataset.mpName;ui.tab='materials';ui.open=new Set([t.dataset.mpName]);}
    else{ui.open.clear();}

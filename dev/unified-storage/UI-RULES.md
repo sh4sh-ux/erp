@@ -134,8 +134,9 @@ same line whether or not the section has a button (정보's 기본 정보 has no
 `material-panel.js` draws the whole screen in the quote layout and keeps the original save
 functions (`buildMaterialMove` → `persistMaterialMove` / `updateMaterialMove` / `voidMaterialMove`).
 
-- Left: [업체 · 자재] tabs only, then chips [보유 중 · 다 씀 · 전체]. Rows are two lines (name · 수량 /
-  meta); a "N일째 보관" tag marks materials untouched for 90+ days. No per-row bars on the left.
+- Left: [업체 · 자재] tabs only — no filter chips. Holding rows come first; finished ones (남음 0) sit
+  under one collapsed "다 씀 N곳 ›" row at the bottom. Rows are two lines (name · 수량 / meta); a
+  "N일째 보관" tag marks materials untouched for 90+ days. No per-row bars on the left.
 - Right: header (업체 · 남은 수량) → 받음 bar with legend (보유 · 사용 · 반환·불량) → tabs
   [자재 · 기록 · 정보] → bottom bar [재고내역서] … [＋ 기록]. One ＋ 기록 button only (bottom bar).
 - 자재 table: 자재 | 받음 | 사용·반환 | 남음 | 남은 비율(bar only) | ⋮. It must fit a 1024px-wide window
