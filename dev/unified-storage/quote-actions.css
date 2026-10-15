@@ -328,14 +328,14 @@ html body #appView #qtForm .nd-pl a:hover{text-decoration:underline;text-underli
 html body #appView #qtForm .nd-pl-ext{flex:none;font-size:var(--nd-label-size)}
 html body #appView #qtForm .nd-pl-act{display:flex;justify-content:flex-end}
 html body #appView #qtForm .nd-pl [data-pl-open]{cursor:pointer}
-html body #appView #qtForm .nd-pl [data-pl-open]:hover{background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #qtForm .nd-pl [data-pl-open]:hover{background:var(--nd-tint-hover)}
 html body #appView #qtForm .nd-pl [data-pl-open]:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
-html body #appView #qtForm .nd-pl-rec.on>.nd-pl-main{border-bottom-color:transparent}
-html body #appView #qtForm .nd-pl-x{padding:0 0 12px;border-bottom:var(--quote-table-row-rule);background:var(--nd-fill,rgba(0,0,0,.025))}
-html body #appView #qtForm .nd-pl-sub{min-height:36px;border-bottom:0;font-size:13px;color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-pl-rec.on>.nd-pl-main{border-bottom-color:transparent;background:var(--nd-tint-open)}
+html body #appView #qtForm .nd-pl-x{padding:6px 0;border-bottom:var(--quote-table-row-rule);background:var(--nd-tint-open)}
+html body #appView #qtForm .nd-pl-sub{min-height:40px;border-bottom:0;font-size:13px;color:var(--nd-ink-2)}
 html body #appView #qtForm .nd-pl-in{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html body #appView #qtForm .nd-pl-in small{margin-left:8px;font-size:var(--nd-label-size);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-pl-note{display:flex;flex-direction:column;gap:6px;margin:6px 0 0;padding:0 16px 0 80px;font-size:13px;line-height:20px;color:var(--nd-ink-2);overflow-wrap:anywhere}
+html body #appView #qtForm .nd-pl-note{display:flex;flex-direction:column;gap:6px;margin:0;padding:10px 16px 10px 80px;font-size:13px;line-height:20px;color:var(--nd-ink-2);overflow-wrap:anywhere}
 html body #appView #qtForm .nd-pl-note b{display:inline-block;min-width:64px;font-weight:400;font-size:var(--nd-label-size);color:var(--nd-ink-3)}
 html body #appView #qtForm .nd-pl-left :is(.nd-pl-d,.nd-pl-ship,.nd-pl-q){color:var(--nd-amber,#E98300)}
 html body #appView #qtForm .nd-pl-left .nd-pl-nm{font-weight:400;color:var(--nd-ink-2)}
@@ -362,7 +362,63 @@ html body #appView #qtForm .nd-quote-link{text-decoration:none}
  html body #appView #qtForm .nd-pl-pl.nd-pl-main .nd-pl-nm small,html body #appView #qtForm .nd-pl-tx.nd-pl-main .nd-pl-nm small{display:none}
  html body #appView #qtForm .nd-pl-sub{grid-template-columns:minmax(0,1fr) auto;padding:0 44px 0 16px}
  html body #appView #qtForm .nd-pl-sub>span:empty{display:none}
- html body #appView #qtForm .nd-pl-note{padding:0 16px}
+ html body #appView #qtForm .nd-pl-note{padding:10px 16px}
  html body #appView #qtForm .nd-pl .nd-record-heading{flex-wrap:nowrap;align-items:center}
  html body #appView #qtForm .nd-pl .nd-record-action{min-height:44px;height:44px}
 }
+html body #appView #qtForm .nd-pl-row{position:relative}
+/* ⋯ 메뉴: 아이콘 + 이름 + 한 줄 설명. 그림자는 얇게, 위험 동작은 빨강 글자만. */
+html body #appView #qtForm .nd-rec-menu{top:calc(100% - 6px);min-width:232px;padding:6px;border:1px solid var(--nd-line);border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.08)}
+html body #appView #qtForm .nd-rec-menu button{display:flex;align-items:flex-start;gap:10px;width:100%;height:auto;min-height:48px;padding:9px 10px;border-radius:8px}
+html body #appView #qtForm .nd-rec-menu button>svg{flex:none;margin-top:2px;color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-rec-menu button>span{display:flex;flex-direction:column;gap:1px;min-width:0}
+html body #appView #qtForm .nd-rec-menu button b{font:500 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #qtForm .nd-rec-menu button small{font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-rec-menu button:hover{background:var(--nd-tint-open)}
+html body #appView #qtForm .nd-rec-menu button.danger :is(b,svg){color:var(--nd-red)}
+html body #appView #qtForm .nd-rec-menu button.danger{margin-top:4px;position:relative}
+html body #appView #qtForm .nd-rec-menu button.danger::before{content:'';position:absolute;left:10px;right:10px;top:-3px;border-top:1px solid var(--nd-line-2)}
+/* 납품 기록 창(추가·고치기): 칸 2열(납품일·전달 방법 / 택배사·송장번호) + 메모 한 줄, 모든 입력 40px 같은 모양. */
+html body .nd-qa-sheet .nd-ps-hd{padding-bottom:16px}
+html body .nd-qa-sheet .nd-qa-body{gap:16px}
+html body .nd-qa-sheet .nd-qa-label{margin-bottom:-8px;font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-3)}
+html body .nd-qa-sheet .nd-qa-lines{border-color:var(--nd-line);border-radius:12px}
+html body .nd-qa-sheet .nd-qa-ln{padding:12px 12px 12px 16px;border-top-color:var(--nd-line-2)}
+html body .nd-qa-sheet .nd-qa-ln span{font:600 14px/20px var(--sans)}
+html body .nd-qa-sheet .nd-qa-ln small{font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans)}
+html body .nd-qa-sheet .nd-qa-step{border-color:var(--nd-line);border-radius:10px}
+html body .nd-qa-sheet .nd-qa-step button{width:36px;height:36px;color:var(--nd-ink-2);font-weight:500}
+html body .nd-qa-sheet .nd-qa-step button:hover{background:var(--nd-tint-hover)}
+html body .nd-qa-sheet .nd-qa-step input{width:48px;height:36px;border-inline-color:var(--nd-line);font:600 15px/1 var(--nd-number-font)}
+html body .nd-qa-sheet .nd-qa-fields{gap:14px 12px}
+html body .nd-qa-sheet .nd-qa-fields label{position:relative;gap:6px;font:400 var(--nd-label-size)/var(--nd-label-line) var(--sans);color:var(--nd-ink-3)}
+html body .nd-qa-sheet .nd-qa-fields label small{font:inherit;color:var(--nd-ink-3);opacity:.8}
+html body .nd-qa-sheet .nd-qa-fields .nd-qa-wide{grid-column:1/-1;display:block}
+html body .nd-qa-sheet .nd-qa-fields .nd-qa-wide input{margin-top:6px}
+html body .nd-qa-sheet .nd-qa-fields :is(input,select){box-sizing:border-box;width:100%;min-width:0;height:40px;margin:0;border:1px solid var(--nd-line);border-radius:10px;padding:0 12px;font:400 14px/20px var(--sans);background-color:var(--nd-surface);color:var(--nd-ink);outline:0;transition:border-color .12s,box-shadow .12s}
+html body .nd-qa-sheet .nd-qa-fields select{-webkit-appearance:none;appearance:none;padding-right:34px;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--nd-ink-3) 50%),linear-gradient(135deg,var(--nd-ink-3) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+html body .nd-qa-sheet .nd-qa-fields :is(input,select):hover{border-color:var(--nd-fill-2)}
+html body .nd-qa-sheet .nd-qa-fields :is(input,select):focus{border-color:var(--nd-blue);box-shadow:0 0 0 3px var(--nd-blue-soft,rgba(67,85,232,.12))}
+html body .nd-qa-sheet .nd-qa-fields input::placeholder{color:var(--nd-ink-3)}
+html body .nd-qa-sheet .nd-qa-fields #ndShipTracking{padding-right:64px;font-family:var(--nd-number-font)}
+html body .nd-qa-sheet #ndShipLookup{position:absolute;right:12px;bottom:10px;margin:0;font:600 var(--nd-label-size)/20px var(--sans);color:var(--nd-blue);text-decoration:none}
+html body .nd-qa-sheet #ndShipLookup[aria-disabled="true"]{color:var(--nd-ink-3);opacity:.6;pointer-events:none}
+html body .nd-qa-sheet .nd-qa-after{padding:12px 14px;border-radius:10px;background:var(--nd-tint-open);font:400 13px/20px var(--sans);color:var(--nd-ink-2)}
+html body .nd-qa-sheet .nd-qa-after b{font-weight:600;color:var(--nd-ink)}
+@media(max-width:1023px){html body .nd-qa-sheet .nd-qa-fields :is(input,select){height:44px!important;min-height:44px}html body .nd-qa-sheet #ndShipLookup{bottom:12px}}
+/* 견적서 오른쪽 패널의 표(품목·진행)는 구분선·여백을 같은 토큰으로 쓴다 (UI-RULES 'Quote panel tables').
+   줄은 아래 선만 — 위 선을 함께 쓰면 두 겹(2px)이 돼 품목보다 두꺼워 보인다. */
+html body #appView #qtForm{--quote-table-pad-x:var(--nd-in,12px);--quote-table-head-h:38px;--quote-table-row-h:48px}
+html body #appView #qtForm .nd-pl-row{border-top:0!important;padding:0 var(--quote-table-pad-x);min-height:var(--quote-table-row-h)}
+html body #appView #qtForm .nd-pl-th{min-height:var(--quote-table-head-h);color:var(--ink-3)}
+html body #appView #qtForm .nd-pl-act{margin-right:-10px}
+html body #appView #qtForm .nd-pl-note{padding-left:calc(var(--quote-table-pad-x) + 68px);padding-right:var(--quote-table-pad-x)}
+html body #appView #qtForm .nd-pl-empty{padding:14px var(--quote-table-pad-x)}
+@media(max-width:1023px){
+ html body #appView #qtForm .nd-pl-main{padding:10px 0 10px var(--quote-table-pad-x)}
+ html body #appView #qtForm .nd-pl-act{margin-right:0}
+ html body #appView #qtForm .nd-pl-sub{padding:0 44px 0 calc(var(--quote-table-pad-x) + 12px)}
+ html body #appView #qtForm .nd-pl-note{padding:10px var(--quote-table-pad-x)}
+}
+/* 더보기 메뉴 규칙(UI-RULES 'More menus'): 세로 점(⋮) 버튼, 창의 오른쪽 끝 = 버튼 오른쪽 끝, 버튼 바로 아래 4px. 위치는 openMenu가 계산한다. */
+html body #appView :is(#qtForm,#puForm) .nd-rec-menu{left:auto!important;max-width:calc(100vw - 32px)}

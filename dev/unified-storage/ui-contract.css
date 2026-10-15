@@ -15,6 +15,9 @@
   --nd-stat-size:20px!important;--nd-stat-weight:600!important;--nd-stat-spacing:normal!important;
   --nd-detail-tab-height:46px;--nd-ui-tab-size:13px;--nd-section-active-color:var(--nd-ink);--nd-section-underline-color:var(--nd-blue);
   --nd-pill-active-bg:#161A23;--nd-pill-active-ink:#FFFFFF;
+  /* Background tints (UI-RULES 'Background tints'): row hover < opened row/inline note. --nd-fill itself is for controls only. */
+  --nd-tint-hover:color-mix(in srgb,var(--nd-fill) 35%,var(--nd-surface));
+  --nd-tint-open:color-mix(in srgb,var(--nd-fill) 55%,var(--nd-surface));
  }
  /* Receipt numeric glyphs for existing number cells and numeric entry fields. */
  html body #appView[data-layout-system] :is(.num,.amt,.money,.nd-cl-number,.nd-sa-num,.nd-sa-n,.nd-sa-margin,.item-num-inp,input[type=number],input[inputmode=numeric]) {

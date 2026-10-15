@@ -34,6 +34,62 @@ noncurrency characters. Filled pill filters (change log, access approval and act
 filter chips) use `--nd-pill-active-bg` / `--nd-pill-active-ink`: dark background,
 white text. Underlined list filters remain blue; they are a different control role.
 
+## Background tints
+
+Gray backgrounds inside a list or a dialog are tints, not `--nd-fill`. `--nd-fill`
+(#F2F3F6) is for controls only: segmented controls, chips, disabled buttons, badges.
+
+| Use | Token | Light result |
+| --- | --- | --- |
+| Row hover (list, table, record row) | `--nd-tint-hover` = `--nd-fill` 35% on surface | about #FAFAFB |
+| Opened/expanded row, inline note or summary box in a dialog | `--nd-tint-open` = `--nd-fill` 55% on surface | about #F8F9FA |
+| Control background (segment, chip, disabled button) | `--nd-fill` | #F2F3F6 |
+
+Both tints are defined in `ui-contract.css` and follow dark mode automatically. Never
+lay a tint over another tint, and never use `--nd-fill`/`--nd-fill-2` as a row or panel
+background.
+
+## Vertical centering between dividers
+
+Text in a row sits in the vertical middle between the divider above and the divider
+(or tinted block edge) below. Use equal top and bottom padding with `align-items:center`.
+Never add bottom-only (or top-only) padding to a row or an expanded block. An expanded
+block uses the same padding at top and bottom (6px around 40px sub-rows), so its first and
+last lines are spaced the same from its edges.
+
+## Quote panel tables
+
+Every table in the quote/purchase right panel (품목, 진행: 납품·입금·계산서) uses the
+same dividers, colors and spacing as the 품목 table. Reuse these `#qtForm` tokens; never
+hard-code a border or row padding in a new table.
+
+| Part | Token | Desktop | Mobile (under 1024px) |
+| --- | --- | --- | --- |
+| Header rule | `--quote-table-head-rule` | 1.5px #D4D4D8 (dark `--nd-line`) | 1px `--nd-line-2` |
+| Row rule | `--quote-table-row-rule` | 1px `--ws-line` | 1px `--nd-line-2` |
+| Side padding | `--quote-table-pad-x` (= `--nd-in`) | 17px | 12px |
+| Header height | `--quote-table-head-h` | 38px | header hidden |
+| Row height | `--quote-table-row-h` | 48px minimum | two-line rows |
+| Header text | `--ink-3`, 12px | same | — |
+
+Rows draw only a bottom rule. A row never draws a top rule too, because two adjacent
+1px rules render as a 2px line. `ui-contract.test.mjs` compares the progress rules with
+the 품목 rules in light and dark mode at 390 and 1440.
+
+## More menus
+
+A button that opens more actions uses **vertical dots (⋮)**: record rows (납품·입금·입고),
+action bars (견적서·매입·거래처·품목 ⋯), and the materials header. The only exception is
+the phone bottom tab bar's labeled 더보기 tab: it is a navigation tab, not a menu button.
+
+- Icon: three dots in a vertical line, 16px in rows and 17–18px in action bars, `--nd-ink-2`.
+- Button: 36×36 in rows (44px touch area on phones), no border, `--nd-tint-open` on hover/open.
+- Popover: its **right edge lines up with the button's right edge**. Row menus open 4px below
+  the button; bottom-bar menus open 8px above it. It never extends past the screen
+  (`max-width: 100vw - 32px`).
+- Item: 16px icon + name (14px/20px, 500) + optional one-line description (12px, `--nd-ink-3`).
+  Destructive items come last, after a 1px `--nd-line-2` divider, in `--nd-red`.
+
 ## Before changing a screen
 
 1. Find the role in this table and the registered selectors in `ui-contract.css`.
