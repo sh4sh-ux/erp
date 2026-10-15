@@ -188,3 +188,7 @@ html[data-theme="dark"] body #appView #view-materials .mp-naver{color:#3DDC84}
 html body #appView #view-materials .mp-oname{font:600 13px/20px var(--sans);white-space:nowrap}
 .mp-sheet .mp-use{display:flex;flex-direction:column;gap:6px}
 .mp-sheet .mp-hint{margin:0;padding:10px 12px;border-radius:10px;background:var(--nd-blue-soft);font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card{margin:10px 0 0;padding:10px 12px;border:0;border-radius:10px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card select{flex:1 1 100%;min-width:0;height:40px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card input{height:40px}
+html body #appView :is(#qtForm,#puForm) .mp-qsup.in-card .mp-qsup-k{width:100%}

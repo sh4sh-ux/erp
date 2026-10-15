@@ -272,28 +272,30 @@
     작업 줄 아래에 [쓰는 자재 ▾] × [1]개씩. line.supplied_material · line.supplied_per_unit로 저장(견적 저장 그대로, 비우면 예전과 같음).
     거래처가 맡긴 자재가 있거나 이미 지정된 줄에만 보인다. 자재 화면 기록 창에서 이 견적을 고르면 수량이 채워진다. */
  const qtQuote=()=>{try{return qtEditing||null;}catch{return null;}};
+ function supBox(host,l,view,mats,totals,q,append){
+  const it=l&&(db.items||[]).find(x=>x.id===l.item_id);
+  let box=append?host.querySelector(':scope>.mp-qsup'):(host.nextElementSibling?.classList.contains('mp-qsup')?host.nextElementSibling:null);
+  const show=l&&it&&typeof isWork==='function'&&isWork(it)&&(mats.length||l.supplied_material)&&(!view||l.supplied_material);
+  if(!show){box?.remove();return;}
+  const per=Number(l.supplied_per_unit)||1,need=(Number(l.qty)||0)*per,bal=Number(totals[materialKey({company_id:q.company_id,material:l.supplied_material})])||0;
+  const key=JSON.stringify([view,l.id,l.supplied_material||'',per,l.qty,mats.map(m=>m.name+m.balance)]);
+  if(box&&box.dataset.key===key)return;
+  if(!box){box=document.createElement('div');box.className='mp-qsup';append?host.append(box):host.after(box);}
+  box.dataset.key=key;box.classList.toggle('view',view);box.classList.toggle('in-card',!!append);
+  const id=esc(l.id),names=[...new Set([...mats.map(m=>m.name),l.supplied_material].filter(Boolean))];
+  box.innerHTML=view?`<span class="mp-qsup-k">업체 제공 자재</span><span><b>${esc(l.supplied_material)}</b> × ${n0(per)}개씩 = ${n0(need)}개 <span class="mp-qsup-bal">· 보유 ${n0(bal)}개</span></span>`
+   :`<span class="mp-qsup-k">업체 제공 자재</span><select data-sup-mat="${id}" aria-label="업체 제공 자재"><option value="">없음 (우리 자재 사용)</option>${names.map(n=>{const m=mats.find(x=>x.name===n);return `<option value="${esc(n)}" ${n===l.supplied_material?'selected':''}>${esc(n)}${m?` — ${n0(m.balance)}개 보유`:''}</option>`;}).join('')}</select>
+    ${l.supplied_material?`<span class="mp-qsup-x">×</span><input data-sup-per="${id}" inputmode="numeric" value="${per}" aria-label="작업 1개당 자재 수"><span class="mp-qsup-r">개씩 = <b>${n0(need)}개</b></span>${need>bal?`<span class="mp-qsup-bal warn">보유 ${n0(bal)}개</span>`:''}`:''}`;
+ }
  function decorateQuote(){
   const f=document.getElementById('qtForm'),q=qtQuote();if(!f||!q||!Array.isArray(q.lines))return;
   const view=f.classList.contains('nd-view'),totals=materialBalances();
   const mats=q.company_id?materialChoices(q.company_id,totals):[];
-  f.querySelectorAll('.qlines>.qline[data-idx]:not(.head)').forEach(row=>{
-   const idx=Number(row.dataset.idx),l=q.lines[idx],it=l&&(db.items||[]).find(x=>x.id===l.item_id);
-   let box=row.nextElementSibling?.classList.contains('mp-qsup')?row.nextElementSibling:null;
-   const show=l&&it&&typeof isWork==='function'&&isWork(it)&&(mats.length||l.supplied_material)&&(!view||l.supplied_material);
-   if(!show){box?.remove();return;}
-   const per=Number(l.supplied_per_unit)||1,need=(Number(l.qty)||0)*per,bal=Number(totals[materialKey({company_id:q.company_id,material:l.supplied_material})])||0;
-   const key=JSON.stringify([view,idx,l.supplied_material||'',per,l.qty,mats.map(m=>m.name+m.balance)]);
-   if(box&&box.dataset.key===key)return;
-   if(!box){box=document.createElement('div');box.className='mp-qsup';row.after(box);}
-   box.dataset.key=key;box.classList.toggle('view',view);
-   const names=[...new Set([...mats.map(m=>m.name),l.supplied_material].filter(Boolean))];
-   box.innerHTML=view?`<span class="mp-qsup-k">업체 제공 자재</span><span><b>${esc(l.supplied_material)}</b> × ${n0(per)}개씩 = ${n0(need)}개 <span class="mp-qsup-bal">· 보유 ${n0(bal)}개</span></span>`
-    :`<span class="mp-qsup-k">업체 제공 자재</span><select data-sup-mat="${idx}" aria-label="업체 제공 자재"><option value="">없음 (우리 자재 사용)</option>${names.map(n=>{const m=mats.find(x=>x.name===n);return `<option value="${esc(n)}" ${n===l.supplied_material?'selected':''}>${esc(n)}${m?` — ${n0(m.balance)}개 보유`:''}</option>`;}).join('')}</select>
-     ${l.supplied_material?`<span class="mp-qsup-x">×</span><input data-sup-per="${idx}" inputmode="numeric" value="${per}" aria-label="작업 1개당 자재 수"><span class="mp-qsup-r">개씩 = <b>${n0(need)}개</b></span>${need>bal?`<span class="mp-qsup-bal warn">보유 ${n0(bal)}개</span>`:''}`:''}`;
-  });
+  f.querySelectorAll('.qlines>.qline[data-idx]:not(.head)').forEach(row=>supBox(row,q.lines[Number(row.dataset.idx)],view,mats,totals,q,false));
+  f.querySelectorAll('.qp-card').forEach(card=>{const lid=card.querySelector('[data-qp-edit]')?.dataset.qpEdit;supBox(card,q.lines.find(x=>x.id===lid),view,mats,totals,q,true);});
  }
  document.addEventListener('change',ev=>{const t=ev.target,q=qtQuote();if(!q||!t.matches?.('[data-sup-mat],[data-sup-per]'))return;
-  const l=q.lines[Number(t.dataset.supMat??t.dataset.supPer)];if(!l)return;
+  const l=q.lines.find(x=>x.id===(t.dataset.supMat??t.dataset.supPer));if(!l)return;
   if(t.matches('[data-sup-mat]')){if(t.value){l.supplied_material=t.value;l.supplied_per_unit=Number(l.supplied_per_unit)||1;}else{delete l.supplied_material;delete l.supplied_per_unit;}}
   else l.supplied_per_unit=Math.max(1,Math.floor(Number(String(t.value).replace(/[^\d]/g,''))||1));
   decorateQuote();});
