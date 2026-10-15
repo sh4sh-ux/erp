@@ -292,3 +292,14 @@ Desktop quotation progress table dividers match item detail: header 1.5px solid 
 Quotation and purchase item summaries must not add a second top border after the item table. Keep the item row divider and the full-width separator before the grand total; `.qtotals` itself has no top border. Verify both forms at mobile and desktop sizes in light and dark themes.
 
 Parcel carrier choices and tracking links share one explicit HTTPS map (CJ, post, Hanjin, Logen, Lotte, Kyungdong). Input previews and saved records use the same URL builder, strip spaces/hyphens, and only enable lookup for 8–30 digits. Lookup opens the carrier site without saving a delivery or changing stock.
+
+## Dashboard shortcuts into lists
+
+Every dashboard row that summarises a list is a shortcut into that list and ends with the
+shared chevron (`›`); hover uses `--nd-tint-hover`. Progress stages (작성·발송 / 수주 / 납품 /
+입금) open 견적서 filtered to that stage. Because a stage is not always one status tab
+(작성·발송 spans two; 입금 is derived from payments), the list shows a 44px `.nd-stage-bar`
+above the rows — "견적 진행 · <stage> (<hint>) N건" with a `✕ 해제` pill — and the status tab
+underline is neutralised while it is on (`.quote-list-card.nd-stage-on`). The bar stays on one
+line: the hint truncates with an ellipsis first, the stage name and count never wrap. `✕ 해제`
+or choosing a status tab removes the filter and the bar; search narrows within it. Verify at 390 and 1440.
