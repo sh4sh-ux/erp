@@ -799,6 +799,19 @@ const NaroCompanyLedger=(()=>{
  }
  /* 표 규칙: 표 위 제목(상호·섹션 제목)과 첫 열 글자가 같은 세로선, 마지막 열(금액)도 같은 여백. 표마다 구조가 달라
     제목과 표의 실제 위치를 재서 첫·마지막 칸 여백(--nd-tx)만 맞춘다. 같은 값이면 다시 쓰지 않는다(무한 반복 방지). */
+ // 색상·규격/옵션 칸은 모든 표에서 가운데 정렬(머리·값 같은 선, UI-RULES 'Option columns'). 표 머리 글자로 칸을 찾는다.
+ const OPT_COL=/^(색상|규격\/옵션|규격|사이즈|옵션)$/;
+ function optionCols(scope=document){
+  for(const t of scope.querySelectorAll('table')){
+   const hr=t.tHead?.rows[t.tHead.rows.length-1];if(!hr)continue;
+   const cols=new Set();let c=0;for(const th of hr.cells){if(OPT_COL.test(th.textContent.trim())){cols.add(c);if(!th.classList.contains('nd-opt-col'))th.classList.add('nd-opt-col');}c+=th.colSpan||1;}
+   if(!cols.size)continue;
+   for(const body of t.tBodies)for(const r of body.rows){let i=0;for(const td of r.cells){if((td.colSpan||1)===1&&cols.has(i)&&!td.classList.contains('nd-opt-col'))td.classList.add('nd-opt-col');i+=td.colSpan||1;}}
+  }
+ }
+ // 인쇄·PDF 표(#printArea)는 그린 바로 뒤 print()가 불릴 수 있어 인쇄 직전에도 한 번 더 맞춘다.
+ if(typeof window.print==='function'&&!window.print.ndOpt){const op=window.print;window.print=function(){try{optionCols(document);}catch{}return op.apply(this,arguments);};window.print.ndOpt=1;}
+ {const pa=()=>{const a=document.getElementById('printArea');if(!a||a.dataset.ndOpt)return;a.dataset.ndOpt='1';new MutationObserver(()=>{try{optionCols(a);}catch{}}).observe(a,{childList:true,subtree:true});};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',pa):pa();}
  function tableAlign(){
   for(const t of document.querySelectorAll('#appView .view table.tbl')){
    if(!t.getClientRects().length)continue;
@@ -1535,7 +1548,7 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
  addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
  document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();optionCols();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

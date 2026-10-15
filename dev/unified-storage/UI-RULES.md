@@ -303,3 +303,14 @@ above the rows — "견적 진행 · <stage> (<hint>) N건" with a `✕ 해제` 
 underline is neutralised while it is on (`.quote-list-card.nd-stage-on`). The bar stays on one
 line: the hint truncates with an ellipsis first, the stage name and count never wrap. `✕ 해제`
 or choosing a status tab removes the filter and the bar; search narrows within it. Verify at 390 and 1440.
+
+## Option columns (색상 · 규격/옵션)
+
+Colour and spec/option are short codes (BK, XL, FREE) and are centred in every table — the
+header and the value share one centre line. Tables mark them by header text through
+`optionCols()` (adds `.nd-opt-col` to the header and its cells; print tables are marked again
+right before `print()`). In quote and purchase item rows the selects/inputs use equal 8px side
+padding so the text centre is the column centre (no hidden arrow gap). A line without colours
+(작업 · 직접 입력) puts its spec field in the spec half, under the 규격/옵션 header, never across
+both columns. Quantity is centred (header and value), like the printed quote; unit price and
+amount stay right-aligned. Phone item cards are not tables and keep their own layout.
