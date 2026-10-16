@@ -81,7 +81,7 @@
  /* List and ledger money, separate from the smaller margin annotations. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
-  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number,.material-summary b,.nd-mat-legend b
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
@@ -333,3 +333,5 @@ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar)
 }
 /* 글자 버튼에는 기호를 붙이지 않는다(UI-RULES 'Wording'): '＋ 입금·출금 기록' → '입금·출금 기록'. 글자 없는 [+] 아이콘 버튼(nd-tadd 등)은 그대로. */
 html body #appView .nd-gi-plus:not(#itNewBtn)::before{display:none!important;content:none!important}
+/* 10/17: 작은 버튼(btn-sm — 대시보드 '입금 등록' 등)의 글자는 버튼 가운데. display:block + 고정 높이라 글자가 아래·오른쪽으로 치우쳤다. */
+html body #appView[data-layout-system] button.btn-sm{display:inline-flex!important;align-items:center;justify-content:center;line-height:1.2}

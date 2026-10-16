@@ -332,6 +332,22 @@ function quoteDone(q){ return !!q && q.status==="납품" && (isTaxed(q)||noTax(q
  P(`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>`,`\${quoteDone(x)?'<span class="pill st-complete">완료</span>':\`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>\`}`,'DONE_PILL');
  P(`<option>납품</option><option>취소</option>`,`<option>납품</option><option>완료</option><option>취소</option>`,'DONE_OPTION');
 }
+// 견적서 공급자 주소(10/17): 기본주소 / 상세주소 두 줄. 상세주소가 한 줄에 들어가도록 공급자 칸을 넓히되,
+// 왼쪽(제목·거래처 이름·번호)과 겹치지 않는 만큼만(특별히 긴 거래처 이름이면 예전 너비 그대로, 넘치면 줄바꿈).
+{
+ const P=(from,to,code)=>{if(!html.includes(from))throw Error(code);html=html.replace(from,()=>to);};
+ P(`function qimgWrap(ctx,text,maxW){`,`function supAddrLines(a){ const f=window.naroSplitAddress; const [b,d]=f?f(a):[String(a||""),""]; return d?[b,d]:[b]; }
+function qimgWrap(ctx,text,maxW){`,'ADDR_FN');
+ P(`  const supRows=[["상호",s.name||""],["등록번호",s.biz_no||""],["주소",s.address||""],["계좌번호",s.bank||""],["전화",s.phone||""]];
+  const supW=316, supPadX=18, supValW=supW-supPadX*2-62-12;`,`  const supRows=[["상호",s.name||""],["등록번호",s.biz_no||""],["주소",supAddrLines(s.address).join("\\n")],["계좌번호",s.bank||""],["전화",s.phone||""]];
+  // 공급자 칸 너비: 값 중 가장 긴 줄이 들어가는 만큼(최소 316) — 단 왼쪽 글자와 24px 이상 떨어지게
+  const supNeed=Math.ceil(Math.max(...supRows.flatMap(r=>String(r[1]).split("\\n")).map(t=>mc.measureText(t).width)))+18*2+62+12+2;
+  mc.font=F(750,17); const leftNeed=Math.max(mc.measureText(coName(q.company_id)).width,200); mc.font=F(400,12);
+  const supW=Math.max(316,Math.min(supNeed,CW-leftNeed-24,420)), supPadX=18, supValW=supW-supPadX*2-62-12;`,'ADDR_CANVAS');
+ P(`        <div class="srow"><span class="k">주소</span><span>\${escapeHtml(s.address||"")}</span></div>`,`        <div class="srow"><span class="k">주소</span><span class="addr">\${supAddrLines(s.address).map(l=>\`<span class="ln">\${escapeHtml(l)}</span>\`).join("")}</span></div>`,'ADDR_HTML');
+ P(`  .p-supplier{flex:0 0 46%;`,`  .p-supplier .addr .ln{display:block}
+  .p-supplier{flex:0 1 auto;min-width:46%;max-width:60%;`,'ADDR_CSS');
+}
 // 납품 기록 바로잡기(10/8): '취소됨'(void_at) 납품 기록은 기록으로만 남고 수량·금액·매출·재고·원장 계산에서 빠진다.
 {
  const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
