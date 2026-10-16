@@ -44,7 +44,7 @@
    else if(!full&&want>got)ev.push({date:'',kind:'납품',text:`${money(want-got)}개 남음`,amount:0,todo:true});
    const left=delivered-paid;
    const done=full&&left<=0;
-   const leftText=!dels.length?(paid>0?`선입금 ${won(paid)}`:'납품 전'):left>0?won(left):left<0?`${won(-left)} 더 받음`:'0원 · 다 받음';
+   const leftText=!dels.length?(paid>0?`선입금 ${won(paid)}`:'납품 전'):left>0?won(left):left<0?`${won(-left)} 초과 입금`:'0원 · 입금 완료';
    return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기',kind:'quote'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
@@ -60,7 +60,7 @@
    if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
    const left=p.due-p.paid;
    return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
-    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
+    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 초과 지급`:'0원 · 출금 완료',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
  function summary(c){
@@ -114,7 +114,7 @@
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>
      <div class="cp-seg" role="group" aria-label="${esc(s.dealTitle)} 보기">${[['open',`${s.openLabel} ${open.length}`],['done',`끝남 ${done.length}`],['all','전체']].map(([v,t])=>`<button type="button" data-cp-seg="${v}" aria-pressed="${ui.seg===v}">${esc(t)}</button>`).join('')}</div>
      <button type="button" class="btn ghost cp-new" data-cp="new">${ICON.plus}${esc(s.dealBtn)}</button></div>
-    ${s.noPurchases?'<p class="cp-none">매입 화면을 쓰면 매입 내역이 여기에 나와요</p>':shown.length?`<div class="cp-list">${shown.map(row).join('')}</div>`:`<p class="cp-none">${ui.seg==='open'?'진행 중인 거래가 없어요':ui.seg==='done'?'끝난 거래가 없어요':'거래가 없어요'}</p>`}
+    ${s.noPurchases?'<p class="cp-none">매입을 등록하면 이곳에 표시됩니다</p>':shown.length?`<div class="cp-list">${shown.map(row).join('')}</div>`:`<p class="cp-none">${ui.seg==='open'?'진행 중인 거래가 없어요':ui.seg==='done'?'끝난 거래가 없어요':'거래가 없어요'}</p>`}
     ${list.length>5?`<div class="cp-more"><button type="button" class="cp-link" data-cp="deals">${ui.allDeals?'접기':`${list.length-5}건 더 보기`}</button></div>`:''}
    </section>`;
  }
@@ -147,7 +147,7 @@
   const pPrice=document.createElement('div');pPrice.className='cp-panel';pPrice.dataset.cpPanel='price';
   if(prices){prices.classList.add('cp-prices');const h=prices.querySelector('h3');if(h)h.textContent='약정 판매 단가';pPrice.append(prices);}
   const pInfo=document.createElement('div');pInfo.className='cp-panel';pInfo.dataset.cpPanel='info';
-  pInfo.append(grp('기본 정보','견적서·거래명세서에 나와요',[name,typeBiz]),grp('연락처','견적서를 보낼 때 써요',[contact,email,addr,addr2]),grp('메모','견적서 기본 비고는 새 견적에 자동으로 들어가요',[memo,qmemo]));
+  pInfo.append(grp('기본 정보','견적서·거래명세서 표시',[name,typeBiz]),grp('연락처','견적서 발송용',[contact,email,addr,addr2]),grp('메모','견적서 기본 비고는 새 견적에 자동으로 들어가요',[memo,qmemo]));
   if(c&&window.NaroChangeLog)pInfo.insertAdjacentHTML('beforeend','<button type="button" class="cp-link cp-log" data-cp="log">이 거래처의 변경 기록 보기</button>');
   [pDeal,pPrice,pInfo].forEach(p=>{p.hidden=p.dataset.cpPanel!==ui.tab;});
   const body=document.createElement('div');body.className=desk.matches?'workspace-form-body cp-body':'cp-body';

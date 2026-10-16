@@ -25,10 +25,10 @@
   const co=field(document.getElementById('fq_co')),date=field(document.getElementById('fq_date')),valid=field(document.getElementById('fq_valid'));
   const memo=field(document.getElementById('fq_memo')),status=panel.querySelector('.qp-status-manual');
   if(!co||!date)return;
-  const g1=grp('basic','기본 정보','견적서에 나와요'),g2=grp('memo','비고','견적서 아래에 나와요'),g3=grp('manage','관리','보통은 진행 탭에서 바뀌어요');
+  const g1=grp('basic','기본 정보','견적서 표시'),g2=grp('memo','비고','견적서 하단 표시'),g3=grp('manage','관리','진행 탭에서 자동 변경');
   body(g1).append(co,pair(date,valid));
   if(memo){body(g2).append(memo);hint(memo,'nd-ig-hint',"거래처의 '견적서 기본 비고'가 새 견적에 먼저 채워져요");}
-  if(status){setText(status.querySelector('label'),'상태 직접 바꾸기');hint(status,'nd-ig-hint','취소하거나 되돌릴 때만 써요');body(g3).append(status);}
+  if(status){setText(status.querySelector('label'),'상태 직접 바꾸기');hint(status,'nd-ig-hint','취소·복원 시에만 사용');body(g3).append(status);}
   if(log)body(g3).append(log);
   panel.replaceChildren(g1,g2,...(status||log?[g3]:[]));
   panel.classList.add('nd-info');
@@ -55,8 +55,8 @@
   lb(buy,short);lb(sell,short);lb(colors,'색상 · 쉼표로 구분');lb(opts,'규격/옵션 · 단가가 다를 때만');lb(cat,'카테고리');lb(spec,'기본 규격/옵션');
   cat?.querySelector(':scope>.hint')?.remove();const ci=$('fi_category');if(ci&&!/미분류/.test(ci.placeholder))ci.placeholder=(ci.placeholder||'기존 분류 선택 또는 새 카테고리 입력')+' — 비우면 미분류';
   const set=!!comps;
-  const g1=grp('basic','기본 정보','견적서·거래명세서에 나와요'),g2=grp('price','가격',set?'비워 두면 구성품 합계를 써요':'옵션에 단가가 없으면 이 값을 써요');
-  const g3=set?grp('opts','구성품','세트를 이루는 품목이에요'):grp('opts','옵션','견적서에서 고를 수 있어요'),g4=grp('media','사진 · 메모','');
+  const g1=grp('basic','기본 정보','견적서·거래명세서 표시'),g2=grp('price','가격',set?'미입력 시 구성품 합계 적용':'옵션 단가 미입력 시 적용');
+  const g3=set?grp('opts','구성품','세트 구성 품목'):grp('opts','옵션','견적서에서 선택'),g4=grp('media','사진 · 메모','');
   if(note)body(g1).append(note);
   body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));if(cat)body(g1).append(cat);
   body(g2).append(pair(buy,sell));if(margin&&!set)body(g2).append(margin);
@@ -74,7 +74,7 @@
   const it=(D()?.items||[]).find(x=>x.id===sel);
   let g=fb.querySelector(':scope>.nd-ig-manage');
   if(!it||!window.NaroChangeLog){g?.remove();return;}
-  if(!g){g=grp('manage','관리','자주 쓰지 않아요');body(g).innerHTML='<button type="button" class="nd-log-link nd-ig-log">이 품목의 변경 기록 보기</button>';fb.append(g);}
+  if(!g){g=grp('manage','관리','');body(g).innerHTML='<button type="button" class="nd-log-link nd-ig-log">이 품목의 변경 기록 보기</button>';fb.append(g);}
   const b=g.querySelector('.nd-ig-log');if(b.dataset.ref!==it.id){b.dataset.ref=it.id;b.onclick=()=>window.NaroChangeLog.open({ref:it.id,title:it.name||'품목',noun:'품목'});}
   if(g.nextElementSibling)fb.append(g);
  }

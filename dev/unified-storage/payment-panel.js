@@ -73,7 +73,7 @@
  }
  function overviewMarkup(){
   const ids=records(),rows=rowsOf(ids),sum=totals(rows),net=sum.in-sum.out,ar=receivable(),ap=payable(),label=periodLabel();
-  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입</em></button>`:''}</section>`:'';
+  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>받을 금액${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>지급할 금액${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입</em></button>`:''}</section>`:'';
   const table=rows.length?`<table class="pp-table"><thead><tr><th class="pp-c-date">날짜</th><th>거래처 · 연결</th><th class="pp-c-method">방법</th><th class="pp-c-num pp-c-io">입금</th><th class="pp-c-num pp-c-io">출금</th><th class="pp-c-num pp-c-amt">금액</th></tr></thead><tbody>${rows.map(p=>`<tr data-pp="record" data-id="${esc(p.id)}" tabindex="0"><td class="pp-c-date">${esc(short(p.date))}</td><td><span class="pp-t-nm">${esc(coName(p.company_id))}</span><small>${esc([p.refund?'환불':'',docNo(p)?(p.purchase_id?'매입 ':'견적 ')+docNo(p):'',p.memo||''].filter(Boolean).join(' · ')||'연결 없음')}</small></td><td class="pp-c-method">${esc(p.method||'—')}</td><td class="pp-c-num pp-c-io in">${isIn(p)?num(p.amount):''}</td><td class="pp-c-num pp-c-io">${isIn(p)?'':num(p.amount)}</td><td class="pp-c-num pp-c-amt${isIn(p)&&!p.refund?' in':''}">${isIn(p)?'+':'−'}${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">이 기간에 입금·출금 기록이 없어요.<br>아래 [＋ 입금·출금 기록]으로 시작하세요.</div>';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">입출금 현황</span><h3 title="${esc(label)}">${esc(label)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong class="${net<0?'neg':''}">${net<0?'−':''}${won(Math.abs(net))}</strong></div><div class="pp-meta">${sum.count}건${kindNote()?' · '+kindNote():''}</div></header>
@@ -85,8 +85,8 @@
   let prog='',chip='',rest=0,list,title;
   if(q){
    const due=amountOf(q),paid=paidOf(q);rest=Math.max(0,due-paid);
-   chip=due>0?(rest<=0.5?'<span class="pp-chip ok">다 받음</span>':'<span class="pp-chip warn">일부 입금</span>'):'';
-   prog=due>0?`<section class="pp-prog"><div><span>받을 돈 ${won(due)} 중</span><b>${rest<=0.5?'다 받았어요':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
+   chip=due>0?(rest<=0.5?'<span class="pp-chip ok">입금 완료</span>':'<span class="pp-chip warn">일부 입금</span>'):'';
+   prog=due>0?`<section class="pp-prog"><div><span>받을 금액 ${won(due)} 중</span><b>${rest<=0.5?'다 받았어요':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
    list=(data()?.payments||[]).filter(x=>x.quote_id===q.id&&!x.void_at);title='이 견적의 입금·환불';
   }else if(p.purchase_id){list=(data()?.payments||[]).filter(x=>x.purchase_id===p.purchase_id&&!x.void_at);title='이 매입의 출금';}
   else{list=history(p);title=`이 거래처의 입출금 · ${periodLabel()}`;}
@@ -179,7 +179,7 @@
   else if(co){
    if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 돈인가요?');co.after(pick);}
    const cur=value('payQuote');
-   const html=`<span class="pp-qpick-k">어느 건의 돈인가요? · 남은 금액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
+   const html=`<span class="pp-qpick-k">연결할 견적 · 잔액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
   const head=document.querySelector('#view-payments>.workspace-heading');

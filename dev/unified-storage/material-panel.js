@@ -79,7 +79,7 @@
 
  /* ── 오른쪽 상세 ── */
  function detailHtml(cid){
-  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객이 맡긴 자재를 받으면 기록해 두세요. 남은 수량과 쓴 내역이 업체별로 모여요.</span><button type="button" class="btn save" data-mp-new="받음">자재 받음</button></div></main>`;
+  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객 제공 자재의 입고·사용을 업체별로 관리합니다.</span><button type="button" class="btn save" data-mp-new="받음">자재 받음</button></div></main>`;
   const s=companyStats(cid),co=coById(cid)||{};
   const rows=(db.material_moves||[]).filter(m=>m.company_id===cid).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
   const live=rows.filter(m=>!m.void_at);
@@ -185,7 +185,7 @@
    const input=(key,label,attrs='')=>field('',label,`<input data-mm="${key}" ${attrs} value="${esc(d[key])}">`);
    const verb=KIND[d.kind]||d.kind;
    const label=edit?'수정 내용 저장':qty>0&&d.material?`${n0(qty)}개 ${verb} 기록`:`${verb} 기록`;
-   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 수정':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 골라 주세요')}</span></div>
+   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 수정':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 선택해 주세요')}</span></div>
     <div class="nd-qa-body">
      <div class="nd-qa-seg" role="tablist" aria-label="기록 구분">${kinds.map(([k,l])=>`<button type="button" role="tab" data-mp-kind="${esc(k)}" aria-selected="${d.kind===k}">${l}</button>`).join('')}</div>
      <div class="nd-qa-fields">
