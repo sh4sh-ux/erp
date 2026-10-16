@@ -178,7 +178,7 @@ export function installPurchaseUI({port,features=()=>true}){
    ${desk.matches?`<div class="panel-b-work-header">${head}</div>`:''}
    ${desk.matches?'<div class="workspace-form-body">':head}
     ${sv?next(p,sv):''}
-    <div class="qt-sec qt-basic" id="pp-panel-basic" role="tabpanel" aria-labelledby="pp-tab-basic" ${st.tab==='basic'?'':'hidden'}>${basic(p,sv)}</div>
+    <div class="qt-sec qt-basic nd-info" id="pp-panel-basic" role="tabpanel" aria-labelledby="pp-tab-basic" ${st.tab==='basic'?'':'hidden'}>${basic(p,sv)}</div>
     <div class="qt-sec" id="pp-panel-items" role="tabpanel" aria-labelledby="pp-tab-items" ${st.tab==='items'?'':'hidden'}>${itemsPanel(p,sv)}</div>
     <div class="qt-sec qp-flow nd-rec-on" id="pp-panel-flow" role="tabpanel" aria-labelledby="pp-tab-flow" ${st.tab==='flow'?'':'hidden'}>${flow(p,sv)}</div>
    ${desk.matches?'</div>':''}
@@ -279,11 +279,13 @@ export function installPurchaseUI({port,features=()=>true}){
  function basic(p,sv){
   const vendors=companies().filter(c=>c.type==='매입'||c.id===p.vendor_id);
   const lockV=sv&&!editable(p),dateHtml=typeof g.dateControlHtml==='function'?g.dateControlHtml('pu_date',p.date,'매입일'):`<input type="date" id="pu_date" value="${esc(p.date)}" aria-label="매입일">`;
-  return `<div class="qt-sec-t">기본 정보</div>
-   <div class="grid2"><div class="field"><label for="pu_date">매입일</label>${dateHtml}</div>
-    <div class="field"><label for="pu_co">매입처 *</label><select id="pu_co" ${lockV?'disabled':''}><option value="">매입처 선택</option>${vendors.map(c=>`<option value="${esc(c.id)}" ${c.id===p.vendor_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${vendors.length?'':'<div class="hint">거래처 화면에서 구분을 \'매입\'으로 등록하면 여기에 나와요.</div>'}</div></div>
-   <div class="grid2 pair"><div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div></div>
-   <div class="qt-sec"><div class="qt-sec-t">비고</div><div class="field" style="margin-bottom:0"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div></div>`;
+  // 정보 묶음(10/16, UI-RULES 'Information groups'): 견적서 정보 탭 · 거래처와 같은 '묶음 이름 + 설명 / 칸' 모양
+  const grp=(k,t,d,h)=>`<section class="cp-grp nd-ig-${k}"><div class="cp-grph"><h4>${t}</h4>${d?`<p>${d}</p>`:''}</div><div class="cp-grpb">${h}</div></section>`;
+  return grp('basic','기본 정보','매입 장부에 남아요',`<div class="field"><label for="pu_co">매입처 *</label><select id="pu_co" ${lockV?'disabled':''}><option value="">매입처 선택</option>${vendors.map(c=>`<option value="${esc(c.id)}" ${c.id===p.vendor_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${vendors.length?'':'<div class="hint">거래처 화면에서 구분을 \'매입\'으로 등록하면 여기에 나와요.</div>'}</div>
+    <div class="grid2 nd-ig-pair"><div class="field"><label for="pu_date">매입일</label>${dateHtml}</div>
+    <div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div></div>`)
+   +grp('memo','비고','나만 보는 메모예요',`<div class="field"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div>`)
+   +(sv&&g.NaroChangeLog?grp('manage','관리','자주 쓰지 않아요','<button type="button" class="nd-log-link nd-ig-log" data-act="log">이 매입의 변경 기록 보기</button>'):'');
  }
  const moreBtns=p=>p.removed_at?'':`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}<button class="btn del" type="button" data-act="delete">삭제</button>`;
  const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 줄 돈 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
@@ -562,6 +564,7 @@ export function installPurchaseUI({port,features=()=>true}){
    if(a==='restore')return restorePurchase();
    if(a==='trash-off'){st.filter='';render();return;}
    if(a==='back'){if(st.dirty&&!saved(shown()||{})){st.draft=null;st.dirty=false;}st.sel=st.dirty?st.sel:null;if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}st.editing=false;render();return;}
+   if(a==='log'){const p=cur();if(p)g.NaroChangeLog?.open({ref:p.id,title:p.no||'매입',noun:'매입'});return;}
    if(a==='save')return save();
    if(a==='revert'){st.draft=null;st.dirty=false;st.editing=false;st.sz=null;if(!cur())st.sel=null;render();return;}
    if(a==='edit'){st.editing=!st.editing;if(!st.editing)st.sz=null;render();return;}
@@ -603,7 +606,9 @@ export function installPurchaseUI({port,features=()=>true}){
   f.querySelector('#pu_date')?.addEventListener('change',e=>edit(p=>{p.date=e.target.value||p.date;}));
   f.querySelector('#pu_co')?.addEventListener('change',e=>{if(e.target.value&&!saved(shown()))st.tab='items';edit(p=>{p.vendor_id=e.target.value;});});
   f.querySelector('#pu_vatSel')?.addEventListener('change',e=>edit(p=>{p.vat_on=e.target.value!=='0';}));
-  f.querySelector('#pu_memo')?.addEventListener('change',e=>edit(p=>{p.memo=e.target.value;}));
+  f.querySelector('#pu_memo')?.addEventListener('change',e=>{if(st.draft&&st.draft.id===st.sel&&(st.draft.memo||'')===e.target.value)return;edit(p=>{p.memo=e.target.value;});}); // 치는 동안 이미 반영했으면 다시 그리지 않는다(그 사이 누른 [저장]이 사라지지 않게)
+  // 글자를 치는 동안에도 '저장'이 켜지게(다시 그리지 않음) — 비고를 쓰고 바로 [저장]을 눌러도 한 번에 저장된다.
+  f.querySelector('#pu_memo')?.addEventListener('input',e=>{edit(p=>{p.memo=e.target.value;},false);const b=f.querySelector('#puSaveBtn');if(b){b.classList.toggle('nd-saved',!st.dirty);b.textContent=st.dirty?'저장':'저장됨';b.setAttribute('aria-label',st.dirty?'저장':'저장됨 — 바뀐 내용 없음');}});
   f.querySelector('#pu_szItem')?.addEventListener('change',e=>{st.sz={item:e.target.value,color:null};render();});
   f.querySelector('#pu_szColor')?.addEventListener('change',e=>{st.sz.color=e.target.value;render();});
   const szs=[...f.querySelectorAll('[data-sz]')];szs.forEach(inp=>inp.addEventListener('input',()=>{const s=view.querySelector('#pu_szSum');if(s)s.textContent=`총 ${n0(szs.reduce((a,i)=>a+num(i.value),0))}개`;}));

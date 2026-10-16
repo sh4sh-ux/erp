@@ -14,7 +14,7 @@ export function installLogUI({port}){
  const entry=document.createElement('button');entry.type='button';entry.className='nd-nav-act nd-log-nav';entry.innerHTML=ICON+'<span>변경 기록</span>';
  const place=()=>{const nav=document.querySelector('#appView .rail-nav');if(!nav)return false;if(!entry.isConnected)nav.append(entry);return true;};
  if(!place())new MutationObserver((r,o)=>{if(place())o.disconnect();}).observe(document.body,{childList:true,subtree:true});
- let sheet=null,month=local(),tab='',ref=null,refTitle='',rows=[],error='',loading=false;
+ let sheet=null,month=local(),tab='',ref=null,refTitle='',noun='견적서',rows=[],error='',loading=false;
  const cache=new Map();
  async function load(ym){
   if(cache.has(ym))return cache.get(ym);
@@ -36,17 +36,17 @@ export function installLogUI({port}){
   for(const r of list){const d=day(r.at);if(d!==last){body+=`<div class="nd-log-day">${esc(d)}</div>`;last=d;}
    body+=`<div class="nd-log-row"><span class="t">${esc(time(r.at))}</span><div class="m"><div class="l"><b class="a a-${esc(r.action)}">${esc(r.action)}</b><span>${esc(r.label)}</span></div>${(r.changes||[]).length?`<ul>${r.changes.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}</div><span class="w" title="${esc(r.by)}">${esc((r.by||'').split('@')[0]||'—')}</span></div>`;}
   const [y,m]=month.split('-');
-  sheet.innerHTML=`<div class="nd-ps-hd nd-log-hd"><div><b id="ndLogTtl">${ref?'이 견적서의 변경 기록':'변경 기록'}</b><span class="nd-log-sub">${ref?esc(refTitle)+' · 최근 6개월':'누가 · 언제 · 무엇을 바꿨는지'}</span></div>
+  sheet.innerHTML=`<div class="nd-ps-hd nd-log-hd"><div><b id="ndLogTtl">${ref?`이 ${esc(noun)}의 변경 기록`:'변경 기록'}</b><span class="nd-log-sub">${ref?esc(refTitle)+' · 최근 6개월':'누가 · 언제 · 무엇을 바꿨는지'}</span></div>
     ${ref?'':`<div class="nd-log-month"><button type="button" data-m="-1" aria-label="이전 달">‹</button><span>${Number(y)}년 ${Number(m)}월</span><button type="button" data-m="1" aria-label="다음 달" ${month>=local()?'disabled':''}>›</button></div>`}</div>
    ${ref?'':`<div class="nd-log-tabs" role="group" aria-label="화면별">${TABS.map(([k,t])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${t}</button>`).join('')}</div>`}
-   <div class="nd-log-list">${loading?'<p class="nd-log-empty">불러오는 중…</p>':error?`<p class="nd-log-empty">${esc(error)}</p>`:body||`<p class="nd-log-empty">${ref?'이 견적서의 기록이 없어요.':'이 달에는 기록이 없어요.'}<br><small>기록은 이번 업데이트 이후 저장부터 남아요.</small></p>`}</div>
+   <div class="nd-log-list">${loading?'<p class="nd-log-empty">불러오는 중…</p>':error?`<p class="nd-log-empty">${esc(error)}</p>`:body||`<p class="nd-log-empty">${ref?`이 ${esc(noun)}의 기록이 없어요.`:'이 달에는 기록이 없어요.'}<br><small>기록은 이번 업데이트 이후 저장부터 남아요.</small></p>`}</div>
    <div class="nd-ps-act nd-ps-one"><button type="button" class="nd-ps-close" data-x>닫기</button></div>`;
   sheet.querySelector('[data-x]').onclick=()=>sheet.close();
   sheet.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{month=shift(month,Number(b.dataset.m));refresh();});
   sheet.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;paint();});
  }
  function open(opts={}){
-  ref=opts.ref||null;refTitle=opts.title||'';tab='';if(!ref)month=local();
+  ref=opts.ref||null;refTitle=opts.title||'';noun=opts.noun||'견적서';tab='';if(!ref)month=local();
   cache.clear();
   if(!sheet){sheet=document.createElement('dialog');sheet.className='nd-pay-sheet nd-log-sheet';sheet.setAttribute('aria-labelledby','ndLogTtl');sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.close();});sheet.addEventListener('close',()=>entry.removeAttribute('aria-expanded'));(document.getElementById('appView')||document.body).append(sheet);}
   if(!sheet.open){sheet.tabIndex=-1;sheet.showModal();sheet.focus({preventScroll:true});}
