@@ -88,6 +88,8 @@ export function openWorkspace(data,logout,repository){
    }
    // 사진 요청은 버리지 않는다: 저장·가져오기 중이면 바로 BUSY로 답해 화면이 기다리며 멈추지 않게 한다.
    if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&(busy||importer.active())){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,code:'BUSY'});return;}
+   // 가져오기(백업 합치기) 중 매입 요청은 버리지 않고 바로 BUSY로 답한다(버리면 화면이 45초 기다린 뒤 '연결 오류'가 됐다).
+   if(importer.active()&&typeof m?.type==='string'&&m.type.startsWith('PURCHASE_')){if(port===current)current.postMessage({requestId:m.requestId,type:'PURCHASE_ERROR',code:'BUSY'});return;}
    if(importer.active())return;
    if(['ASSET_UPLOAD','ASSET_READ'].includes(m?.type)&&!busy){
     busy=true;
@@ -95,13 +97,14 @@ export function openWorkspace(data,logout,repository){
     catch(error){if(port===current)current.postMessage({type:'ASSET_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
     finally{busy=false;}return;
    }
-   // 매입(2단계): 7개 데이터와 따로 있는 매입 파일. 저장 중이면 바로 BUSY로 답해 화면이 기다리며 멈추지 않게.
+   // 매입(2단계): 7개 데이터와 따로 있는 매입 파일. 저장소 통로는 한 번에 하나라, 다른 일(저장·시작 때 정리·사진)이 끝나길
+   // 최대 30초 기다렸다가 처리한다(10/17 — 전엔 바로 BUSY로 거절해 새로고침 직후 '매입을 불러오지 못했어요'가 떴다).
    if(typeof m?.type==='string'&&m.type.startsWith('PURCHASE_')){
     const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
     const fail=error=>reply({type:'PURCHASE_ERROR',...safeStorageDiagnostic(error)});
     const state=()=>{const st=repository.purchasesState();return {type:'PURCHASE_STATE',state:st,doc:st.status==='ready'?repository.loadPurchasesDoc():null};};
     if(!repository?.loadPurchases){reply({type:'PURCHASE_STATE',state:{status:'unsupported'},doc:null});return;}
-    if(busy){reply({type:'PURCHASE_ERROR',code:'BUSY'});return;}
+    if(busy){const until=Date.now()+30000;while((busy||importer.active())&&Date.now()<until&&port===current)await new Promise(r=>setTimeout(r,120));if(busy||importer.active()){reply({type:'PURCHASE_ERROR',code:'BUSY'});return;}}
     busy=true;
     try{
      if(m.type==='PURCHASE_STATE'){if(m.reload||repository.purchasesState().status==='unknown')await repository.loadPurchases();reply(state());}

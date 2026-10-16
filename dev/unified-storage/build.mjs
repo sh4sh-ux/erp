@@ -322,6 +322,16 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
  P(`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };`,`  document.getElementById("fq_taxToday").onclick=()=>{ e.tax_at=localDate(); renderQtDetail(); };
   const fqNoTax=document.getElementById("fq_notax"); if(fqNoTax) fqNoTax.onchange=ev=>{ if(ev.target.checked) e.no_tax=true; else delete e.no_tax; renderQtDetail(); };`,'NOTAX_BIND');
 }
+// 견적 '완료'(10/17 결정): 납품 + 계산서 발행(또는 발행 안 함) + 입금 완료면 목록 배지를 회색 '완료'로, 칩 '완료'로 따로 본다.
+// 저장되는 상태(status)는 그대로 '납품' — 보이는 것과 필터만 바뀐다. '납품' 칩은 아직 끝나지 않은 납품만.
+{
+ const P=(from,to,code)=>{if(!html.includes(from))throw Error(code);html=html.replace(from,()=>to);};
+ P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,`function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }
+function quoteNetPaid(q){ return (db.payments||[]).filter(p=>p.quote_id===q.id).reduce((s,p)=>s+(p.kind==="수금"?1:p.refund?-1:0)*(Number(p.amount)||0),0); }
+function quoteDone(q){ return !!q && q.status==="납품" && (isTaxed(q)||noTax(q)) && quoteAmount(q)-quoteNetPaid(q)<=0.5; }`,'DONE_DEF');
+ P(`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>`,`\${quoteDone(x)?'<span class="pill st-complete">완료</span>':\`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>\`}`,'DONE_PILL');
+ P(`<option>납품</option><option>취소</option>`,`<option>납품</option><option>완료</option><option>취소</option>`,'DONE_OPTION');
+}
 // 납품 기록 바로잡기(10/8): '취소됨'(void_at) 납품 기록은 기록으로만 남고 수량·금액·매출·재고·원장 계산에서 빠진다.
 {
  const P=(from,to,code,all=false)=>{if(!html.includes(from))throw Error(code);html=all?html.split(from).join(to):html.replace(from,()=>to);};
@@ -345,7 +355,7 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
     const r=row(p.company_id);`,`    if(p.kind==="지급"&&p.refund){ row(p.company_id).paid-=Number(p.amount)||0; return; }
     if(p.kind!=="수금") return;
     const r=row(p.company_id);`,'REFUND_AR');
- P(`    .filter(x=>!status || x.status===status)`,`    .filter(x=>status ? x.status===status : (x.status!=="취소"||window.ndShowCancelled))`,'CANCEL_HIDE');
+ P(`    .filter(x=>!status || x.status===status)`,`    .filter(x=>status ? (status==="완료"?quoteDone(x):x.status===status&&!(status==="납품"&&quoteDone(x))) : (x.status!=="취소"||window.ndShowCancelled))`,'CANCEL_HIDE'); // '완료' 칩 = 끝난 납품, '납품' 칩 = 아직 남은 납품(10/17)
  P('document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${db.quotes.length}건`:db.quotes.length+"건";','const liveN=db.quotes.filter(x=>x.status!=="취소").length;\n  document.getElementById("qtCount").textContent=qtFiltersActive()?`${rows.length} / ${liveN}건`:liveN+"건";','CANCEL_COUNT');
  P('document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${db.quotes.length}건`;','document.getElementById("qtFilterSummary").textContent=qtFiltersActive()?`${rows.length}건 표시 중`:`전체 ${liveN}건`;','CANCEL_SUMMARY');
 }

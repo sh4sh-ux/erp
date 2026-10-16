@@ -2,7 +2,7 @@
 // 데이터: 매입 파일은 PURCHASE_* 메시지로(저장소 쪽 business-workspace), 재고·입출금은 기존 Table.save(SAVE_TABLE) 그대로.
 // 매입 저장(작성)과 재고 입고 확정은 서로 다른 버튼·창. 입고·반품·입고 취소는 purchase-saga 절차(끊겨도 이어서, 두 번 안 됨).
 import {paymentStatus,lineBase,unitCosts} from './purchase-ledger.mjs';
-import {IMPORT_PROMPT,parseImportPaste,checkImport,importDraft,rememberedMap,costTypeOf} from './import-paste.mjs';
+import {IMPORT_PROMPT,parseImportPaste,checkImport,importDraft,rememberedMap,rememberedTypes,costTypeOf} from './import-paste.mjs';
 import {postReceipt,resume,postReturn,voidReceipt,unfinished,receiptState,stockMoveId,voidMoveId} from './purchase-saga.mjs';
 
 const MSG={BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_CONFLICT:'다른 기기에서 먼저 바뀌었어요. 최신 내용으로 다시 불러왔어요.',VALIDATION:'입력 내용을 확인해 주세요(수량·금액·이미 처리된 기록).',WRITE_BLOCKED:'이 작업은 지금 할 수 없어요.',UNAVAILABLE:'Google Drive에서는 아직 매입을 쓸 수 없어요. Dropbox에서 쓸 수 있어요.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했어요. [저장 결과 확인]을 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',QUOTA_LIMIT:'저장 공간이 부족해요.'};
@@ -89,7 +89,7 @@ export function installPurchaseUI({port,features=()=>true}){
   if(!saved(p)||!got)return ['작성중','st-draft'];
   if(got<q)return ['부분 입고','st-sent st-partial'];
   const ps=payState(p);if(ps.due-ps.paid>(isFx(p)?0.005:0)||costLeft(ps)>0.5)return ['미출금','st-won'];
-  return ['완료','st-done'];
+  return ['완료','st-complete'];
  }
  const pill=p=>{const [t,c]=disp(p);return `<span class="pill ${c}">${esc(t)}</span>`;};
 
@@ -109,8 +109,12 @@ export function installPurchaseUI({port,features=()=>true}){
  [mob,desk].forEach(m=>m.addEventListener('change',()=>{if(app.view==='purchases')render();}));
 
  async function load(reload=false,quiet=false){
-  try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';}
-  catch(e){if(quiet)st.status='unknown';else{st.status='error';st.note=MSG[e.code]||'매입을 불러오지 못했어요.';}} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
+  // 저장소가 잠깐 바쁘면(BUSY) 화면에 오류를 띄우지 않고 '불러오는 중'인 채로 몇 번 더 묻는다(새로고침 직후 다른 일과 겹칠 때)
+  for(let i=0;;i++){
+   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';break;}
+   catch(e){if(e.code==='BUSY'&&i<4){await new Promise(r=>setTimeout(r,800*(i+1)));continue;}
+    if(quiet)st.status='unknown';else{st.status='error';st.note=e.code==='BUSY'?'다른 작업이 아직 끝나지 않았어요. 잠시 뒤 [다시 불러오기]를 눌러 주세요.':MSG[e.code]||'매입을 불러오지 못했어요.';}break;} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
+  }
   render();
  }
  // 미리 읽기: 업무 화면이 뜨고 쉬는 틈에 매입 파일을 한 번 읽어 둔다 → [매입]을 누르면 기다리지 않고 바로 보인다.
@@ -503,65 +507,153 @@ export function installPurchaseUI({port,features=()=>true}){
   const next=[...companies(),row];await app.Table.save('companies',next);if(!companies().some(c=>c.id===row.id))D().companies=next;
   return row.id;
  }
+ // 확인 칸(10/17 시안 2): 기본 선택 상자 대신 앱 부품 모양 — 거래처 고르기 창 · 품목 고르기 창(+ 새 품목 등록) · 색상 칩 ·
+ // 옵션별 수량 칸(옵션별 한번에와 같은 칸) · 청구서 구분 표시(자동, 눌러서 바꾸기). 창은 모달이라 고르기 창도 창 안에 띄운다.
+ const TYPE_LABEL={import_vat:'수입부가세',skip:'넣지 않음'};
+ const typeLabel=t=>TYPE_LABEL[t]||t;
  function importSheet(){
-  let text='',parsed=null,vendor='',payee='',map=[],types=[],copied=false,vendorPicked=false,payeePicked=false;
-  const goods=()=>(D()?.items||[]).filter(i=>!isWork(i)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
-  const coOpts=(sel,name)=>`${name&&!findCo(name)?`<option value="new" ${sel==='new'?'selected':''}>새로 등록 · ${esc(name)}</option>`:''}<option value="" ${sel===''?'selected':''}>선택해 주세요</option>${companies().filter(c=>c.type==='매입').map(c=>`<option value="${esc(c.id)}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('')}`;
+  let text='',parsed=null,vendor='',payee='',map=[],types=[],tsrc=[],copied=false,vendorPicked=false,payeePicked=false,nf=null,pop=null;
+  const lines=()=>parsed?.decl.lines||[];
+  const optsOf=it=>{const sp=specsOf(it);return sp.length>1?sp:[];}; // 옵션이 둘 이상이면 수량 칸
+  const sumOf=i=>{const m=map[i],it=itemOf(m?.item_id);if(!it)return 0;return optsOf(it).length?Object.values(m.qty||{}).reduce((a,v)=>a+(v||0),0):lines()[i].qty;};
+  const partsOf=i=>{const m=map[i],it=itemOf(m?.item_id),sp=optsOf(it);return sp.length?sp.map(x=>({spec:x,qty:m.qty?.[x]||0})):[{spec:specsOf(it)[0]||'',qty:lines()[i].qty}];};
   const reparse=()=>{
-   const prevNames=parsed?.decl.lines.map(l=>l.name).join('\n');parsed=text.trim()?parseImportPaste(text):null;if(!parsed?.found)return;
+   const prevNames=lines().map(l=>l.name).join('\n');parsed=text.trim()?parseImportPaste(text):null;if(!parsed?.found)return;
    const v=findCo(parsed.decl.vendor);if(!vendorPicked||!vendor||!companies().some(c=>c.id===vendor))vendor=v?v.id:parsed.decl.vendor?'new':'';
    const py=findCo(parsed.inv?.payee);if(!payeePicked||!payee||!companies().some(c=>c.id===payee))payee=py?py.id:parsed.inv?.payee?'new':'';
-   types=(parsed.inv?.items||[]).map(x=>costTypeOf(x.name));
-   if(parsed.decl.lines.map(l=>l.name).join('\n')!==prevNames)map=parsed.decl.lines.map(()=>null);
-   remember();
+   types=(parsed.inv?.items||[]).map(x=>costTypeOf(x.name));tsrc=types.map(()=>'auto');
+   if(lines().map(l=>l.name).join('\n')!==prevNames){map=lines().map(()=>null);nf=null;}
+   remember();rememberTypes();
   };
-  // 같은 매입처의 지난 수입 매입에서 짝을 채운다(사용자가 이미 고른 줄은 그대로)
-  const remember=()=>{if(!parsed?.found||!vendor||vendor==='new')return;const r=rememberedMap(rows(),vendor,parsed.decl.lines.map(l=>l.name));map=map.map((m,i)=>m||(r[i]?{...r[i],auto:true}:null));};
+  // 같은 매입처의 지난 수입 매입에서 품목·색상 짝(사이즈 수량은 매번 다름 — 결정 ④)
+  const remember=()=>{if(!parsed?.found||!vendor||vendor==='new')return;const r=rememberedMap(rows(),vendor,lines().map(l=>l.name));map=map.map((m,i)=>m||(r[i]&&itemOf(r[i].item_id)?{item_id:r[i].item_id,color:r[i].color,qty:{},auto:true}:null));};
+  // 같은 낸 곳의 지난 수입 매입에서 청구서 구분(결정 ③). 사용자가 이 창에서 바꾼 것은 그대로.
+  const rememberTypes=()=>{if(!parsed?.inv||!payee||payee==='new')return;const r=rememberedTypes(rows(),payee,parsed.inv.items.map(x=>x.name));r.forEach((t,i)=>{if(t&&tsrc[i]!=='user'){types[i]=t;tsrc[i]='memo';}});};
   const checks=()=>{if(!parsed?.found)return [];const out=checkImport(parsed,types);
-   const miss=parsed.decl.lines.filter((l,i)=>!map[i]?.item_id).length;if(miss)out.push({ok:false,block:true,text:`등록 품목을 고르지 않은 줄이 ${miss}개 있어요`});
+   const miss=lines().filter((l,i)=>!itemOf(map[i]?.item_id)).length;if(miss)out.push({ok:false,block:true,text:`등록 품목을 고르지 않은 줄이 ${miss}개 있어요`});
+   lines().forEach((l,i)=>{const it=itemOf(map[i]?.item_id);if(it&&optsOf(it).length&&sumOf(i)!==l.qty)out.push({ok:false,block:true,text:`${l.name||'품목'} 사이즈 수량 ${n0(l.qty)}개 중 ${n0(sumOf(i))}개 — 필증 수량과 같아야 해요`});});
    if(!vendor)out.push({ok:false,block:true,text:'매입처를 선택해 주세요'});
    const dup=parsed.decl.no&&rows().find(x=>!x.removed_at&&x.customs?.declaration_no===parsed.decl.no);if(dup)out.push({ok:false,block:true,text:`이미 만든 수입 매입이에요(신고번호 ${parsed.decl.no} · ${dup.no})`});
    if(parsed.inv&&!payee)out.push({ok:false,block:true,text:'청구서를 낸 곳(운송사·관세사)을 선택해 주세요'});
    return out;};
+  const coBtn=(id,sel,name,label)=>{const c=companies().find(x=>x.id===sel);return `<button type="button" class="pu-imp-btn${sel?'':' need'}" id="${id}" aria-haspopup="dialog">${sel==='new'?`${esc(name)} <span class="pu-imp-newtag">새로 등록</span>`:c?esc(c.name):esc(label+' 선택')}</button>`;};
+  const sumHtml=i=>{const l=lines()[i],n=sumOf(i),ok=n===l.qty;return `<div class="pu-imp-sum ${ok?'ok':'bad'}" data-sum="${i}">${ok?`${OK}${n0(l.qty)}개 중 ${n0(n)}개`:`${n0(l.qty)}개 중 ${n0(n)}개 · ${n<l.qty?`${n0(l.qty-n)}개 남음`:`${n0(n-l.qty)}개 많음`}`}</div>`;};
+  const newForm=i=>`<div class="pu-imp-nf" data-nf="${i}">
+     <label class="full">품명<input data-nfk="name" value="${esc(nf.name)}"></label>
+     <label>코드<input data-nfk="code" value="${esc(nf.code)}" placeholder="비우면 코드 없음"></label>
+     <label>단위<input data-nfk="unit" value="${esc(nf.unit)}"></label>
+     <label>색상 · 쉼표로 구분<input data-nfk="colors" value="${esc(nf.colors)}" placeholder="예: WH, BK"></label>
+     <label>사이즈 · 쉼표로 구분<input data-nfk="sizes" value="${esc(nf.sizes)}" placeholder="예: S, M, L, XL"></label>
+     ${nf.err?`<p class="nd-qa-warn full">${esc(nf.err)}</p>`:''}
+     <div class="act full"><button type="button" class="pu-imp-ghost" data-nf-x>취소</button><button type="button" class="pu-imp-pri" data-nf-go>품목 등록</button></div></div>`;
+  const lineHtml=(l,i)=>{const m=map[i]||{},it=itemOf(m.item_id),colors=it?.colors||[],sp=optsOf(it);
+   return `<div class="pu-imp-ln" data-ln="${i}">
+    <div class="pu-imp-src"><b>${esc(l.name||'이름 없음')}</b><small>${[l.hs,`${n0(l.qty)} ${l.unit||'PCS'}`,`${esc(parsed.decl.currency)} ${fx(l.price)}`].filter(Boolean).map(esc).join(' · ')}</small></div>
+    <div class="pu-imp-pick">
+     <button type="button" class="pu-imp-btn${it?'':' need'}" data-pick-item="${i}" aria-haspopup="dialog">${it?`${esc(it.name||'')} <span class="pu-imp-cd">${esc(it.code||'')}</span>`:'품목 선택'}</button>
+     ${nf&&nf.i===i?newForm(i):''}
+     ${it&&colors.length?`<div class="pu-imp-chips" role="group" aria-label="색상">${colors.map(c=>`<button type="button" data-mc="${i}" data-v="${esc(c)}" aria-pressed="${c===m.color}">${esc(c)}</button>`).join('')}</div>`:''}
+     ${it&&sp.length?`<div class="pu-imp-sz" role="group" aria-label="사이즈별 수량">${sp.map(x=>`<label class="pu-imp-szc"><span>${esc(x)}</span><input inputmode="numeric" data-mq="${i}" data-spec="${esc(x)}" value="${m.qty?.[x]?n0(m.qty[x]):''}" placeholder="0" aria-label="${esc(x)} 수량"></label>`).join('')}</div>${sumHtml(i)}`:''}
+     ${it?`<small class="pu-imp-hint">${m.auto?'지난번 짝 기억':'이 매입처에 기억해요'}${sp.length?' · 사이즈마다 매입 품목 한 줄(같은 단가)':''}</small>`:'<small class="pu-imp-hint">처음 보는 품명 — 한 번 고르면 기억</small>'}
+    </div>
+    <div class="pu-imp-amt">${esc(parsed.decl.currency)} ${fx(l.amount)}<small>${l.amount!==null&&parsed.decl.customs_rate?money(Math.round(l.amount*parsed.decl.customs_rate)):''}</small></div></div>`;};
+  const invHtml=(x,i)=>`<div class="pu-imp-cost"><span class="nm">${esc(x.name)}${x.currency&&x.currency!=='KRW'&&x.amount_fx?`<small>${esc(x.currency)} ${fx(x.amount_fx)}</small>`:''}</span>
+    <span><button type="button" class="pu-imp-tag${tsrc[i]==='user'?' chg':''}" data-ty="${i}" aria-haspopup="menu">${esc(typeLabel(types[i]))} <i>${tsrc[i]==='user'?'바꿈 · 기억':tsrc[i]==='memo'?'기억':'자동'}</i></button>${types[i]==='관세'?'<small>원가는 필증 관세로</small>':types[i]==='import_vat'?'<small>원가 제외 · 필증 값</small>':''}</span>
+    <span class="n">${n0(x.amount_krw)}</span><span class="n v">${n0(x.vat)}</span></div>`;
+  const checksHtml=()=>checks().map(c=>`<li class="${c.ok?'ok':c.block?'bad':'warn'}">${c.ok?OK:'!'}<span>${esc(c.text)}</span></li>`).join('');
   const preview=()=>{
    if(!text.trim())return '';
    if(!parsed?.found)return '<p class="nd-qa-warn">[수입신고필증] 부분을 찾지 못했어요. AI 답을 그대로 붙여 넣어 주세요.</p>';
-   const {decl,inv}=parsed,its=goods();
-   const lineRow=(l,i)=>{const m=map[i]||{},it=itemOf(m.item_id),colors=it?.colors||[],specs=specsOf(it);
-    return `<tr><td>${esc(l.name||'이름 없음')}${l.hs?`<small>${esc(l.hs)}</small>`:''}</td>
-     <td><select data-map="${i}" aria-label="${esc(l.name)} 등록 품목" class="${m.item_id?'':'pu-imp-need'}"><option value="">품목 선택</option>${its.map(x=>`<option value="${esc(x.id)}" ${x.id===m.item_id?'selected':''}>${esc(x.name)}${x.code?` [${esc(x.code)}]`:''}</option>`).join('')}</select>
-      ${colors.length||specs.length?`<span class="pu-imp-opt">${colors.length?`<select data-mc="${i}" aria-label="색상">${colors.map(c=>`<option ${c===m.color?'selected':''}>${esc(c)}</option>`).join('')}</select>`:''}${specs.length?`<select data-ms="${i}" aria-label="규격/옵션">${specs.map(c=>`<option ${c===m.spec?'selected':''}>${esc(c)}</option>`).join('')}</select>`:''}</span>`:''}
-      <small>${m.item_id?(m.auto?'지난번 짝 기억':'이 매입처에 기억해요'):'처음 보는 품명 — 한 번 고르면 기억'}</small></td>
-     <td class="n">${n0(l.qty)}</td><td class="n">${fx(l.price)}</td><td class="n">${fx(l.amount)}</td></tr>`;};
-   const invRow=(x,i)=>`<tr><td>${esc(x.name)}${x.currency&&x.currency!=='KRW'&&x.amount_fx?`<small>${esc(x.currency)} ${fx(x.amount_fx)}</small>`:''}</td>
-     <td><select data-ty="${i}" aria-label="${esc(x.name)} 구분">${[...COST_TYPES,'import_vat','skip'].map(k=>`<option value="${k}" ${types[i]===k?'selected':''}>${k==='import_vat'?'수입부가세(필증 값)':k==='skip'?'넣지 않음':k}</option>`).join('')}</select>${types[i]==='관세'?'<small>원가는 필증 관세로</small>':''}</td>
-     <td class="n">${n0(x.amount_krw)}</td><td class="n">${n0(x.vat)}</td></tr>`;
-   const cs=checks();
-   return `<div class="pu-imp-kv"><label>매입처<select id="puImpVendor">${coOpts(vendor,decl.vendor)}</select></label><div>신고번호<b>${esc(decl.no||'—')}</b></div><div>B/L<b>${esc(decl.bl||'—')}</b></div><div>결제 · 과세 환율<b>${esc([decl.incoterms,decl.currency].filter(Boolean).join(' '))} · ${esc(String(decl.customs_rate??'—'))}</b></div></div>
-    <div class="pu-imp-scroll"><table class="pu-imp-t"><colgroup><col style="width:24%"><col style="width:40%"><col style="width:9%"><col style="width:12%"><col></colgroup>
-     <thead><tr><th>필증 품명</th><th>등록 품목 · 옵션</th><th class="n">수량</th><th class="n">단가</th><th class="n">금액(${esc(decl.currency||'')})</th></tr></thead>
-     <tbody>${decl.lines.map(lineRow).join('')}<tr class="tot"><td colspan="4">합계</td><td class="n">${fx(decl.lines.reduce((a,l)=>a+(l.amount||0),0))}</td></tr></tbody></table></div>
-    ${inv?`<div class="pu-imp-kv"><label>청구서 낸 곳<select id="puImpPayee">${coOpts(payee,inv.payee)}</select></label><div>관세 (필증)<b>${n0(decl.duty_total??decl.lines.reduce((a,l)=>a+(l.duty||0),0))}원</b></div><div>수입부가세 (필증)<b>${n0(decl.vat_total??decl.lines.reduce((a,l)=>a+(l.vat||0),0))}원</b></div></div>
-    <div class="pu-imp-scroll"><table class="pu-imp-t"><colgroup><col style="width:34%"><col style="width:30%"><col style="width:20%"><col></colgroup>
-     <thead><tr><th>청구서 항목</th><th>앱 구분</th><th class="n">금액(원)</th><th class="n">부가세</th></tr></thead><tbody>${inv.items.map(invRow).join('')}</tbody></table></div>`:'<p class="nd-qa-note">청구서가 없으면 관세만 부대비용으로 넣어요. 운임 등은 나중에 [비용 추가]로 더할 수 있어요.</p>'}
-    <ul class="pu-imp-checks">${cs.map(c=>`<li class="${c.ok?'ok':c.block?'bad':'warn'}">${c.ok?OK:'!'}<span>${esc(c.text)}</span></li>`).join('')}</ul>`;
+   const {decl,inv}=parsed;
+   return `<div class="pu-imp-kv"><div><span class="lab">매입처</span>${coBtn('puImpVendor',vendor,decl.vendor,'매입처')}</div><div><span class="lab">신고번호</span><b>${esc(decl.no||'—')}</b></div><div><span class="lab">B/L</span><b>${esc(decl.bl||'—')}</b></div><div><span class="lab">결제 · 과세 환율</span><b>${esc([decl.incoterms,decl.currency].filter(Boolean).join(' '))} · ${esc(String(decl.customs_rate??'—'))}</b></div></div>
+    <div class="pu-imp-lines">${decl.lines.map(lineHtml).join('')}<div class="pu-imp-tot"><span>합계</span><b>${esc(decl.currency)} ${fx(decl.lines.reduce((a,l)=>a+(l.amount||0),0))}</b></div></div>
+    ${inv?`<div class="pu-imp-kv"><div><span class="lab">청구서 낸 곳</span>${coBtn('puImpPayee',payee,inv.payee,'낸 곳')}</div><div><span class="lab">관세 (필증)</span><b>${n0(decl.duty_total??decl.lines.reduce((a,l)=>a+(l.duty||0),0))}원</b></div><div><span class="lab">수입부가세 (필증)</span><b>${n0(decl.vat_total??decl.lines.reduce((a,l)=>a+(l.vat||0),0))}원</b></div></div>
+    <div class="pu-imp-costs"><div class="pu-imp-cost hd"><span>청구서 항목</span><span>앱 구분</span><span class="n">금액(원)</span><span class="n v">부가세</span></div>${inv.items.map(invHtml).join('')}</div>`:'<p class="nd-qa-note">청구서가 없으면 관세만 부대비용으로 넣어요. 운임 등은 나중에 [비용 추가]로 더할 수 있어요.</p>'}
+    <ul class="pu-imp-checks" id="puImpChecks">${checksHtml()}</ul>`;
   };
   const ready=()=>parsed?.found&&!checks().some(c=>!c.ok&&c.block);
   let d;
-  const paintPreview=()=>{const box=d.querySelector('#puImpPreview');box.innerHTML=preview();const b=d.querySelector('.nd-qa-go');b.disabled=!ready();bindPreview();};
+  const closePop=()=>{pop?.remove();pop=null;};
+  const syncGo=()=>{const b=d.querySelector('.nd-qa-go');if(b&&b.textContent!=='저장 중…')b.disabled=!ready();};
+  const paintChecks=()=>{const ul=d.querySelector('#puImpChecks');if(ul)ul.innerHTML=checksHtml();syncGo();};
+  const paintPreview=()=>{closePop();const box=d.querySelector('#puImpPreview');const y=d.scrollTop;box.innerHTML=preview();d.scrollTop=y;syncGo();bindPreview();};
+  // 창 안의 고르기 창: 검색 + 목록 + (맨 위/아래) 추가 동작. 앵커 아래(공간이 없으면 위)에 띄운다.
+  function openPop(anchor,{cls,placeholder,rows:all,render,onPick,extra}){
+   closePop();const el=document.createElement('div');el.className=cls+' pu-imp-pop';el.setAttribute('role','dialog');
+   el.innerHTML=`<input type="search" placeholder="${esc(placeholder)}" aria-label="${esc(placeholder)}" autocomplete="off"><div class="pu-imp-poplist" role="listbox"></div>`;
+   d.append(el);pop=el;
+   const r=anchor.getBoundingClientRect(),w=Math.min(380,innerWidth-24),below=innerHeight-r.bottom,up=below<260&&r.top>below;
+   el.style.width=w+'px';el.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
+   if(up){el.style.bottom=(innerHeight-r.top+6)+'px';el.style.maxHeight=Math.max(160,r.top-18)+'px';}else{el.style.top=(r.bottom+6)+'px';el.style.maxHeight=Math.max(160,below-18)+'px';}
+   const input=el.querySelector('input'),list=el.querySelector('.pu-imp-poplist');let hi=0,shown=[];
+   const draw=()=>{const q=input.value.trim().toLowerCase();shown=all(q);hi=Math.min(hi,Math.max(0,shown.length-1));
+    list.innerHTML=(extra?.top?extra.top():'')+(shown.length?shown.map((x,i)=>render(x,i===hi,i)).join(''):`<p class="pu-imp-popempty">${q?`'${esc(input.value)}'에 맞는 항목이 없어요`:'항목이 없어요'}</p>`)+(extra?.bottom?extra.bottom(input.value):'');
+    list.querySelectorAll('[data-pi]').forEach(b=>b.onmousedown=ev=>{ev.preventDefault();const x=shown[Number(b.dataset.pi)];closePop();onPick(x);});
+    list.querySelectorAll('[data-pextra]').forEach(b=>b.onmousedown=ev=>{ev.preventDefault();const k=b.dataset.pextra;closePop();extra.onExtra(k,input.value);});};
+   input.oninput=()=>{hi=0;draw();};
+   input.onkeydown=ev=>{if(ev.isComposing)return;if(ev.key==='ArrowDown'){ev.preventDefault();hi=Math.min(hi+1,shown.length-1);draw();}else if(ev.key==='ArrowUp'){ev.preventDefault();hi=Math.max(hi-1,0);draw();}else if(ev.key==='Enter'){ev.preventDefault();if(shown[hi]){const x=shown[hi];closePop();onPick(x);}}else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();closePop();anchor.focus();}};
+   draw();setTimeout(()=>input.focus(),0);
+  }
+  const pickCompany=(anchor,which)=>{
+   const name=which==='v'?parsed.decl.vendor:parsed.inv?.payee,hidden=window.NaroTrash?NaroTrash.hidden('companies'):[];
+   const set=v=>{if(which==='v'){vendor=v;vendorPicked=true;map=map.map(m=>m?.auto?null:m);remember();}else{payee=v;payeePicked=true;tsrc=tsrc.map(t=>t==='memo'?'auto':t);types=types.map((t,i)=>tsrc[i]==='auto'?costTypeOf(parsed.inv.items[i].name):t);rememberTypes();}paintPreview();};
+   openPop(anchor,{cls:'nd-co-pop',placeholder:'거래처 이름·담당자 검색',
+    rows:q=>companies().filter(c=>c.type==='매입'&&!hidden.includes(c.id)&&(!q||(c.name||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q))).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).slice(0,60),
+    render:(c,on,i)=>`<button type="button" role="option" class="nd-co-opt${on?' on':''}" data-pi="${i}"><span>${esc(c.name||'(이름 없음)')}</span>${c.contact?`<small>${esc(c.contact)}</small>`:''}<em>매입</em></button>`,
+    onPick:c=>set(c.id),
+    extra:{top:()=>name&&!findCo(name)?`<button type="button" class="nd-co-opt pu-imp-addopt" data-pextra="new"><span>새로 등록 · ${esc(name)}</span><em>문서 이름</em></button>`:'',onExtra:()=>set('new')}});
+  };
+  const pickItem=(anchor,i)=>{
+   const l=lines()[i],hidden=window.NaroTrash?NaroTrash.hidden('items'):[];
+   openPop(anchor,{cls:'ip-pop',placeholder:'품명·코드 검색',
+    rows:q=>(D()?.items||[]).filter(x=>!isWork(x)&&!hidden.includes(x.id)&&(!q||(x.name||'').toLowerCase().includes(q)||(x.code||'').toLowerCase().includes(q))).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).slice(0,50),
+    render:(x,on,k)=>`<div class="ip-opt${on?' hi':''}" role="option" data-pi="${k}"><span class="nm">${esc(x.name||'')}</span>${x.code?`<span class="cd">${esc(x.code)}</span>`:'<span></span>'}<span class="pr">${specsOf(x).length>1?`옵션 ${specsOf(x).length}`:''}</span></div>`,
+    onPick:x=>{map[i]={item_id:x.id,color:(x.colors||[])[0]||'',qty:{}};if(nf?.i===i)nf=null;paintPreview();},
+    extra:{bottom:q=>`<div class="ip-opt pu-imp-addopt" role="option" data-pextra="new"><span class="nm">새 품목으로 등록 · ${esc(q.trim()||l.name||'')}</span></div>`,
+     onExtra:(k,q)=>{nf={i,name:(q.trim()||l.name||'').slice(0,200),code:'',unit:'EA',colors:'',sizes:'',err:''};paintPreview();setTimeout(()=>d.querySelector(`[data-nf="${i}"] [data-nfk="code"]`)?.focus(),0);}}});
+  };
+  const pickType=(anchor,i)=>{
+   closePop();const el=document.createElement('div');el.className='pu-imp-menu pu-imp-pop';el.setAttribute('role','menu');
+   el.innerHTML=[...COST_TYPES,'import_vat','skip'].map(t=>`<button type="button" role="menuitemradio" aria-checked="${types[i]===t}" data-t="${t}">${esc(typeLabel(t))}</button>`).join('');
+   d.append(el);pop=el;const r=anchor.getBoundingClientRect(),below=innerHeight-r.bottom;el.style.left=Math.max(12,Math.min(r.left,innerWidth-180))+'px';
+   if(below<300&&r.top>below)el.style.bottom=(innerHeight-r.top+6)+'px';else el.style.top=(r.bottom+6)+'px';
+   el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{types[i]=b.dataset.t;tsrc[i]='user';paintPreview();d.querySelector(`[data-ty="${i}"]`)?.focus();});
+   el.querySelector('[aria-checked="true"]')?.focus();
+  };
+  async function saveNewItem(){
+   const name=String(nf.name||'').trim(),code=String(nf.code||'').trim(),split=v=>[...new Set(String(v||'').split(/[,，]/).map(x=>x.trim()).filter(Boolean))];
+   if(!name){nf.err='품명을 넣어 주세요.';paintPreview();return;}
+   const dup=code&&(D()?.items||[]).find(x=>(x.code||'')===code);if(dup){nf.err=`품목코드 ${code}는 이미 '${dup.name}'에 쓰이고 있어요.`;paintPreview();return;}
+   // 품목 화면의 새 품목과 같은 모양(blankItem) — 판매가·사진·메모는 나중에 품목 화면에서
+   const row={id:crypto.randomUUID(),code,name:name.slice(0,200),type:'단품',spec:'',unit:String(nf.unit||'').trim()||'EA',buy_price:0,sell_price:0,colors:split(nf.colors),variants:split(nf.sizes).map(x=>({spec:x,buy_price:'',sell_price:''})),components:[],memo:'수입 매입 붙여넣기로 등록',created_at:nowIso()};
+   const btn=d.querySelector('[data-nf-go]');if(btn){btn.disabled=true;btn.textContent='저장 중…';}
+   try{const next=[...(D()?.items||[]),row];await app.Table.save('items',next);if(!(D()?.items||[]).some(x=>x.id===row.id))D().items=next;}
+   catch(e){nf.err=MSG[e?.code]||e?.message||'품목을 저장하지 못했어요.';paintPreview();return;}
+   const i=nf.i;nf=null;map[i]={item_id:row.id,color:row.colors[0]||'',qty:{}};toast(`'${row.name}' 품목을 등록했어요`);paintPreview();
+  }
   const bindPreview=()=>{
-   d.querySelector('#puImpVendor')?.addEventListener('change',e=>{vendor=e.target.value;vendorPicked=true;map=map.map(m=>m?.auto?null:m);remember();paintPreview();});
-   d.querySelector('#puImpPayee')?.addEventListener('change',e=>{payee=e.target.value;payeePicked=true;paintPreview();});
-   d.querySelectorAll('[data-map]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.map),it=itemOf(el.value);map[i]=it?{item_id:it.id,color:(it.colors||[])[0]||'',spec:specsOf(it)[0]||''}:null;paintPreview();});
-   d.querySelectorAll('[data-mc]').forEach(el=>el.onchange=()=>{const m=map[Number(el.dataset.mc)];if(m){m.color=el.value;m.auto=false;}paintPreview();});
-   d.querySelectorAll('[data-ms]').forEach(el=>el.onchange=()=>{const m=map[Number(el.dataset.ms)];if(m){m.spec=el.value;m.auto=false;}paintPreview();});
-   d.querySelectorAll('[data-ty]').forEach(el=>el.onchange=()=>{types[Number(el.dataset.ty)]=el.value;paintPreview();});
+   d.querySelector('#puImpVendor')?.addEventListener('click',e=>pickCompany(e.currentTarget,'v'));
+   d.querySelector('#puImpPayee')?.addEventListener('click',e=>pickCompany(e.currentTarget,'p'));
+   d.querySelectorAll('[data-pick-item]').forEach(b=>b.onclick=()=>pickItem(b,Number(b.dataset.pickItem)));
+   d.querySelectorAll('[data-mc]').forEach(b=>b.onclick=()=>{const m=map[Number(b.dataset.mc)];if(m){m.color=b.dataset.v;m.auto=false;}paintPreview();});
+   d.querySelectorAll('[data-mq]').forEach(inp=>{const i=Number(inp.dataset.mq);
+    inp.oninput=()=>{const m=map[i];if(!m)return;(m.qty||(m.qty={}))[inp.dataset.spec]=num(inp.value);const s=d.querySelector(`[data-sum="${i}"]`);if(s)s.outerHTML=sumHtml(i);paintChecks();};
+    inp.onblur=()=>{const v=map[i]?.qty?.[inp.dataset.spec];inp.value=v?n0(v):'';};});
+   d.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>pickType(b,Number(b.dataset.ty)));
+   d.querySelectorAll('[data-nfk]').forEach(inp=>inp.oninput=()=>{if(nf)nf[inp.dataset.nfk]=inp.value;});
+   d.querySelector('[data-nf-x]')?.addEventListener('click',()=>{nf=null;paintPreview();});
+   d.querySelector('[data-nf-go]')?.addEventListener('click',saveNewItem);
   };
   d=qa(`${head('수입 매입 붙여넣기','수입신고필증 · 운송사 청구서를 AI로 정리해 붙여 넣어요')}<div class="nd-qa-body">
     <div class="pu-imp-step"><span class="pu-imp-n">1</span><div><b>프롬프트 복사</b><p>ChatGPT · Claude 같은 AI에 이 프롬프트와 필증 PDF(+ 청구서)를 함께 올리세요. 앱은 파일을 밖으로 보내지 않아요.</p><button type="button" class="nd-record-action" id="puImpCopy">프롬프트 복사</button></div></div>
     <div class="pu-imp-step"><span class="pu-imp-n">2</span><div><b>AI 결과 붙여넣기</b><textarea id="puImpText" rows="6" placeholder="[수입신고필증]&#10;신고번호: …" aria-label="AI 결과"></textarea></div></div>
     <div class="pu-imp-step"><span class="pu-imp-n">3</span><div><b>확인</b><div id="puImpPreview"><p class="nd-qa-note">붙여 넣으면 품목 짝 · 합계 · B/L 검사가 여기에 나와요.</p></div></div></div>
    </div>${acts('매입 만들기',false)}`,'pu-imp');
+  // 고르기 창 바깥을 누르면 닫는다(창 안에서만)
+  d.addEventListener('mousedown',ev=>{if(pop&&!pop.contains(ev.target)&&!ev.target.closest('[data-pick-item],#puImpVendor,#puImpPayee,[data-ty]'))closePop();});
+  d.addEventListener('close',closePop,{once:true});
+  // 창(폰은 창 전체)이 스크롤되면 고르기 창이 버튼에서 떨어지므로 닫는다
+  d.addEventListener('scroll',closePop,{passive:true});d.querySelector('.nd-qa-body')?.addEventListener('scroll',closePop,{passive:true});
   d.querySelector('#puImpCopy').onclick=async ev=>{const b=ev.currentTarget;try{await navigator.clipboard.writeText(IMPORT_PROMPT);copied=true;b.textContent='복사했어요';}catch{const ta=d.querySelector('#puImpText');ta.value=IMPORT_PROMPT;ta.select();b.textContent='아래 글을 복사해 주세요';}};
   let tm=0;const ta=d.querySelector('#puImpText');
   ta.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(ta.value===IMPORT_PROMPT&&!copied)return;text=ta.value;reparse();paintPreview();},250);});
@@ -570,7 +662,7 @@ export function installPurchaseUI({port,features=()=>true}){
    const {decl,inv}=parsed;
    const vendor_id=vendor==='new'?await ensureCompany(decl.vendor):vendor;
    const payee_id=inv?(payee==='new'?await ensureCompany(inv.payee):payee):'';
-   const draft=importDraft(parsed,{uid,vendor_id,payee_id,map,types});
+   const draft=importDraft(parsed,{uid,vendor_id,payee_id,map:lines().map((l,i)=>({item_id:map[i].item_id,color:map[i].color||'',parts:partsOf(i)})),types});
    const dd=draft.date||today(),n=rows().filter(x=>x.date===dd).length+1;
    const np={id:'pu_'+uid(),no:`IM-${dd.slice(0,4)}${dd.slice(5,7)}${dd.slice(8)}-${n}`,status:'작성중',...draft,date:dd,tax_invoice:{received:false},receipts:[],returns:[],cost_runs:[],created_at:nowIso(),updated_at:nowIso()};
    while(rows().some(x=>x.no===np.no))np.no=np.no.replace(/-(\d+)$/,(m,x)=>'-'+(Number(x)+1));

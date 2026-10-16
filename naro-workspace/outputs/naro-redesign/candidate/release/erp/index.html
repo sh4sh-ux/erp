@@ -2582,7 +2582,7 @@
                 <span class="filter-label">상태</span>
                 <select id="qtStatus" aria-label="견적 상태 필터">
                   <option value="">전체 상태</option>
-                  <option>작성중</option><option>발송</option><option>수주</option><option>부분납품</option><option>납품</option><option>취소</option>
+                  <option>작성중</option><option>발송</option><option>수주</option><option>부분납품</option><option>납품</option><option>완료</option><option>취소</option>
                 </select>
               </label>
               <div class="quote-period-row">
@@ -4145,6 +4145,8 @@ function isDelivered(q){ return !!(q && (quoteDeliveredQty(q)>0 || q.delivered_a
 function isTaxed(q){ return !!(q && q.tax_at); }
 function noTax(q){ if(!q) return false; const c=(db.companies||[]).find(c=>c.id===q.company_id); return !!(q.no_tax || c?.no_tax || /^(naver|coupang):/.test(q.order_ref||'') || /스마트스토어|쿠팡|네이버/.test(c?.name||'')); }
 function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }
+function quoteNetPaid(q){ return (db.payments||[]).filter(p=>p.quote_id===q.id).reduce((s,p)=>s+(p.kind==="수금"?1:p.refund?-1:0)*(Number(p.amount)||0),0); }
+function quoteDone(q){ return !!q && q.status==="납품" && (isTaxed(q)||noTax(q)) && quoteAmount(q)-quoteNetPaid(q)<=0.5; }
 /* 견적 1건의 금액·수금·잔액 — 수금에 quote_id를 달면 건별로 남은 금액을 알 수 있다 */
 function quoteAmount(q){ return quoteTotals({lines:(q.lines||[]).filter(l=>(l.name||"").trim())}).total; }
 function quotePaid(qid){
@@ -4333,7 +4335,7 @@ function filteredQuotes(){
   const to=(document.getElementById("qtTo")||{}).value||"";
   return db.quotes
     .filter(x=>!q || (x.no||"").toLowerCase().includes(q) || coName(x.company_id).toLowerCase().includes(q))
-    .filter(x=>status ? x.status===status : (x.status!=="취소"||window.ndShowCancelled))
+    .filter(x=>status ? (status==="완료"?quoteDone(x):x.status===status&&!(status==="납품"&&quoteDone(x))) : (x.status!=="취소"||window.ndShowCancelled))
     .filter(x=>!from || (x.date||"")>=from)
     .filter(x=>!to || (x.date||"")<=to)
     .sort((a,b)=>(b.date||"").localeCompare(a.date||"") || (b.no||"").localeCompare(a.no||""));
@@ -4396,7 +4398,7 @@ function renderQtList(){
       </div>
       <div class="li-right">
         <div class="li-amt">${won(t.total)}</div>
-        <span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>
+        ${quoteDone(x)?'<span class="pill st-complete">완료</span>':`<span class="pill ${QT_STATUS_CLASS[x.status]||'st-draft'}">${escapeHtml(x.status)}</span>`}
         ${quoteSentBadge(x)}
         ${needsTax(x)?'<span class="pill tax-unissued">계산서 미발행</span>':""}
       </div>
@@ -8683,6 +8685,8 @@ html[data-theme="dark"]{
 #appView .pill.st-sent{background:var(--nd-blue-soft)!important;color:var(--nd-blue)!important}
 #appView .pill.st-won{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
 #appView .pill.st-done{background:var(--nd-green-fill)!important;color:#fff!important}
+/* 완료(견적: 납품+계산서+입금 / 매입: 입고+출금): 할 일 없음 — 채우지 않은 회색 테두리(작성중 회색 채움과 구분) */
+#appView .pill.st-complete{background:transparent!important;color:var(--nd-ink-3,#8A8F99)!important;box-shadow:inset 0 0 0 1px var(--nd-line)!important}
 /* 이익·조정 = 청록 */
 #appView #view-sales #slMargin.pos,#appView .nd-profit{color:var(--nd-teal)!important}
 #appView .pill.adj{background:var(--nd-teal-soft)!important;color:var(--nd-teal)!important}
@@ -10539,18 +10543,6 @@ dialog.nd-pay-sheet.pu-imp{width:min(820px,calc(100vw - 48px))}
 .pu-imp .pu-imp-kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 10px;font-size:12px;color:var(--nd-ink-3)}
 .pu-imp .pu-imp-kv b{display:block;margin-top:3px;font-size:13px;font-weight:600;color:var(--nd-ink);overflow-wrap:anywhere}
 .pu-imp .pu-imp-kv label{display:flex;flex-direction:column;gap:3px}
-.pu-imp select{max-width:100%;height:32px;padding:0 8px;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink);font:13px var(--sans)}
-.pu-imp select.pu-imp-need{border-color:var(--nd-amber);background:var(--nd-amber-soft)}
-.pu-imp .pu-imp-scroll{overflow-x:auto;margin:0 0 12px}
-.pu-imp .pu-imp-t{width:100%;min-width:560px;border-collapse:collapse;table-layout:fixed;font-size:13px}
-.pu-imp .pu-imp-t th{padding:8px 6px;border-bottom:1px solid var(--nd-line);font-size:11.5px;font-weight:600;color:var(--nd-ink-3);text-align:left}
-.pu-imp .pu-imp-t td{padding:8px 6px;border-bottom:1px solid var(--nd-line);vertical-align:top;overflow-wrap:anywhere}
-.pu-imp .pu-imp-t .n{text-align:right;font-variant-numeric:tabular-nums}
-.pu-imp .pu-imp-t td small{display:block;margin-top:3px;font-size:11.5px;color:var(--nd-ink-3)}
-.pu-imp .pu-imp-t td select{width:100%}
-.pu-imp .pu-imp-opt{display:flex;gap:6px;margin-top:6px}
-.pu-imp .pu-imp-opt select{flex:1;min-width:0}
-.pu-imp .pu-imp-t tr.tot td{font-weight:600;border-bottom:0}
 .pu-imp .pu-imp-checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px;line-height:1.45}
 .pu-imp .pu-imp-checks li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:start}
 .pu-imp .pu-imp-checks li>svg{width:14px;height:14px;margin-top:3px;color:var(--nd-green)}
@@ -10560,20 +10552,71 @@ html[data-theme="dark"] .pu-imp .pu-imp-checks li.warn{color:var(--nd-amber)}
 .pu-imp .pu-imp-checks li.bad{color:var(--nd-red)}
 @media (max-width:620px){.pu-imp .pu-imp-kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pu-imp #puImpCopy{height:32px;padding:0 12px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink);font:600 12.5px/1 var(--sans);cursor:pointer}
-/* 폰: 붙여넣기 확인 표를 카드처럼 쌓는다(옆으로 밀지 않게) */
-@media (max-width:620px){
- .pu-imp .pu-imp-t{min-width:0}
- .pu-imp .pu-imp-t colgroup,.pu-imp .pu-imp-t thead{display:none}
- .pu-imp .pu-imp-t,.pu-imp .pu-imp-t tbody{display:block}
- .pu-imp .pu-imp-t tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px;padding:10px 0;border-bottom:1px solid var(--nd-line)}
- .pu-imp .pu-imp-t td{display:block;padding:0;border:0}
- .pu-imp .pu-imp-t td:nth-child(1),.pu-imp .pu-imp-t td:nth-child(2){grid-column:1/-1}
- .pu-imp .pu-imp-t td.n{text-align:left;font-size:12.5px;color:var(--nd-ink-2)}
- .pu-imp .pu-imp-t tr.tot{grid-template-columns:1fr auto;border-bottom:0}
- .pu-imp .pu-imp-t tr.tot td:first-child{grid-column:auto}
- .pu-imp .pu-imp-t tr.tot td.n{text-align:right;color:var(--nd-ink);font-size:13px}
-}
 html body #appView #puForm .qp-metadata>.pu-fx-sub::before,html body #appView #puForm .qp-metadata>.pu-fx-sub::after{content:none!important;display:none!important}
+
+/* 확인 칸(10/17 시안 2): 기본 선택 상자 없이 — 고르기 버튼 · 색상 칩 · 사이즈 수량 칸 · 구분 표시 */
+.pu-imp .lab{display:block;font-size:12px;color:var(--nd-ink-3);margin-bottom:4px}
+.pu-imp .pu-imp-btn{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:34px;padding:0 12px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);color:var(--nd-ink);font:600 13.5px/1.3 var(--sans);text-align:left;cursor:pointer}
+.pu-imp .pu-imp-btn:hover{background:var(--nd-fill)}
+.pu-imp .pu-imp-btn.need{border-color:var(--nd-amber);background:var(--nd-amber-soft);color:var(--nd-ink-2);font-weight:500}
+.pu-imp .pu-imp-cd{font-weight:400;font-size:12.5px;color:var(--nd-ink-3)}
+.pu-imp .pu-imp-newtag{flex:none;font-size:11px;font-weight:700;color:var(--nd-blue-ink,var(--nd-blue));background:var(--nd-blue-soft);border-radius:6px;padding:1px 6px}
+.pu-imp .pu-imp-lines{margin:4px 0 14px}
+.pu-imp .pu-imp-ln{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) auto;gap:14px;padding:12px 0;border-top:1px solid var(--nd-line)}
+.pu-imp .pu-imp-ln:first-child{border-top:0}
+.pu-imp .pu-imp-src b{display:block;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.pu-imp .pu-imp-src small,.pu-imp .pu-imp-amt small,.pu-imp .pu-imp-hint{display:block;font-size:12px;color:var(--nd-ink-3);margin-top:3px}
+.pu-imp .pu-imp-amt{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pu-imp .pu-imp-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pu-imp .pu-imp-chips button{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12.5px/26px var(--sans);cursor:pointer}
+.pu-imp .pu-imp-chips button[aria-pressed="true"]{border-color:var(--nd-blue);background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue))}
+.pu-imp .pu-imp-sz{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;margin-top:8px}
+.pu-imp .pu-imp-szc{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--nd-line);border-radius:9px;padding:5px 4px}
+.pu-imp .pu-imp-szc span{font-size:11.5px;color:var(--nd-ink-3);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pu-imp .pu-imp-szc input{width:100%;border:0;background:transparent;text-align:center;font:700 14px/1.4 var(--sans);color:var(--nd-ink);font-variant-numeric:tabular-nums;padding:0;outline:none}
+.pu-imp .pu-imp-szc:focus-within{border-color:var(--nd-blue);box-shadow:0 0 0 2px var(--nd-blue-soft)}
+.pu-imp .pu-imp-sum{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12.5px;font-weight:600}
+.pu-imp .pu-imp-sum.ok{color:var(--nd-green)}.pu-imp .pu-imp-sum.bad{color:var(--nd-red)}
+.pu-imp .pu-imp-sum svg{width:13px;height:13px}
+.pu-imp .pu-imp-tot{display:flex;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--nd-line);font-size:13.5px;font-variant-numeric:tabular-nums}
+.pu-imp .pu-imp-nf{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding:12px;border:1px solid var(--nd-line);border-radius:12px}
+.pu-imp .pu-imp-nf label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--nd-ink-3)}
+.pu-imp .pu-imp-nf input{height:34px;padding:0 10px;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink);font:13.5px var(--sans);min-width:0}
+.pu-imp .pu-imp-nf .full{grid-column:1/-1}.pu-imp .pu-imp-nf .act{display:flex;justify-content:flex-end;gap:8px}
+.pu-imp .pu-imp-ghost,.pu-imp .pu-imp-pri{height:32px;padding:0 14px;border-radius:9px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink);font:600 13px/1 var(--sans);cursor:pointer}
+.pu-imp .pu-imp-pri{background:var(--nd-blue);border-color:var(--nd-blue);color:#fff}
+.pu-imp .pu-imp-costs{margin:0 0 12px}
+.pu-imp .pu-imp-cost{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,190px) 100px 64px;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--nd-line);font-size:13.5px}
+.pu-imp .pu-imp-cost.hd{border-top:0;font-size:11.5px;font-weight:600;color:var(--nd-ink-3);padding-bottom:4px}
+.pu-imp .pu-imp-cost .n{text-align:right;font-variant-numeric:tabular-nums}
+.pu-imp .pu-imp-cost .nm{overflow-wrap:anywhere}
+.pu-imp .pu-imp-cost small{display:block;font-size:11.5px;color:var(--nd-ink-3);margin-top:3px}
+.pu-imp .pu-imp-tag{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:0;border-radius:8px;background:var(--nd-fill);color:var(--nd-ink);font:600 12.5px/1 var(--sans);white-space:nowrap;cursor:pointer}
+.pu-imp .pu-imp-tag i{font-style:normal;font-weight:500;font-size:11px;color:var(--nd-ink-3)}
+.pu-imp .pu-imp-tag.chg{background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue))}
+/* 창 안 고르기 창(품목 ip-pop · 거래처 nd-co-pop 모양 그대로)과 구분 메뉴 */
+.pu-imp .pu-imp-pop{position:fixed;z-index:5;display:flex;flex-direction:column;overflow:hidden}
+.pu-imp .ip-pop.pu-imp-pop input{border:0;border-bottom:1px solid var(--nd-line);padding:10px 12px;font:14px var(--sans);background:transparent;color:var(--nd-ink);outline:none}
+.pu-imp .pu-imp-poplist{overflow:auto;min-height:0;padding:4px}
+.pu-imp .ip-pop .pu-imp-poplist .ip-opt{cursor:pointer}
+.pu-imp .pu-imp-addopt{color:var(--nd-blue-ink,var(--nd-blue))!important;font-weight:600;border-top:1px solid var(--nd-line)}
+.pu-imp .nd-co-pop .pu-imp-addopt{border-top:0;border-bottom:1px solid var(--nd-line);border-radius:9px 9px 0 0}
+.pu-imp .pu-imp-popempty{margin:0;padding:10px 12px;font-size:13px;color:var(--nd-ink-3)}
+.pu-imp .pu-imp-menu{min-width:160px;padding:4px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-raised,var(--nd-surface));box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.pu-imp .pu-imp-menu button{height:32px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--nd-ink);font:13px var(--sans);text-align:left;cursor:pointer}
+.pu-imp .pu-imp-menu button:hover,.pu-imp .pu-imp-menu button:focus-visible{background:var(--nd-fill);outline:none}
+.pu-imp .pu-imp-menu button[aria-checked="true"]{background:var(--nd-blue-soft);color:var(--nd-blue-ink,var(--nd-blue));font-weight:600}
+@media (max-width:720px){
+ .pu-imp .pu-imp-ln{grid-template-columns:1fr;gap:8px}
+ .pu-imp .pu-imp-amt{text-align:left}
+ .pu-imp .pu-imp-cost{grid-template-columns:minmax(0,1fr) auto}
+ .pu-imp .pu-imp-cost .v,.pu-imp .pu-imp-cost.hd{display:none}
+ .pu-imp .pu-imp-cost>span:nth-child(2){grid-column:1/-1;order:3}
+ .pu-imp .pu-imp-nf{grid-template-columns:1fr}
+}
+.pu-imp .pu-imp-kv{grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))}
+.pu-imp .pu-imp-kv .pu-imp-btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:620px){.pu-imp .pu-imp-kv{grid-template-columns:repeat(2,minmax(0,1fr))}.pu-imp .pu-imp-kv>div:first-child{grid-column:1/-1}}
 
 /* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
 html body #appView #coForm.cp{--cp-x:28px}
@@ -11114,7 +11157,7 @@ const NaroCompanyLedger=(()=>{
   const nodes=[sec,act('bizCardBtn','명함 보내기',ICON_CARD),act('bizCertBtn','사업자등록증',ICON_DOC),exp];
   before?before.before(...nodes):nav.append(...nodes);}
  const CHIPS=[
-  {select:'qtStatus',host:'#view-quotes .quote-list-card',list:'qtList',items:[['','전체'],['작성중','작성중'],['발송','발송'],['수주','수주'],['납품','납품']]},
+  {select:'qtStatus',host:'#view-quotes .quote-list-card',list:'qtList',items:[['','전체'],['작성중','작성중'],['발송','발송'],['수주','수주'],['납품','납품'],['완료','완료']]},
   {select:'coType',host:'#view-companies>.cols>.card:first-child',list:'coList',items:[['','전체'],['매출','매출'],['매입','매입']]}];
  function chips(){for(const c of CHIPS){const select=document.getElementById(c.select),host=document.querySelector(c.host),list=document.getElementById(c.list);
   if(!select||!host||!list||host.querySelector('.nd-chips'))continue;

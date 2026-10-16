@@ -120,10 +120,11 @@ export function costTypeOf(name){
  const n=clean(name).toUpperCase();
  if(/부가세|부가가치세|\bVAT\b/.test(n))return 'import_vat';
  if(/관세(?!사)|\bDUTY\b|TARIFF/.test(n))return '관세';
- if(/통관|CUSTOMS?\s*(CLEARANCE|CHARGE|FEE)|CUSTOM\s*CHARGE|관세사/.test(n))return '통관수수료';
+ if(/통관|CUSTOMS?\s*(CLEARANCE|CHARGE|FEE|BROKER)|CUSTOM\s*CHARGE|CLEARANCE|관세사/.test(n))return '통관수수료';
  if(/보험|INSURANCE/.test(n))return '보험';
  if(/내륙|국내|운송료|TRUCK|DELIVERY|DRAYAGE|INLAND/.test(n))return '국내운송';
- if(/FREIGHT|운임|CAF|BAF|유류|할증|SURCHARGE|THC|해상|항공/.test(n))return '운임';
+ // 운임에 붙는 할증(10/17 보강): 통화 할증(CAF · CURRENCY ADJUSTMENT) · 유류(BAF · BUNKER · FUEL · LSS) · 성수기(PSS) 등
+ if(/FREIGHT|운임|\bCAF\b|\bBAF\b|CURRENCY\s*ADJUST|BUNKER|FUEL|\bLSS\b|LOW\s*SULPHUR|\bEBS\b|\bPSS\b|PEAK\s*SEASON|유류|할증|SURCHARGE|\bTHC\b|TERMINAL\s*HANDLING|해상|항공|O\/F|OCEAN|AIR\s*CHARGE/.test(n))return '운임';
  return '기타';
 }
 const B=s=>clean(s).toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -162,7 +163,10 @@ export function checkImport({decl,inv},types=[]){
 // 매입 1건을 만들 재료(품목 짝·낸 곳은 화면에서 고른다). 관세는 필증 기준(결정 ④), 매입 환율 = 과세환율(결정 ②), 나눔 기준 = 금액(결정 ③).
 // types[i]: 청구서 i번째 항목의 구분을 화면에서 바꾼 값('skip'이면 넣지 않음). 비우면 costTypeOf.
 export function importDraft({decl,inv},{uid,vendor_id,payee_id,map,date,types=[]}){
- const lines=decl.lines.map((l,i)=>{const m=map[i]||{};return {id:'l'+uid(),item_id:m.item_id||'',...(m.color?{color:m.color}:{}),...(m.spec?{spec:m.spec}:{}),qty:l.qty,unit_price:l.price??(l.qty?Math.round(l.amount/l.qty*100)/100:0),...(l.name?{src_name:l.name}:{}),...(l.hs?{hs:l.hs}:{})};});
+ // 필증 한 줄을 사이즈별로 나누면(m.parts = [{spec, qty}]) 같은 단가의 매입 품목 여러 줄이 된다
+ const lines=decl.lines.flatMap((l,i)=>{const m=map[i]||{},price=l.price??(l.qty?Math.round(l.amount/l.qty*100)/100:0);
+  const parts=Array.isArray(m.parts)?m.parts.filter(x=>x.qty>0):[{spec:m.spec||'',qty:l.qty}];
+  return parts.map(x=>({id:'l'+uid(),item_id:m.item_id||'',...(m.color?{color:m.color}:{}),...(x.spec?{spec:x.spec}:{}),qty:x.qty,unit_price:price,...(l.name?{src_name:l.name}:{}),...(l.hs?{hs:l.hs}:{})}));});
  const dutyTotal=Math.round(decl.duty_total??decl.lines.reduce((s,l)=>s+(l.duty||0),0));
  const vatTotal=Math.round(decl.vat_total??decl.lines.reduce((s,l)=>s+(l.vat||0),0));
  const costs=[];
@@ -176,7 +180,9 @@ export function importDraft({decl,inv},{uid,vendor_id,payee_id,map,date,types=[]
  for(const t of ['운임','보험','통관수수료','국내운송','기타'])if(groups[t])add(t,groups[t].reduce((s,x)=>s+(x.amount_krw||0),0));
  const feeVat=Math.round((inv?.items||[]).filter((x,i)=>!['import_vat','skip'].includes(typeAt(i))).reduce((s,x)=>s+(x.vat||0),0));
  const customs=Object.fromEntries(Object.entries({declaration_no:decl.no,bl_no:decl.bl,incoterms:decl.incoterms,pay_method:decl.pay_method,declared_on:decl.declared_on,accepted_on:decl.accepted_on}).filter(([,v])=>v));
- return {kind:'수입',vendor_id,date:date||decl.declared_on,currency:decl.currency,fx:{booking_rate:decl.customs_rate,customs_rate:decl.customs_rate},lines,costs,
+ // 청구서 항목 → 구분(낸 곳별 기억용, rememberedTypes가 읽는다)
+ const invoice_map=(inv?.items||[]).map((x,i)=>({name:String(x.name||'').slice(0,200),type:typeAt(i)})).filter(x=>x.name);
+ return {kind:'수입',vendor_id,date:date||decl.declared_on,currency:decl.currency,fx:{booking_rate:decl.customs_rate,customs_rate:decl.customs_rate},lines,costs,...(invoice_map.length?{invoice_map}:{}),
   import_vat:{amount:vatTotal,...(payee_id&&inv?{payee_id}:{}),...(feeVat?{fee_vat:feeVat}:{}),...(payee_id&&inv&&!billed('import_vat')?{direct:true}:{})},customs};
 }
 // 같은 매입처의 지난 수입 매입에서 필증 품명 → 품목 짝을 찾는다(결정 ⑤ — 따로 저장하지 않고 줄의 src_name에서 읽는다).
@@ -184,6 +190,15 @@ export function rememberedMap(rows,vendor_id,names){
  const key=s=>clean(s).toUpperCase().replace(/\s+/g,' ');
  const seen=new Map();
  for(const p of [...(rows||[])].filter(p=>p.kind==='수입'&&p.vendor_id===vendor_id&&!p.removed_at).sort((a,b)=>String(a.date).localeCompare(String(b.date))))
-  for(const l of p.lines||[])if(l.src_name)seen.set(key(l.src_name),{item_id:l.item_id,color:l.color||'',spec:l.spec||''});
+  for(const l of p.lines||[])if(l.src_name)seen.set(key(l.src_name),{item_id:l.item_id,color:l.color||''}); // 사이즈 수량은 매번 달라 기억하지 않는다(결정 ④)
  return names.map(n=>seen.get(key(n))||null);
 }
+// 같은 낸 곳(운송사·관세사)의 지난 수입 매입에서 청구서 항목 이름 → 구분(결정 ③). 없으면 null(사전으로 자동).
+export function rememberedTypes(rows,payee_id,names){
+ const key=s=>clean(s).toUpperCase().replace(/\s+/g,' ');
+ const seen=new Map();
+ for(const p of [...(rows||[])].filter(p=>p.kind==='수입'&&!p.removed_at&&p.import_vat?.payee_id===payee_id).sort((a,b)=>String(a.date).localeCompare(String(b.date))))
+  for(const x of p.invoice_map||[])seen.set(key(x.name),x.type);
+ return names.map(n=>seen.get(key(n))||null);
+}
+export const COST_CHOICES=Object.freeze(['운임','보험','관세','통관수수료','국내운송','기타','import_vat','skip']);
