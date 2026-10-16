@@ -335,3 +335,5 @@ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar)
 html body #appView .nd-gi-plus:not(#itNewBtn)::before{display:none!important;content:none!important}
 /* 10/17: 작은 버튼(btn-sm — 대시보드 '입금 등록' 등)의 글자는 버튼 가운데. display:block + 고정 높이라 글자가 아래·오른쪽으로 치우쳤다. */
 html body #appView[data-layout-system] button.btn-sm{display:inline-flex!important;align-items:center;justify-content:center;line-height:1.2}
+/* 10/17 자동 수주 알림의 [되돌리기] — 알림 안 글자 버튼 */
+html body .toast .nd-toast-act{margin-left:10px;padding:2px 4px;border:0;background:transparent;color:inherit;font:600 inherit/inherit inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
