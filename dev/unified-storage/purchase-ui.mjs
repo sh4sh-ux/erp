@@ -116,6 +116,7 @@ export function installPurchaseUI({port,features=()=>true}){
     if(quiet)st.status='unknown';else{st.status='error';st.note=e.code==='BUSY'?'다른 작업이 아직 끝나지 않았어요. 잠시 뒤 [다시 불러오기]를 눌러 주세요.':MSG[e.code]||'매입을 불러오지 못했어요.';}break;} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
   }
   render();
+  if(app.view==='dash'&&st.status==='ready')try{app.renderers?.dash?.();}catch{} // 대시보드 '계산서 미수취' 숫자
  }
  // 미리 읽기: 업무 화면이 뜨고 쉬는 틈에 매입 파일을 한 번 읽어 둔다 → [매입]을 누르면 기다리지 않고 바로 보인다.
  // (매입 권한이 있을 때만. 저장 중이라 BUSY면 조용히 넘기고, 화면을 열 때 다시 읽는다.)
@@ -904,12 +905,16 @@ export function installPurchaseUI({port,features=()=>true}){
    title:`부대비용 · ${coName(p.vendor_id)||'수입'}${names.length?' · '+names[0]+(names.length>1?` 외 ${names.length-1}건`:''):''}`,receipts:[],
    pays:pays(p).filter(x=>x.company_id===cid).map(x=>({date:x.date||'',kind:x.kind,amount:Number(x.amount)||0,method:x.method||'',refund:!!x.refund}))};
  }));
- const open=id=>{if(typeof g.switchView==='function'&&g.switchView('purchases')===false)return;select(id);};
+ const open=(id,tab)=>{if(typeof g.switchView==='function'&&g.switchView('purchases')===false)return;select(id);if(tab&&st.sel===id){st.tab=tab;render();}};
+ // 대시보드 '계산서 미수취'(10/17): 입고가 시작됐는데 계산서(수입은 세관 수입세금계산서)를 아직 안 받은 매입. 불러오기 전이면 null.
+ const untaxed=()=>!features()?undefined:st.status!=='ready'?null:rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고'&&gotOf(p)>0&&!p.tax_invoice?.received)
+  .map(p=>{const first=(p.receipts||[]).filter(r=>!r.void_at).map(r=>r.date).sort()[0]||'';return {id:p.id,no:p.no,vendor_id:p.vendor_id,kind:p.kind,received:first};})
+  .sort((a,b)=>a.received.localeCompare(b.received));
  // 입금·출금 화면의 '아직 안 준 돈': 목록의 '미출금'과 같은 기준(입고된 원화 매입 중 줄 돈이 남은 것). 불러오기 전이면 null.
  // 운송사·관세사에 줄 부대비용(원화)은 입고 전에도 생기므로 입고 여부와 상관없이 더한다.
  const payables=()=>{if(st.status!=='ready')return null;const live=rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고');
   return [...live.filter(p=>p.currency==='KRW'&&gotOf(p)>0).map(p=>{const ps=payState(p);return {id:p.id,no:p.no,vendor_id:p.vendor_id,open:Math.round(ps.due-ps.paid)};}),
    ...live.flatMap(p=>(payState(p).costs||[]).filter(c=>c.payee_id!==p.vendor_id).map(c=>({id:p.id,no:p.no,vendor_id:c.payee_id,open:Math.round(c.due-c.paid)})))].filter(x=>x.open>0);};
- g.NaroPurchases={render,load,vendor,open,payables,state:()=>structuredClone({status:st.status,count:rows().length})};
+ g.NaroPurchases={render,load,vendor,open,payables,untaxed,state:()=>structuredClone({status:st.status,count:rows().length})};
  return {onMessage};
 }

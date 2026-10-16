@@ -262,3 +262,14 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 #appView #view-quotes #qtList .list-item[hidden]{display:none!important}
 #appView #view-quotes .nd-stage-empty{margin:0;padding:40px var(--panel-inset,20px);text-align:center;font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
 #appView #view-quotes .nd-stage-bar small{margin-left:4px}
+
+/* 계산서 칸(10/17): 한 칸에 '미발행 N · 미수취 M' — 할 일이 있는 숫자만 주황 */
+#appView #view-dash.nd-dashboard .nd-db-attention b.nd-db-tax2{display:inline-flex;gap:6px;align-items:baseline}
+#appView #view-dash.nd-dashboard .nd-db-tax2 em{font-style:normal;color:var(--nd-ink)}
+#appView #view-dash.nd-dashboard .nd-db-tax2 em.needs-attention{color:var(--nd-amber)}
+#appView #view-dash.nd-dashboard .nd-db-tax2 i{font-style:normal;font-weight:400;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-taxseg{display:inline-flex;gap:4px;padding:3px;margin:6px 0 4px;border-radius:10px;background:var(--nd-fill)}
+#appView #view-dash.nd-dashboard .nd-db-taxseg button{height:30px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--nd-ink-2);font:600 13px/1 var(--sans);cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-taxseg button[aria-selected="true"]{background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#appView #view-dash.nd-dashboard .nd-db-kind{font-style:normal;font-size:11px;font-weight:600;color:var(--nd-ink-3);border:1px solid var(--nd-line);border-radius:5px;padding:0 5px;margin-left:4px}
+@media (max-width:820px){#appView #view-dash.nd-dashboard .nd-db-attention b.nd-db-tax2{gap:4px;font-size:13px}}

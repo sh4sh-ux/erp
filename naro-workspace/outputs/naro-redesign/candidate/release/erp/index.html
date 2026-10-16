@@ -14414,6 +14414,17 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
 #appView #view-quotes #qtList .list-item[hidden]{display:none!important}
 #appView #view-quotes .nd-stage-empty{margin:0;padding:40px var(--panel-inset,20px);text-align:center;font:400 13px/20px var(--sans);color:var(--nd-ink-3)}
 #appView #view-quotes .nd-stage-bar small{margin-left:4px}
+
+/* 계산서 칸(10/17): 한 칸에 '미발행 N · 미수취 M' — 할 일이 있는 숫자만 주황 */
+#appView #view-dash.nd-dashboard .nd-db-attention b.nd-db-tax2{display:inline-flex;gap:6px;align-items:baseline}
+#appView #view-dash.nd-dashboard .nd-db-tax2 em{font-style:normal;color:var(--nd-ink)}
+#appView #view-dash.nd-dashboard .nd-db-tax2 em.needs-attention{color:var(--nd-amber)}
+#appView #view-dash.nd-dashboard .nd-db-tax2 i{font-style:normal;font-weight:400;color:var(--nd-ink-3)}
+#appView #view-dash.nd-dashboard .nd-db-taxseg{display:inline-flex;gap:4px;padding:3px;margin:6px 0 4px;border-radius:10px;background:var(--nd-fill)}
+#appView #view-dash.nd-dashboard .nd-db-taxseg button{height:30px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--nd-ink-2);font:600 13px/1 var(--sans);cursor:pointer}
+#appView #view-dash.nd-dashboard .nd-db-taxseg button[aria-selected="true"]{background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#appView #view-dash.nd-dashboard .nd-db-kind{font-style:normal;font-size:11px;font-weight:600;color:var(--nd-ink-3);border:1px solid var(--nd-line);border-radius:5px;padding:0 5px;margin-left:4px}
+@media (max-width:820px){#appView #view-dash.nd-dashboard .nd-db-attention b.nd-db-tax2{gap:4px;font-size:13px}}
 </style><script id="naro-dashboard-script">/* Dashboard presentation only. Read the active in-memory workspace; never retain a
    dataset, write a ledger, migrate statuses, or perform network/storage operations. */
 (() => {
@@ -14660,6 +14671,7 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   form.querySelector('[data-range-reset]').onclick=()=>{const next=defaultRange(chartMode,today);form.elements.from.value=next.from;form.elements.to.value=next.to;resetDraft=true;syncQuick();form.querySelector('.nd-db-range-error').hidden=true;};
   host.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{chartMode=b.dataset.period;chartPage=0;selectedKey=null;renderChart(host);host.querySelector(`[data-period="${chartMode}"]`).focus({preventScroll:true});});
  }
+ let taxSide=''; // 계산서 칸에서 마지막으로 본 쪽(미발행/미수취)
  function refinedDashboard(){
   const view=document.getElementById('view-dash'),root=view?.querySelector('.dash-brief');if(!root)return;
   view.classList.add('nd-dashboard');
@@ -14669,13 +14681,16 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   const ar=arData(),open=ar.reduce((s,r)=>s+Math.max(0,r.open),0),prepaid=ar.reduce((s,r)=>s+Math.max(0,-r.open),0);
   const aged=ar.filter(r=>r.open>0&&(daysSince(r.lastDeliver)||0)>=30),tax=db.quotes.filter(needsTax);
   const short=Object.values(currentStocks()).filter(n=>n<=0).length;
+  // 계산서(10/17 결정): 한 칸에 미발행(우리가 낼 것) · 미수취(매입처·세관에서 받을 것). 매입 권한이 없으면 미발행만.
+  // 매입 파일을 아직 읽기 전이면 null → '…'(읽고 나면 매입 화면이 대시보드를 다시 그린다).
+  const P=window.NaroPurchases,pt=P?.untaxed?P.untaxed():undefined;
   const qs=recent(db.quotes),stagesNow=progress(db.quotes,quotePaid);
   const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
-  const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
+  const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong>${typeof quoteDone==='function'&&quoteDone(q)?'<span class="pill st-complete">완료</span>':`<span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span>`}</span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b>${icon('chevron')}</button>`).join('');
   root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,prepaid>0?`선입금 ${Math.round(prepaid).toLocaleString('ko-KR')}원`:'전체 납품 − 입금','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
-   +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
+   +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file',pt===undefined?'계산서 미발행':'계산서',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span>${key==='tax'&&pt!==undefined?`<b class="nd-db-tax2"><em class="${needsAttention(count)?'needs-attention':''}">미발행 ${count.toLocaleString('ko-KR')}</em><i aria-hidden="true">·</i><em class="${needsAttention(pt?.length)?'needs-attention':''}">미수취 ${pt===null?'…':pt.length.toLocaleString('ko-KR')}</em></b>`:`<b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>`}${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
    +`<div class="nd-db-work">${panel('최근 견적',quoteRows,'<button type="button" class="nd-db-link" data-all-quotes>전체 보기 '+icon('arrow')+'</button>')}${panel('견적 진행',stageRows,'<span>상태별 견적 수</span>')}</div>`
    +'<details class="nd-db-analysis"><summary>품목 판매 분석 보기</summary><section class="card sales-insight" id="salesInsight" aria-label="품목 판매 분석"></section></details>';
   renderChart(root.querySelector('.nd-db-chart'));
@@ -14688,10 +14703,20 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
    const key=b.dataset.review,closing=b.getAttribute('aria-expanded')==='true';
    root.querySelectorAll('[data-review]').forEach(x=>x.setAttribute('aria-expanded',String(x===b&&!closing)));review.hidden=closing;if(closing)return;
    if(key==='ar')review.innerHTML=aged.length?aged.map(r=>`<div class="nd-db-review-row"><span>${esc(coName(r.cid))}</span><b>${money(r.open)}</b></div>`).join(''):'<p>30일 이상 경과한 미수가 없습니다.</p>';
-   if(key==='tax')review.innerHTML=tax.length?tax.map(q=>`<button type="button" class="nd-db-review-row" data-tax-id="${esc(q.id)}"><span>${esc(coName(q.company_id))}<small>${esc(q.no)}</small></span><b>견적 확인 ${icon('chevron')}</b></button>`).join(''):'<p>계산서 미발행 견적이 없습니다.</p>';
+   const taxOut=()=>tax.length?tax.map(q=>`<button type="button" class="nd-db-review-row" data-tax-id="${esc(q.id)}"><span>${esc(coName(q.company_id))}<small>${esc(q.no)}</small></span><b>견적 확인 ${icon('chevron')}</b></button>`).join(''):'<p>계산서 미발행 견적이 없습니다.</p>';
+   const taxIn=()=>pt===null?'<p>매입을 불러오는 중이에요. 잠시 뒤 다시 눌러 주세요.</p>':pt.length?pt.map(x=>`<button type="button" class="nd-db-review-row" data-pu-id="${esc(x.id)}"><span>${esc(coName(x.vendor_id))}${x.kind==='수입'?' <em class="nd-db-kind">수입</em>':''}<small>${esc(x.no)}${x.received?` · ${esc(x.received)} 입고`:''}</small></span><b>매입 확인 ${icon('chevron')}</b></button>`).join(''):'<p>받지 않은 매입 계산서가 없습니다.</p>';
+   if(key==='tax'){
+    // 미발행 | 미수취 구분 버튼. 처음엔 할 일이 있는 쪽.
+    if(pt===undefined)review.innerHTML=taxOut();
+    else{const side=taxSide||(tax.length||!pt?.length?'out':'in');
+     review.innerHTML=`<div class="nd-db-taxseg" role="tablist" aria-label="계산서 구분"><button type="button" role="tab" data-tax-side="out" aria-selected="${side==='out'}">미발행 ${tax.length}</button><button type="button" role="tab" data-tax-side="in" aria-selected="${side==='in'}">미수취 ${pt===null?'…':pt.length}</button></div>`+(side==='out'?taxOut():taxIn());}
+   }
    if(key==='stock')review.innerHTML=`<p>${short?`재고 수량이 0 이하인 옵션 ${short}건을 확인해 주세요.`:'재고 수량이 0 이하인 옵션이 없습니다.'}</p>`;
-   const go=document.createElement('button');go.type='button';go.className='nd-db-link';go.textContent=key==='stock'?'재고 보기':key==='tax'?'견적서 보기':'받을 금액 보기';go.onclick=()=>key==='tax'?openQuotes(''):switchView(key);review.append(go);
+   const inSide=key==='tax'&&!!review.querySelector('[data-tax-side="in"][aria-selected="true"]');
+   const go=document.createElement('button');go.type='button';go.className='nd-db-link';go.textContent=key==='stock'?'재고 보기':inSide?'매입 보기':key==='tax'?'견적서 보기':'받을 금액 보기';go.onclick=()=>inSide?switchView('purchases'):key==='tax'?openQuotes(''):switchView(key);review.append(go);
    review.querySelectorAll('[data-tax-id]').forEach(x=>x.onclick=()=>openQuotes('',x.dataset.taxId));
+   review.querySelectorAll('[data-pu-id]').forEach(x=>x.onclick=()=>window.NaroPurchases?.open?.(x.dataset.puId,'flow'));
+   review.querySelectorAll('[data-tax-side]').forEach(x=>x.onclick=()=>{taxSide=x.dataset.taxSide;b.setAttribute('aria-expanded','false');b.click();});
   });
   const analysis=root.querySelector('.nd-db-analysis');analysis.ontoggle=()=>{if(analysis.open&&!analysis.dataset.loaded){renderSalesInsight();analysis.dataset.loaded='1';}};
  }
