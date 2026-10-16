@@ -123,7 +123,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "aab37a338a0d01b5729288a08416ad05c88d2a9604468718e95371a335da7282"
+      "sha256": "6b1eb80055026f84de5ad14058cc6c6208579e75692907316024a9a6615ff6a3"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -163,7 +163,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "94d6a7f0918423e9c812a736f9e084bfc985fc006d309438437fe6be63e08bc1"
+      "sha256": "50862378f4b53af8cc040d5e917d32d85e7812298cdf1e2b40a7fad686fa8328"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -302,7 +302,7 @@
       "sha256": "6072d0c934ebd870210f9d3690bf24613b7cb3ade6da064bb59d3fe46eb0824c"
     }
   ],
-  "aggregate": "6b3a509e21909767fba774c8d81df4cf840ce253860b6930124ac2201e06c438",
+  "aggregate": "39557946352b90e4ff166cdac782673da5e30c2f2643e37897741c80c7bbbdc5",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
