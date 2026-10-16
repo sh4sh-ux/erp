@@ -59,10 +59,26 @@ export function dropboxIdentity(logicalKey,metadata){
  return Object.freeze({provider:'dropbox',logicalKey,fileId:metadata.id,path:metadata.path_lower,revision:metadata.rev,revisionKind:'dropbox.rev',etag:null});
 }
 // 읽어 온 매입 파일 전체 검사(구조 + 줄마다 규칙). 문제 있으면 매입만 'error' — 7개 데이터는 그대로.
+// 매입에 쓰인 거래처·품목 id 모으기(매입처·비용 받는 곳·수입부가세 낸 곳 / 품목 줄)
+export function purchaseRefs(doc,{activeOnly=false}={}){
+ const companies=new Set(),items=new Set();
+ for(const p of doc?.rows||[]){if(!p||typeof p!=='object'||activeOnly&&p.removed_at)continue;
+  for(const id of [p.vendor_id,p.import_vat?.payee_id,...(Array.isArray(p.costs)?p.costs:[]).map(c=>c?.payee_id)])if(typeof id==='string')companies.add(id);
+  for(const l of Array.isArray(p.lines)?p.lines:[])if(typeof l?.item_id==='string')items.add(l.item_id);}
+ return {companies,items};
+}
+// 읽을 때는 거래처·품목이 나중에 지워졌어도 매입 파일 전체를 막지 않는다(10/17 — 거래처 하나를 지우자 매입 화면이 통째로 안 열렸다).
+// 지워진 쪽은 '있는 셈'으로만 검사하고, 저장할 때 바뀐 매입은 지금처럼 실제 거래처·품목으로 엄격하게 검사한다.
+function withMissingRefs(doc,snapshot){
+ const {companies,items}=purchaseRefs(doc),co=new Set((snapshot.companies||[]).map(c=>c?.id)),it=new Set((snapshot.items||[]).map(i=>i?.id));
+ const addC=[...companies].filter(id=>!co.has(id)).map(id=>({id})),addI=[...items].filter(id=>!it.has(id)).map(id=>({id}));
+ return addC.length||addI.length?{...snapshot,companies:[...(snapshot.companies||[]),...addC],items:[...(snapshot.items||[]),...addI]}:snapshot;
+}
 export function validatePurchasesDoc(doc,snapshot){
  if(!doc||doc.schema!==PURCHASES_SCHEMA||!Array.isArray(doc.rows)||!Array.isArray(doc.archives))throw fault('STORAGE_INVALID');
  validatePurchasesChange(null,{...doc,rows:[],archives:[]},snapshot);
- for(const p of doc.rows)validatePurchase(p,snapshot);
+ const refSnap=withMissingRefs(doc,snapshot);
+ for(const p of doc.rows)validatePurchase(p,refSnap);
  if(new Set(doc.rows.map(p=>p.id)).size!==doc.rows.length)throw fault('STORAGE_INVALID');
  return true;
 }
@@ -181,7 +197,10 @@ export function createStorageRepository(provider,{companiesCreate=false,business
     intent=pending||{key,before:structuredClone(snapshot[key]),next:(extendedWrite?validateExtendedChange:validateBusinessChange)(key,snapshot[key],value,snapshot),identity:structuredClone(identities.find(i=>i.logicalKey===key))};
     // 매입과 연결된 새 줄(purchase_id)만 추가 검사 — 연결 없는 기존 저장은 지금과 똑같다.
     if(!pending)validatePurchaseLinks(key,intent.before,intent.next,purchases.status==='ready'?purchases.doc:null);
-   }catch(e){if(e?.code==='VALIDATION'&&!pending)e.reason=explainValidation(key,snapshot[key],value,snapshot,purchases.status==='ready'?purchases.doc:null);throw e;}
+    // 진행 중인 매입이 쓰는 거래처·품목은 목록에서 아예 빼지 못한다(숨김은 된다) — 빼면 그 매입을 고칠 수 없게 된다
+    if(!pending&&(key==='companies'||key==='items')&&purchases.status==='ready'){const used=purchaseRefs(purchases.doc,{activeOnly:true})[key],keep=new Set(intent.next.map(r=>r?.id));
+     if(intent.before.some(r=>used.has(r?.id)&&!keep.has(r.id))){const e=fault('VALIDATION');e.reason='PURCHASE_REF';throw e;}}
+   }catch(e){if(e?.code==='VALIDATION'&&!pending)e.reason=e.reason||explainValidation(key,snapshot[key],value,snapshot,purchases.status==='ready'?purchases.doc:null);throw e;}
    saving=true;
    try{
     const result=await provider.updateDataset(intent.key,intent.before,intent.next,intent.identity,{recoveryOnly:recover});check(g);

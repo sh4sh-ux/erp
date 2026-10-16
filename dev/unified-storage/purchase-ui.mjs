@@ -59,7 +59,7 @@ export function installPurchaseUI({port,features=()=>true}){
  const st={rowOpen:new Set(),status:'unknown',doc:null,sel:null,tab:'items',filter:'',q:'',draft:null,dirty:false,editing:false,open:false,working:false,note:'',sz:null};
  const mob=matchMedia('(max-width:820px)'),desk=matchMedia('(min-width:1024px)');
  const D=()=>app.db,companies=()=>D()?.companies||[];
- const coName=id=>companies().find(c=>c.id===id)?.name||'';
+ const coName=id=>companies().find(c=>c.id===id)?.name||(id?'(삭제된 거래처)':''); // 매입이 쓰던 거래처가 지워졌으면 그렇다고 표시
  const itemOf=id=>(D()?.items||[]).find(i=>i.id===id);
  const isWork=i=>i?.type==='작업';
  const specsOf=i=>[...new Set([...(i?.variants||[]).map(v=>v.spec).filter(Boolean),...(i?.spec?[i.spec]:[])])];
@@ -108,10 +108,14 @@ export function installPurchaseUI({port,features=()=>true}){
  if(!place())new MutationObserver((r,o)=>{if(place())o.disconnect();}).observe(document.body,{childList:true,subtree:true});
  [mob,desk].forEach(m=>m.addEventListener('change',()=>{if(app.view==='purchases')render();}));
 
+ // 저장소가 매입 파일을 못 읽은 이유(오류 코드)를 쉬운 말로 — '잠시 뒤 다시'만 보여 주면 무엇이 문제인지 알 수 없었다
+ const loadErrNote=code=>({VALIDATION:'매입 기록 중 규칙에 맞지 않는 것이 있어요. 최근에 지운 거래처·품목이 있으면 목록 필터(≡) → 삭제된 항목에서 복원해 보세요.',
+  STORAGE_CONFLICT:'읽는 사이에 다른 기기에서 매입이 바뀌었어요. [다시 불러오기]를 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 [다시 불러오기]를 눌러 주세요.',
+  STORAGE_INVALID:'매입 파일 모양이 올바르지 않아요. 관리자에게 알려 주세요.'}[code]||`잠시 뒤 다시 시도해 주세요.${code?` (${code})`:''}`);
  async function load(reload=false,quiet=false){
   // 저장소가 잠깐 바쁘면(BUSY) 화면에 오류를 띄우지 않고 '불러오는 중'인 채로 몇 번 더 묻는다(새로고침 직후 다른 일과 겹칠 때)
   for(let i=0;;i++){
-   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';break;}
+   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.status==='error'?loadErrNote(r.state.error):r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';break;}
    catch(e){if(e.code==='BUSY'&&i<4){await new Promise(r=>setTimeout(r,800*(i+1)));continue;}
     if(quiet)st.status='unknown';else{st.status='error';st.note=e.code==='BUSY'?'다른 작업이 아직 끝나지 않았어요. 잠시 뒤 [다시 불러오기]를 눌러 주세요.':MSG[e.code]||'매입을 불러오지 못했어요.';}break;} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
   }
@@ -236,16 +240,16 @@ export function installPurchaseUI({port,features=()=>true}){
  function itemsPanel(p,sv){
   const t=totals(p),cnt=`${p.lines.filter(l=>l.item_id).length}건 · 총 ${n0(qtyOf(p))}개`;
   const optLabel=l=>[l.color,l.spec].filter(Boolean).map(esc).join(' · ');
-  const name=it=>it?`${esc(it.name||'')}<span class="cd">${esc(it.code||'')}</span>`:'<span class="ph">품목 선택</span>';
+  const name=(it,id)=>it?`${esc(it.name||'')}<span class="cd">${esc(it.code||'')}</span>`:id?'<span class="ph">(삭제된 품목)</span>':'<span class="ph">품목 선택</span>';
   const lines=p.lines.map((l,i)=>{const it=itemOf(l.item_id),colors=it?.colors||[],specs=specsOf(it);
-   return `<div class="qline" data-idx="${i}"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it)}</button>
+   return `<div class="qline" data-idx="${i}"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it,l.item_id)}</button>
     <div class="dual"><select data-f="lcolor" data-idx="${i}" aria-label="색상">${colors.length?colors.map(c=>`<option ${c===l.color?'selected':''}>${esc(c)}</option>`).join(''):'<option value="">—</option>'}</select><select data-f="vspec" data-idx="${i}" aria-label="규격/옵션">${specs.length?specs.map(s=>`<option ${s===l.spec?'selected':''}>${esc(s)}</option>`).join(''):'<option value="">—</option>'}</select></div>
     <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${i}" value="${l.qty?n0(l.qty):''}" aria-label="수량">
     <input type="text" inputmode="${isFx(p)?'decimal':'numeric'}" class="num" data-f="price" data-idx="${i}" value="${l.unit_price?(isFx(p)?fx(l.unit_price):n0(l.unit_price)):''}" placeholder="0" aria-label="단가">
     <span class="amt" data-amt="${i}">${isFx(p)?fx((l.qty||0)*(l.unit_price||0)):n0((l.qty||0)*(l.unit_price||0))}</span>
     <button type="button" class="rm" data-rm="${i}" title="행 삭제" aria-label="행 삭제">${RM}</button></div>`;}).join('');
   const cards=mob.matches?`<div class="qp-cards"><section class="qp-products"><h3>품목 ${p.lines.filter(l=>l.item_id).length}건${editBtn(p)}</h3>
-   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${amtOf(p,(l.qty||0)*(l.unit_price||0))}</strong></div></div>
+   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:l.item_id?'(삭제된 품목)':'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${amtOf(p,(l.qty||0)*(l.unit_price||0))}</strong></div></div>
     <div class="qp-card-sub"><p class="qp-muted">${[optLabel(l),l.src_name?esc(l.src_name):''].filter(Boolean).join(' · ')}</p><small class="qp-unit">${amtOf(p,l.unit_price)}<span class="qp-per"> / ${esc(it?.unit||'EA')}</span></small></div>
     <div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div><button class="qp-card-more" type="button" data-qp-more="${i}">편집</button></div></article>`;}).join('')}
    <div class="nd-addrow"><button class="qp-add nd-gi-plus nd-gi-f" type="button" data-act="addline">품목 추가</button><button class="btn-line-add qp-add" type="button" data-act="size">⊞ 옵션별 한번에</button></div></section></div>`:'';
@@ -946,6 +950,9 @@ export function installPurchaseUI({port,features=()=>true}){
  const payables=()=>{if(st.status!=='ready')return null;const live=rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고');
   return [...live.filter(p=>p.currency==='KRW'&&gotOf(p)>0).map(p=>{const ps=payState(p);return {id:p.id,no:p.no,vendor_id:p.vendor_id,open:Math.round(ps.due-ps.paid)};}),
    ...live.flatMap(p=>(payState(p).costs||[]).filter(c=>c.payee_id!==p.vendor_id).map(c=>({id:p.id,no:p.no,vendor_id:c.payee_id,open:Math.round(c.due-c.paid)})))].filter(x=>x.open>0);};
- g.NaroPurchases={render,load,vendor,open,payables,untaxed,state:()=>structuredClone({status:st.status,count:rows().length})};
+ // 거래처·품목 삭제 전 확인용: 진행 중(목록에서 빼지 않은) 매입 몇 건이 쓰는지. 매입 권한 없음/매입 안 씀 = 0, 아직 못 읽음 = null
+ const uses=(key,id)=>{if(!features()||st.status==='absent'||st.status==='unsupported')return 0;if(st.status!=='ready')return null;
+  return rows().filter(p=>!p.removed_at&&(key==='companies'?[p.vendor_id,p.import_vat?.payee_id,...(p.costs||[]).map(c=>c.payee_id)].includes(id):(p.lines||[]).some(l=>l.item_id===id))).length;};
+ g.NaroPurchases={render,load,vendor,open,payables,untaxed,uses,state:()=>structuredClone({status:st.status,count:rows().length})};
  return {onMessage};
 }
