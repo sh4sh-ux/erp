@@ -122,8 +122,11 @@ export function costTypeOf(name){
  if(/관세(?!사)|\bDUTY\b|TARIFF/.test(n))return '관세';
  if(/통관|CUSTOMS?\s*(CLEARANCE|CHARGE|FEE|BROKER)|CUSTOM\s*CHARGE|CLEARANCE|관세사/.test(n))return '통관수수료';
  if(/보험|INSURANCE/.test(n))return '보험';
+ if(/DELIVERY\s*ORDER|D\/O/.test(n))return '운임'; // 화물 인도 지시서(D/O) — 국내 배송이 아님
  if(/내륙|국내|운송료|TRUCK|DELIVERY|DRAYAGE|INLAND/.test(n))return '국내운송';
  // 운임에 붙는 할증(10/17 보강): 통화 할증(CAF · CURRENCY ADJUSTMENT) · 유류(BAF · BUNKER · FUEL · LSS) · 성수기(PSS) 등
+ // 선적 서류·현지 처리 비용(포워더 청구)도 운임 쪽 — 원가 나누기는 어느 구분이든 금액 비율로 같다
+ if(/DOCUMENT|\bDOC\b|D\/O|DELIVERY\s*ORDER|HANDLING|\bCFS\b|WHARFAGE|CONTAINER|\bSEAL\b|\bAMS\b|\bAFR\b|\bENS\b|서류|부두|컨테이너/.test(n))return '운임';
  if(/FREIGHT|운임|\bCAF\b|\bBAF\b|CURRENCY\s*ADJUST|BUNKER|FUEL|\bLSS\b|LOW\s*SULPHUR|\bEBS\b|\bPSS\b|PEAK\s*SEASON|유류|할증|SURCHARGE|\bTHC\b|TERMINAL\s*HANDLING|해상|항공|O\/F|OCEAN|AIR\s*CHARGE/.test(n))return '운임';
  return '기타';
 }

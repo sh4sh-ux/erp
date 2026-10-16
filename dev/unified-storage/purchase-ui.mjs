@@ -381,9 +381,13 @@ export function installPurchaseUI({port,features=()=>true}){
  }
 
  // ── 처리 창: 견적서의 납품 처리·입금 받기 창과 같은 부품(nd-pay-sheet nd-qa-sheet) ──
- let sheetEl=null;
+ let sheetEl=null,guard=null; // guard: 작성 중이면 바깥 누름·Esc로 닫지 않고 묻는다(수입 붙여넣기)
  function qa(html,cls=''){
-  if(!sheetEl){sheetEl=document.createElement('dialog');sheetEl.className='nd-pay-sheet nd-qa-sheet pu-qa';sheetEl.addEventListener('click',ev=>{if(ev.target===sheetEl)sheetEl.close();});}
+  if(!sheetEl){sheetEl=document.createElement('dialog');sheetEl.className='nd-pay-sheet nd-qa-sheet pu-qa';
+   sheetEl.addEventListener('click',ev=>{if(ev.target!==sheetEl)return;if(guard&&guard())return;sheetEl.close();});
+   sheetEl.addEventListener('cancel',ev=>{if(guard&&guard())ev.preventDefault();});
+   sheetEl.addEventListener('close',()=>{guard=null;});}
+  guard=null;
   if(!sheetEl.isConnected)(document.getElementById('appView')||document.body).append(sheetEl);
   sheetEl.classList.toggle('pu-imp',cls==='pu-imp');sheetEl.innerHTML=html;if(!sheetEl.open){sheetEl.tabIndex=-1;sheetEl.showModal();sheetEl.focus({preventScroll:true});}
   sheetEl.querySelector('[data-x]')?.addEventListener('click',()=>sheetEl.close());
@@ -510,10 +514,11 @@ export function installPurchaseUI({port,features=()=>true}){
  }
  // 확인 칸(10/17 시안 2): 기본 선택 상자 대신 앱 부품 모양 — 거래처 고르기 창 · 품목 고르기 창(+ 새 품목 등록) · 색상 칩 ·
  // 옵션별 수량 칸(옵션별 한번에와 같은 칸) · 청구서 구분 표시(자동, 눌러서 바꾸기). 창은 모달이라 고르기 창도 창 안에 띄운다.
+ let impDraft=null; // 수입 붙여넣기 임시 저장(이 기기 · 앱을 다시 열기 전까지)
  const TYPE_LABEL={import_vat:'수입부가세',skip:'넣지 않음'};
  const typeLabel=t=>TYPE_LABEL[t]||t;
  function importSheet(){
-  let text='',parsed=null,vendor='',payee='',map=[],types=[],tsrc=[],copied=false,vendorPicked=false,payeePicked=false,nf=null,pop=null;
+  let created=false,text='',parsed=null,vendor='',payee='',map=[],types=[],tsrc=[],copied=false,vendorPicked=false,payeePicked=false,nf=null,pop=null;
   const lines=()=>parsed?.decl.lines||[];
   const optsOf=it=>{const sp=specsOf(it);return sp.length>1?sp:[];}; // 옵션이 둘 이상이면 수량 칸
   const sumOf=i=>{const m=map[i],it=itemOf(m?.item_id);if(!it)return 0;return optsOf(it).length?Object.values(m.qty||{}).reduce((a,v)=>a+(v||0),0):lines()[i].qty;};
@@ -537,7 +542,7 @@ export function installPurchaseUI({port,features=()=>true}){
    const dup=parsed.decl.no&&rows().find(x=>!x.removed_at&&x.customs?.declaration_no===parsed.decl.no);if(dup)out.push({ok:false,block:true,text:`이미 만든 수입 매입이에요(신고번호 ${parsed.decl.no} · ${dup.no})`});
    if(parsed.inv&&!payee)out.push({ok:false,block:true,text:'청구서를 낸 곳(운송사·관세사)을 선택해 주세요'});
    return out;};
-  const coBtn=(id,sel,name,label)=>{const c=companies().find(x=>x.id===sel);return `<button type="button" class="pu-imp-btn${sel?'':' need'}" id="${id}" aria-haspopup="dialog">${sel==='new'?`${esc(name)} <span class="pu-imp-newtag">새로 등록</span>`:c?esc(c.name):esc(label+' 선택')}</button>`;};
+  const coBtn=(id,sel,name,label)=>{const c=companies().find(x=>x.id===sel);return `<button type="button" class="pu-imp-btn pu-imp-party${sel?'':' need'}" id="${id}" aria-haspopup="dialog" title="${esc(sel==='new'?name:c?.name||'')}"><span class="nm">${sel==='new'?esc(name):c?esc(c.name):esc(label+' 선택')}</span>${sel==='new'?'<span class="pu-imp-newtag">새로 등록</span>':''}</button>`;};
   const sumHtml=i=>{const l=lines()[i],n=sumOf(i),ok=n===l.qty;return `<div class="pu-imp-sum ${ok?'ok':'bad'}" data-sum="${i}">${ok?`${OK}${n0(l.qty)}개 중 ${n0(n)}개`:`${n0(l.qty)}개 중 ${n0(n)}개 · ${n<l.qty?`${n0(l.qty-n)}개 남음`:`${n0(n-l.qty)}개 많음`}`}</div>`;};
   const newForm=i=>`<div class="pu-imp-nf" data-nf="${i}">
      <label class="full">품명<input data-nfk="name" value="${esc(nf.name)}"></label>
@@ -559,21 +564,34 @@ export function installPurchaseUI({port,features=()=>true}){
     </div>
     <div class="pu-imp-amt">${esc(parsed.decl.currency)} ${fx(l.amount)}<small>${l.amount!==null&&parsed.decl.customs_rate?money(Math.round(l.amount*parsed.decl.customs_rate)):''}</small></div></div>`;};
   const invHtml=(x,i)=>`<div class="pu-imp-cost"><span class="nm">${esc(x.name)}${x.currency&&x.currency!=='KRW'&&x.amount_fx?`<small>${esc(x.currency)} ${fx(x.amount_fx)}</small>`:''}</span>
-    <span><button type="button" class="pu-imp-tag${tsrc[i]==='user'?' chg':''}" data-ty="${i}" aria-haspopup="menu">${esc(typeLabel(types[i]))} <i>${tsrc[i]==='user'?'바꿈 · 기억':tsrc[i]==='memo'?'기억':'자동'}</i></button>${types[i]==='관세'?'<small>원가는 필증 관세로</small>':types[i]==='import_vat'?'<small>원가 제외 · 필증 값</small>':''}</span>
+    <span><button type="button" class="pu-imp-tag${tsrc[i]==='user'?' chg':''}" data-ty="${i}" aria-haspopup="menu">${esc(typeLabel(types[i]))}${tsrc[i]==='user'?' <i>바꿈</i>':tsrc[i]==='memo'?' <i>기억</i>':''}</button>${types[i]==='관세'?'<small>원가는 필증 관세로</small>':types[i]==='import_vat'?'<small>원가 제외 · 필증 값</small>':''}</span>
     <span class="n">${n0(x.amount_krw)}</span><span class="n v">${n0(x.vat)}</span></div>`;
   const checksHtml=()=>checks().map(c=>`<li class="${c.ok?'ok':c.block?'bad':'warn'}">${c.ok?OK:'!'}<span>${esc(c.text)}</span></li>`).join('');
   const preview=()=>{
    if(!text.trim())return '';
    if(!parsed?.found)return '<p class="nd-qa-warn">[수입신고필증] 부분을 찾지 못했어요. AI 답을 그대로 붙여 넣어 주세요.</p>';
    const {decl,inv}=parsed;
-   return `<div class="pu-imp-kv"><div><span class="lab">매입처</span>${coBtn('puImpVendor',vendor,decl.vendor,'매입처')}</div><div><span class="lab">신고번호</span><b>${esc(decl.no||'—')}</b></div><div><span class="lab">B/L</span><b>${esc(decl.bl||'—')}</b></div><div><span class="lab">결제 · 과세 환율</span><b>${esc([decl.incoterms,decl.currency].filter(Boolean).join(' '))} · ${esc(String(decl.customs_rate??'—'))}</b></div></div>
+   return `<div class="pu-imp-party-row"><span class="lab">매입처</span>${coBtn('puImpVendor',vendor,decl.vendor,'매입처')}</div>
+    <div class="pu-imp-kv"><div><span class="lab">신고번호</span><b>${esc(decl.no||'—')}</b></div><div><span class="lab">B/L</span><b>${esc(decl.bl||'—')}</b></div><div><span class="lab">결제 · 과세 환율</span><b>${esc([decl.incoterms,decl.currency].filter(Boolean).join(' '))} · ${esc(String(decl.customs_rate??'—'))}</b></div></div>
     <div class="pu-imp-lines">${decl.lines.map(lineHtml).join('')}<div class="pu-imp-tot"><span>합계</span><b>${esc(decl.currency)} ${fx(decl.lines.reduce((a,l)=>a+(l.amount||0),0))}</b></div></div>
-    ${inv?`<div class="pu-imp-kv"><div><span class="lab">청구서 낸 곳</span>${coBtn('puImpPayee',payee,inv.payee,'낸 곳')}</div><div><span class="lab">관세 (필증)</span><b>${n0(decl.duty_total??decl.lines.reduce((a,l)=>a+(l.duty||0),0))}원</b></div><div><span class="lab">수입부가세 (필증)</span><b>${n0(decl.vat_total??decl.lines.reduce((a,l)=>a+(l.vat||0),0))}원</b></div></div>
-    <div class="pu-imp-costs"><div class="pu-imp-cost hd"><span>청구서 항목</span><span>앱 구분</span><span class="n">금액(원)</span><span class="n v">부가세</span></div>${inv.items.map(invHtml).join('')}</div>`:'<p class="nd-qa-note">청구서가 없으면 관세만 부대비용으로 넣어요. 운임 등은 나중에 [비용 추가]로 더할 수 있어요.</p>'}
+    ${inv?`<div class="pu-imp-party-row"><span class="lab">청구서 낸 곳</span>${coBtn('puImpPayee',payee,inv.payee,'낸 곳')}</div><div class="pu-imp-kv"><div><span class="lab">청구 합계</span><b>${n0(inv.total??inv.items.reduce((a,x)=>a+(x.amount_krw||0)+(x.vat||0),0))}원</b></div><div><span class="lab">관세 (필증)</span><b>${n0(decl.duty_total??decl.lines.reduce((a,l)=>a+(l.duty||0),0))}원</b></div><div><span class="lab">수입부가세 (필증)</span><b>${n0(decl.vat_total??decl.lines.reduce((a,l)=>a+(l.vat||0),0))}원</b></div></div>
+    <p class="pu-imp-note">구분은 항목 이름으로 자동으로 정해져요. 눌러서 바꾸면 이 운송사·관세사의 다음 붙여넣기에도 그대로 써요.</p><div class="pu-imp-costs"><div class="pu-imp-cost hd"><span>청구서 항목</span><span>앱 구분</span><span class="n">금액(원)</span><span class="n v">부가세</span></div>${inv.items.map(invHtml).join('')}</div>`:'<p class="nd-qa-note">청구서가 없으면 관세만 부대비용으로 넣어요. 운임 등은 나중에 [비용 추가]로 더할 수 있어요.</p>'}
     <ul class="pu-imp-checks" id="puImpChecks">${checksHtml()}</ul>`;
   };
   const ready=()=>parsed?.found&&!checks().some(c=>!c.ok&&c.block);
   let d;
+  const snapshot=()=>structuredClone({text,vendor,payee,vendorPicked,payeePicked,map,types,tsrc,nf});
+  function showLeave(){
+   closePop();let bar=d.querySelector('.pu-imp-leave');
+   if(!bar){bar=document.createElement('div');bar.className='pu-imp-leave';bar.setAttribute('role','alert');
+    bar.innerHTML='<span>작성 중인 내용이 있어요.</span><button type="button" class="pu-imp-ghost" data-leave="stay">계속 작성</button><button type="button" class="pu-imp-pri" data-leave="go">임시 저장하고 닫기</button>';
+    d.querySelector('.nd-ps-act').before(bar);
+    bar.querySelector('[data-leave="stay"]').onclick=()=>bar.remove();
+    bar.querySelector('[data-leave="go"]').onclick=()=>{d.close();toast('임시 저장했어요 · 다시 열면 이어서 할 수 있어요');};}
+   bar.querySelector('[data-leave="stay"]').focus();
+  }
+  function restore(o){text=o.text;vendor=o.vendor;payee=o.payee;vendorPicked=o.vendorPicked;payeePicked=o.payeePicked;map=o.map;types=o.types;tsrc=o.tsrc;nf=o.nf;
+   parsed=text.trim()?parseImportPaste(text):null;d.querySelector('#puImpText').value=text;paintPreview();}
   const closePop=()=>{pop?.remove();pop=null;};
   const syncGo=()=>{const b=d.querySelector('.nd-qa-go');if(b&&b.textContent!=='저장 중…')b.disabled=!ready();};
   const paintChecks=()=>{const ul=d.querySelector('#puImpChecks');if(ul)ul.innerHTML=checksHtml();syncGo();};
@@ -602,7 +620,7 @@ export function installPurchaseUI({port,features=()=>true}){
     rows:q=>companies().filter(c=>c.type==='매입'&&!hidden.includes(c.id)&&(!q||(c.name||'').toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q))).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).slice(0,60),
     render:(c,on,i)=>`<button type="button" role="option" class="nd-co-opt${on?' on':''}" data-pi="${i}"><span>${esc(c.name||'(이름 없음)')}</span>${c.contact?`<small>${esc(c.contact)}</small>`:''}<em>매입</em></button>`,
     onPick:c=>set(c.id),
-    extra:{top:()=>name&&!findCo(name)?`<button type="button" class="nd-co-opt pu-imp-addopt" data-pextra="new"><span>새로 등록 · ${esc(name)}</span><em>문서 이름</em></button>`:'',onExtra:()=>set('new')}});
+    extra:{top:()=>name&&!findCo(name)?`<button type="button" class="nd-co-opt pu-imp-addopt" data-pextra="new" title="${esc(name)}"><span>새로 등록 · ${esc(name)}</span></button>`:'',onExtra:()=>set('new')}});
   };
   const pickItem=(anchor,i)=>{
    const l=lines()[i],hidden=window.NaroTrash?NaroTrash.hidden('items'):[];
@@ -646,13 +664,16 @@ export function installPurchaseUI({port,features=()=>true}){
    d.querySelector('[data-nf-go]')?.addEventListener('click',saveNewItem);
   };
   d=qa(`${head('수입 매입 붙여넣기','수입신고필증 · 운송사 청구서를 AI로 정리해 붙여 넣어요')}<div class="nd-qa-body">
-    <div class="pu-imp-step"><span class="pu-imp-n">1</span><div><b>프롬프트 복사</b><p>ChatGPT · Claude 같은 AI에 이 프롬프트와 필증 PDF(+ 청구서)를 함께 올리세요. 앱은 파일을 밖으로 보내지 않아요.</p><button type="button" class="nd-record-action" id="puImpCopy">프롬프트 복사</button></div></div>
-    <div class="pu-imp-step"><span class="pu-imp-n">2</span><div><b>AI 결과 붙여넣기</b><textarea id="puImpText" rows="6" placeholder="[수입신고필증]&#10;신고번호: …" aria-label="AI 결과"></textarea></div></div>
-    <div class="pu-imp-step"><span class="pu-imp-n">3</span><div><b>확인</b><div id="puImpPreview"><p class="nd-qa-note">붙여 넣으면 품목 짝 · 합계 · B/L 검사가 여기에 나와요.</p></div></div></div>
+    <div class="pu-imp-step"><div class="pu-imp-sh"><span class="pu-imp-n">1</span><b>프롬프트 복사</b></div><div><p>ChatGPT · Claude 같은 AI에 이 프롬프트와 필증 PDF(+ 청구서)를 함께 올리세요. 앱은 파일을 밖으로 보내지 않아요.</p><button type="button" class="nd-record-action" id="puImpCopy">프롬프트 복사</button></div></div>
+    <div class="pu-imp-step"><div class="pu-imp-sh"><span class="pu-imp-n">2</span><b>AI 결과 붙여넣기</b></div><div><textarea id="puImpText" rows="6" placeholder="[수입신고필증]&#10;신고번호: …" aria-label="AI 결과"></textarea></div></div>
+    <div class="pu-imp-step"><div class="pu-imp-sh"><span class="pu-imp-n">3</span><b>확인</b></div><div><div id="puImpPreview"><p class="nd-qa-note">붙여 넣으면 품목 짝 · 합계 · B/L 검사가 여기에 나와요.</p></div></div></div>
    </div>${acts('매입 만들기',false)}`,'pu-imp');
   // 고르기 창 바깥을 누르면 닫는다(창 안에서만)
   d.addEventListener('mousedown',ev=>{if(pop&&!pop.contains(ev.target)&&!ev.target.closest('[data-pick-item],#puImpVendor,#puImpPayee,[data-ty]'))closePop();});
-  d.addEventListener('close',closePop,{once:true});
+  d.addEventListener('close',()=>{closePop();if(!created&&text.trim()){impDraft=snapshot();}},{once:true});
+  // 작성 중 바깥 누름·Esc: 바로 닫지 않고 [계속 작성] / [임시 저장하고 닫기]
+  guard=()=>{if(!text.trim())return false;showLeave();return true;};
+  d.querySelector('[data-x]')?.addEventListener('click',()=>{if(text.trim()&&!created)toast('작성 중인 내용을 임시 저장했어요 · 다시 열면 이어서 할 수 있어요');});
   // 창(폰은 창 전체)이 스크롤되면 고르기 창이 버튼에서 떨어지므로 닫는다
   d.addEventListener('scroll',closePop,{passive:true});d.querySelector('.nd-qa-body')?.addEventListener('scroll',closePop,{passive:true});
   d.querySelector('#puImpCopy').onclick=async ev=>{const b=ev.currentTarget;try{await navigator.clipboard.writeText(IMPORT_PROMPT);copied=true;b.textContent='복사했어요';}catch{const ta=d.querySelector('#puImpText');ta.value=IMPORT_PROMPT;ta.select();b.textContent='아래 글을 복사해 주세요';}};
@@ -669,7 +690,13 @@ export function installPurchaseUI({port,features=()=>true}){
    while(rows().some(x=>x.no===np.no))np.no=np.no.replace(/-(\d+)$/,(m,x)=>'-'+(Number(x)+1));
    for(const l of np.lines){for(const k of ['color','spec'])if(!l[k])delete l[k];}
    await savePurchase({...st.doc,rows:[...st.doc.rows,np]});
-   st.sel=np.id;st.draft=null;st.dirty=false;st.editing=false;st.tab='items';toast('수입 매입을 만들었어요 · 물건이 오면 [입고 처리]');});
+   created=true;impDraft=null;st.sel=np.id;st.draft=null;st.dirty=false;st.editing=false;st.tab='items';toast('수입 매입을 만들었어요 · 물건이 오면 [입고 처리]');});
+  // 임시 저장한 붙여넣기가 있으면 맨 위에서 묻는다
+  if(impDraft){const o=impDraft,no=parseImportPaste(o.text)?.decl?.no;const bar=document.createElement('div');bar.className='pu-imp-resume';
+   bar.innerHTML=`<span>임시 저장한 붙여넣기가 있어요${no?` · 신고번호 ${esc(no)}`:''}</span><button type="button" class="pu-imp-ghost" data-resume="new">새로 시작</button><button type="button" class="pu-imp-pri" data-resume="go">이어서 하기</button>`;
+   d.querySelector('.nd-qa-body').prepend(bar);
+   bar.querySelector('[data-resume="go"]').onclick=()=>{bar.remove();restore(o);};
+   bar.querySelector('[data-resume="new"]').onclick=()=>{impDraft=null;bar.remove();ta.focus();};}
   setTimeout(()=>ta.focus(),0);
  }
  function newMenu(btn){
