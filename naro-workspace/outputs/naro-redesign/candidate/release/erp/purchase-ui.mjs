@@ -109,13 +109,13 @@ export function installPurchaseUI({port,features=()=>true}){
  [mob,desk].forEach(m=>m.addEventListener('change',()=>{if(app.view==='purchases')render();}));
 
  // 저장소가 매입 파일을 못 읽은 이유(오류 코드)를 쉬운 말로 — '잠시 뒤 다시'만 보여 주면 무엇이 문제인지 알 수 없었다
- const loadErrNote=code=>({VALIDATION:'매입 기록 중 규칙에 맞지 않는 것이 있어요. 최근에 지운 거래처·품목이 있으면 목록 필터(≡) → 삭제된 항목에서 복원해 보세요.',
-  STORAGE_CONFLICT:'읽는 사이에 다른 기기에서 매입이 바뀌었어요. [다시 불러오기]를 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 [다시 불러오기]를 눌러 주세요.',
-  STORAGE_INVALID:'매입 파일 모양이 올바르지 않아요. 관리자에게 알려 주세요.'}[code]||`잠시 뒤 다시 시도해 주세요.${code?` (${code})`:''}`);
+ const loadErrNote=(code,detail)=>({VALIDATION:'매입 기록 중 규칙에 맞지 않는 것이 있어요. 최근에 지운 거래처·품목이 있으면 목록 필터(≡) → 삭제된 항목에서 복원해 보세요.',
+  STORAGE_CONFLICT:'매입 파일의 버전을 확인하지 못했어요. [다시 불러오기]를 눌러 주세요. 계속되면 아래 확인 코드를 알려 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 [다시 불러오기]를 눌러 주세요.',
+  STORAGE_INVALID:'매입 파일 모양이 올바르지 않아요. 관리자에게 알려 주세요.'}[code]||'잠시 뒤 다시 시도해 주세요.')+(code?` (확인 코드: ${code}${detail?' · '+detail:''})`:'');
  async function load(reload=false,quiet=false){
   // 저장소가 잠깐 바쁘면(BUSY) 화면에 오류를 띄우지 않고 '불러오는 중'인 채로 몇 번 더 묻는다(새로고침 직후 다른 일과 겹칠 때)
   for(let i=0;;i++){
-   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.status==='error'?loadErrNote(r.state.error):r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';break;}
+   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.status==='error'?loadErrNote(r.state.error,r.state.detail):r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';break;}
    catch(e){if(e.code==='BUSY'&&i<4){await new Promise(r=>setTimeout(r,800*(i+1)));continue;}
     if(quiet)st.status='unknown';else{st.status='error';st.note=e.code==='BUSY'?'다른 작업이 아직 끝나지 않았어요. 잠시 뒤 [다시 불러오기]를 눌러 주세요.':MSG[e.code]||'매입을 불러오지 못했어요.';}break;} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
   }
