@@ -220,6 +220,9 @@ test('quote and purchase + share company picking and continue to editable items 
    await page.waitForFunction(()=>!document.getElementById('puNewBtn').disabled);
    const count=await page.locator('#puList .list-item').count();
    await add.click();
+   // [+]는 국내 / 수입 붙여넣기 메뉴(UI-RULES 'Import purchase paste') — 국내 매입을 고른다
+   assert.equal(await page.locator('.pu-new-menu button').count(),2);
+   await page.locator('.pu-new-menu [data-k="d"]').click();
    assert.equal(await page.locator('#puForm').isVisible(),true);
    assert.equal(await page.locator('#pp-tab-basic').getAttribute('aria-selected'),'true');
    assert.equal(await page.locator('#pu_co').isVisible(),true);
@@ -262,7 +265,7 @@ test('quote and purchase + share company picking and continue to editable items 
    await page.locator('#puCancelBtn').click();
    assert.equal(await page.locator('#puList .list-item').count(),count);
    assert.equal(await page.locator('#puForm').isVisible(),false);
-   await add.click();
+   await add.click();await page.locator('.pu-new-menu [data-k="d"]').click();
    assert.equal(await page.locator('#pu_memo').inputValue(),'');
    await picker.locator('input').press('Escape');
    await page.locator('#puCancelBtn').click();

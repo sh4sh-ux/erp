@@ -159,6 +159,8 @@ export function paymentStatus(p,payments=[]){
  const eps=p.currency==='KRW'?0.5:0.005;
  const status=paid<=eps?'미지급':paid<due-eps?'부분 지급':paid<=due+eps?'지급 완료':'초과 지급';
  const costDue=(p.costs||[]).filter(c=>!c.void_at&&c.payee_id).reduce((m,c)=>(m[c.payee_id]=(m[c.payee_id]||0)+c.amount_krw,m),{});
+ // 수입부가세 · 수수료 부가세를 대신 낸 곳에도 갚을 돈으로 더한다(원가에는 넣지 않는다)
+ const iv=p.import_vat;if(iv?.payee_id){costDue[iv.payee_id]=(costDue[iv.payee_id]||0)+(Number(iv.amount)||0)+(Number(iv.fee_vat)||0);}
  const costPaid=linked.filter(x=>x.company_id!==p.vendor_id).reduce((m,x)=>(m[x.company_id]=(m[x.company_id]||0)+sign(x)*x.amount,m),{});
  return {currency:p.currency,due:p.currency==='KRW'?won(due):Math.round(due*100)/100,paid:p.currency==='KRW'?won(paid):Math.round(paid*100)/100,status,prepaid,fxGain:won(fxGain),costs:Object.keys({...costDue,...costPaid}).map(id=>({payee_id:id,due:costDue[id]||0,paid:costPaid[id]||0}))};
 }

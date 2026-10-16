@@ -256,3 +256,20 @@ test('내려받기 머리를 읽을 수 없으면 예전 3단계 확인으로 �
  let downloads=0;const original=changing.fetcher;changing.fetcher=async(url,opts)=>{const response=await original(url,opts);if(url.endsWith('download')&&JSON.parse(opts.headers['Dropbox-API-Arg']).path.toLowerCase()===path&&++downloads===2)changing.files.get(path).rev='p2';return response;};
  const other=await open(changing);assert.equal((await other.repo.loadPurchases()).status,'error');assert.equal(other.repo.purchasesState().error,'STORAGE_CONFLICT');
 });
+
+test('수입 정보(신고번호·B/L)·필증 품명·수입부가세 낸 곳을 저장하고, 모르는 칸·잘못된 날짜는 막는다',()=>{
+ const snap=base();
+ const ok=imported({customs:{declaration_no:'12345-26-000001M',bl_no:'TEST260119A',incoterms:'FOB',pay_method:'TT',declared_on:'2026-01-19',accepted_on:'2026-01-20'},
+  lines:[{id:'a',item_id:'ap',qty:500,unit_price:3.2,src_name:'CHEF APRON',hs:'6211.33-1000'},{id:'b',item_id:'ch',qty:300,unit_price:1.5}],
+  import_vat:{amount:333650,payee_id:'f1',fee_vat:13500}});
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([ok]),snap));
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declaration_no:'x',memo:'모르는 칸'}})]),snap),V);
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declared_on:'2026-13-40'}})]),snap),V);
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({import_vat:{amount:1,payee_id:'없는곳'}})]),snap),V);
+});
+test('부대비용을 낸 곳에 갚을 돈 = 그곳 비용 + 수입부가세 + 수수료 부가세(원가에는 넣지 않음)',()=>{
+ const p=imported({import_vat:{amount:333650,payee_id:'f1',fee_vat:13500}});
+ const ps=paymentStatus(p,[]),f1=ps.costs.find(c=>c.payee_id==='f1');
+ assert.equal(f1.due,248400+333650+13500);
+ assert.equal(Object.values(unitCosts(p)).reduce((s,u)=>s+u.allocated,0),248400+12000+247150+55000+88000); // 원가 = 비용만
+});
