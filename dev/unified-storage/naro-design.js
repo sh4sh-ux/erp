@@ -265,7 +265,7 @@ const NaroCompanyLedger=(()=>{
   {key:'items',label:'품목',sub:'코드 · 단가 · 색상 · 규격',
    rows(){const out=[['품목코드','품명','유형','카테고리','단위','매입단가','매출단가','색상','규격/옵션']];
     (db.items||[]).forEach(i=>out.push([i.code||'',i.name,i.type||'',i.category||'',i.unit||'',Number(i.buy_price)||0,Number(i.sell_price)||0,(i.colors||[]).join(' / '),(i.variants||[]).map(v=>v.spec).filter(Boolean).join(' / ')]));return out;}},
-  {key:'payments',label:'입금·출금',sub:'기간별 내역 · 들어온 돈과 나간 돈',period:true,
+  {key:'payments',label:'입금·출금',sub:'기간별 내역 · 입금과 출금',period:true,
    rows(o,r){const quote=id=>(db.quotes||[]).find(q=>q.id===id)?.no||'';const out=[['날짜','구분','거래처','결제수단','금액','연결 견적','메모']];
     (db.payments||[]).filter(p=>!p.void_at&&inRange(p.date,r)).sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(p=>out.push([p.date,p.kind==='수금'?'입금':p.kind==='지급'?'출금':p.kind||'',company(p.company_id),p.method||'',Number(p.amount)||0,quote(p.quote_id),p.memo||'']));return out;}},
   {key:'sales',label:'매출 집계',sub:'거래처별 품목 집계 · 매출 집계 화면과 같은 계산',period:true,app:true,
@@ -355,7 +355,7 @@ const NaroCompanyLedger=(()=>{
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
  function supplierInfoGroups(view){
-  const titles=[['기본 정보','견적서·거래명세서에 나와요'],['연락처','견적서를 보낼 때 써요'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌예요']];
+  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌']];
   view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
    if(sec.classList.contains('cp-grp'))return;
    const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
@@ -519,7 +519,7 @@ const NaroCompanyLedger=(()=>{
   const out=()=>kindSel?.value==='출고';
   const n=v=>(typeof fmt==='function'?fmt(v):String(v));
   const wrap=document.createElement('div');wrap.className='nd-sz';
-  const bar=document.createElement('div');bar.className='nd-sz-bar';bar.innerHTML='<b>사이즈별 수량</b><button type="button" data-a="same">모두 같은 수량</button><button type="button" data-a="clear">지우기</button>';
+  const bar=document.createElement('div');bar.className='nd-sz-bar';bar.innerHTML='<b>사이즈별 수량</b><button type="button" data-a="same">모두 같은 수량</button><button type="button" data-a="clear">초기화</button>';
   // Desktop table
   const t=document.createElement('table');t.className='nd-sz-table';
   t.innerHTML=`<thead><tr><th class="k"></th>${specs.map(s=>`<th>${escapeHtml(s)}</th>`).join('')}<th class="sum">합계</th></tr></thead><tbody>
@@ -721,7 +721,7 @@ const NaroCompanyLedger=(()=>{
   };
   edit.onclick=()=>{
    if(!dialog){dialog=document.createElement('dialog');dialog.className='nd-mobile-nav-dialog';dialog.setAttribute('aria-labelledby','ndMobileNavTitle');
-    dialog.innerHTML='<header><h2 id="ndMobileNavTitle">하단 메뉴 편집</h2><button type="button" data-mn-close aria-label="닫기">×</button></header><p class="nd-mn-help">홈과 더보기는 고정입니다. 서로 다른 메뉴 3개를 골라 주세요.<br>오른쪽 위·아래 화살표로 순서를 바꿀 수 있어요.</p><div class="nd-mn-preview" aria-label="하단 메뉴 미리보기"></div><div class="nd-mn-slots"></div><p class="nd-mn-note">이 기기·브라우저에만 저장됩니다. 같은 브라우저를 함께 사용하면 메뉴 설정도 공유됩니다. 업무 데이터는 변경되지 않습니다.</p><p class="nd-mn-status" role="status" aria-live="polite"></p><footer><button type="button" data-mn-reset>기본값</button><button type="button" data-mn-close>취소</button><button type="button" data-mn-save>저장</button></footer>';
+    dialog.innerHTML='<header><h2 id="ndMobileNavTitle">하단 메뉴 편집</h2><button type="button" data-mn-close aria-label="닫기">×</button></header><p class="nd-mn-help">홈과 더보기는 고정입니다. 서로 다른 메뉴 3개를 선택해 주세요.<br>오른쪽 위·아래 화살표로 순서를 바꿀 수 있어요.</p><div class="nd-mn-preview" aria-label="하단 메뉴 미리보기"></div><div class="nd-mn-slots"></div><p class="nd-mn-note">이 기기·브라우저에만 저장됩니다. 같은 브라우저를 함께 사용하면 메뉴 설정도 공유됩니다. 업무 데이터는 변경되지 않습니다.</p><p class="nd-mn-status" role="status" aria-live="polite"></p><footer><button type="button" data-mn-reset>기본값</button><button type="button" data-mn-close>취소</button><button type="button" data-mn-save>저장</button></footer>';
     document.body.append(dialog);
     dialog.addEventListener('close',()=>{edit.focus();});
     // Keep Esc/Tab inside the top-layer dialog, not the drawer's keyboard handler.

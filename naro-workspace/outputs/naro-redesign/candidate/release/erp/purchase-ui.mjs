@@ -48,7 +48,7 @@ export function installPurchaseUI({port,features=()=>true}){
  const wait=new Map();
  const ask=(type,body={})=>new Promise((resolve,reject)=>{const requestId=crypto.randomUUID();wait.set(requestId,{resolve,reject});port().postMessage({type,requestId,...body});setTimeout(()=>{if(wait.has(requestId)){wait.delete(requestId);reject(Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'}));}},45000);});
  const onMessage=m=>{if(typeof m?.type!=='string'||!m.type.startsWith('PURCHASE_'))return false;const w=wait.get(m.requestId);if(!w)return true;wait.delete(m.requestId);if(m.type==='PURCHASE_ERROR')w.reject(Object.assign(Error(m.code||'INTERNAL_ERROR'),{code:m.code||'INTERNAL_ERROR'}));else w.resolve(m);return true;};
- const st={status:'unknown',doc:null,sel:null,tab:'items',filter:'',q:'',draft:null,dirty:false,editing:false,open:false,working:false,note:'',sz:null};
+ const st={rowOpen:new Set(),status:'unknown',doc:null,sel:null,tab:'items',filter:'',q:'',draft:null,dirty:false,editing:false,open:false,working:false,note:'',sz:null};
  const mob=matchMedia('(max-width:820px)'),desk=matchMedia('(min-width:1024px)');
  const D=()=>app.db,companies=()=>D()?.companies||[];
  const coName=id=>companies().find(c=>c.id===id)?.name||'';
@@ -156,7 +156,7 @@ export function installPurchaseUI({port,features=()=>true}){
   if(st.status==='loading'||st.status==='unknown')return box('불러오는 중…','');
   if(st.status==='unsupported')return box('Google Drive에서는 아직 매입을 쓸 수 없어요','매입 기록은 지금 Dropbox에서만 저장돼요. 다른 기능은 그대로 쓸 수 있어요.');
   if(st.status==='error')return box('매입을 불러오지 못했어요',esc(st.note||'잠시 뒤 다시 시도해 주세요.'),'<button type="button" class="btn ghost" data-act="reload">다시 불러오기</button>');
-  if(st.status==='absent')return box('매입을 시작할까요?','매입처·품목·수량·단가를 적고 [입고 처리]를 하면 재고에 더해지고, 줄 돈(미출금)이 잡혀요.<br>기존 재고·입출금 기록은 바뀌지 않아요.','<button type="button" class="btn save" data-act="start">매입 시작하기</button>');
+  if(st.status==='absent')return box('매입을 시작할까요?','매입처·품목·수량·단가를 적고 [입고 처리]를 하면 재고에 더해지고, 미지급으로 잡혀요.<br>기존 재고·입출금 기록은 바뀌지 않아요.','<button type="button" class="btn save" data-act="start">매입 시작하기</button>');
   return box('왼쪽에서 매입을 고르거나','<b>+</b> 버튼으로 새로 적으세요.');
  }
  function match(p){
@@ -195,8 +195,8 @@ export function installPurchaseUI({port,features=()=>true}){
  }
  // 진행 줄: 발주 → 입고 → 출금 → 계산서 + 다음 할 일(견적서: 수주 → 납품 → 입금 → 계산서)
  function next(p,sv){
-  if(p.removed_at)return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>삭제됨</b><span>${mdShort(p.removed_at.slice(0,10))} 삭제 · 재고·줄 돈에서 빠졌어요</span></div><button type="button" class="btn ghost" data-act="restore">복원</button></div>`;
-  if(p.status==='취소')return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>취소됨</b><span>재고·줄 돈에서 빠졌어요</span></div></div>`;
+  if(p.removed_at)return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>삭제됨</b><span>${mdShort(p.removed_at.slice(0,10))} 삭제 · 재고·지급할 금액에서 빠졌어요</span></div><button type="button" class="btn ghost" data-act="restore">복원</button></div>`;
+  if(p.status==='취소')return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>취소됨</b><span>재고·지급할 금액에서 빠졌어요</span></div></div>`;
   const q=qtyOf(p),got=gotOf(p),ps=sv?payState(p):{due:totals(p).total,paid:0},left=Math.max(0,ps.due-ps.paid),tax=!!p.tax_invoice?.received;
   const allIn=sv&&q>0&&got>=q;
   const list=[
@@ -256,27 +256,36 @@ export function installPurchaseUI({port,features=()=>true}){
  function flow(p,sv){
   if(!sv)return '<p class="nd-rec-empty" style="padding:18px 0">먼저 [저장]을 눌러 주세요. 저장한 뒤 입고 처리·출금을 기록할 수 있어요.</p>';
   const ids=new Set((D().stock_moves||[]).map(m=>m.id)),ps=payState(p),q=qtyOf(p),got=gotOf(p),left=Math.max(0,ps.due-ps.paid),live=p.status!=='취소';
-  const lineLabel=r=>r.lines.map(x=>{const l=p.lines.find(y=>y.id===x.line_id);return [l?.color,l?.spec].filter(Boolean).join('·')+` ${n0(x.qty)}`;}).join(', ');
   const warn=t=>`<b class="nd-pl-warn">${t}</b>`;
   const action=(label,act,disabled=false)=>`<button type="button" class="nd-record-action" data-act="${act}" ${disabled?'disabled':''}>${label}</button>`;
   const section=(type,title,summary,buttons,body)=>{const id='pu-record-'+type,opened=st.recOpen?.[type]!==false;return `<section class="nd-record-section nd-pl"><div class="nd-record-heading"><button type="button" class="qt-sec-t nd-record-toggle" data-record-toggle="${type}" aria-expanded="${opened}" aria-controls="${id}">${title}<span class="cnt">${summary}</span></button><div class="nd-record-actions">${buttons}</div></div><div id="${id}" ${opened?'':'hidden'}>${body}</div></section>`;};
   const head=cols=>`<div class="nd-pl-row nd-pl-th nd-pl-pl" aria-hidden="true">${cols.map(([t,n])=>`<span class="${n?'num':''}">${t}</span>`).join('')}</div>`;
   const empty=t=>`<p class="nd-pl-empty">${t}</p>`;
   const row=(date,name,sub,amount,act='',gone=false)=>`<div class="nd-pl-rec${gone?' gone':''}"><div class="nd-rec-row nd-pl-row nd-pl-pl nd-pl-main"><span class="nd-pl-d num">${mdShort(date)}</span><span class="nd-pl-nm nd-pl-plain">${name}${sub?`<small>${sub}</small>`:''}</span><span class="num nd-pl-q">${amount}</span><span class="nd-pl-act">${act}</span></div></div>`;
+  // 입고·반품 줄(UI-RULES 'Purchases follow quotes'): 견적서 납품 줄과 같은 부품 — 날짜 · 품목(첫 품목 외 N건) · 상태 · 수량 · [⋯],
+  // 줄을 누르면 품목 · 옵션 · 수량이 펼쳐진다(견적서 납품과 같은 .nd-pl-dl / .nd-pl-x).
+  const itemName=l=>{const it=itemOf(l?.item_id);return it?`${it.name||'품목'}${it.code?` [${it.code}]`:''}`:'품목';};
+  const recLines=r=>r.lines.map(x=>({l:p.lines.find(y=>y.id===x.line_id),qty:x.qty})).filter(x=>x.qty>0);
+  const recName=r=>{const ls=recLines(r),names=[...new Set(ls.map(x=>itemName(x.l)))];return names.length?esc(names[0])+(names.length>1?` 외 ${names.length-1}건`:''):'품목';};
+  const opt=l=>[l?.color,l?.spec].filter(Boolean).map(esc).join(' · ');
+  const dlRow=(kind,r,state,n,act,gone)=>{const k=kind+':'+r.id,on=!gone&&st.rowOpen?.has(k);
+   const sub=recLines(r).map(x=>`<div class="nd-pl-row nd-pl-sub nd-pl-dl"><span></span><span class="nd-pl-in">${esc(itemName(x.l))}${opt(x.l)?`<small>${opt(x.l)}</small>`:''}</span><span></span><span class="num">${n0(x.qty)}</span><span></span></div>`).join('');
+   return `<div class="nd-pl-rec${on?' on':''}${gone?' gone':''}"><div class="nd-rec-row nd-pl-row nd-pl-dl nd-pl-main" ${gone?'':`data-pl-open="${esc(k)}" role="button" tabindex="0" aria-expanded="${on}"`}><span class="nd-pl-d num">${mdShort(r.date)}</span><span class="nd-pl-nm">${recName(r)}${gone?'<small>취소됨</small>':''}</span><span class="nd-pl-ship">${state}</span><span class="num nd-pl-q">${n0(n)}</span><span class="nd-pl-act">${act}</span></div>${on?`<div class="nd-pl-x">${sub}</div>`:''}</div>`;};
+  const dlHead=cols=>`<div class="nd-pl-row nd-pl-th nd-pl-dl" aria-hidden="true">${cols.map(([t,n])=>`<span class="${n?'num':''}">${t}</span>`).join('')}</div>`;
   const recs=(p.receipts||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(r=>{const s=receiptState(r,ids),n=r.lines.reduce((a,x)=>a+x.qty,0);
-   if(s==='void')return row(r.date,'입고',esc(lineLabel(r))+' · 취소됨',`${n0(n)}개`,'',true);
-   return row(r.date,'입고',esc(lineLabel(r))+(s==='posted'?'':' · 마무리 필요'),`${n0(n)}개`,s==='posted'&&live?`<button type="button" class="nd-rec-more" data-menu-r="${esc(r.id)}" aria-label="이 입고 기록 메뉴" aria-expanded="false">${DOTS}</button>`:'');}).join('');
+   if(s==='void')return dlRow('r',r,'',n,'',true);
+   return dlRow('r',r,s==='posted'?'입고 완료':warn('마무리 필요'),n,s==='posted'&&live?`<button type="button" class="nd-rec-more" data-menu-r="${esc(r.id)}" aria-label="이 입고 기록 메뉴" aria-expanded="false">${DOTS}</button>`:'',false);}).join('');
   const payList=pays(p).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const payRows=payList.map(x=>x.kind==='지급'?row(x.date,esc(x.method||'출금'),x.memo&&!/^매입 /.test(x.memo)?esc(x.memo):'',money(x.amount)):row(x.date,'환불 받음',x.memo?esc(x.memo):'',`−${money(x.amount)}`)).join('');
-  const retRows=(p.returns||[]).map(t=>row(t.date,'반품',esc(lineLabel(t))+(t.reason?' · '+esc(t.reason):'')+(t.posted_at?'':' · 마무리 필요'),`${n0(t.lines.reduce((a,x)=>a+x.qty,0))}개`)).join('');
+  const retRows=(p.returns||[]).map(t=>dlRow('t',t,(t.posted_at?esc(t.reason||'반품 완료'):warn('마무리 필요')),t.lines.reduce((a,x)=>a+x.qty,0),'',false)).join('');
   const retQty=(p.returns||[]).reduce((a,t)=>a+t.lines.reduce((b,x)=>b+x.qty,0),0);
   const canReturn=live&&p.lines.some(l=>received(p,l)-returned(p,l)>0),tax=p.tax_invoice||{};
   const recSum=live?`${n0(q)}개 중 ${n0(got)}개${got<q?' · '+warn(n0(q-got)+'개 남음'):got?' · 완료':''}`:`취소된 매입${got?` · 재고에 ${n0(got)}개 남음`:''}`;
   const paySum=live?`${n0(ps.due)}원 중 ${n0(ps.paid)}원${left>0?' · '+warn(n0(left)+'원 남음'):ps.paid>ps.due?' · '+warn(n0(ps.paid-ps.due)+'원 초과'):ps.paid?' · 완료':''}`:cancelPaySummary(p);
   return `<div class="nd-rec">
-   ${section('receipt','입고',recSum,live&&got<q?action('입고 추가','receive-part'):'',recs?head([['날짜'],['옵션 · 수량'],['수량',true],['']])+recs:empty(live?'아직 입고 기록이 없어요.':'입고 기록이 없어요.'))}
-   ${section('payment','출금',paySum,live?action('출금 추가','pay'):'',payRows?head([['날짜'],['방법 · 메모'],['금액',true],['']])+payRows:empty(live&&ps.due>0?`아직 출금 기록이 없어요 · 줄 돈 ${n0(left)}원`:'출금 기록이 없어요.'))}
-   ${section('return','반품',retQty?`${n0(retQty)}개 돌려보냄`:'없음',canReturn?action('반품','return'):'',retRows?head([['날짜'],['옵션 · 사유'],['수량',true],['']])+retRows:empty('입고된 것 중 매입처로 돌려보낸 수량을 기록해요.'))}
+   ${section('receipt','입고',recSum,live&&got<q?action('입고 추가','receive-part'):'',recs?dlHead([['날짜'],['품목'],['상태'],['수량',true],['']])+recs:empty(live?'아직 입고 기록이 없어요.':'입고 기록이 없어요.'))}
+   ${section('payment','출금',paySum,live?action('출금 추가','pay'):'',payRows?head([['날짜'],['방법 · 메모'],['금액',true],['']])+payRows:empty(live&&ps.due>0?`아직 출금 기록이 없어요 · 지급할 금액 ${n0(left)}원`:'출금 기록이 없어요.'))}
+   ${section('return','반품',retQty?`${n0(retQty)}개 돌려보냄`:'없음',canReturn?action('반품','return'):'',retRows?dlHead([['날짜'],['품목'],['사유'],['수량',true],['']])+retRows:empty('입고된 것 중 매입처로 돌려보낸 수량을 기록해요.'))}
    ${section('tax','계산서',tax.received?'받음':warn('미수취'),action(tax.received?'수정':'받음 기록','tax'),tax.received?head([['날짜'],['구분'],['합계',true],['']])+row(tax.date||'','수취','',money(ps.due)):empty('계산서를 받으면 받은 날을 남겨 두세요.'))}
   </div>`;
  }
@@ -285,14 +294,14 @@ export function installPurchaseUI({port,features=()=>true}){
   const lockV=sv&&!editable(p),dateHtml=typeof g.dateControlHtml==='function'?g.dateControlHtml('pu_date',p.date,'매입일'):`<input type="date" id="pu_date" value="${esc(p.date)}" aria-label="매입일">`;
   // 정보 묶음(10/16, UI-RULES 'Information groups'): 견적서 정보 탭 · 거래처와 같은 '묶음 이름 + 설명 / 칸' 모양
   const grp=(k,t,d,h)=>`<section class="cp-grp nd-ig-${k}"><div class="cp-grph"><h4>${t}</h4>${d?`<p>${d}</p>`:''}</div><div class="cp-grpb">${h}</div></section>`;
-  return grp('basic','기본 정보','매입 장부에 남아요',`<div class="field"><label for="pu_co">매입처 *</label><select id="pu_co" ${lockV?'disabled':''}><option value="">매입처 선택</option>${vendors.map(c=>`<option value="${esc(c.id)}" ${c.id===p.vendor_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${vendors.length?'':'<div class="hint">거래처 화면에서 구분을 \'매입\'으로 등록하면 여기에 나와요.</div>'}</div>
+  return grp('basic','기본 정보','매입 장부 기록',`<div class="field"><label for="pu_co">매입처 *</label><select id="pu_co" ${lockV?'disabled':''}><option value="">매입처 선택</option>${vendors.map(c=>`<option value="${esc(c.id)}" ${c.id===p.vendor_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${vendors.length?'':'<div class="hint">거래처 화면에서 구분을 \'매입\'으로 등록하면 이곳에 표시됩니다.</div>'}</div>
     <div class="grid2 nd-ig-pair"><div class="field"><label for="pu_date">매입일</label>${dateHtml}</div>
     <div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div></div>`)
-   +grp('memo','비고','나만 보는 메모예요',`<div class="field"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div>`)
-   +(sv&&g.NaroChangeLog?grp('manage','관리','자주 쓰지 않아요','<button type="button" class="nd-log-link nd-ig-log" data-act="log">이 매입의 변경 기록 보기</button>'):'');
+   +grp('memo','비고','내부 메모(출력 안 됨)',`<div class="field"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div>`)
+   +(sv&&g.NaroChangeLog?grp('manage','관리','','<button type="button" class="nd-log-link nd-ig-log" data-act="log">이 매입의 변경 기록 보기</button>'):'');
  }
  const moreBtns=p=>p.removed_at?'':`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}<button class="btn del" type="button" data-act="delete">삭제</button>`;
- const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 줄 돈 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
+ const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 지급할 금액 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
  const deletable=p=>!(p.receipts||[]).length&&!(p.returns||[]).length&&!(D().payments||[]).some(x=>x.purchase_id===p.id)&&!(D().stock_moves||[]).some(m=>m.purchase_id===p.id);
 
  // ── 고치기 ──
@@ -320,7 +329,7 @@ export function installPurchaseUI({port,features=()=>true}){
   if(!st.dirty||st.working)return;
   const p=structuredClone(st.draft);if(!p)return;
   p.lines=p.lines.filter(l=>l.item_id);
-  if(!p.vendor_id){toast('매입처를 골라 주세요.');st.tab='basic';render();return;}
+  if(!p.vendor_id){toast('매입처를 선택해 주세요.');st.tab='basic';render();return;}
   if(!p.lines.length||p.lines.some(l=>!(Number.isSafeInteger(l.qty)&&l.qty>0)||!(l.unit_price>=0))){toast('품목·수량·단가를 확인해 주세요.');st.tab='items';st.editing=true;render();return;}
   recalcVat(p);p.updated_at=nowIso();
   const next={...st.doc,rows:cur()?st.doc.rows.map(x=>x.id===p.id?p:x):[...st.doc.rows,p]};
@@ -384,7 +393,7 @@ export function installPurchaseUI({port,features=()=>true}){
   qtyPicker({title:'반품',sub:`${esc(coName(p.vendor_id))} · 입고된 것만`,rowsIn:rest,start:'zero',unit:'개',goLabel:'반품 확인',danger:true,
    note:'돌려보낸 수량만 늘리세요.',
    fields:`<label>반품일<input type="date" id="puQaDate" data-keep value="${today()}"></label><label>사유<input id="puQaMemo" data-keep placeholder="예: 불량"></label>`,
-   after:n=>n?`확인하면 <b>재고에서 ${n0(n)}개 빠지고</b>, 줄 돈이 줄어요.`:'반품할 수량을 넣어 주세요.',
+   after:n=>n?`확인하면 <b>재고에서 ${n0(n)}개 빠지고</b>, 지급할 금액이 줄어요.`:'반품할 수량을 넣어 주세요.',
    onGo:async(d,lines)=>{if(!lines.length)throw Error('반품할 수량을 넣어 주세요.');void unit;await postReturn(io,p.id,{returnId:tid,date:d.querySelector('#puQaDate').value||today(),lines,reason:d.querySelector('#puQaMemo').value.trim(),at:nowIso()});toast('반품을 기록했어요 · 재고에서 뺐어요');}});
  }
  const METHODS=['계좌이체','카드','현금','기타'];
@@ -560,6 +569,9 @@ export function installPurchaseUI({port,features=()=>true}){
   view.querySelector('#puForm')?.scrollIntoView?.({block:'nearest'});
  }
  function bind(){
+  // 입고·반품 줄 펼치기(견적서 납품 줄과 같은 동작): 줄을 누르거나 Enter/Space
+  view.querySelectorAll('#puForm [data-pl-open]').forEach(el=>{const t=()=>{const k=el.dataset.plOpen;st.rowOpen.has(k)?st.rowOpen.delete(k):st.rowOpen.add(k);render();view.querySelector(`#puForm [data-pl-open="${CSS.escape(k)}"]`)?.focus({preventScroll:true});};
+   el.addEventListener('click',ev=>{if(ev.target.closest('button,a'))return;t();});el.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target===el){ev.preventDefault();t();}});});
   view.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',async()=>{
    const a=b.dataset.act;
    if(a==='reload')return load(true);

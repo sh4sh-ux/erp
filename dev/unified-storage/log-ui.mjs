@@ -36,7 +36,7 @@ export function installLogUI({port}){
   for(const r of list){const d=day(r.at);if(d!==last){body+=`<div class="nd-log-day">${esc(d)}</div>`;last=d;}
    body+=`<div class="nd-log-row"><span class="t">${esc(time(r.at))}</span><div class="m"><div class="l"><b class="a a-${esc(r.action)}">${esc(r.action)}</b><span>${esc(r.label)}</span></div>${(r.changes||[]).length?`<ul>${r.changes.map(c=>`<li>${esc(c)}</li>`).join('')}</ul>`:''}</div><span class="w" title="${esc(r.by)}">${esc((r.by||'').split('@')[0]||'—')}</span></div>`;}
   const [y,m]=month.split('-');
-  sheet.innerHTML=`<div class="nd-ps-hd nd-log-hd"><div><b id="ndLogTtl">${ref?`이 ${esc(noun)}의 변경 기록`:'변경 기록'}</b><span class="nd-log-sub">${ref?esc(refTitle)+' · 최근 6개월':'누가 · 언제 · 무엇을 바꿨는지'}</span></div>
+  sheet.innerHTML=`<div class="nd-ps-hd nd-log-hd"><div><b id="ndLogTtl">${ref?`이 ${esc(noun)}의 변경 기록`:'변경 기록'}</b><span class="nd-log-sub">${ref?esc(refTitle)+' · 최근 6개월':'변경자 · 일시 · 변경 내용'}</span></div>
     ${ref?'':`<div class="nd-log-month"><button type="button" data-m="-1" aria-label="이전 달">‹</button><span>${Number(y)}년 ${Number(m)}월</span><button type="button" data-m="1" aria-label="다음 달" ${month>=local()?'disabled':''}>›</button></div>`}</div>
    ${ref?'':`<div class="nd-log-tabs" role="group" aria-label="화면별">${TABS.map(([k,t])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${t}</button>`).join('')}</div>`}
    <div class="nd-log-list">${loading?'<p class="nd-log-empty">불러오는 중…</p>':error?`<p class="nd-log-empty">${esc(error)}</p>`:body||`<p class="nd-log-empty">${ref?`이 ${esc(noun)}의 기록이 없어요.`:'이 달에는 기록이 없어요.'}<br><small>기록은 이번 업데이트 이후 저장부터 남아요.</small></p>`}</div>
