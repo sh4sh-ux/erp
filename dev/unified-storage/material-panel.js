@@ -10,7 +10,7 @@
  const ui={lt:'company',showDone:false,tab:'materials',open:new Set(),rec:'all',flash:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const n0=v=>Math.round(Number(v)||0).toLocaleString('ko-KR');
- const WD='일월화수목금토',wd=d=>{const t=Date.parse((d||'')+'T00:00:00Z');return Number.isFinite(t)?WD[new Date(t).getUTCDay()]:'';};
+ const ymd=d=>/^\d{4}-\d{2}-\d{2}/.test(d||'')?d.slice(0,10).replaceAll('-','.'):''; // 기록 표 날짜 = 견적서·입금과 같은 연.월.일(10/17 시안 D)
  const md=d=>{const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||'');return m?`${Number(m[1])}.${m[2]}`:'';};
  const KIND={'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'};
  const KCLS={'받음':'in','작업 완료':'use','반환':'ret','불량/분실':'ret'};
@@ -95,15 +95,15 @@
    body=`<div class="mp-sec"><span class="qt-sec-t">자재<span class="cnt">${s.list.length}종 · 남음 ${n0(s.balance)}개</span></span></div>`+(s.list.length?head+s.list.map(g=>{
     const on=ui.open.has(g.name),pct=g.received?Math.round(g.balance/g.received*100):0;
     const recs=live.filter(m=>m.material===g.name).slice(0,6);
-    const sub=recs.map(m=>`<div class="mp-sub"><span class="num">${md(m.date)}</span><span class="mp-k ${KCLS[m.kind]}">${KIND[m.kind]||esc(m.kind)}</span><span class="mp-src">${srcText(m)}</span><span class="num">${signed(m)}</span></div>`).join('');
+    const sub=recs.map(m=>`<div class="mp-sub"><span class="num">${ymd(m.date)}</span><span class="mp-k ${KCLS[m.kind]}">${KIND[m.kind]||esc(m.kind)}</span><span class="mp-src">${srcText(m)}</span><span class="num">${signed(m)}</span></div>`).join('');
     const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기</button>`:'';
     return `<div class="mp-rec${on?' on':''}"><div class="mp-row-t mp-g6 mp-main" data-mp-open="${esc(g.name)}" role="button" tabindex="0" aria-expanded="${on}"><span class="mp-nm">${esc(g.name)}</span><span class="num">${n0(g.received)}</span><span class="num">${n0(g.used+g.returned+g.lost)}</span><span class="num mp-b">${n0(g.balance)}</span><span class="mp-pct" title="${g.balance>0?`${pct}% 남음`:'다 씀'}">${bar({received:g.received,balance:g.balance,used:g.used,out:g.returned+g.lost},'mp-mini')}${g.balance>0?'':'<small>다 씀</small>'}</span><span class="mp-act"><button type="button" class="mp-dots" data-mp-mat="${esc(g.name)}" aria-label="${esc(g.name)} 메뉴" aria-expanded="false">${DOTS}</button></span></div>${on?`<div class="mp-x">${sub||'<p class="mp-empty">기록이 없어요</p>'}${more}</div>`:''}</div>`;}).join(''):`<p class="mp-empty mp-line">아직 자재가 없어요</p>`);
   }else if(ui.tab==='history'){
    const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'))||(ui.rec==='네이버'&&isNaver(m));
    const chips=[['all','전체'],['받음','받음'],['사용','사용'],['반환','반환·불량'],['네이버','네이버']].map(([k,l])=>`<button type="button" data-mp-rf="${k}" aria-pressed="${ui.rec===k}">${l}</button>`).join('');
-   const list=rows.filter(pass);let month='';
-   const items=list.map(m=>{const mo=(m.date||'').slice(0,7),hd=mo!==month?`<div class="mp-month">${Number(mo.slice(5,7))||''}월<span>${mo.slice(0,4)}</span></div>`:'';month=mo;
-    return hd+`<div class="mp-row-t mp-g5 mp-hrow${m.void_at?' gone':''}${ui.flash===m.id?' flash':''}" data-mp-hrow="${esc(m.id)}"><span class="num mp-d"><b>${Number((m.date||'').slice(8,10))||''}</b><small>${wd(m.date)}</small></span><span class="mp-kind"><i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${KIND[m.kind]||esc(m.kind)}<small class="mp-pd">${md(m.date)}${m.quote_id&&quoteOf(m.quote_id)?` · ${esc(quoteOf(m.quote_id).no||'')}`:''}</small>${m.void_at?'<small>취소됨</small>':''}</span><span class="mp-nmc"><span class="mp-nm">${esc(m.material)}</span><span class="mp-src">${srcText(m,false)}</span></span><span class="mp-memo" title="${esc(m.memo||'')}">${esc(m.memo||'')}</span><span class="num mp-b">${signed(m)}</span><span class="mp-act">${m.void_at?'':`<button type="button" class="mp-dots" data-mp-rm="${esc(m.id)}" aria-label="이 기록 메뉴" aria-expanded="false">${DOTS}</button>`}</span></div>`;}).join('');
+   const list=rows.filter(pass);
+   const items=list.map(m=>{
+    return `<div class="mp-row-t mp-g5 mp-hrow${m.void_at?' gone':''}${ui.flash===m.id?' flash':''}" data-mp-hrow="${esc(m.id)}"><span class="num mp-d">${ymd(m.date)}</span><span class="mp-kind"><i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${KIND[m.kind]||esc(m.kind)}<small class="mp-pd">${ymd(m.date)}${m.quote_id&&quoteOf(m.quote_id)?` · ${esc(quoteOf(m.quote_id).no||'')}`:''}</small>${m.void_at?'<small>취소됨</small>':''}</span><span class="mp-nmc"><span class="mp-nm">${esc(m.material)}</span><span class="mp-src">${srcText(m,false)}</span></span><span class="mp-memo" title="${esc(m.memo||'')}">${esc(m.memo||'')}</span><span class="num mp-b">${signed(m)}</span><span class="mp-act">${m.void_at?'':`<button type="button" class="mp-dots" data-mp-rm="${esc(m.id)}" aria-label="이 기록 메뉴" aria-expanded="false">${DOTS}</button>`}</span></div>`;}).join('');
    body=`<div class="mp-sec"><span class="qt-sec-t">기록<span class="cnt">${n0(live.length)}건</span></span><div class="mp-rchips" role="group" aria-label="기록 구분">${chips}</div></div>`+(items?`<div class="mp-row-t mp-th mp-g5" aria-hidden="true"><span>날짜</span><span>구분</span><span>자재 · 출처</span><span>메모</span><span class="num">수량</span><span></span></div>${items}`:`<p class="mp-empty mp-line">기록이 없어요</p>`);
   }else{
    const kv=[['전화',co.phone],['이메일',co.email],['담당',co.manager||co.contact],['주소',co.address]].filter(([,v])=>v);
