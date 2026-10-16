@@ -6,6 +6,12 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const paymentLabel=s=>'<span class="nd-payment-label">'+esc(s).replace('입금·출금','입금<i class="nd-payment-dot">·</i>출금')+'</span>';
  const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
+ /* 견적 고르기의 금액(UI-RULES 'Receivables'): 받을 금액 = 납품액 − 받은 돈(받을 금액 화면과 같은 기준), 견적 남은 = 견적 전체 − 받은 돈.
+    둘이 다르면 둘 다 보여 주고, 금액 칸은 받을 금액으로 채운다. 아직 납품 전이면(선입금) 견적 남은 금액으로 채운다. */
+ const owed=q=>{const bal=fn('quoteBalance'),del=fn('deliveredAmount'),paid=fn('quotePaid');const rest=Math.max(0,bal?bal(q):0);
+  if(!del||!paid)return {fill:rest,note:'견적 남은 금액'};const d=del(q),ar=Math.max(0,d-paid(q.id));
+  if(d<=0.5)return {fill:rest,note:'견적 남은 · 납품 전'};if(Math.abs(ar-rest)<0.5)return {fill:ar,note:'받을 금액'};
+  return {fill:ar,note:`받을 금액 · 견적 남은 ${num(rest)}원`};};
  const won=n=>num(n)+'원';
  const state={id:null,mobileOpen:false,signature:'',listSig:'',mobileSig:'',editing:null,menu:false};
  let queued=false;
@@ -173,7 +179,7 @@
   else if(co){
    if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 돈인가요?');co.after(pick);}
    const cur=value('payQuote');
-   const html=`<span class="pp-qpick-k">어느 건의 돈인가요? · 남은 금액이 있는 견적</span>${qs.map(q=>`<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><b>${won(bal(q))}</b></button>`).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
+   const html=`<span class="pp-qpick-k">어느 건의 돈인가요? · 남은 금액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
   const head=document.querySelector('#view-payments>.workspace-heading');
@@ -219,7 +225,7 @@
   wrapAdd();
   v.addEventListener('click',ev=>{
    const pq=ev.target.closest('[data-pq]');
-   if(pq){const id=pq.dataset.pq;set('payQuote',id);const q=(data()?.quotes||[]).find(x=>x.id===id),bal=fn('quoteBalance'),a=document.getElementById('payAmt');if(a&&q&&bal)a.value=num(bal(q));syncEntry();return;}
+   if(pq){const id=pq.dataset.pq;set('payQuote',id);const q=(data()?.quotes||[]).find(x=>x.id===id),bal=fn('quoteBalance'),a=document.getElementById('payAmt');if(a&&q&&bal)a.value=num(owed(q).fill);syncEntry();return;}
    const b=ev.target.closest('[data-pp]');if(!b)return;const p=get(state.id);
    if(b.dataset.pp!=='menu'&&state.menu)state.menu=false;
    switch(b.dataset.pp){

@@ -6,7 +6,7 @@ const js=await readFile(new URL('./payment-panel.js',import.meta.url),'utf8');
 const css=await readFile(new URL('./payment-panel.css',import.meta.url),'utf8');
 const design=await readFile(new URL('./naro-design.js',import.meta.url),'utf8');
 const layout=await readFile(new URL('./panel-layout-b.js',import.meta.url),'utf8');
-function fixture(){
+function fixture(extra={}){
  const db={companies:[{id:'c',name:'검증 거래처'}],quotes:[{id:'q',company_id:'c',no:'Q-TEST'}],payments:[
   {id:'p',company_id:'c',quote_id:'q',date:'2026-10-11',kind:'수금',amount:100000,method:'계좌이체'},
   {id:'r',company_id:'c',date:'2026-10-10',kind:'지급',refund:true,amount:10000},
@@ -15,8 +15,8 @@ function fixture(){
   {id:'other',company_id:'d',date:'2026-10-11',kind:'수금',amount:888888},
   {id:'void',company_id:'c',date:'2026-10-11',kind:'수금',amount:777777,void_at:'x'}]};
  const values={payPeriod:'month',payMonth:'2026-10',payFilter:'수금',payFrom:'',payTo:''},ids=['p','unlinked','other'];
- const context={db,window:{},matchMedia:()=>({matches:true}),document:{readyState:'loading',addEventListener(){},getElementById:id=>({value:values[id]}),querySelectorAll:()=>ids.map(id=>({dataset:{id}}))}};
- vm.runInNewContext(js.replace('window.NaroPaymentPanel={open:show};','window.test={history,totals,markup,inPeriod};window.NaroPaymentPanel={open:show};'),context);
+ const context={...extra,db,window:{},matchMedia:()=>({matches:true}),document:{readyState:'loading',addEventListener(){},getElementById:id=>({value:values[id]}),querySelectorAll:()=>ids.map(id=>({dataset:{id}}))}};
+ vm.runInNewContext(js.replace('window.NaroPaymentPanel={open:show};','window.test={history,totals,markup,inPeriod,owed};window.NaroPaymentPanel={open:show};'),context);
  return {db,values,ids,api:context.window.test};
 }
 test('company history includes all directions and unlinked payments in period, never another company or voids',()=>{
@@ -98,7 +98,15 @@ test('tables reuse the quote table rules and selection uses the soft fill, never
  assert.match(css,/tr:focus-visible\{outline:2px solid var\(--nd-blue\)/);
 });
 test('entry: open quotes of the company are offered and fill the remaining amount; PC keeps 거래처 → 어느 건 → 금액',()=>{
- assert.match(js,/open\(cid\)/);assert.match(js,/a.value=num\(bal\(q\)\)/);
+ assert.match(js,/open\(cid\)/);assert.match(js,/a.value=num\(owed\(q\).fill\)/);
  assert.match(css,/grid-template-areas:"kind kind" "co co" "pick pick" "amt date" "method memo" "btn btn"/);
  assert.match(css,/#payEntry\.pp-has-pick \.pf-quote\{display:none!important\}/);
+});
+
+test('quote picker amount: receivable (delivered − paid) first, quote remainder shown beside it; before delivery the quote remainder',()=>{
+ const q={id:'q'};let delivered=50000;
+ const {api}=fixture({quoteBalance:()=>200000,deliveredAmount:()=>delivered,quotePaid:()=>30000});
+ assert.deepEqual({...api.owed(q)},{fill:20000,note:'받을 금액 · 견적 남은 200,000원'});
+ delivered=0;assert.deepEqual({...api.owed(q)},{fill:200000,note:'견적 남은 · 납품 전'});
+ delivered=230000;assert.deepEqual({...api.owed(q)},{fill:200000,note:'받을 금액'});
 });
