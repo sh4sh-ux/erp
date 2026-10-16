@@ -25,7 +25,6 @@
  #appView .nd-sa-entry>.nd-sa-margin{grid-column:2;grid-row:2}
  #appView .nd-sa-sale{display:block;line-height:21px}
  #appView .nd-sa-money>.nd-sa-margin{margin-top:4px}
- #appView .nd-sa-table tbody td.nd-sa-name,#appView .nd-sa-table tbody td.nd-sa-money{vertical-align:top}
  #appView .nd-sa-table .nd-sa-open-detail{min-height:21px}
  #appView .nd-sa-header{width:100%;min-width:0}
  #appView .nd-sa-headline{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;min-width:0}
@@ -240,3 +239,13 @@ html body #appView #view-sales .nd-sa-open-detail:focus-visible{outline:2px soli
  #appView .nd-sa-kpis>div{padding-left:12px}
  #appView .nd-sa-abar{position:sticky;bottom:0;margin:20px -24px 0;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--nd-line);background:var(--nd-surface)}
 }
+
+/* 10/17: 표 글자·정렬을 견적서 표 규칙(UI-RULES 'Quote panel tables')과 같게.
+   예전엔 금액용 공통 규칙(ui-contract 'List and ledger money')이 숫자 칸(.nd-sa-n) 전체에 걸려
+   머리 '수량·비중·판매 금액'과 수량이 14px 굵게, '품목' 머리만 11px로 서로 달랐다. */
+html body #appView #view-sales .nd-sa-table thead th{font:500 12px/18px var(--nd-ui-font,var(--sans))!important;letter-spacing:normal!important;color:var(--nd-ink-3)!important}
+html body #appView #view-sales .nd-sa-table tbody td{vertical-align:middle}
+html body #appView #view-sales .nd-sa-table tbody td.nd-sa-qty{font:400 13px/20px var(--nd-number-font)!important;color:var(--nd-ink)}
+html body #appView #view-sales .nd-sa-table tfoot td{font:600 13px/20px var(--nd-ui-font,var(--sans))!important;color:var(--nd-ink);vertical-align:middle}
+html body #appView #view-sales .nd-sa-table tfoot td.nd-sa-n{font-family:var(--nd-number-font)!important}
+html body #appView #view-sales .nd-sa-table :is(tbody,tfoot) td.nd-sa-money .nd-sa-sale{font:600 14px/21px var(--nd-number-font)!important}

@@ -221,8 +221,10 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){disp
 #appView #view-dash.nd-dashboard .nd-db-leg i.s{background:color-mix(in srgb,var(--nd-blue) 24%,transparent)}
 #appView #view-dash.nd-dashboard .nd-db-leg i.r{background:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-leg em{font-style:normal;color:var(--nd-ink-3)}
-#appView #view-dash.nd-dashboard .nd-db-nav{position:absolute;top:calc(var(--db-h) / 2 - 28px);z-index:3;width:30px;height:56px;border:0;background:transparent;color:var(--nd-ink-3);font-size:30px;font-weight:300;line-height:1;display:grid;place-items:center;padding:0 0 4px;cursor:pointer;font-family:inherit;opacity:0;pointer-events:none;transition:opacity .15s,color .12s}
+#appView #view-dash.nd-dashboard .nd-db-nav{position:absolute;top:calc(var(--db-h) / 2 - 36px);z-index:3;width:32px;height:72px;border:0;background:transparent;color:var(--nd-ink-3);line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;font-family:inherit;opacity:0;pointer-events:none;transition:opacity .15s,color .12s}
 #appView #view-dash.nd-dashboard .nd-db-nav[hidden]{display:none}
+/* 10/17: 화살표는 글자(‹ ›) 대신 키 큰 선 모양(아이콘과 같은 선 굵기) — 높이 40 · 너비 14 */
+#appView #view-dash.nd-dashboard .nd-db-nav svg{width:14px;height:40px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 #appView #view-dash.nd-dashboard .nd-db-plot:hover .nd-db-nav,#appView #view-dash.nd-dashboard .nd-db-nav:focus-visible{opacity:1;pointer-events:auto}
 #appView #view-dash.nd-dashboard .nd-db-nav.l{left:-10px}
 #appView #view-dash.nd-dashboard .nd-db-nav.r{right:-10px}

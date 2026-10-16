@@ -931,7 +931,8 @@
   .p-to-name{font-size:17px;font-weight:750;margin-bottom:12px}
   .p-info .irow{display:flex;gap:14px;font-size:12.5px;padding:3px 0;color:#333}
   .p-info .irow .k{color:#8A8F98;font-weight:600;min-width:60px}
-  .p-supplier{flex:0 0 46%;background:#F4F5F7;border-radius:14px;padding:15px 18px;align-self:flex-start}
+  .p-supplier .addr .ln{display:block}
+  .p-supplier{flex:0 1 auto;min-width:46%;max-width:60%;background:#F4F5F7;border-radius:14px;padding:15px 18px;align-self:flex-start}
   .p-supplier .shead{font-size:11px;font-weight:700;letter-spacing:.16em;color:#8A8F98;margin-bottom:7px}
   .p-supplier .srow{display:flex;gap:12px;font-size:12px;padding:3px 0;min-height:22px}
   .p-supplier .srow .k{color:#8A8F98;font-weight:600;min-width:62px;flex:0 0 auto}
@@ -5314,7 +5315,7 @@ function printQuote(q,docType){
         <div class="shead">공급자</div>
         <div class="srow"><span class="k">상호</span><span>${escapeHtml(s.name||"")}</span></div>
         <div class="srow"><span class="k">등록번호</span><span>${escapeHtml(s.biz_no||"")}</span></div>
-        <div class="srow"><span class="k">주소</span><span>${escapeHtml(s.address||"")}</span></div>
+        <div class="srow"><span class="k">주소</span><span class="addr">${supAddrLines(s.address).map(l=>`<span class="ln">${escapeHtml(l)}</span>`).join("")}</span></div>
         <div class="srow"><span class="k">계좌번호</span><span>${escapeHtml(s.bank||"")}</span></div>
         <div class="srow"><span class="k">전화</span><span>${escapeHtml(s.phone||"")}</span></div>
       </div>
@@ -5402,6 +5403,7 @@ function closePrintPreview(){
 /* ---------- 견적서 이미지(PNG) 내보내기 ----------
    인쇄 양식(A4 794×1123px@96dpi)과 동일한 레이아웃을 캔버스에 2배 해상도로 그림 */
 const QIMG_FONT='-apple-system,BlinkMacSystemFont,"SF Pro Display","Pretendard","Apple SD Gothic Neo",system-ui,sans-serif';
+function supAddrLines(a){ const f=window.naroSplitAddress; const [b,d]=f?f(a):[String(a||""),""]; return d?[b,d]:[b]; }
 function qimgWrap(ctx,text,maxW){
   const out=[];
   for(const raw of String(text||"").split("\n")){
@@ -5440,8 +5442,11 @@ function drawQuoteCanvas(q,docType){
 
   // --- 측정 패스 ---
   mc.font=F(400,12);
-  const supRows=[["상호",s.name||""],["등록번호",s.biz_no||""],["주소",s.address||""],["계좌번호",s.bank||""],["전화",s.phone||""]];
-  const supW=316, supPadX=18, supValW=supW-supPadX*2-62-12;
+  const supRows=[["상호",s.name||""],["등록번호",s.biz_no||""],["주소",supAddrLines(s.address).join("\n")],["계좌번호",s.bank||""],["전화",s.phone||""]];
+  // 공급자 칸 너비: 값 중 가장 긴 줄이 들어가는 만큼(최소 316) — 단 왼쪽 글자와 24px 이상 떨어지게
+  const supNeed=Math.ceil(Math.max(...supRows.flatMap(r=>String(r[1]).split("\n")).map(t=>mc.measureText(t).width)))+18*2+62+12+2;
+  mc.font=F(750,17); const leftNeed=Math.max(mc.measureText(coName(q.company_id)).width,200); mc.font=F(400,12);
+  const supW=Math.max(316,Math.min(supNeed,CW-leftNeed-24,420)), supPadX=18, supValW=supW-supPadX*2-62-12;
   const supLines=supRows.map(r=>qimgWrap(mc,r[1],supValW));
   const supRowsH=supLines.reduce((h,ls)=>h+Math.max(1,ls.length)*18+4,0);
   const supH=15+18+7+supRowsH+15;
@@ -9758,7 +9763,6 @@ html[data-theme="dark"][data-nd-accent="pink"]{--nd-blue:#FF6B9A;--nd-blue-ink:#
  #appView .nd-sa-entry>.nd-sa-margin{grid-column:2;grid-row:2}
  #appView .nd-sa-sale{display:block;line-height:21px}
  #appView .nd-sa-money>.nd-sa-margin{margin-top:4px}
- #appView .nd-sa-table tbody td.nd-sa-name,#appView .nd-sa-table tbody td.nd-sa-money{vertical-align:top}
  #appView .nd-sa-table .nd-sa-open-detail{min-height:21px}
  #appView .nd-sa-header{width:100%;min-width:0}
  #appView .nd-sa-headline{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;min-width:0}
@@ -9973,6 +9977,16 @@ html body #appView #view-sales .nd-sa-open-detail:focus-visible{outline:2px soli
  #appView .nd-sa-kpis>div{padding-left:12px}
  #appView .nd-sa-abar{position:sticky;bottom:0;margin:20px -24px 0;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--nd-line);background:var(--nd-surface)}
 }
+
+/* 10/17: 표 글자·정렬을 견적서 표 규칙(UI-RULES 'Quote panel tables')과 같게.
+   예전엔 금액용 공통 규칙(ui-contract 'List and ledger money')이 숫자 칸(.nd-sa-n) 전체에 걸려
+   머리 '수량·비중·판매 금액'과 수량이 14px 굵게, '품목' 머리만 11px로 서로 달랐다. */
+html body #appView #view-sales .nd-sa-table thead th{font:500 12px/18px var(--nd-ui-font,var(--sans))!important;letter-spacing:normal!important;color:var(--nd-ink-3)!important}
+html body #appView #view-sales .nd-sa-table tbody td{vertical-align:middle}
+html body #appView #view-sales .nd-sa-table tbody td.nd-sa-qty{font:400 13px/20px var(--nd-number-font)!important;color:var(--nd-ink)}
+html body #appView #view-sales .nd-sa-table tfoot td{font:600 13px/20px var(--nd-ui-font,var(--sans))!important;color:var(--nd-ink);vertical-align:middle}
+html body #appView #view-sales .nd-sa-table tfoot td.nd-sa-n{font-family:var(--nd-number-font)!important}
+html body #appView #view-sales .nd-sa-table :is(tbody,tfoot) td.nd-sa-money .nd-sa-sale{font:600 14px/21px var(--nd-number-font)!important}
 
 /* 쇼핑몰 주문 가져오기 — 작은 창 규칙(PC 600px, 폰 아래 시트)은 .nd-pay-sheet 공통을 그대로 쓴다. */
 .nd-oi-sheet .nd-oi-cnt{font:400 13px/18px var(--sans);color:var(--nd-ink-3)}
@@ -14402,8 +14416,10 @@ html body #appView #view-dash .nd-db-values :is(.nd-db-sale,.nd-db-receipt){disp
 #appView #view-dash.nd-dashboard .nd-db-leg i.s{background:color-mix(in srgb,var(--nd-blue) 24%,transparent)}
 #appView #view-dash.nd-dashboard .nd-db-leg i.r{background:var(--nd-blue)}
 #appView #view-dash.nd-dashboard .nd-db-leg em{font-style:normal;color:var(--nd-ink-3)}
-#appView #view-dash.nd-dashboard .nd-db-nav{position:absolute;top:calc(var(--db-h) / 2 - 28px);z-index:3;width:30px;height:56px;border:0;background:transparent;color:var(--nd-ink-3);font-size:30px;font-weight:300;line-height:1;display:grid;place-items:center;padding:0 0 4px;cursor:pointer;font-family:inherit;opacity:0;pointer-events:none;transition:opacity .15s,color .12s}
+#appView #view-dash.nd-dashboard .nd-db-nav{position:absolute;top:calc(var(--db-h) / 2 - 36px);z-index:3;width:32px;height:72px;border:0;background:transparent;color:var(--nd-ink-3);line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;font-family:inherit;opacity:0;pointer-events:none;transition:opacity .15s,color .12s}
 #appView #view-dash.nd-dashboard .nd-db-nav[hidden]{display:none}
+/* 10/17: 화살표는 글자(‹ ›) 대신 키 큰 선 모양(아이콘과 같은 선 굵기) — 높이 40 · 너비 14 */
+#appView #view-dash.nd-dashboard .nd-db-nav svg{width:14px;height:40px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 #appView #view-dash.nd-dashboard .nd-db-plot:hover .nd-db-nav,#appView #view-dash.nd-dashboard .nd-db-nav:focus-visible{opacity:1;pointer-events:auto}
 #appView #view-dash.nd-dashboard .nd-db-nav.l{left:-10px}
 #appView #view-dash.nd-dashboard .nd-db-nav.r{right:-10px}
@@ -14635,7 +14651,7 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
     <div class="nd-db-range-actions"><button type="button" data-range-reset>초기화</button><button type="submit" class="nd-db-range-apply">적용</button></div></div>
    </form></div><div class="nd-db-tabs" role="group" aria-label="매출·입금 집계 단위">${[['year','연간'],['month','월별'],['day','일별']].map(([key,label])=>`<button type="button" data-period="${key}" aria-pressed="${chartMode===key}">${label}</button>`).join('')}</div></div></header>
    <div class="nd-db-chart-meta"><span hidden>${esc(range.from)} — ${esc(range.to)}</span><div class="nd-db-values"></div></div>
-   <div class="nd-db-trend"><div class="nd-db-plot"><button type="button" class="nd-db-nav l" data-nav="-1" aria-label="이전 7칸" hidden>‹</button><button type="button" class="nd-db-nav r" data-nav="1" aria-label="다음 7칸" hidden>›</button><div class="nd-db-chart-scroll"><div class="nd-db-inner${n<7?' few':''}" style="width:${cols/7*100}%;--n:${cols}"><div class="nd-db-bars" role="group" aria-label="기간별 매출과 입금 — 막대를 누르면 값이 보여요">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}">${bar(r)}</button>`).join('')}</div><div class="nd-db-xaxis" aria-hidden="true">${rows.map((r,i)=>`<span>${esc(xl(r,i))}</span>`).join('')}</div><div class="nd-db-ul" aria-hidden="true">${rows.map(()=>'<span></span>').join('')}</div></div></div></div>
+   <div class="nd-db-trend"><div class="nd-db-plot"><button type="button" class="nd-db-nav l" data-nav="-1" aria-label="이전 7칸" hidden><svg viewBox="0 0 14 40" aria-hidden="true"><path d="M11 3 3 20l8 17"/></svg></button><button type="button" class="nd-db-nav r" data-nav="1" aria-label="다음 7칸" hidden><svg viewBox="0 0 14 40" aria-hidden="true"><path d="m3 3 8 17-8 17"/></svg></button><div class="nd-db-chart-scroll"><div class="nd-db-inner${n<7?' few':''}" style="width:${cols/7*100}%;--n:${cols}"><div class="nd-db-bars" role="group" aria-label="기간별 매출과 입금 — 막대를 누르면 값이 보여요">${rows.map((r,i)=>`<button type="button" class="nd-db-bar-group" data-bar="${i}" aria-pressed="${i===initial.pinned}" aria-label="${r.key}, 매출 ${money(r.sale)}, 입금 ${money(r.receipt)}">${bar(r)}</button>`).join('')}</div><div class="nd-db-xaxis" aria-hidden="true">${rows.map((r,i)=>`<span>${esc(xl(r,i))}</span>`).join('')}</div><div class="nd-db-ul" aria-hidden="true">${rows.map(()=>'<span></span>').join('')}</div></div></div></div>
    <div class="nd-db-leg"><span><i class="s"></i>매출</span><span><i class="r"></i>입금</span><em>매출 = 납품 기준 · 부가세 포함 / 입금 = 입금일 기준</em></div></div>
 <span class="nd-db-sr" aria-live="polite" data-chart-announcement></span>`;
   const groups=[...host.querySelectorAll('[data-bar]')],values=host.querySelector('.nd-db-values'),uls=[...host.querySelectorAll('.nd-db-ul span')],barsEl=host.querySelector('.nd-db-bars'),scroller=host.querySelector('.nd-db-chart-scroll');
@@ -15700,7 +15716,7 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
  /* List and ledger money, separate from the smaller margin annotations. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
-  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-sa-n,.nd-cl-number,.material-summary b,.nd-mat-legend b
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
@@ -15952,5 +15968,7 @@ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar)
 }
 /* 글자 버튼에는 기호를 붙이지 않는다(UI-RULES 'Wording'): '＋ 입금·출금 기록' → '입금·출금 기록'. 글자 없는 [+] 아이콘 버튼(nd-tadd 등)은 그대로. */
 html body #appView .nd-gi-plus:not(#itNewBtn)::before{display:none!important;content:none!important}
+/* 10/17: 작은 버튼(btn-sm — 대시보드 '입금 등록' 등)의 글자는 버튼 가운데. display:block + 고정 높이라 글자가 아래·오른쪽으로 치우쳤다. */
+html body #appView[data-layout-system] button.btn-sm{display:inline-flex!important;align-items:center;justify-content:center;line-height:1.2}
 </style></body>
 </html>

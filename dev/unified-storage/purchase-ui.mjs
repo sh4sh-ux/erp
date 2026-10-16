@@ -916,6 +916,10 @@ export function installPurchaseUI({port,features=()=>true}){
   f.querySelector('#pu_szItem')?.addEventListener('change',e=>{st.sz={item:e.target.value,color:null};render();});
   f.querySelector('#pu_szColor')?.addEventListener('change',e=>{st.sz.color=e.target.value;render();});
   const szs=[...f.querySelectorAll('[data-sz]')];szs.forEach(inp=>inp.addEventListener('input',()=>{const s=view.querySelector('#pu_szSum');if(s)s.textContent=`총 ${n0(szs.reduce((a,i)=>a+num(i.value),0))}개`;}));
+  // 견적서 옵션별 한번에와 같은 규칙: Tab은 단가를 건너뛰고 옆 옵션 수량으로(Shift+Tab은 앞으로), 마지막 수량 다음은 [품목에 넣기]
+  szs.forEach((inp,n)=>{inp.addEventListener('keydown',ev=>{if(ev.key!=='Tab'||ev.isComposing)return;const to=ev.shiftKey?szs[n-1]:szs[n+1];
+   if(to){ev.preventDefault();to.focus();}else if(!ev.shiftKey){ev.preventDefault();f.querySelector('[data-act="szapply"]')?.focus();}});
+   inp.addEventListener('focus',()=>inp.select());});
  }
  function paintList(){const el=view.querySelector('#puList');if(!el)return;el.innerHTML=listHtml(rows().filter(match).sort((a,b)=>b.date.localeCompare(a.date)||b.no.localeCompare(a.no)));el.querySelectorAll('.list-item').forEach(x=>{x.onclick=()=>select(x.dataset.id);});}
  // 거래처 화면(company-panel.js)이 매입처의 매입·남은 돈을 보여 줄 때 쓴다. 읽기만 한다.
