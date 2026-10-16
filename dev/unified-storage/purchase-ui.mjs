@@ -95,11 +95,15 @@ export function installPurchaseUI({port,features=()=>true}){
  if(!place())new MutationObserver((r,o)=>{if(place())o.disconnect();}).observe(document.body,{childList:true,subtree:true});
  [mob,desk].forEach(m=>m.addEventListener('change',()=>{if(app.view==='purchases')render();}));
 
- async function load(reload=false){
+ async function load(reload=false,quiet=false){
   try{const r=await ask('PURCHASE_STATE',{reload});st.status=r.state.status;st.doc=r.doc;st.note=r.state.capacity?.warn?'매입 파일이 70% 찼어요. 연도별로 나누는 작업이 필요해요.':'';}
-  catch(e){st.status='error';st.note=MSG[e.code]||'매입을 불러오지 못했어요.';}
+  catch(e){if(quiet)st.status='unknown';else{st.status='error';st.note=MSG[e.code]||'매입을 불러오지 못했어요.';}} // 미리 읽기 실패는 조용히 — 화면을 열 때 다시 읽는다
   render();
  }
+ // 미리 읽기: 업무 화면이 뜨고 쉬는 틈에 매입 파일을 한 번 읽어 둔다 → [매입]을 누르면 기다리지 않고 바로 보인다.
+ // (매입 권한이 있을 때만. 저장 중이라 BUSY면 조용히 넘기고, 화면을 열 때 다시 읽는다.)
+ const warm=()=>{if(st.status!=='unknown'||!features())return;st.status='loading';load(false,true);};
+ setTimeout(()=>{if(typeof g.requestIdleCallback==='function')g.requestIdleCallback(warm,{timeout:3000});else setTimeout(warm,600);},800);
  const fail=async e=>{const t=MSG[e?.code]||e?.message||'저장하지 못했어요.';toast(t);if(e?.code==='STORAGE_CONFLICT'){st.draft=null;st.dirty=false;st.editing=false;await load(true);return;}render();};
  async function savePurchase(next){const r=await ask('PURCHASE_SAVE',{doc:next});st.doc=r.doc;
   // 앞서 끊긴 저장이 먼저 확인돼 반영된 경우: 그 내용이 이번 것과 같으면 그대로 진행, 다르면 화면을 맞추고 다시 누르게 한다
@@ -110,9 +114,9 @@ export function installPurchaseUI({port,features=()=>true}){
  // ── 그리기: 견적서와 같은 뼈대(머리·목록 카드·상세 카드) ──
  function render(){
   if(!view.isConnected)return;
+  if(st.status==='unknown'){st.status='loading';load();} // 읽기 요청을 먼저 보내고(네트워크가 기다리는 동안) 화면을 그린다
   g.NaroQuoteActions?.closeCompanyPicker();
   mirrorQuoteStyles();
-  if(st.status==='unknown'){st.status='loading';load();}
   const more=document.getElementById('moreNavBtn');if(more&&app.view==='purchases')more.classList.add('on');
   const ready=st.status==='ready',p=ready?shown():null;
   const open=ready?!!p:true; // 준비 전(시작·지원 안 함·오류)은 상세 카드에 안내

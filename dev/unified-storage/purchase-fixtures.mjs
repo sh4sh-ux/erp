@@ -23,13 +23,14 @@ export function fakeDropbox(seed){
  for(const k of keys)put(`/NARO Biz/Data/${k}.json`,seed[k]);
  const meta=f=>({'.tag':'file',id:f.id,rev:f.rev,path_lower:f.path.toLowerCase(),path_display:f.path});
  const nf=()=>Response.json({error:{'.tag':'path',path:{'.tag':'not_found'}}},{status:409});
- let breakNext=null,dropNext=null,offline=false;const writes=[];
+ let breakNext=null,dropNext=null,offline=false,hideResult=false;const writes=[];
  const fetcher=async(url,o)=>{
   if(offline)throw Error('synthetic offline');
   const arg=JSON.parse(o.headers['Dropbox-API-Arg']||o.body),p=String(arg.path||'').toLowerCase(),f=files.get(p);
   if(url.endsWith('get_metadata')){if(arg.path==='/NARO Biz')return Response.json({'.tag':'folder'});return f?Response.json(meta(f)):nf();}
   if(url.endsWith('list_folder'))return Response.json({entries:[...files.values()].map(meta),has_more:false});
-  if(url.endsWith('download'))return f?new Response(f.body):nf();
+  // 실제 Dropbox처럼 내려받기 응답 머리에 그 판의 metadata(Dropbox-API-Result). hideResult면 머리 없이(읽을 수 없는 경우 시험).
+  if(url.endsWith('download'))return f?new Response(f.body,{headers:hideResult?{}:{'Dropbox-API-Result':JSON.stringify(meta(f))}}):nf();
   if(url.endsWith('upload')){
    const mode=arg.mode?.['.tag']||arg.mode;writes.push(arg.path);
    if(mode==='add'&&f)return Response.json({error:{'.tag':'path',reason:{'.tag':'conflict'}}},{status:409});
@@ -41,7 +42,7 @@ export function fakeDropbox(seed){
   }
   throw Error('unexpected '+url);
  };
- return {files,fetcher,writes,loseNextResponse:fn=>{breakNext=fn;},dropNextWrite:fn=>{dropNext=fn;},setOffline:v=>{offline=v;}};
+ return {files,fetcher,writes,loseNextResponse:fn=>{breakNext=fn;},dropNextWrite:fn=>{dropNext=fn;},setOffline:v=>{offline=v;},hideResultHeader:v=>{hideResult=v;}};
 }
 export async function open(fake,{drive=false}={}){
  const backend=createDropboxBackend({oauth:{authorize:async()=>({accessToken:'t',expiresAt:Date.now()+3600e3}),close(){}},businessWrite:true,fetcher:fake.fetcher,locks:{request:async(_n,_o,fn)=>fn({})}});
