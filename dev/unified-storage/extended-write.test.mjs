@@ -53,3 +53,14 @@ test('receipt cancellation may go below zero only for purchase receipts (manual 
  const manual=[out,{...inn,purchase_id:undefined,receipt_id:undefined,purchase_line_id:undefined}];
  assert.throws(()=>validate('stock_moves',manual,[out,{...manual[1],cancelled_at:at,audit:[audit]},rev({})],{...snap,stock_moves:manual}),{code:'VALIDATION'});
 });
+// 10/17 자재 이름 바꾸기: 같은 업체·같은 이름 기록을 한 번에 — 이름(과 수정 시각) 말고는 못 바꾼다
+test('material rename changes many rows at once only when name is the sole difference',()=>{
+ const data=s(),use={...m,id:'use',kind:'반환',qty:2,created_at:'2026-09-29T01:00:00Z'},before=[m,use];
+ const ren=r=>({...r,material:'새 자재',updated_at:'2026-10-17T00:00:00Z'});
+ assert.deepEqual(validate('material_moves',before,before.map(ren),data).map(r=>r.material),['새 자재','새 자재']);
+ assert.throws(()=>validate('material_moves',before,[ren(m),{...use,qty:1}],data),{code:'VALIDATION'}); // 이름 말고 수량도 바꿈
+ assert.throws(()=>validate('material_moves',before,[ren(m),{...ren(use),material:'다른 자재'}],data),{code:'VALIDATION'}); // 새 이름이 둘
+ assert.throws(()=>validate('material_moves',before,[ren(m),use],data),{code:'VALIDATION'}); // 받음만 바꾸면 옛 이름이 음수
+ const blank=before.map(r=>({...r,material:' '}));assert.throws(()=>validate('material_moves',before,blank,data),{code:'VALIDATION'});
+ const cancelled={...use,void_at:'2026-09-30T00:00:00Z'};assert.throws(()=>validate('material_moves',[m,cancelled],[ren(m),ren(cancelled)],data),{code:'VALIDATION'}); // 취소된 기록은 그대로
+});

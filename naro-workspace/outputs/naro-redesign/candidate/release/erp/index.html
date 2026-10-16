@@ -11030,6 +11030,28 @@ html body #appView #view-materials .mp-done{display:flex;align-items:center;gap:
 html body #appView #view-materials .mp-done:hover{background:var(--nd-tint-hover);color:var(--nd-ink-2)}
 html body #appView #view-materials .mp-done[aria-expanded="true"]~.mp-row{opacity:.72}
 @media screen and (max-width:780px){html body #appView #view-materials .mp-done{padding:0 16px}}
+/* 10/17 기록 줄: 날짜는 일(굵게) + 요일(작게) 두 줄 · 자재 이름 오른쪽에 출처를 붙이고 · 메모는 수량 앞 칸 · 줄을 누르면 수정 */
+html body #appView #view-materials .mp-g5{grid-template-columns:40px 84px minmax(0,1.6fr) minmax(0,1fr) 60px 26px}
+html body #appView #view-materials .mp-hrow .mp-d{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
+html body #appView #view-materials .mp-hrow .mp-d b{font:600 15px/18px var(--nd-number-font);color:var(--nd-ink);font-variant-numeric:tabular-nums}
+html body #appView #view-materials .mp-hrow .mp-d small{font:400 11px/14px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-materials .mp-hrow.gone .mp-d b{color:var(--nd-ink-3);font-weight:400}
+html body #appView #view-materials .mp-th>span:first-child{text-align:center}
+html body #appView #view-materials .mp-nmc{display:flex;align-items:baseline;gap:10px;min-width:0}
+html body #appView #view-materials .mp-nmc .mp-nm{flex:0 0 auto;max-width:65%}
+html body #appView #view-materials .mp-nmc .mp-src{flex:1 1 0}
+html body #appView #view-materials .mp-memo{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-hrow:not(.gone){cursor:pointer}
+html body #appView #view-materials .mp-hrow:not(.gone):hover{background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #view-materials .mp-month{display:flex;align-items:baseline;gap:6px;padding:18px var(--quote-table-pad-x) 6px;font:700 13px/18px var(--sans);color:var(--nd-ink)}
+html body #appView #view-materials .mp-month span{margin-left:0;font:400 12px/18px var(--nd-number-font);color:var(--nd-ink-3)}
+@media (max-width:780px){
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-areas:"nm b act" "meta meta act" "memo memo act"}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc{grid-area:nm}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc .mp-nm{max-width:none}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-memo{grid-area:memo;font-size:12px;color:var(--nd-ink-3);white-space:normal}
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-memo:empty{display:none}
+}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -13915,6 +13937,7 @@ const NaroOrderImport=(()=>{
  const ui={lt:'company',showDone:false,tab:'materials',open:new Set(),rec:'all',flash:''};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const n0=v=>Math.round(Number(v)||0).toLocaleString('ko-KR');
+ const WD='일월화수목금토',wd=d=>{const t=Date.parse((d||'')+'T00:00:00Z');return Number.isFinite(t)?WD[new Date(t).getUTCDay()]:'';};
  const md=d=>{const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||'');return m?`${Number(m[1])}.${m[2]}`:'';};
  const KIND={'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'};
  const KCLS={'받음':'in','작업 완료':'use','반환':'ret','불량/분실':'ret'};
@@ -13947,11 +13970,11 @@ const NaroOrderImport=(()=>{
  const companyIds=()=>[...new Set((db.material_moves||[]).map(m=>m.company_id))].filter(id=>coById(id));
  const isStale=s=>s.balance>0&&daysSince(s.last)>=STALE_DAYS;
  const bar=(s,cls='mp-mini')=>{const t=Math.max(1,s.received);const w=v=>Math.max(0,v/t*100).toFixed(2)+'%';return `<span class="${cls}" aria-hidden="true">${s.balance>0?`<i class="h" style="width:${w(s.balance)}"></i>`:''}${s.used>0?`<i class="u" style="width:${w(s.used)}"></i>`:''}${s.out>0?`<i class="o" style="width:${w(s.out)}"></i>`:''}</span>`;};
- const srcText=m=>{const q=m.quote_id?quoteOf(m.quote_id):null,parts=[];
+ const srcText=(m,withMemo=true)=>{const q=m.quote_id?quoteOf(m.quote_id):null,parts=[];
   if(isNaver(m)&&!q)parts.push(`${NAVER}${m.order_no?` ${esc(m.order_no)}`:''}`);
   else if(m.kind==='받음')parts.push([m.source,m.order_no].filter(Boolean).map(esc).join(' · '));
   if(m.kind==='작업 완료')parts.push(`${esc(m.work_name||'작업')}${m.work_qty?` ${n0(m.work_qty)}개${Number(m.per_unit)>1?` × ${n0(m.per_unit)}`:''}`:''}`);
-  if(m.memo)parts.push(esc(m.memo));
+  if(withMemo&&m.memo)parts.push(esc(m.memo));
   return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')}</button>`:''}`;};
  const signed=m=>`${m.kind==='받음'?'+':'−'}${n0(m.qty)}`;
 
@@ -14006,9 +14029,9 @@ const NaroOrderImport=(()=>{
    const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'))||(ui.rec==='네이버'&&isNaver(m));
    const chips=[['all','전체'],['받음','받음'],['사용','사용'],['반환','반환·불량'],['네이버','네이버']].map(([k,l])=>`<button type="button" data-mp-rf="${k}" aria-pressed="${ui.rec===k}">${l}</button>`).join('');
    const list=rows.filter(pass);let month='';
-   const items=list.map(m=>{const mo=(m.date||'').slice(0,7),hd=mo!==month?`<div class="mp-month">${Number(mo.slice(5,7))||''}월 <span>${mo.slice(0,4)}</span></div>`:'';month=mo;
-    return hd+`<div class="mp-row-t mp-g5 mp-hrow${m.void_at?' gone':''}${ui.flash===m.id?' flash':''}" data-mp-hrow="${esc(m.id)}"><span class="num mp-d">${md(m.date)}</span><span class="mp-kind"><i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${KIND[m.kind]||esc(m.kind)}<small class="mp-pd">${md(m.date)}${m.quote_id&&quoteOf(m.quote_id)?` · ${esc(quoteOf(m.quote_id).no||'')}`:''}</small>${m.void_at?'<small>취소됨</small>':''}</span><span class="mp-nm">${esc(m.material)}</span><span class="mp-src">${srcText(m)}</span><span class="num mp-b">${signed(m)}</span><span class="mp-act">${m.void_at?'':`<button type="button" class="mp-dots" data-mp-rm="${esc(m.id)}" aria-label="이 기록 메뉴" aria-expanded="false">${DOTS}</button>`}</span></div>`;}).join('');
-   body=`<div class="mp-sec"><span class="qt-sec-t">기록<span class="cnt">${n0(live.length)}건</span></span><div class="mp-rchips" role="group" aria-label="기록 구분">${chips}</div></div>`+(items?`<div class="mp-row-t mp-th mp-g5" aria-hidden="true"><span>날짜</span><span>구분</span><span>자재</span><span>출처 · 연결 주문</span><span class="num">수량</span><span></span></div>${items}`:`<p class="mp-empty mp-line">기록이 없어요</p>`);
+   const items=list.map(m=>{const mo=(m.date||'').slice(0,7),hd=mo!==month?`<div class="mp-month">${Number(mo.slice(5,7))||''}월<span>${mo.slice(0,4)}</span></div>`:'';month=mo;
+    return hd+`<div class="mp-row-t mp-g5 mp-hrow${m.void_at?' gone':''}${ui.flash===m.id?' flash':''}" data-mp-hrow="${esc(m.id)}"><span class="num mp-d"><b>${Number((m.date||'').slice(8,10))||''}</b><small>${wd(m.date)}</small></span><span class="mp-kind"><i class="mp-dot ${KCLS[m.kind]||'ret'}"></i>${KIND[m.kind]||esc(m.kind)}<small class="mp-pd">${md(m.date)}${m.quote_id&&quoteOf(m.quote_id)?` · ${esc(quoteOf(m.quote_id).no||'')}`:''}</small>${m.void_at?'<small>취소됨</small>':''}</span><span class="mp-nmc"><span class="mp-nm">${esc(m.material)}</span><span class="mp-src">${srcText(m,false)}</span></span><span class="mp-memo" title="${esc(m.memo||'')}">${esc(m.memo||'')}</span><span class="num mp-b">${signed(m)}</span><span class="mp-act">${m.void_at?'':`<button type="button" class="mp-dots" data-mp-rm="${esc(m.id)}" aria-label="이 기록 메뉴" aria-expanded="false">${DOTS}</button>`}</span></div>`;}).join('');
+   body=`<div class="mp-sec"><span class="qt-sec-t">기록<span class="cnt">${n0(live.length)}건</span></span><div class="mp-rchips" role="group" aria-label="기록 구분">${chips}</div></div>`+(items?`<div class="mp-row-t mp-th mp-g5" aria-hidden="true"><span>날짜</span><span>구분</span><span>자재 · 출처</span><span>메모</span><span class="num">수량</span><span></span></div>${items}`:`<p class="mp-empty mp-line">기록이 없어요</p>`);
   }else{
    const kv=[['전화',co.phone],['이메일',co.email],['담당',co.manager||co.contact],['주소',co.address]].filter(([,v])=>v);
    body=`<div class="mp-sec"><span class="qt-sec-t">재고내역서</span></div>
@@ -14127,6 +14150,30 @@ const NaroOrderImport=(()=>{
   };
   paint();
  }
+ // 자재 이름 바꾸기: 이 업체의 같은 이름 기록(취소된 것 제외)을 한 번에. 이 업체 견적의 '쓰는 자재' 이름도 같이 바꾼다.
+ function renameSheet(cid,name){
+  const recs=act().filter(m=>m.company_id===cid&&m.material===name);if(!recs.length)return;
+  const others=new Set(act().filter(m=>m.company_id===cid&&m.material!==name).map(m=>m.material));
+  const s=openSheet(`<div class="nd-ps-hd"><b>자재 이름 바꾸기</b><span class="nd-qa-sub">${esc(coName(cid))} · 기록 ${n0(recs.length)}건</span></div>
+   <div class="nd-qa-body"><div class="nd-qa-fields"><label class="nd-qa-wide"><span class="nd-qa-label">새 이름</span><input id="mp_rename" value="${esc(name)}" maxlength="200" autocomplete="off"></label></div>
+   <p class="nd-qa-note mp-rn-note">기록 ${n0(recs.length)}건의 자재 이름이 함께 바뀌어요. 수량·날짜는 그대로예요.</p></div>
+   <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" id="mp_rename_go">이름 바꾸기</button></div>`);
+  const inp=s.querySelector('#mp_rename'),go=s.querySelector('#mp_rename_go'),note=s.querySelector('.mp-rn-note');
+  const sync=()=>{const v=inp.value.trim();go.disabled=!v||v===name;note.innerHTML=v&&others.has(v)?`이미 있는 <b>${esc(v)}</b>와 합쳐져요(남은 수량도 더해져요).`:`기록 ${n0(recs.length)}건의 자재 이름이 함께 바뀌어요. 수량·날짜는 그대로예요.`;};
+  inp.addEventListener('input',sync);sync();setTimeout(()=>{inp.focus();inp.select();},0);
+  inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.isComposing&&!go.disabled){ev.preventDefault();go.click();}});
+  go.onclick=async()=>{const to=inp.value.trim();if(!to||to===name||materialSaving)return;setMaterialSaving(true);go.disabled=true;go.textContent='저장 중…';
+   try{const at=new Date().toISOString(),ids=new Set(recs.map(m=>m.id));
+    const next=db.material_moves.map(m=>ids.has(m.id)?{...m,material:to,updated_at:at}:m);validateMaterialLedger(next);
+    if(!await saveTable('material_moves',next)){go.disabled=false;go.textContent='다시 시도';return;}
+    db.material_moves=next;
+    // 견적 작업 줄의 '쓰는 자재'도 새 이름으로(이 업체 견적만). 실패해도 자재 기록은 이미 바뀌었으니 알려만 준다.
+    const qs=(db.quotes||[]).filter(q=>q.company_id===cid&&(q.lines||[]).some(l=>l.supplied_material===name));let qNote='';
+    if(qs.length){const qids=new Set(qs.map(q=>q.id)),nq=db.quotes.map(q=>qids.has(q.id)?{...q,lines:q.lines.map(l=>l.supplied_material===name?{...l,supplied_material:to}:l)}:q);
+     if(await saveTable('quotes',nq))db.quotes=nq;else qNote=' · 견적의 쓰는 자재는 직접 바꿔 주세요';}
+    materialSelectedName=to;if(ui.open.delete(name))ui.open.add(to);sheet.close();setMaterialSaving(false);render();toast(`이름을 '${to}'(으)로 바꿨어요${qNote}`);}
+   catch(err){toast(err.message);go.disabled=false;go.textContent='이름 바꾸기';}finally{setMaterialSaving(false);}};
+ }
  async function cancelRecord(id){
   const m=(db.material_moves||[]).find(x=>x.id===id&&!x.void_at);if(!m)return;
   const s=openSheet(`<div class="nd-ps-hd"><b>이 기록을 취소할까요?</b><span class="nd-qa-sub">${md(m.date)} · ${esc(m.material)} · ${KIND[m.kind]||esc(m.kind)} ${n0(m.qty)}개</span></div>
@@ -14139,6 +14186,8 @@ const NaroOrderImport=(()=>{
  /* ── 이벤트 ── */
  document.addEventListener('click',ev=>{
   const root=document.getElementById('materialContent');if(!root||!root.contains(ev.target)||root.dataset.mp!=='1')return;
+  // 기록 줄을 누르면 바로 수정 창(10/17 — ⋮ 메뉴 안의 '수정'을 찾기 어려웠다). 취소된 기록·버튼·링크는 제외
+  const hr=ev.target.closest('[data-mp-hrow]');if(hr&&!ev.target.closest('button,a')&&!hr.classList.contains('gone')){recordSheet({editId:hr.dataset.mpHrow});return;}
   const t=ev.target.closest('button,[data-mp-open]');if(!t)return;
   if(t.matches('[data-mp-lt]')){ui.lt=t.dataset.mpLt;render();return;}
   if(t.matches('[data-mp-done]')){ui.showDone=!ui.showDone;render();return;}
@@ -14154,7 +14203,7 @@ const NaroOrderImport=(()=>{
   if(t.matches('[data-mp-statement]')){const d=document.getElementById('mm_statement_date');if(d?.value)materialStatementDate=d.value;previewMaterialStatement(materialSelectedCompanyId);return;}
   if(t.matches('[data-mp-company]')){try{switchView('companies');coSel=materialSelectedCompanyId;renderCoList?.();renderCoDetail();}catch{}return;}
   if(t.matches('[data-mp-quote]')){ev.stopPropagation();try{switchView('quotes');qtSel=t.dataset.mpQuote;renderQtList();renderQtDetail();}catch{}return;}
-  if(t.matches('[data-mp-mat]')){ev.stopPropagation();const name=t.dataset.mpMat;openMenu(t,[{t:'받음 기록',sub:'더 받은 수량',icon:'plus',fn:()=>recordSheet({kind:'받음',material:name})},{t:'사용 기록',sub:'작업에 쓴 수량',icon:'plus',fn:()=>recordSheet({kind:'작업 완료',material:name})},{t:'반환·불량 기록',sub:'돌려준 수량 · 불량·분실',icon:'undo',fn:()=>recordSheet({kind:'반환',material:name})}]);return;}
+  if(t.matches('[data-mp-mat]')){ev.stopPropagation();const name=t.dataset.mpMat;openMenu(t,[{t:'받음 기록',sub:'더 받은 수량',icon:'plus',fn:()=>recordSheet({kind:'받음',material:name})},{t:'사용 기록',sub:'작업에 쓴 수량',icon:'plus',fn:()=>recordSheet({kind:'작업 완료',material:name})},{t:'반환·불량 기록',sub:'돌려준 수량 · 불량·분실',icon:'undo',fn:()=>recordSheet({kind:'반환',material:name})},{t:'이름 바꾸기',sub:'이 업체의 기록 모두',fn:()=>renameSheet(materialSelectedCompanyId,name)}]);return;}
   if(t.matches('[data-mp-rm]')){ev.stopPropagation();const id=t.dataset.mpRm;openMenu(t,[{t:'수정',sub:'수량 · 날짜 · 메모 · 연결 견적',fn:()=>recordSheet({editId:id})},{t:'기록 취소',sub:'남은 수량이 다시 계산돼요',icon:'undo',danger:true,fn:()=>cancelRecord(id)}]);return;}
   const open=t.closest('[data-mp-open]');if(open&&!ev.target.closest('button')){const n=open.dataset.mpOpen;ui.open.has(n)?ui.open.delete(n):ui.open.add(n);materialSelectedName=n;render();}
  });

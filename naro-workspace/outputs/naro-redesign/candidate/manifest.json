@@ -123,7 +123,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "cb17e4f4bb3715cce0eae52c6931c2d8a503b9e7af6b098b3e05aefd11eb3f9d"
+      "sha256": "c0fc7e6a691608321ea68af70fd10309ea2cd3ce0b24bdca0b428acc400a4e55"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -203,7 +203,7 @@
     },
     {
       "path": "extended-contract.mjs",
-      "sha256": "9829fadc7e5b803fbbb07c9c64bc3e6c6521fb16d3f523cecb102e6e8df4c836"
+      "sha256": "9ba2ae151f66ee33335e7b29b3a42070d990d207fb23fcd8095d08056b26934d"
     },
     {
       "path": "firebase-auth.mjs",
@@ -302,7 +302,7 @@
       "sha256": "6072d0c934ebd870210f9d3690bf24613b7cb3ade6da064bb59d3fe46eb0824c"
     }
   ],
-  "aggregate": "b75d5ef3aba128da63833b9c961f965c1f747f40afa7ea4672e99d30e900dda6",
+  "aggregate": "6466155f7db9b3013057a310326037088b859a876762789daeb86a69cb0da3f0",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false
