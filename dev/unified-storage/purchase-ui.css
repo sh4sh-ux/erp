@@ -119,3 +119,32 @@ html body #appView #puForm .qp-metadata>.pu-fx-sub::before,html body #appView #p
 .pu-imp .pu-imp-kv{grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr))}
 .pu-imp .pu-imp-kv .pu-imp-btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:620px){.pu-imp .pu-imp-kv{grid-template-columns:repeat(2,minmax(0,1fr))}.pu-imp .pu-imp-kv>div:first-child{grid-column:1/-1}}
+
+/* 10/17 다듬기: 단계 내용은 창 폭 전체(좌우 여백 같게) · 넉넉한 여백 · 거래처 이름 한 줄 */
+dialog.nd-pay-sheet.pu-imp .nd-qa-body{padding-left:28px;padding-right:28px}
+dialog.nd-pay-sheet.pu-imp .nd-ps-hd,dialog.nd-pay-sheet.pu-imp .nd-ps-act{padding-left:28px;padding-right:28px}
+.pu-imp .pu-imp-step{display:block;padding:16px 0}
+.pu-imp .pu-imp-sh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pu-imp .pu-imp-sh b{margin:0!important}
+.pu-imp .pu-imp-party-row{display:flex;align-items:center;gap:12px;margin:2px 0 12px;min-width:0}
+.pu-imp .pu-imp-party-row .lab{flex:none;margin:0;min-width:76px}
+.pu-imp .pu-imp-party{max-width:min(100%,520px);min-width:0}
+.pu-imp .pu-imp-party .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pu-imp .pu-imp-party .pu-imp-newtag{flex:none}
+.pu-imp .pu-imp-kv{grid-template-columns:repeat(3,minmax(0,1fr))!important;padding:12px 14px;border-radius:10px;background:var(--nd-fill);margin:0 0 14px}
+.pu-imp .pu-imp-kv>div:first-child{grid-column:auto!important}
+.pu-imp .nd-co-pop .nd-co-opt>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pu-imp .pu-imp-note{margin:4px 0 6px;font-size:12px;color:var(--nd-ink-3)}
+.pu-imp .pu-imp-ln{grid-template-columns:minmax(0,200px) minmax(0,1fr) auto;gap:18px;padding:14px 0}
+.pu-imp .pu-imp-cost{padding:10px 0}
+.pu-imp .pu-imp-leave,.pu-imp .pu-imp-resume{display:flex;align-items:center;gap:8px;padding:12px 28px;background:var(--nd-amber-soft);font-size:13px;color:var(--nd-ink)}
+.pu-imp .pu-imp-resume{margin:0 -28px;padding:12px 28px;background:var(--nd-blue-soft);border-radius:0}
+.pu-imp .pu-imp-leave span,.pu-imp .pu-imp-resume span{flex:1;min-width:0}
+@media (max-width:620px){
+ dialog.nd-pay-sheet.pu-imp .nd-qa-body,dialog.nd-pay-sheet.pu-imp .nd-ps-hd,dialog.nd-pay-sheet.pu-imp .nd-ps-act{padding-left:18px;padding-right:18px}
+ .pu-imp .pu-imp-kv{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .pu-imp .pu-imp-party-row{flex-direction:column;align-items:flex-start;gap:4px}
+ .pu-imp .pu-imp-leave,.pu-imp .pu-imp-resume{flex-wrap:wrap;padding:12px 18px}
+ .pu-imp .pu-imp-resume{margin:0 -18px}
+ .pu-imp .pu-imp-leave span,.pu-imp .pu-imp-resume span{flex-basis:100%}
+}

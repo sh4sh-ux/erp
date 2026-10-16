@@ -66,7 +66,7 @@ test('청구서 항목 → 비용 구분',()=>{
  assert.equal(t('OCEAN FREIGHT'),'운임');assert.equal(t('CAF'),'운임');assert.equal(t('BAF 유류할증'),'운임');
  assert.equal(t('INSURANCE'),'보험');assert.equal(t('CHINA CUSTOM CHARGE'),'통관수수료');assert.equal(t('통관수수료'),'통관수수료');assert.equal(t('관세사 수수료'),'통관수수료');
  assert.equal(t('내륙 운송료'),'국내운송');assert.equal(t('TRUCKING'),'국내운송');
- assert.equal(t('관세'),'관세');assert.equal(t('부가세'),'import_vat');assert.equal(t('DOCUMENT FEE'),'기타');
+ assert.equal(t('관세'),'관세');assert.equal(t('부가세'),'import_vat');assert.equal(t('DOCUMENT FEE'),'운임');assert.equal(t('MISC'),'기타');
 });
 test('검사: 정상 건은 막는 것 없음, B/L은 기호를 빼고 비교',()=>{
  const out=checkImport(parseImportPaste(PASTE));
@@ -87,7 +87,7 @@ test('매입 재료: 과세환율 · 필증 관세 · 금액 나눔 · 수입부
  let n=0;const parsed=parseImportPaste(PASTE.replace('관세 | KRW | 없음 | 409140','관세 | KRW | 없음 | 400000'));
  const d=importDraft(parsed,{uid:()=>String(++n),vendor_id:'v2',payee_id:'f2',map:[{item_id:'jk',color:'WH'},{item_id:'ap'}]});
  assert.deepEqual(d.fx,{booking_rate:210.67,customs_rate:210.67});assert.equal(d.currency,'CNY');assert.equal(d.date,'2026-01-19');
- assert.deepEqual(d.costs.map(c=>[c.type,c.amount_krw]),[['관세',409140],['운임',133397],['통관수수료',70000],['국내운송',80000],['기타',25000]]);
+ assert.deepEqual(d.costs.map(c=>[c.type,c.amount_krw]),[['관세',409140],['운임',158397],['통관수수료',70000],['국내운송',80000]]);
  assert.ok(d.costs.every(c=>c.alloc==='금액'&&c.payee_id==='f2'));
  assert.deepEqual(d.import_vat,{amount:355640,payee_id:'f2',fee_vat:13500});
  assert.deepEqual(d.customs,{declaration_no:'12345-26-000001M',bl_no:'TEST260119A',incoterms:'FOB',pay_method:'TT',declared_on:'2026-01-19',accepted_on:'2026-01-20'});
@@ -95,7 +95,7 @@ test('매입 재료: 과세환율 · 필증 관세 · 금액 나눔 · 수입부
  const p={id:'p9',no:'IM-2026-0119-1',status:'작성중',receipts:[],cost_runs:[],created_at:AT,updated_at:AT,...d};
  assert.equal(validatePurchasesChange(doc([]),doc([p]),s).rows.length,1);
  const u=unitCosts(p);
- assert.equal(u[p.lines[0].id].unit,18140.67);assert.equal(u[p.lines[1].id].unit,10365.95);
+ assert.equal(u[p.lines[0].id].unit,18140.67);assert.equal(u[p.lines[1].id].unit,10366);
  assert.equal(paymentStatus(p,[]).costs.find(c=>c.payee_id==='f2').due,1086677); // 청구서 합계 = 운송사에 갚을 돈
 });
 test('품명 짝 기억: 같은 매입처의 지난 수입 매입에서 최근 짝',()=>{
@@ -147,7 +147,7 @@ test('사이즈 나누기: 필증 한 줄 → 같은 단가의 매입 품목 여
  let n=0;const parsed=parseImportPaste(PASTE);
  const d=importDraft(parsed,{uid:()=>String(++n),vendor_id:'v2',payee_id:'f2',map:[{item_id:'jk',color:'WH',parts:[{spec:'S',qty:120},{spec:'M',qty:80},{spec:'L',qty:0}]},{item_id:'ap'}],types:[undefined,undefined,'운임']});
  assert.deepEqual(d.lines.map(l=>[l.spec||'',l.qty,l.unit_price,l.src_name]),[['S',120,70,'CHEF JACKET'],['M',80,70,'CHEF JACKET'],['',20,40,'CHEF PANTS']]);
- assert.equal(d.invoice_map.find(x=>x.name==='DOCUMENT FEE').type,'운임');
+ assert.equal(d.invoice_map.find(x=>x.name==='DOCUMENT FEE').type,'운임');assert.equal(d.invoice_map.find(x=>x.name==='CAF').type,'운임');
  const p={id:'p9',no:'IM-1',status:'작성중',receipts:[],cost_runs:[],created_at:AT,updated_at:AT,...d};
  assert.equal(validatePurchasesChange(doc([]),doc([p]),s).rows.length,1);
  assert.deepEqual(rememberedTypes([p],'f2',['document fee','NEW ITEM']),['운임',null]);
@@ -155,5 +155,5 @@ test('사이즈 나누기: 필증 한 줄 → 같은 단가의 매입 품목 여
 });
 test('사전 보강: 통화·유류 할증은 운임, CLEARANCE는 통관수수료',()=>{
  assert.equal(costTypeOf('CURRENCY ADJUSTMENT FACTOR CHARGE'),'운임');assert.equal(costTypeOf('BUNKER SURCHARGE'),'운임');assert.equal(costTypeOf('LSS'),'운임');
- assert.equal(costTypeOf('CUSTOMS CLEARANCE FEE'),'통관수수료');assert.equal(costTypeOf('DOCUMENT FEE'),'기타');assert.equal(costTypeOf('D/O FEE'),'기타');
+ assert.equal(costTypeOf('CUSTOMS CLEARANCE FEE'),'통관수수료');assert.equal(costTypeOf('DOCUMENT FEE'),'운임');assert.equal(costTypeOf('D/O FEE'),'운임');assert.equal(costTypeOf('DELIVERY ORDER FEE'),'운임');assert.equal(costTypeOf('INLAND DELIVERY'),'국내운송');assert.equal(costTypeOf('BANK CHARGE'),'기타');
 });
