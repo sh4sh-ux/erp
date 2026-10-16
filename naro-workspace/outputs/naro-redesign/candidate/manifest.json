@@ -63,7 +63,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "0f1f1749eab1c2eb312f6e4ead23fcabfd07d6b381a3606164d2877011ad08f6"
+      "sha256": "e04bb2d1af24e6ac0778db23c93c4d320659c017fe34b55f624525324a0277f6"
     },
     {
       "path": "dropbox-callback.html",
@@ -159,7 +159,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "4d2f69750883e5522763e62ad28746377dcd583e1154abeaab1464a89ce75651"
+      "sha256": "7b9849af5a9fd94a58196a4234d56b1c874a3c6ad344045acc8635f0a7fa8944"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -283,7 +283,7 @@
     },
     {
       "path": "storage.mjs",
-      "sha256": "bd9282b7558281599af5b80ca831eb7539b9f0b801856fc98f72e2dcdf9d72e7"
+      "sha256": "5b4aa681bcefa3e33a71e81e9bb462614ea52fe091856bd3f3cc7147ad90d72b"
     },
     {
       "path": "style.css",
@@ -298,7 +298,7 @@
       "sha256": "4d08207a524972d5a1a2fd491d525673a1e3c1a27e5d06e9dbca1bbd76798259"
     }
   ],
-  "aggregate": "9abb1c97f52eefe43597a3f5f580daf44f9f7343cc5cd7c9e58e878f3aad7b51",
+  "aggregate": "1a60c168d992506f920ced4cf345acb7c39c8db7d25bce71219e7fdaf99606c9",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

@@ -200,6 +200,12 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const b=provider.backend;
    if(!b?.purchasesIdentity||!b?.loadPurchases){purchases={status:'unsupported',doc:null,identity:null,pending:null,error:null};return purchaseState();}
    try{
+    // 빠른 길(1회): 내려받기와 그 판의 식별 정보를 함께 받는다. 식별 정보를 못 받으면 아래 예전 길(3회)로.
+    if(b.loadPurchasesWithIdentity){
+     const r=await b.loadPurchasesWithIdentity();check(g);
+     if(!r){purchases={status:'absent',doc:null,identity:null,pending:null,error:null};return purchaseState();}
+     if(r.identity){validatePurchasesDoc(r.doc,snapshot);purchases={status:'ready',doc:r.doc,identity:r.identity,pending:null,error:null};return purchaseState();}
+    }
     const before=await b.purchasesIdentity();check(g);
     if(!before){purchases={status:'absent',doc:null,identity:null,pending:null,error:null};return purchaseState();}
     const doc=await b.loadPurchases();check(g);

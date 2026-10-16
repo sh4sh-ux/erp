@@ -29,7 +29,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  const fresh=async()=>{if(oauth.renew&&token&&!disposed&&now()>=expires-60000)await renewNow();};
  const assets=createAssetStore({provider:'dropbox',auth:()=>{check();return token;},fetcher,signal,enabled:businessWrite,now});
  const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path)&&!isSide(path))throw fault('WRITE_BLOCKED');return '/'+path;};
- async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch}={}){
+ async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch,withResult=false}={}){
   await fresh();check();let response;
   if(now()-windowStart>=60000){windowStart=now();requests=0;}if(++requests>120)throw fault('QUOTA_LIMIT');
   if(upload!==undefined){metrics.businessWriteRequests++;if(arg.mode==='add')metrics.datasetCreateRequests++;}else metrics.readRequests++;
@@ -49,7 +49,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   // Bootstrap JSON only. Reject oversized content before parsing where possible.
   if(download&&Number(response.headers?.get('content-length'))>1048576)throw fault('STORAGE_INVALID');
   let data;try{const text=await response.text();if(text.length>1048576)throw Error();data=JSON.parse(text);}catch{throw fault('STORAGE_INVALID');}
-  check();return data;
+  check();return withResult?{data,result:response.headers?.get?.('dropbox-api-result')||null}:data;
  }
  async function load(path){return request(content+'download',{path:pathArg(path)},{download:true});}
  function identityFromMetadata(path,m){
@@ -68,6 +68,13 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   // 매입 파일: 있으면 식별 정보, 없으면 null(=매입 시작 전). 7개 파일과 상관없이 따로 확인한다.
   async purchasesIdentity(){const m=await request(api+'get_metadata',{path:pathArg(PURCHASES_PATH)},{allowMissing:true});if(!m)return null;return identityFromMetadata(PURCHASES_PATH,m);},
   loadPurchases:()=>load(PURCHASES_PATH),
+  // 매입 파일을 한 번에: 내려받기 응답의 Dropbox-API-Result(내려받은 바로 그 판의 metadata)로 식별 정보를 만든다.
+  // 없으면 null(=매입 시작 전). 머리를 읽을 수 없으면 identity 없이 돌려주고, 저장소가 예전 3단계 확인으로 다시 읽는다.
+  async loadPurchasesWithIdentity(){
+   const r=await request(content+'download',{path:pathArg(PURCHASES_PATH)},{download:true,allowMissing:true,withResult:true});if(!r)return null;
+   let m=null;try{m=r.result?JSON.parse(r.result):null;}catch{m=null;}
+   return {doc:r.data,identity:m?identityFromMetadata(PURCHASES_PATH,m):null};
+  },
   // [매입 시작하기]: 빈 매입 파일을 '없을 때만' 만든다(add + strict_conflict → 이미 있으면 덮지 않고 그대로 사용).
   async createPurchases(value){
    if(!businessWrite)throw fault('WRITE_BLOCKED');
