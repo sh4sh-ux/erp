@@ -204,13 +204,10 @@ html body #appView #view-materials .mp-done{display:flex;align-items:center;gap:
 html body #appView #view-materials .mp-done:hover{background:var(--nd-tint-hover);color:var(--nd-ink-2)}
 html body #appView #view-materials .mp-done[aria-expanded="true"]~.mp-row{opacity:.72}
 @media screen and (max-width:780px){html body #appView #view-materials .mp-done{padding:0 16px}}
-/* 10/17 기록 줄: 날짜는 일(굵게) + 요일(작게) 두 줄 · 자재 이름 오른쪽에 출처를 붙이고 · 메모는 수량 앞 칸 · 줄을 누르면 수정 */
-html body #appView #view-materials .mp-g5{grid-template-columns:40px 84px minmax(0,1.6fr) minmax(0,1fr) 60px 26px}
-html body #appView #view-materials .mp-hrow .mp-d{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
-html body #appView #view-materials .mp-hrow .mp-d b{font:600 15px/18px var(--nd-number-font);color:var(--nd-ink);font-variant-numeric:tabular-nums}
-html body #appView #view-materials .mp-hrow .mp-d small{font:400 11px/14px var(--sans);color:var(--nd-ink-3)}
-html body #appView #view-materials .mp-hrow.gone .mp-d b{color:var(--nd-ink-3);font-weight:400}
-html body #appView #view-materials .mp-th>span:first-child{text-align:center}
+/* 10/17 기록 줄: 날짜는 견적서·입금과 같은 연.월.일(시안 D, 월 머리 없음) · 자재 이름 오른쪽에 출처 · 메모는 수량 앞 칸 · 줄을 누르면 수정 */
+html body #appView #view-materials .mp-g5{grid-template-columns:84px 84px minmax(0,1.6fr) minmax(0,1fr) 60px 26px}
+html body #appView #view-materials .mp-hrow .mp-d{font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-materials .mp-sub{grid-template-columns:84px 72px minmax(0,1fr) 72px}
 html body #appView #view-materials .mp-nmc{display:flex;align-items:baseline;gap:10px;min-width:0}
 html body #appView #view-materials .mp-nmc .mp-nm{flex:0 0 auto;max-width:65%}
 html body #appView #view-materials .mp-nmc .mp-src{flex:1 1 0}
@@ -225,4 +222,5 @@ html body #appView #view-materials .mp-month span{margin-left:0;font:400 12px/18
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc .mp-nm{max-width:none}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-memo{grid-area:memo;font-size:12px;color:var(--nd-ink-3);white-space:normal}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-memo:empty{display:none}
+ html body #appView #view-materials .mp-sub{grid-template-columns:78px 52px minmax(0,1fr) auto}
 }
