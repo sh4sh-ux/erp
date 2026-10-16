@@ -246,6 +246,7 @@ for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name)
  qp=qp.replace(flowFrom,()=>`    sections[0].before(tabs);`);
  if(!qp.includes('cards(q, panels[1]);'))throw Error('QP_CARDS_BOUNDARY');
  qp=qp.replace('cards(q, panels[1]);',()=>'cards(q, panels[0]);');
+qp=qp.replaceAll("'편집 ›'","'편집'"); // 글자 버튼에 기호를 붙이지 않는다(UI-RULES 'Wording')
  await writeFile(qpPath,qp);
 }
 await mkdir(resolve(release,'erp/icons'),{recursive:true});

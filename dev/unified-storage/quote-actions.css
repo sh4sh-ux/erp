@@ -80,7 +80,7 @@ html body #appView #qtForm:is([data-nd-st="부분납품"],[data-nd-st="납품"],
 /* 재고 부족(납품 전): 처음엔 제목 한 줄만 — 누르면 펼침 */
 html body #appView #qtForm #fq_short:not(.nd-open)>div>:not(.hd){display:none!important}
 html body #appView #qtForm #fq_short>div>.hd{cursor:pointer;position:relative;padding-right:64px}
-html body #appView #qtForm #fq_short>div>.hd::after{content:'보기 ›';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
+html body #appView #qtForm #fq_short>div>.hd::after{content:'보기';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
 html body #appView #qtForm #fq_short.nd-open>div>.hd::after{content:'접기'}
 html body #appView #qtForm #fq_short:not(.nd-open)>div>.hd{border-bottom:0!important;margin-bottom:0!important;padding-bottom:0!important}
 /* 폰(10/8 다시): 단계 줄 대신 한 줄 요약(지금 상태 · 나머지) + 오른쪽 버튼 하나. 요약을 누르면 진행 탭. */

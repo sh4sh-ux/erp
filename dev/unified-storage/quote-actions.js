@@ -52,7 +52,7 @@
   {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector('.nd-log-link');
    if(!q||!window.NaroChangeLog){lk?.remove();}else if(info&&!lk){lk=document.createElement('button');lk.type='button';lk.className='nd-log-link';lk.textContent='이 견적서의 변경 기록 보기';lk.onclick=()=>{const c=current();if(c)window.NaroChangeLog.open({ref:c.id,title:`${c.no||''} · ${coName(c.company_id)}`});};info.append(lk);}}
   recs(f,q);
-  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
+  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 수정하거나 삭제할 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
   if(note&&q&&(q.deliveries||[]).length&&note.textContent!==NOTE)note.textContent=NOTE;
   let el=f.querySelector(':scope .nd-next');
   cancelToggle();
@@ -83,7 +83,7 @@
   if(b.parentNode!==where)where.append(b);
  }
  function guard(){
-  if(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 먼저 저장해 주세요. 저장한 뒤 다시 눌러 주세요.');return false;}
+  if(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('수정한 내용을 먼저 저장해 주세요. 저장한 뒤 다시 눌러 주세요.');return false;}
   return true;
  }
  function open(html){
@@ -135,7 +135,7 @@
   let amount=edit?Number(edit.amount)||0:Math.max(0,s.balance),method=edit?.method||'계좌이체',preset=edit?'custom':'all',date=edit?.date||localDate(),memo=edit?.memo||'';
   const paint=()=>{
    const over=amount>s.balance&&s.balance>=0;
-   const d=open(`<div class="nd-ps-hd"><b>${edit?'입금 고치기':'입금 받기'}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>${edit?'입금 수정':'입금 받기'}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
     <div class="nd-qa-body">
      <label class="nd-qa-money">받은 금액<input id="ndQaAmt" inputmode="numeric" value="${amount?won(amount):''}" placeholder="0"><span>원</span></label>
      <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,t])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${t}</button>`).join('')}</div>
@@ -143,10 +143,10 @@
      <div class="nd-qa-fields"><label>입금일<input type="date" id="ndQaDate" value="${e(date)}"></label><label>메모 (선택)<input id="ndQaMemo" value="${e(memo)}" placeholder="예: 잔금"></label></div>
      ${over?`<p class="nd-qa-warn">남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.</p>`:''}
     </div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 수정':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
    d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#ndQaMemo').oninput=ev=>{memo=ev.target.value;};
    const inp=d.querySelector('#ndQaAmt');
-   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요';};
+   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 수정':'원 입금 확인'):'금액을 넣어 주세요';};
    // 손을 뗄 때 창을 다시 그리면 같이 누른 [입금 확인]이 사라져 두 번 눌러야 했다 — 숫자 모양과 초과 안내만 고친다
    inp.onblur=()=>{inp.value=amount?won(amount):'';const over=amount>s.balance&&s.balance>=0;let w=d.querySelector('.nd-qa-warn');if(over){if(!w){w=document.createElement('p');w.className='nd-qa-warn';d.querySelector('.nd-qa-body').append(w);}w.textContent=`남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.`;}else w?.remove();};
    d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=Math.max(0,s.balance);else if(preset==='half')amount=Math.max(0,Math.round(s.balance/2));paint();if(preset==='custom'){const i=sheet.querySelector('#ndQaAmt');i.focus();i.select();}});
@@ -181,7 +181,7 @@
  function parcelsOf(v){if(!v||v.method!=='택배')return [];if(Array.isArray(v.parcels)&&v.parcels.length)return v.parcels;return v.carrier||v.tracking?[{carrier:v.carrier,tracking:v.tracking||''}]:[];}
  function shipNorm(v){if(!v||v.method!=='택배')return {method:v?.method||''};const all=parcelsOf(v),list=all.filter(p=>p.tracking);const first=list[0]||all[0]||{carrier:'cj',tracking:''};const out={method:'택배',carrier:first.carrier,tracking:list[0]?.tracking||''};if(list.length>1)out.parcels=list.map(p=>({carrier:p.carrier,tracking:p.tracking}));return out;}
  function parcelRow(p,i,n){const first=!i;return `<div class="nd-qa-parcel" data-pr><label><span class="nd-qa-sr">택배사</span><select ${first?'id="ndShipCarrier"':''} data-pc aria-label="송장 ${i+1} 택배사">${Object.entries(CARRIERS).map(([k,[name]])=>`<option value="${k}" ${p.carrier===k?'selected':''}>${name}</option>`).join('')}</select></label><label><span class="nd-qa-sr">송장번호</span><input ${first?'id="ndShipTracking"':''} data-pt inputmode="numeric" value="${e(p.tracking||'')}" placeholder="숫자만 입력" aria-label="송장 ${i+1} 번호"><a ${first?'id="ndShipLookup"':''} class="nd-qa-look" target="_blank" rel="noopener noreferrer" aria-disabled="true">조회 ↗</a></label>${n>1?`<button type="button" class="nd-qa-prm" data-prm aria-label="송장 ${i+1} 지우기">×</button>`:''}</div>`;}
- function shippingFields(v={},lead=''){const ps=parcelsOf(v),list=ps.length?ps:[{carrier:v.carrier||'cj',tracking:v.tracking||''}];return `<div class="nd-qa-fields nd-qa-ship">${lead}<label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><div class="nd-qa-parcels" id="ndShipParcels"><span class="nd-qa-pcount">송장 <b>${list.length}</b>개</span>${list.map((p,i)=>parcelRow(p,i,list.length)).join('')}<button type="button" class="nd-qa-padd" data-padd ${list.length>=MAX_PARCELS?'hidden':''}>＋ 송장 추가</button></div></div>`;}
+ function shippingFields(v={},lead=''){const ps=parcelsOf(v),list=ps.length?ps:[{carrier:v.carrier||'cj',tracking:v.tracking||''}];return `<div class="nd-qa-fields nd-qa-ship">${lead}<label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><div class="nd-qa-parcels" id="ndShipParcels"><span class="nd-qa-pcount">송장 <b>${list.length}</b>개</span>${list.map((p,i)=>parcelRow(p,i,list.length)).join('')}<button type="button" class="nd-qa-padd" data-padd ${list.length>=MAX_PARCELS?'hidden':''}>송장 추가</button></div></div>`;}
  // final=true(저장): 빈 송장은 빼고 저장 모양으로. final=false(입력 중): 빈 줄도 남겨 다시 그릴 때 사라지지 않게.
  function readShipping(d,final=true){const method=d.querySelector('#ndShipMethod').value;if(method!=='택배')return {method};const rows=[...d.querySelectorAll('#ndShipParcels [data-pr]')].map(r=>({carrier:r.querySelector('[data-pc]').value,tracking:r.querySelector('[data-pt]').value.replace(/[\s-]/g,'')}));
   if(rows.some(p=>p.tracking&&!/^\d{8,30}$/.test(p.tracking))){if(final)say('송장번호는 숫자 8~30자리로 입력해 주세요.');return null;}
@@ -232,7 +232,7 @@
   const dItems=d=>{let src=d.lines||[];try{if(typeof deliveryRecordLines==='function')src=deliveryRecordLines(w,d);}catch{}return src.map(x=>({...(w.lines||[]).find(l=>l.id===x.line_id),qty:x.qty})).filter(l=>Number(l.qty)>0);};
   const dRow=(d,isGone)=>{const key=q.id+':'+d.id,on=!isGone&&recordOpen.get('row:'+key)===true,orig=d.corrects?dels.find(x=>x.id===d.corrects):null;
    const items=dItems(d).map(l=>`<div class="nd-pl-row nd-pl-sub nd-pl-dl"><span></span><span class="nd-pl-in">${e(l.name||'품목')}${opt(l)?`<small>${opt(l)}</small>`:''}</span><span></span><span class="num">${won(l.qty)}</span><span></span></div>`).join('');
-   const pl=parcelsOf(d.shipping),notes=[...(pl.length>1?pl.map((p,i)=>{const name=CARRIERS[p.carrier]?.[0]||'택배',url=trackingUrl({method:'택배',...p});return `<span><b>송장 ${i+1}</b>${e(name)} <i class="nd-pl-trk num">${e(p.tracking)}</i>${url?` <a class="nd-pl-ext" href="${e(url)}" target="_blank" rel="noopener noreferrer" aria-label="송장 ${i+1} ${e(name)} 배송 조회">조회 ↗</a>`:''}</span>`;}):[]),d.memo?`<span><b>메모</b>${linkify(d.memo)}</span>`:'',orig?`<span><b>고친 기록</b>${fixText(orig,d)}</span>`:''].filter(Boolean).join('');
+   const pl=parcelsOf(d.shipping),notes=[...(pl.length>1?pl.map((p,i)=>{const name=CARRIERS[p.carrier]?.[0]||'택배',url=trackingUrl({method:'택배',...p});return `<span><b>송장 ${i+1}</b>${e(name)} <i class="nd-pl-trk num">${e(p.tracking)}</i>${url?` <a class="nd-pl-ext" href="${e(url)}" target="_blank" rel="noopener noreferrer" aria-label="송장 ${i+1} ${e(name)} 배송 조회">조회 ↗</a>`:''}</span>`;}):[]),d.memo?`<span><b>메모</b>${linkify(d.memo)}</span>`:'',orig?`<span><b>수정 기록</b>${fixText(orig,d)}</span>`:''].filter(Boolean).join('');
    return `<div class="nd-pl-rec${on?' on':''}${isGone?' gone':''}"><div class="nd-rec-row nd-pl-row nd-pl-dl nd-pl-main" ${isGone?'':`data-pl-open="${e(d.id)}" role="button" tabindex="0" aria-expanded="${on}"`}><span class="nd-pl-d num">${md(d.date)}</span><span class="nd-pl-nm">${e(recLabel(w,d)||'납품')}${isGone?'<small>취소됨</small>':''}</span><span class="nd-pl-ship">${isGone?'':shipText(d)}</span><span class="num nd-pl-q">${won(recQty(d))}</span><span class="nd-pl-act">${isGone?'':more(`data-rm-d="${e(d.id)}"`,'이 납품 메뉴')}</span></div>${on?`<div class="nd-pl-x">${items}${notes?`<p class="nd-pl-note">${notes}</p>`:''}</div>`:''}</div>`;};
   const restRows=s.rest.map(r=>`<div class="nd-pl-rec"><div class="nd-pl-row nd-pl-dl nd-pl-main nd-pl-left"><span class="nd-pl-d">남음</span><span class="nd-pl-nm">${e(r.l.name||'품목')}${opt(r.l)?`<small>${opt(r.l)}</small>`:''}</span><span class="nd-pl-ship">아직 안 보냄</span><span class="num nd-pl-q">${won(r.left)}</span><span></span></div></div>`).join('');
   const dBody=(live.length||gone.length||(can&&s.rest.length))?head('nd-pl-dl',[['날짜'],['품목'],['배송'],['수량',true],['']])+live.map(d=>dRow(d,false)).join('')+(live.length?restRows:'')+gone.map(d=>dRow(d,true)).join(''):empty(can?'아직 납품 기록이 없어요':'수주하면 납품을 기록할 수 있어요');
@@ -273,10 +273,10 @@
   const qty=Object.fromEntries(rows.map(r=>[r.id,r.was]));let date=d0.date||localDate(),memo=d0.memo||'',shipping=structuredClone(d0.shipping||{method:''});
   const paint=()=>{
    const was=rows.reduce((a,r)=>a+r.was,0),now=rows.reduce((a,r)=>a+qty[r.id],0),same=now===was&&rows.every(r=>qty[r.id]===r.was)&&date===d0.date&&memo===(d0.memo||'')&&JSON.stringify(shipNorm(shipping))===JSON.stringify(shipNorm(d0.shipping||{method:''})),qtySame=rows.every(r=>qty[r.id]===r.was),what=[date!==d0.date?'납품일':'',JSON.stringify(shipNorm(shipping))!==JSON.stringify(shipNorm(d0.shipping||{method:''}))?'배송 정보':'',memo!==(d0.memo||'')?'메모':''].filter(Boolean).join('·');
-   const d=open(`<div class="nd-ps-hd"><b>납품 기록 고치기</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'납품')} · ${won(rows.reduce((a,r)=>a+r.was,0))}개</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>납품 기록 수정</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'납품')} · ${won(rows.reduce((a,r)=>a+r.was,0))}개</span></div>
     <div class="nd-qa-body"><span class="nd-qa-label">수량</span><div class="nd-qa-lines">${rows.map(r=>`<div class="nd-qa-ln"><div><span>${e(r.l.name||'품목')}</span><small>${[r.l.color,r.l.spec].filter(Boolean).map(e).join(' · ')}${r.l.color||r.l.spec?' · ':''}원래 ${won(r.was)}개</small></div><span class="nd-qa-step"><button type="button" data-d="${e(r.id)}" data-v="-1" aria-label="줄이기">−</button><input inputmode="numeric" data-q="${e(r.id)}" value="${qty[r.id]}" aria-label="납품 수량"><button type="button" data-d="${e(r.id)}" data-v="1" aria-label="늘리기">+</button></span></div>`).join('')}</div>
      ${shippingFields(shipping,`<label>납품일<input type="date" id="ndQaDate" value="${e(date)}"></label>`)}<div class="nd-qa-fields"><label class="nd-qa-wide">메모 <small>(선택) · 링크를 붙이면 바로 열려요</small><input id="ndQaMemo" value="${e(memo)}" placeholder="예: 박스 2개 · 사진 링크"></label></div>${same?'':`<p class="nd-qa-after">${qtySame?`<b>${what}만 바뀌어요.</b> 수량이 그대로라 재고는 변하지 않아요.`:now?`확인하면 <b>원래 ${won(was)}개 기록은 '고침'으로 남고 ${won(now)}개 기록이 새로 생겨요.</b> 재고는 차이(${now>was?'+':''}${won(now-was)}개)만큼 반영돼요.`:`0개면 <b>이 납품을 취소</b>하는 것과 같아요. 재고 ${won(was)}개가 되돌아와요.`}</p>`}</div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${same?'disabled':''}>${same||qtySame?'고치기':now?`${won(now)}개로 고치기`:'이 납품 취소'}</button></div>`);
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${same?'disabled':''}>${same||qtySame?'수정':now?`${won(now)}개로 수정`:'이 납품 취소'}</button></div>`);
    d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value||date;paint();};d.querySelector('#ndQaMemo').onchange=ev=>{memo=ev.target.value.trim();paint();};
    bindShipping(d);d.querySelector('.nd-qa-ship').addEventListener('change',ev=>{const next=readShipping(d,false);if(next){shipping=next;const keep=ev.target.closest?.('[data-pr]')?[...d.querySelectorAll('[data-pr]')].indexOf(ev.target.closest('[data-pr]')):-1;paint();if(keep>=0&&ev.target.matches('[data-pt]'))document.querySelectorAll('#ndShipParcels [data-pt]')[keep]?.focus();}});
    d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const r=rows.find(x=>x.id===b.dataset.d);qty[r.id]=Math.max(0,Math.min(r.max,qty[r.id]+Number(b.dataset.v)));paint();});
@@ -340,8 +340,8 @@
   if(b.dataset.rmR){const id=b.dataset.rmR;return openMenu(b,[{t:'환불 기록 지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(id)}]);}
   if(b.dataset.rec==='part')return deliver('part');if(b.dataset.rec==='all')return deliver('all');
   if(b.dataset.rec==='pay')return pay();if(b.dataset.rec==='tax')return taxSheet();
-  if(b.dataset.rmD){const id=b.dataset.rmD;return openMenu(b,[{t:'고치기',sub:'수량 · 날짜 · 배송 · 메모',fn:()=>editDelivery(id)},{t:'납품 취소',sub:'재고가 되돌아가요',icon:'undo',danger:true,fn:()=>cancelDelivery(id)}]);}
-  if(b.dataset.rmP){const p=(db.payments||[]).find(x=>x.id===b.dataset.rmP);if(!p)return;return openMenu(b,[{t:'고치기',sub:'금액 · 날짜 · 방법 · 메모',fn:()=>pay(p)},{t:'지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(p.id)}]);}
+  if(b.dataset.rmD){const id=b.dataset.rmD;return openMenu(b,[{t:'수정',sub:'수량 · 날짜 · 배송 · 메모',fn:()=>editDelivery(id)},{t:'납품 취소',sub:'재고가 되돌아가요',icon:'undo',danger:true,fn:()=>cancelDelivery(id)}]);}
+  if(b.dataset.rmP){const p=(db.payments||[]).find(x=>x.id===b.dataset.rmP);if(!p)return;return openMenu(b,[{t:'수정',sub:'금액 · 날짜 · 방법 · 메모',fn:()=>pay(p)},{t:'지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(p.id)}]);}
  });
  document.addEventListener('click',ev=>{
   const t=ev.target.closest?.('#qtForm .nd-next [data-qa],#qtForm .nd-next [data-st],#qtForm .nd-next [data-tab],#qtForm .nd-next [data-restore],#qtForm .nd-edit-b');if(!t)return;ev.preventDefault();
@@ -350,7 +350,7 @@
   if(t.dataset.tab){document.getElementById('qp-tab-'+t.dataset.tab)?.click();return;}
   if(t.dataset.st){if(typeof qtEditing==='undefined'||!qtEditing)return;qtEditing.status=t.dataset.st;const sel=document.getElementById('fq_status');if(sel)sel.value=t.dataset.st;document.getElementById('qtSaveBtn')?.click();return;}
   const q=current();if(!q)return;
-  if(isEditing(q)&&typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 저장하면 보기 화면으로 돌아가요');return;}
+  if(isEditing(q)&&typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('수정한 내용을 저장하면 보기 화면으로 돌아가요');return;}
   editing.set(q.id,!isEditing(q));bar();
  });
  document.addEventListener('click',ev=>{const h=ev.target.closest?.('#qtForm #fq_short>div>.hd');if(h)h.closest('#fq_short').classList.toggle('nd-open');});
@@ -462,7 +462,7 @@
    return;
   }
   const d=open(`<div class="nd-ps-hd"><b>저장된 납품 기록은 지울 수 없어요</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
-   <div class="nd-qa-body"><p class="nd-qa-note">납품 기록은 재고와 매출의 근거라서 저장한 뒤에는 고치거나 지울 수 없게 되어 있어요.</p>
+   <div class="nd-qa-body"><p class="nd-qa-note">납품 기록은 재고와 매출의 근거라서 저장한 뒤에는 수정하거나 삭제할 수 없게 되어 있어요.</p>
     <p class="nd-qa-note">잘못 넣었다면 <b>견적서를 삭제</b>하면 재고가 되돌아오고 매출에서 빠져요(나중에 복원 가능). 그다음 새 견적서로 다시 만들면 돼요.</p></div>
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);

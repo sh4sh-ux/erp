@@ -331,3 +331,5 @@ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar)
  html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-header-bottom{margin-top:20px!important;align-items:flex-start!important}
  html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-period{min-height:22px;line-height:22px;align-items:center}
 }
+/* 글자 버튼에는 기호를 붙이지 않는다(UI-RULES 'Wording'): '＋ 입금·출금 기록' → '입금·출금 기록'. 글자 없는 [+] 아이콘 버튼(nd-tadd 등)은 그대로. */
+html body #appView .nd-gi-plus:not(#itNewBtn)::before{display:none!important;content:none!important}

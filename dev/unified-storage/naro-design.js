@@ -329,6 +329,19 @@ const NaroCompanyLedger=(()=>{
  // 거래처 주소 검색 uses the same window (the app binds #coAddressSearch to this global on each render).
  window.openCompanyAddressSearch=function(){const address=document.getElementById('f_address'),detail=document.getElementById('f_address_detail'),btn=document.getElementById('coAddressSearch');
   addressWindow(btn,(v,b)=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}if(detail?.isConnected){fillDetail(detail,b);}});};
+ // 저장된 한 줄 주소를 '기본주소 | 상세주소'로 나눈다(공급자 정보는 주소를 한 칸에 저장 — 저장할 때 다시 합친다).
+ // 도로명(…로/…길 + 건물번호) 또는 지번(…동/리/가 + 번지)까지가 기본주소, 그 뒤가 상세주소. 못 나누면 그대로 둔다.
+ function splitAddress(v){const t=String(v||'').trim();
+  const m=/^(.+?(?:로|길)\s?\d+(?:-\d+)?)(?:\s*,\s*|\s+)(.+)$/.exec(t)||/^(.+?(?:동|리|가)\s\d+(?:-\d+)?)(?:\s*,\s*|\s+)(.+)$/.exec(t);
+  return m?[m[1].trim(),m[2].trim()]:[t,''];}
+ window.naroSplitAddress=splitAddress;
+ function supplierAddressSplit(){
+  const input=document.getElementById('st_address'),detail=document.getElementById('nd_address_detail');if(!input||!detail)return;
+  if(document.activeElement===input||document.activeElement===detail||input.dataset.ndSplit===input.value)return;
+  const d=detail.value.trim(),v=input.value.trim();
+  // 기본 앱이 칸을 다시 그리면 기본주소 칸에 합친 주소가 다시 들어온다 → 상세주소 부분을 떼어 낸다(두 번 들어가지 않게)
+  if(d){if(v.endsWith(d)&&v.length>d.length){input.value=v.slice(0,v.length-d.length).replace(/[\s,]+$/,'');}input.dataset.ndSplit=input.value;return;}
+  const [base,rest]=splitAddress(v);if(rest){input.value=base;detail.value=rest;}input.dataset.ndSplit=input.value;}
  function supplierAddress(){
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
@@ -337,7 +350,7 @@ const NaroCompanyLedger=(()=>{
   // 상세 주소 gets its own box like 거래처; on save it joins the base address (the record keeps one address field).
   const detail=document.createElement('input');detail.id='nd_address_detail';detail.type='text';detail.autocomplete='address-line2';detail.placeholder='상세 주소 (동·층·호수)';detail.setAttribute('aria-label','상세 주소');detail.className='nd-addr-detail';wrap.after(detail);
   b.onclick=()=>addressWindow(b,(v,bn)=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';fillDetail(detail,bn);});
-  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
+  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim(),v=input.value.trim();if(d){input.value=v.endsWith(d)?v:(v+' '+d).trim();detail.value='';input.dataset.ndSplit='';}},true);}
 
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
@@ -1009,7 +1022,7 @@ const NaroCompanyLedger=(()=>{
   if(q)set('payQuote',q.id);
   const n=Math.min(r.open,q?quoteBalance(q):r.open);if(amt)amt.value=n.toLocaleString('ko-KR');
   await jWait(60);
-  jBanner(entry?.querySelector('.pay-add')||entry,`받을 금액 <b>${jEsc(jWon(r.open))}</b> 입금을 기록합니다 · ${jEsc(coName(cid))}${q?` · ${jEsc(q.no||'')}`:''} · 금액이 다르면 고쳐서 저장하세요`);
+  jBanner(entry?.querySelector('.pay-add')||entry,`받을 금액 <b>${jEsc(jWon(r.open))}</b> 입금을 기록합니다 · ${jEsc(coName(cid))}${q?` · ${jEsc(q.no||'')}`:''} · 금액이 다르면 수정한 뒤 저장하세요`);
   jFocus(amt);
  }
  function jPayList(){
@@ -1038,7 +1051,7 @@ const NaroCompanyLedger=(()=>{
    const all=[...document.querySelectorAll('#view-stock .stock-add input')].filter(i=>i.getAttribute('aria-label')===lab);
    for(const inp of all){inp.value=String(z.lack);inp.dispatchEvent(new Event('input',{bubbles:true}));if(!inp.matches('[data-stock-size]')){inp.classList.add('nd-jfocus');if(inp.getClientRects().length)first=first||inp;}}}
   const add=document.querySelector('#view-stock .stock-add');
-  jBanner(add,gr.total?`<b>부족한 수량</b>을 미리 넣었어요 · 실제 입고 수량으로 고친 뒤 [변경 내용 확인]을 눌러 주세요`:`<b>${jEsc(gr.item.name)} · ${jEsc(gr.color)}</b> 입고 수량을 넣어 주세요`);
+  jBanner(add,gr.total?`<b>부족한 수량</b>을 미리 넣었어요 · 실제 입고 수량으로 수정한 뒤 [변경 내용 확인]을 눌러 주세요`:`<b>${jEsc(gr.item.name)} · ${jEsc(gr.color)}</b> 입고 수량을 넣어 주세요`);
   (first||document.querySelector('#view-stock .stock-add input:not([type=hidden])'))?.scrollIntoView({block:'center',behavior:'smooth'});first?.focus({preventScroll:true});
  }
  function jShortList(){
@@ -1548,7 +1561,7 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
  addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
  document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();optionCols();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();supplierAddressSplit();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();optionCols();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};

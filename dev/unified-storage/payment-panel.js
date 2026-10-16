@@ -73,12 +73,12 @@
  }
  function overviewMarkup(){
   const ids=records(),rows=rowsOf(ids),sum=totals(rows),net=sum.in-sum.out,ar=receivable(),ap=payable(),label=periodLabel();
-  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액 ›</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입 ›</em></button>`:''}</section>`:'';
+  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입</em></button>`:''}</section>`:'';
   const table=rows.length?`<table class="pp-table"><thead><tr><th class="pp-c-date">날짜</th><th>거래처 · 연결</th><th class="pp-c-method">방법</th><th class="pp-c-num pp-c-io">입금</th><th class="pp-c-num pp-c-io">출금</th><th class="pp-c-num pp-c-amt">금액</th></tr></thead><tbody>${rows.map(p=>`<tr data-pp="record" data-id="${esc(p.id)}" tabindex="0"><td class="pp-c-date">${esc(short(p.date))}</td><td><span class="pp-t-nm">${esc(coName(p.company_id))}</span><small>${esc([p.refund?'환불':'',docNo(p)?(p.purchase_id?'매입 ':'견적 ')+docNo(p):'',p.memo||''].filter(Boolean).join(' · ')||'연결 없음')}</small></td><td class="pp-c-method">${esc(p.method||'—')}</td><td class="pp-c-num pp-c-io in">${isIn(p)?num(p.amount):''}</td><td class="pp-c-num pp-c-io">${isIn(p)?'':num(p.amount)}</td><td class="pp-c-num pp-c-amt${isIn(p)&&!p.refund?' in':''}">${isIn(p)?'+':'−'}${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">이 기간에 입금·출금 기록이 없어요.<br>아래 [＋ 입금·출금 기록]으로 시작하세요.</div>';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">입출금 현황</span><h3 title="${esc(label)}">${esc(label)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong class="${net<0?'neg':''}">${net<0?'−':''}${won(Math.abs(net))}</strong></div><div class="pp-meta">${sum.count}건${kindNote()?' · '+kindNote():''}</div></header>
    <div class="pp-body" id="pp-body">${flowMarkup(sum)}${todo}<div class="pp-section-head"><h4>${esc(label.replace(/^\d{4}년 /,''))} 내역 <small>${sum.count}건</small></h4></div>${table}<p class="pp-note">차액은 이 기간의 입금 − 출금이에요. 통장 잔액과는 달라요.</p></div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-pp="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-pp="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button></div>`;
  }
  function detailMarkup(p){
   const q=quoteOf(p),pu=purchaseOf(p),co=company(p.company_id),word=kindWord(p);
@@ -93,15 +93,15 @@
   list=list.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.created_at||'').localeCompare(String(b.created_at||'')));
   const docBtn=q?`<button type="button" class="pp-link" data-pp="doc">${esc(q.no||'견적서')}</button>`:pu?`<button type="button" class="pp-link" data-pp="doc">${esc(pu.no||'매입')}</button>`:'';
   const created=String(p.created_at||'').slice(0,10);
-  const docLink=q?'<button type="button" data-pp="doc">견적서 열기 ›</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기 ›</button>':'';
+  const docLink=q?'<button type="button" data-pp="doc">견적서 열기</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기</button>':'';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">${word}</span><h3 title="${esc(co?.name||'거래처 없음')}">${esc(co?.name||'거래처 없음')}</h3></div><div class="pp-amount"><span>${word}액</span><strong>${won(p.amount)}</strong></div><div class="pp-meta">${docBtn}<span>${esc(p.date||'날짜 없음')}</span><span>${esc(p.method||'방법 미기록')}</span>${chip}</div></header>
    <div class="pp-body" id="pp-body">${prog}
     <div class="pp-section-head"><h4>${esc(title)} <small>${list.length}건</small></h4>${docLink}</div>
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
-    <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)} ›</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
+    <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
    </div>
-   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">고치기</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button>'}</div>`;
+   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
  }
  const markup=p=>p?detailMarkup(p):overviewMarkup();
  function syncLeft(left,ids){
@@ -183,9 +183,9 @@
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
   const head=document.querySelector('#view-payments>.workspace-heading');
-  if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 고치기`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
+  if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 수정`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
   let note=entry.querySelector('.pp-edit-note');const orig=state.editing&&(data()?.payments||[]).find(x=>x.id===state.editing);
-  if(orig){if(!note){note=document.createElement('p');note.className='pp-edit-note';(entry.querySelector('.pay-add')||entry).prepend(note);}const t=`고치는 중 · 원래 기록(${short(orig.date)} · ${won(orig.amount)})은 저장하면 새 기록으로 바뀌어요.`;if(note.textContent!==t)note.textContent=t;}
+  if(orig){if(!note){note=document.createElement('p');note.className='pp-edit-note';(entry.querySelector('.pay-add')||entry).prepend(note);}const t=`수정 중 · 원래 기록(${short(orig.date)} · ${won(orig.amount)})은 저장하면 새 기록으로 바뀌어요.`;if(note.textContent!==t)note.textContent=t;}
   else note?.remove();
  }
  function openEntry(kind,fill={}){
