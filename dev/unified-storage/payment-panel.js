@@ -86,7 +86,7 @@
   if(q){
    const due=amountOf(q),paid=paidOf(q);rest=Math.max(0,due-paid);
    chip=due>0?(rest<=0.5?'<span class="pp-chip ok">입금 완료</span>':'<span class="pp-chip warn">일부 입금</span>'):'';
-   prog=due>0?`<section class="pp-prog"><div><span>받을 금액 ${won(due)} 중</span><b>${rest<=0.5?'다 받았어요':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
+   prog=due>0?`<section class="pp-prog"><div><span>받을 금액 ${won(due)} 중</span><b>${rest<=0.5?'입금 완료':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
    list=(data()?.payments||[]).filter(x=>x.quote_id===q.id&&!x.void_at);title='이 견적의 입금·환불';
   }else if(p.purchase_id){list=(data()?.payments||[]).filter(x=>x.purchase_id===p.purchase_id&&!x.void_at);title='이 매입의 출금';}
   else{list=history(p);title=`이 거래처의 입출금 · ${periodLabel()}`;}
@@ -177,7 +177,7 @@
   entry.classList.toggle('pp-has-pick',!!qs.length);
   if(!qs.length)pick?.remove();
   else if(co){
-   if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 돈인가요?');co.after(pick);}
+   if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 입금인가요?');co.after(pick);}
    const cur=value('payQuote');
    const html=`<span class="pp-qpick-k">연결할 견적 · 잔액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
@@ -204,12 +204,21 @@
    syncEntry();
   },0);
  }
+ async function addLinked(o){
+  const date=value('payDate'),method=value('payMethod'),memo=value('payMemo').trim(),amount=Math.round(Number(value('payAmt').replace(/[^\d]/g,''))||0),save=fn('saveTable');
+  if(!date){fn('toast')?.('날짜를 선택하세요');return;}
+  if(amount<=0){fn('toast')?.('금액을 입력하세요');return;}
+  const row={id:crypto.randomUUID(),date,company_id:o.company_id,quote_id:null,kind:o.kind,method,amount,memo,created_at:new Date().toISOString(),purchase_id:o.purchase_id,client_ref:'edit_'+crypto.randomUUID().slice(0,12),
+   ...(o.refund?{refund:true}:{}),...(o.amount_fx?{currency:o.currency,amount_fx:o.amount_fx,fx_rate:Math.round(amount/o.amount_fx*10000)/10000}:{})};
+  const next=[...db.payments,row];if(!save||!await save('payments',next))return;db.payments=next;
+ }
  // 고치기: 새 기록이 저장된 뒤에 원래 기록을 지운다(저장소는 기록 수정을 받지 않고 추가·삭제만 받는다 — 견적서 진행 탭과 같음).
  function wrapAdd(){
   const base=fn('addPayment');if(!base||base.ndPayEdit)return;
   const wrapped=async function(){
-   const before=new Set((data()?.payments||[]).map(p=>p.id)),orig=state.editing;
-   const r=await base.apply(this,arguments);
+   const before=new Set((data()?.payments||[]).map(p=>p.id)),orig=state.editing,o=orig&&get(orig);
+   // 매입에 연결된 출금을 수정하면 연결(purchase_id)·외화 금액·환불 표시를 그대로 옮긴다 — 기본 저장은 이 칸들을 모른다(전엔 매입이 다시 미지급으로 보였다)
+   const r=o?.purchase_id&&value('payCo')===o.company_id?await addLinked(o):await base.apply(this,arguments);
    const added=(data()?.payments||[]).find(p=>!before.has(p.id));
    if(added&&orig&&(data()?.payments||[]).some(p=>p.id===orig)){
     state.editing=null;const next=db.payments.filter(p=>p.id!==orig),save=fn('saveTable');

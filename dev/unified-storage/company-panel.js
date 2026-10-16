@@ -57,9 +57,9 @@
    const fx=p.cur!=='KRW',amt=n=>fx?`${p.cur} ${Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2})}`:won(n);
    const ev=[...p.receipts.map(r=>({date:r.date,kind:'입고',text:`${money(r.qty)}개`,amount:0})),
     ...p.pays.map(x=>({date:x.date,kind:x.kind==='지급'?'출금':'돌려받음',text:x.method||'출금',amount:(x.kind==='지급'?1:-1)*x.amount}))].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-   if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
+   if(!p.receipts.length&&!p.payee)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
    const left=p.due-p.paid;
-   return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
+   return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:(p.payee||p.got>=p.qty)&&left<=0.5,
     leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 초과 지급`:'0원 · 출금 완료',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
@@ -87,11 +87,11 @@
    deals,has:deals.length>0||pays.length>0,noPurchases:!globalThis.NaroPurchases?.vendor};
  }
 
- // 요약 한 줄: 82% 받음 · 160,100원 남음 / 납품 전 · 미리 받은 돈 50,000원 / 100% 받음 · 다 받았어요
+ // 요약 한 줄: 82% 받음 · 160,100원 남음 / 납품 전 · 미리 받은 돈 50,000원 / 100% 받음 · 입금 완료
  function ovText(s){
-  const sep='<span class="sep">·</span>',pre=s.sell&&s.left<0?`${sep}<span class="cp-pre">미리 받은 돈 ${won(-s.left)}</span>`:'';
+  const sep='<span class="sep">·</span>',pre=s.sell&&s.left<0?`${sep}<span class="cp-pre">선입금 ${won(-s.left)}</span>`:'';
   if(!(s.base>0))return `<b>${s.sell?'납품 전':'입고 전'}</b>${pre}`;
-  if(s.left<=0)return `<b>100%</b>${esc(s.verb)}${sep}<span>${s.sell?'다 받았어요':'다 줬어요'}</span>${pre}`;
+  if(s.left<=0)return `<b>100%</b>${esc(s.verb)}${sep}<span>${s.sell?'입금 완료':'출금 완료'}</span>${pre}`;
   return `<b>${s.pct}%</b>${esc(s.verb)}${sep}<span class="cp-warn">${won(s.left)} 남음</span>`;
  }
  function dealHtml(s){

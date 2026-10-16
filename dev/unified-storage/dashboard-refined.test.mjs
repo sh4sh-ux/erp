@@ -9,7 +9,7 @@ const plain=v=>JSON.parse(JSON.stringify(v));
 test('dashboard title follows the current local month without changing receivables scope',()=>{
  for(const [date,title] of [['2026-10-05','10월 현황'],['2026-12-31','12월 현황'],['2027-01-01','1월 현황']])assert.equal(context.NaroDashboardModel.monthHeading(date),title);
  assert.match(source,/panel\(monthHeading\(today\)/);
- assert.match(source,/metric\('받을 금액',open,prepaid>0\?`미리 받은 돈 /);
+ assert.match(source,/metric\('받을 금액',open,prepaid>0\?`선입금 /);
  assert.match(source,/open=ar\.reduce\(\(s,r\)=>s\+Math\.max\(0,r\.open\),0\)/); // 받을 금액 화면과 같은 계산(미리 받은 돈은 빼지 않고 따로)
 });
 test('date range validates impossible/empty/reversed dates and bounds excessive chart work',()=>{

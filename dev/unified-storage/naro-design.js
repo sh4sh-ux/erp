@@ -898,7 +898,7 @@ const NaroCompanyLedger=(()=>{
   if(add.parentElement!==row)row.append(add);if(size.parentElement!==row)row.append(size);
  }
  /* 재고 부족 알림: 줄마다 [품명 코드 …… 부족 N] / [색상 · 규격 …… 필요 · 보유] 두 줄로. 원래 문장에서 값만 읽어 다시 그린다. */
- // 받을 금액이 음수(입금이 납품보다 많음 = 선입금)면 '0원' + '미리 받은 돈 N원'. 계산은 그대로, 보이는 것만.
+ // 받을 금액이 음수(입금이 납품보다 많음 = 선입금)면 '0원' + '선입금 N원'. 계산은 그대로, 보이는 것만.
  // 고친 값은 끝에 보이지 않는 표시(​)를 달아, 앱이 다시 쓴 값과 구분한다(같은 값을 또 고치지 않게).
  const ADV='​';
  function advancePaid(){
@@ -910,7 +910,7 @@ const NaroCompanyLedger=(()=>{
    const m=/^\s*[-−]([\d,]+)원\s*$/.exec(t),old=host.querySelector(':scope>.nd-adv');
    if(!m){old?.remove();continue;}
    v.textContent='0원'+ADV;v.classList.remove('neg');
-   const n=old||document.createElement('div');n.className='nd-adv';n.textContent='미리 받은 돈 '+m[1]+'원';if(!old)host.append(n);
+   const n=old||document.createElement('div');n.className='nd-adv';n.textContent='선입금 '+m[1]+'원';if(!old)host.append(n);
   }
  }
  function shortageTidy(){
