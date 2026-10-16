@@ -273,3 +273,16 @@ test('부대비용을 낸 곳에 갚을 돈 = 그곳 비용 + 수입부가세 + 
  assert.equal(f1.due,248400+333650+13500);
  assert.equal(Object.values(unitCosts(p)).reduce((s,u)=>s+u.allocated,0),248400+12000+247150+55000+88000); // 원가 = 비용만
 });
+// 10/17: 매입이 쓰던 거래처·품목을 지우자 매입 파일 전체를 못 읽었다(화면: '매입을 불러오지 못했어요').
+test('지워진 거래처·품목이 있어도 매입 파일은 열리고, 진행 중 매입이 쓰는 거래처·품목은 목록에서 뺄 수 없다',async()=>{
+ const {validatePurchasesDoc}=await import('./storage.mjs');
+ const s=base(),gone={...s,companies:s.companies.filter(c=>c.id!=='v1'&&c.id!=='f1'),items:s.items.filter(i=>i.id!=='jk')};
+ assert.equal(validatePurchasesDoc(doc([domestic(),imported()]),gone),true); // 매입처 v1·품목 jk·운임 받는 곳 f1이 없어도
+ assert.throws(()=>validatePurchasesChange(doc([domestic()]),doc([domestic({memo:'수정'})]),gone),V); // 그 매입을 고쳐 저장할 때는 지금처럼 엄격
+ const fake=fakeDropbox({...emptyData(),...base()}),{repo}=await open(fake);await repo.loadPurchases();await repo.startPurchases();
+ await repo.savePurchases(doc([domestic()]));
+ const cos=repo.loadCollection('companies');
+ await assert.rejects(repo.saveTable('companies',cos.filter(c=>c.id!=='v1')),e=>e.code==='VALIDATION'&&e.reason==='PURCHASE_REF');
+ await assert.rejects(repo.saveTable('items',repo.loadCollection('items').filter(i=>i.id!=='jk')),e=>e.reason==='PURCHASE_REF');
+ await repo.saveTable('companies',cos.filter(c=>c.id!=='v2')); // 매입이 안 쓰는 거래처는 지울 수 있다
+});

@@ -69,9 +69,11 @@
  // ── 거래처·품목 삭제(연결 있으면 숨김) ──
  const coLinks=id=>{const q=(db.quotes||[]).filter(x=>x.company_id===id).length,p=(db.payments||[]).filter(x=>x.company_id===id).length,m=(db.material_moves||[]).filter(x=>x.company_id===id).length;return [q&&`견적서 ${q}건`,p&&`입금·출금 ${p}건`,m&&`업체 제공 자재 ${m}건`].filter(Boolean);};
  const itLinks=id=>{const q=(db.quotes||[]).filter(x=>(x.lines||[]).some(l=>l.item_id===id)).length,s=(db.stock_moves||[]).filter(x=>x.item_id===id).length,c=(db.items||[]).filter(x=>(x.components||[]).some(k=>k.item_id===id)).length,m=(db.material_moves||[]).filter(x=>x.work_item_id===id).length;return [q&&`견적서 ${q}건`,s&&`재고 기록 ${s}건`,c&&`세트 구성 ${c}건`,m&&`업체 제공 자재 ${m}건`].filter(Boolean);};
+ // 매입이 쓰는 거래처·품목(10/17): 매입 파일은 따로 있어서 위 검사에 안 잡혔다 → 지우면 매입 화면 전체가 안 열렸다. 매입이 쓰면 숨김만.
+ const puLinks=(key,id)=>{const n=window.NaroPurchases?.uses?.(key,id);return n===null?['매입(확인 전)']:n?[`매입 ${n}건`]:[];};
  function deleteMaster(key,id){
   const r=(db[key]||[]).find(x=>x.id===id);if(!r)return;
-  const links=key==='companies'?coLinks(id):itLinks(id),name=NAME[key];
+  const links=[...(key==='companies'?coLinks(id):itLinks(id)),...puLinks(key,id)],name=NAME[key];
   const keep=links.length>0;
   const d=open(`${head(`${name} 삭제`,label(key,r))}<div class="nd-qa-body">
    ${keep?`<p class="nd-qa-note">연결된 ${links.join(' · ')}이 있어서 지난 기록은 그대로 두고, <b>목록과 고르기에서만 빼요</b>(숨김).</p>`:`<p class="nd-qa-note">연결된 기록이 없는 ${name}이라 목록에서 지워요.</p>`}
