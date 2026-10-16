@@ -253,7 +253,7 @@ test('내려받기 머리를 읽을 수 없으면 예전 3단계 확인으로 �
  const a=await open(plain);const before=a.backend.metrics();
  assert.equal((await a.repo.loadPurchases()).status,'ready');assert.equal(a.backend.metrics().readRequests-before.readRequests,4);
  const changing=fakeDropbox({...emptyData(),...base()});changing.hideResultHeader(true);changing.files.set(path,{path:'/NARO Biz/Data/purchases.json',id:'purchase-file',rev:'p1',body:JSON.stringify(doc([domestic()]))});
- let downloads=0;const original=changing.fetcher;changing.fetcher=async(url,opts)=>{const response=await original(url,opts);if(url.endsWith('download')&&JSON.parse(opts.headers['Dropbox-API-Arg']).path.toLowerCase()===path&&++downloads===2)changing.files.get(path).rev='p2';return response;};
+ let downloads=0;const original=changing.fetcher;changing.fetcher=async(url,opts)=>{const response=await original(url,opts);if(url.endsWith('download')&&JSON.parse(opts.headers['Dropbox-API-Arg']).path.toLowerCase()===path&&++downloads>=2)changing.files.get(path).rev='p'+downloads;return response;};  // 읽을 때마다 바뀜(한 번 더 읽어도 그대로 충돌)
  const other=await open(changing);assert.equal((await other.repo.loadPurchases()).status,'error');assert.equal(other.repo.purchasesState().error,'STORAGE_CONFLICT');
 });
 
@@ -285,4 +285,11 @@ test('지워진 거래처·품목이 있어도 매입 파일은 열리고, 진�
  await assert.rejects(repo.saveTable('companies',cos.filter(c=>c.id!=='v1')),e=>e.code==='VALIDATION'&&e.reason==='PURCHASE_REF');
  await assert.rejects(repo.saveTable('items',repo.loadCollection('items').filter(i=>i.id!=='jk')),e=>e.reason==='PURCHASE_REF');
  await repo.saveTable('companies',cos.filter(c=>c.id!=='v2')); // 매입이 안 쓰는 거래처는 지울 수 있다
+});
+// 10/17 운영: 매입만 STORAGE_CONFLICT로 안 열림 — 내려받기 머리의 metadata가 기대와 다르면 get_metadata로 다시 확인해 연다
+test('내려받기 머리의 metadata가 이상해도 매입은 열리고, 실패하면 확인 코드(detail)가 남는다',async()=>{
+ const fake=fakeDropbox({...emptyData(),...base()}),{repo}=await open(fake);await repo.loadPurchases();await repo.startPurchases();await repo.savePurchases(doc([domestic()]));
+ fake.oddResultHeader(true);
+ const other=await open(fake);assert.equal((await other.repo.loadPurchases()).status,'ready');assert.equal(other.repo.loadPurchasesDoc().rows.length,1);
+ const st=(await (await open(fake)).repo.loadPurchases());assert.equal(st.status,'ready');assert.equal(st.detail,'');
 });

@@ -44,7 +44,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
    const error=data?.error;
    if(allowMissing&&response.status===409&&error?.['.tag']==='path'&&error.path?.['.tag']==='not_found')return null;
    const code=response.status===401?'RECONNECT_REQUIRED':response.status===429?'RATE_LIMIT':response.status===507||error?.['.tag']==='insufficient_space'||error?.reason?.['.tag']==='insufficient_space'?'QUOTA_LIMIT':response.status===409?'STORAGE_CONFLICT':response.status>=500?'NETWORK_ERROR':'UNAVAILABLE';
-   throw Object.assign(fault(code),{writeRejected:response.status<500||response.status===507});
+   const tag=response.status===409?[error?.['.tag'],error?.[error?.['.tag']]?.['.tag']].filter(x=>typeof x==='string'&&/^[a-z_]{1,40}$/.test(x)).join('/'):'';
+   throw Object.assign(fault(code),{writeRejected:response.status<500||response.status===507,...(tag?{detail:tag}:{})});
   }
   // Bootstrap JSON only. Reject oversized content before parsing where possible.
   if(download&&Number(response.headers?.get('content-length'))>1048576)throw fault('STORAGE_INVALID');
@@ -53,7 +54,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  }
  async function load(path){return request(content+'download',{path:pathArg(path)},{download:true});}
  function identityFromMetadata(path,m){
-  if(m?.['.tag']!=='file'||!m.id||!m.rev||m.path_lower!==('/'+path).toLowerCase())throw fault('STORAGE_CONFLICT');
+  if(m?.['.tag']!=='file'||!m.id||!m.rev||m.path_lower!==('/'+path).toLowerCase())throw Object.assign(fault('STORAGE_CONFLICT'),{detail:m?.['.tag']!=='file'?'meta_not_file':!m.id||!m.rev?'meta_no_rev':m.path_lower?'meta_path':'meta_no_path'});
   return {provider:'dropbox',logicalKey:path.split('/').pop().replace('.json',''),fileId:m.id,path:m.path_lower,revision:m.rev,revisionKind:'dropbox.rev',etag:null};
  }
  async function identity(path){
@@ -73,7 +74,9 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   async loadPurchasesWithIdentity(){
    const r=await request(content+'download',{path:pathArg(PURCHASES_PATH)},{download:true,allowMissing:true,withResult:true});if(!r)return null;
    let m=null;try{m=r.result?JSON.parse(r.result):null;}catch{m=null;}
-   return {doc:r.data,identity:m?identityFromMetadata(PURCHASES_PATH,m):null};
+   // 머리의 metadata가 기대와 다르면(경로 없음 등) 실패로 끝내지 않고 identity 없이 돌려준다 → 저장소가 get_metadata로 다시 확인(10/17)
+   let id=null;try{id=m?identityFromMetadata(PURCHASES_PATH,m):null;}catch{id=null;}
+   return {doc:r.data,identity:id};
   },
   // [매입 시작하기]: 빈 매입 파일을 '없을 때만' 만든다(add + strict_conflict → 이미 있으면 덮지 않고 그대로 사용).
   async createPurchases(value){

@@ -139,7 +139,7 @@ export function createStorageRepository(provider,{companiesCreate=false,business
  // 매입 파일(10/10, 1단계): 7개 데이터와 따로 있는 선택 파일. 상태: unknown · unsupported(Drive 등) · absent(시작 전) · ready · error.
  // 이 상태는 7개 데이터 읽기·저장에 영향을 주지 않는다(실패해도 기존 기능은 그대로).
  let purchases={status:'unknown',doc:null,identity:null,pending:null,error:null};
- const purchaseState=()=>({status:purchases.status,count:purchases.doc?.rows.length??0,capacity:purchases.doc?capacity(purchases.doc):null,unfinishedSave:!!purchases.pending,error:purchases.error});
+ const purchaseState=()=>({status:purchases.status,count:purchases.doc?.rows.length??0,capacity:purchases.doc?capacity(purchases.doc):null,unfinishedSave:!!purchases.pending,error:purchases.error,detail:purchases.detail||''});
  const check=g=>{if(closed||g!==generation)throw fault('CANCELLED');};
  return Object.freeze({
   capabilities:Object.freeze({merge:businessWrite&&extendedWrite}),
@@ -218,7 +218,7 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const g=generation;check(g);if(!snapshot)throw fault('BUSY');
    const b=provider.backend;
    if(!b?.purchasesIdentity||!b?.loadPurchases){purchases={status:'unsupported',doc:null,identity:null,pending:null,error:null};return purchaseState();}
-   try{
+   for(let attempt=0;;attempt++)try{
     // 빠른 길(1회): 내려받기와 그 판의 식별 정보를 함께 받는다. 식별 정보를 못 받으면 아래 예전 길(3회)로.
     if(b.loadPurchasesWithIdentity){
      const r=await b.loadPurchasesWithIdentity();check(g);
@@ -232,7 +232,11 @@ export function createStorageRepository(provider,{companiesCreate=false,business
     if(!after||!same(before,after))throw fault('STORAGE_CONFLICT');
     validatePurchasesDoc(doc,snapshot);
     purchases={status:'ready',doc,identity:after,pending:null,error:null};
-   }catch(e){if(e.code==='CANCELLED')throw e;purchases={status:'error',doc:null,identity:null,pending:null,error:e.code||'INTERNAL_ERROR'};}
+    break;
+   }catch(e){if(e.code==='CANCELLED')throw e;
+    // 읽는 사이 정말 바뀐 경우(앞뒤 rev 다름)는 한 번 더 읽어 본다
+    if(e.code==='STORAGE_CONFLICT'&&!e.detail&&attempt<1)continue;
+    purchases={status:'error',doc:null,identity:null,pending:null,error:e.code||'INTERNAL_ERROR',detail:typeof e.detail==='string'?e.detail:''};break;}
    return purchaseState();
   },
   // [매입 시작하기]: 빈 매입 파일 만들기(이미 있으면 덮지 않고 읽기).
