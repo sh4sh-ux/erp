@@ -28,7 +28,7 @@ B/L:
 const INCOTERMS=['EXW','FCA','FAS','FOB','CFR','CIF','CPT','CIP','DAP','DPU','DAT','DDP'];
 const clean=s=>String(s??'').trim();
 const none=s=>{const t=clean(s);return !t||/^(없음|-|n\/?a)$/i.test(t);};
-export const num=s=>{if(none(s))return null;const t=clean(s).replace(/[,\s원₩]/g,'').replace(/^[A-Z]{3}/,'');const n=Number(t);return Number.isFinite(n)?n:null;};
+export const num=s=>{if(none(s))return null;const t=clean(s).replace(/[,\s원₩$¥€]/g,'').replace(/^[A-Z]{2,3}(?=[\d.-])/,'').replace(/(KRW|USD|CNY|JPY|EUR)$/,'');const n=Number(t);return Number.isFinite(n)?n:null;};
 export const day=s=>{const m=/(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/.exec(clean(s));return m?`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`:'';};
 const val=s=>none(s)?'':clean(s);
 // "FOB CNY 14800 TT" → 인도조건 · 통화 · 금액 · 결제방법(순서가 바뀌어도 읽는다)
@@ -36,6 +36,8 @@ export function parsePay(s){
  const out={incoterms:'',currency:'',amount:null,pay_method:''},rest=[];
  for(const t of clean(s).replace(/,/g,'').split(/[\s-]+/).filter(Boolean)){
   const u=t.toUpperCase();
+  const glued=/^([A-Z]{3})([\d.]+)$/.exec(u); // 'USD14800'처럼 붙여 쓴 경우
+  if(glued&&!out.currency&&out.amount===null){out.currency=glued[1];out.amount=Number(glued[2]);continue;}
   if(!out.incoterms&&INCOTERMS.includes(u))out.incoterms=u;
   else if(!out.currency&&/^[A-Z]{3}$/.test(u)&&u!=='TT')out.currency=u;
   else if(out.amount===null&&Number.isFinite(Number(t)))out.amount=Number(t);
@@ -45,7 +47,12 @@ export function parsePay(s){
  return out;
 }
 const cells=line=>line.split('|').map(clean);
-const isHead=c=>/^(품목|품명|항목|description)$/i.test(c[0]||'');
+// 표 머리 줄: 첫 칸이 품목·품명·항목(…명)이고 둘째 칸이 숫자가 아니다
+const isHead=c=>/^(품목|품명|항목|description|item)/i.test((c[0]||'').replace(/\s/g,''))&&!Number.isFinite(Number(String(c[1]??'').replace(/[,\s]/g,'')||'x'));
+// 표 안의 합계 줄(AI가 자주 덧붙인다) — 품목·청구 항목으로 넣지 않는다
+const isTotal=c=>/^(합계|총계|소계|총액|계|total|subtotal|grand ?total)$/i.test((c[0]||'').replace(/[\s*:：]/g,''));
+// 프롬프트의 자리 표시 줄을 그대로 돌려준 경우 '(품명) | (수량) | …'
+const isPlaceholder=c=>c.length>1&&c.filter(Boolean).every(x=>/^\(.*\)$/.test(x));
 // 붙여넣은 글 → {decl, inv}. 형식이 조금 달라도(앞뒤 설명, 굵은 글씨 표시, 표 구분선) 읽는다.
 export function parseImportPaste(text){
  const decl={no:'',declared_on:'',accepted_on:'',bl:'',vendor:'',incoterms:'',currency:'',amount:null,pay_method:'',customs_rate:null,lines:[],duty_total:null,vat_total:null};
@@ -88,11 +95,18 @@ export function parseImportPaste(text){
    if(c.every(x=>KV.test(x))){for(const x of c){const m=KV.exec(x);kv(m[1],m[2]);}continue;}
    if(isHead(c)){if(sec==='decl')dCols=colsOf(c,DH);else iCols=colsOf(c,IH);continue;}
    const row=cols=>Object.fromEntries(cols.map((k,i)=>[k,c[i]]).filter(([k])=>k));
+   if(isPlaceholder(c))continue;
+   if(isTotal(c)){
+    if(sec==='decl'){const r=row(dCols);if(decl.duty_total===null)decl.duty_total=num(r.duty);if(decl.vat_total===null)decl.vat_total=num(r.vat);}
+    else{const r=row(iCols),k=num(r.amount_krw);if(inv.total===null&&k!==null)inv.total=k+(num(r.vat)||0);}
+    continue;
+   }
    if(sec==='decl'&&c.length>=4){
     const r=row(dCols);
+    if(none(r.name)&&num(r.qty)===null&&num(r.amount)===null)continue;
     decl.lines.push({name:val(r.name),qty:num(r.qty),unit:val(r.unit),price:num(r.price),amount:num(r.amount),hs:val(r.hs),duty:num(r.duty),vat:num(r.vat)});
    }else if(sec==='inv'&&c.length>=3){
-    const r=row(iCols);
+    const r=row(iCols);if(none(r.name)&&num(r.amount_krw)===null&&num(r.amount_fx)===null)continue;
     inv.items.push({name:val(r.name),currency:val(r.currency).toUpperCase()||'KRW',amount_fx:num(r.amount_fx),amount_krw:num(r.amount_krw),vat:num(r.vat)||0});
    }
    continue;
@@ -115,7 +129,8 @@ export function costTypeOf(name){
 const B=s=>clean(s).toUpperCase().replace(/[^A-Z0-9]/g,'');
 const near=(a,b,eps)=>a!==null&&b!==null&&Math.abs(a-b)<=eps;
 // 확인 창의 검사 줄. ok=false인 것 중 block=true면 [매입 만들기]를 막는다.
-export function checkImport({decl,inv}){
+export function checkImport({decl,inv},types=[]){
+ const typeOf=(x,i)=>types[i]||costTypeOf(x.name);
  const out=[],sumBy=k=>decl.lines.reduce((s,l)=>s+(Number(l[k])||0),0);
  const lineSum=Math.round(sumBy('amount')*100)/100;
  if(!decl.lines.length)out.push({ok:false,block:true,text:'필증 품목을 읽지 못했어요. AI 답에 품목 표가 있는지 확인해 주세요.'});
@@ -135,7 +150,9 @@ export function checkImport({decl,inv}){
  }
  if(inv){
   if(decl.bl&&inv.bl)out.push(B(decl.bl)===B(inv.bl)?{ok:true,text:`필증 B/L = 청구서 B/L (${decl.bl})`}:{ok:false,block:true,text:`필증과 청구서가 다른 건이에요(필증 B/L ${decl.bl} · 청구서 B/L ${inv.bl})`});
-  const invDuty=inv.items.filter(x=>costTypeOf(x.name)==='관세').reduce((s,x)=>s+(x.amount_krw||0),0);
+  const noKrw=inv.items.filter((x,i)=>x.amount_krw===null&&typeOf(x,i)!=='skip');
+  if(noKrw.length)out.push({ok:false,block:true,text:`원화금액이 빈 청구서 항목이 있어요: ${noKrw.map(x=>x.name||'이름 없음').join(', ')} — AI에 원화금액을 다시 물어보거나 '넣지 않음'으로 바꿔 주세요`});
+  const invDuty=inv.items.filter((x,i)=>typeOf(x,i)==='관세').reduce((s,x)=>s+(x.amount_krw||0),0);
   const declDuty=decl.duty_total??dSum;
   if(invDuty&&!near(invDuty,declDuty,tol))out.push({ok:false,block:false,text:`청구서 관세 ${invDuty.toLocaleString('ko-KR')}원 ≠ 필증 관세 ${Math.round(declDuty).toLocaleString('ko-KR')}원 — 원가는 필증 기준`});
   if(inv.total!==null){const s=inv.items.reduce((a,x)=>a+(x.amount_krw||0)+(x.vat||0),0);if(!near(s,inv.total,2))out.push({ok:false,block:false,text:`청구서 항목 합계(${s.toLocaleString('ko-KR')}원)와 청구서 합계(${inv.total.toLocaleString('ko-KR')}원)가 달라요`});}
@@ -149,16 +166,18 @@ export function importDraft({decl,inv},{uid,vendor_id,payee_id,map,date,types=[]
  const dutyTotal=Math.round(decl.duty_total??decl.lines.reduce((s,l)=>s+(l.duty||0),0));
  const vatTotal=Math.round(decl.vat_total??decl.lines.reduce((s,l)=>s+(l.vat||0),0));
  const costs=[];
- const add=(type,amount,extra={})=>{if(amount>0)costs.push({id:'c'+uid(),type,amount_krw:Math.round(amount),alloc:'금액',...(payee_id&&inv?{payee_id}:{}),...extra});};
- add('관세',dutyTotal);
- const groups={};
  const typeAt=i=>types[i]||costTypeOf(inv.items[i].name);
+ const billed=t=>!!inv&&inv.items.some((x,i)=>typeAt(i)===t);
+ const add=(type,amount,owed=true)=>{if(amount>0)costs.push({id:'c'+uid(),type,amount_krw:Math.round(amount),alloc:'금액',...(payee_id&&inv&&owed?{payee_id}:{})});};
+ // 관세·수입부가세는 청구서에 있을 때만 그 곳에 갚을 돈(없으면 세관에 직접 낸 것)
+ add('관세',dutyTotal,billed('관세'));
+ const groups={};
  (inv?.items||[]).forEach((x,i)=>{const t=typeAt(i);if(t==='관세'||t==='import_vat'||t==='skip')return;(groups[t]=groups[t]||[]).push(x);});
  for(const t of ['운임','보험','통관수수료','국내운송','기타'])if(groups[t])add(t,groups[t].reduce((s,x)=>s+(x.amount_krw||0),0));
  const feeVat=Math.round((inv?.items||[]).filter((x,i)=>!['import_vat','skip'].includes(typeAt(i))).reduce((s,x)=>s+(x.vat||0),0));
  const customs=Object.fromEntries(Object.entries({declaration_no:decl.no,bl_no:decl.bl,incoterms:decl.incoterms,pay_method:decl.pay_method,declared_on:decl.declared_on,accepted_on:decl.accepted_on}).filter(([,v])=>v));
  return {kind:'수입',vendor_id,date:date||decl.declared_on,currency:decl.currency,fx:{booking_rate:decl.customs_rate,customs_rate:decl.customs_rate},lines,costs,
-  import_vat:{amount:vatTotal,...(payee_id&&inv?{payee_id}:{}),...(feeVat?{fee_vat:feeVat}:{})},customs};
+  import_vat:{amount:vatTotal,...(payee_id&&inv?{payee_id}:{}),...(feeVat?{fee_vat:feeVat}:{}),...(payee_id&&inv&&!billed('import_vat')?{direct:true}:{})},customs};
 }
 // 같은 매입처의 지난 수입 매입에서 필증 품명 → 품목 짝을 찾는다(결정 ⑤ — 따로 저장하지 않고 줄의 src_name에서 읽는다).
 export function rememberedMap(rows,vendor_id,names){

@@ -98,7 +98,7 @@ export function validatePurchase(p,snapshot){
  (p.cost_runs||[]).forEach((cr,i)=>run(cr,p,p.cost_runs.slice(0,i)));
  valid(p.returns===undefined||Array.isArray(p.returns));unique(p.returns||[]);for(const r of p.returns||[])ret(r,p);
  // 수입부가세: 원가가 아니다(공제). payee_id = 대신 낸 곳(운송사·관세사), fee_vat = 그곳 수수료에 붙은 부가세(역시 원가 아님).
- valid(p.import_vat===undefined||p.import_vat&&num(p.import_vat.amount)&&p.import_vat.amount>=0&&(p.import_vat.payee_id===undefined||companies.some(c=>c.id===p.import_vat.payee_id))&&(p.import_vat.fee_vat===undefined||num(p.import_vat.fee_vat)&&p.import_vat.fee_vat>=0));
+ valid(p.import_vat===undefined||p.import_vat&&num(p.import_vat.amount)&&p.import_vat.amount>=0&&(p.import_vat.payee_id===undefined||companies.some(c=>c.id===p.import_vat.payee_id))&&(p.import_vat.fee_vat===undefined||num(p.import_vat.fee_vat)&&p.import_vat.fee_vat>=0)&&(p.import_vat.direct===undefined||p.import_vat.direct===true));
  // 수입 정보(수입신고필증 기준, 10/17): 신고번호 · B/L · 인도조건 · 결제방법 · 신고일 · 수리일
  if(p.customs!==undefined){const c=p.customs;valid(c&&typeof c==='object'&&!Array.isArray(c));
   for(const k of Object.keys(c))valid(['declaration_no','bl_no','incoterms','pay_method','declared_on','accepted_on'].includes(k));

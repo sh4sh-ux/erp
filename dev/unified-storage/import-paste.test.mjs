@@ -106,3 +106,39 @@ test('품명 짝 기억: 같은 매입처의 지난 수입 매입에서 최근 �
   {kind:'수입',vendor_id:'v2',date:'2026-04-01',removed_at:AT,lines:[{item_id:'ch',src_name:'CHEF JACKET'}]}];
  assert.deepEqual(rememberedMap(rows,'v2',['CHEF JACKET','CHEF PANTS']),[{item_id:'jk',color:'WH',spec:''},null]);
 });
+test('AI가 덧붙인 합계 줄·자리 표시 줄은 품목·청구 항목으로 넣지 않는다',()=>{
+ const t=`[수입신고필증]
+결제: USD14800 TT
+과세환율: 1380.5
+품목명 | 수량 | 단위 | 단가 | 금액 | 세번 | 관세 | 부가세
+(품명) | (수량) | (PCS 등) | (외화 단가) | (외화 금액) | (세번부호) | (관세 원) | (부가세 원)
+A | 10 | PCS | $100 | 1,000 | 1 | 10000 | 21000
+**합계** | | | | 1000 | | 10000 | 21000
+[청구서]
+청구처: X
+항목명 | 통화 | 외화금액 | 원화금액 | 부가세
+FREIGHT | USD | 20 | 27610 | 0
+합계 | | | 27610 | 0`;
+ const r=parseImportPaste(t);
+ assert.equal(r.decl.currency,'USD');assert.equal(r.decl.amount,14800);
+ assert.equal(r.decl.lines.length,1);assert.equal(r.decl.lines[0].price,100);
+ assert.equal(r.decl.duty_total,10000);assert.equal(r.decl.vat_total,21000);
+ assert.equal(r.inv.items.length,1);assert.equal(r.inv.total,27610);
+});
+test('원화금액이 빈 청구서 항목은 막는다(넣지 않음으로 바꾸면 통과)',()=>{
+ const p=parseImportPaste(PASTE.replace('OCEAN FREIGHT | USD | 72 | 105397 | 0','OCEAN FREIGHT | USD | 72 | 없음 | 0').replace('합계: 1086677','합계: 981280'));
+ assert.ok(checkImport(p).some(x=>x.block&&/원화금액이 빈/.test(x.text)));
+ assert.ok(!checkImport(p,['skip']).some(x=>/원화금액이 빈/.test(x.text)));
+});
+test('청구서에 관세·부가세가 없으면 세관에 직접 낸 것 — 운송사에 갚을 돈에 넣지 않는다',()=>{
+ const s=base();s.companies.push({id:'f2',name:'(시험) 바다 해운',type:'매입',prices:[]});
+ const lines=PASTE.split('\n').filter(l=>!/^관세 \||^부가세 \|/.test(l)).join('\n').replace('합계: 1086677','합계: 321897');
+ let n=0;const d=importDraft(parseImportPaste(lines),{uid:()=>String(++n),vendor_id:'v2',payee_id:'f2',map:[{item_id:'jk'},{item_id:'ap'}]});
+ const duty=d.costs.find(c=>c.type==='관세');assert.equal(duty.amount_krw,409140);assert.equal(duty.payee_id,undefined);
+ assert.equal(d.import_vat.direct,true);
+ const p={id:'p9',no:'IM-1',status:'작성중',receipts:[],cost_runs:[],created_at:AT,updated_at:AT,...d};
+ assert.equal(validatePurchasesChange(doc([]),doc([p]),s).rows.length,1);
+ // 운임 133,397 + 통관 70,000 + 국내운송 80,000 + 기타 25,000 + 수수료 부가세 13,500
+ assert.equal(paymentStatus(p,[]).costs.find(c=>c.payee_id==='f2').due,321897);
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([{...p,import_vat:{...p.import_vat,direct:'yes'}}]),s),e=>e.code==='VALIDATION');
+});

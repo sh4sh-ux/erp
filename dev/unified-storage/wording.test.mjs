@@ -26,7 +26,7 @@ test('supplier address splits into base and detail for display and joins once on
  assert.match(s,/input\.value=v\.endsWith\(d\)\?v:\(v\+' '\+d\)\.trim\(\)/); // 이미 합쳐져 있으면 두 번 붙이지 않는다
 });
 test('business terms replace plain-language phrases (돈 · 다 받음 · ~나와요 · 지우기)',async()=>{
- const bad=/못 받은 돈|안 준 돈|받을 돈|줄 돈|들어온 돈|다 받음|다 줌|더 줌|얼마나 오래|나와요'|써요'|메모예요|자주 쓰지 않아요|골라 주세요|기록해 두세요|>지우기<|'지우기'|기록 지우기/;
+ const bad=/못 받은 돈|안 준 돈|받은 돈|보낸 돈|맡긴 돈|견적의 돈|미리 받은 돈|다 받았어요|다 줬어요|받을 돈|줄 돈|들어온 돈|다 받음|다 줌|더 줌|얼마나 오래|나와요'|써요'|메모예요|자주 쓰지 않아요|골라 주세요|기록해 두세요|>지우기<|'지우기'|기록 지우기/;
  for(const f of [...files,'log-ui.mjs','dashboard-refined.js']){assert.doesNotMatch(await code(f),bad,f);}
  assert.match(await code('payment-panel.js'),/받을 금액.*지급할 금액|지급할 금액/s);
  assert.match(await code('ar-panel.js'),/'전체 거래처':'미수 거래처만'/);

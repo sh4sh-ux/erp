@@ -11844,7 +11844,7 @@ const NaroCompanyLedger=(()=>{
   if(add.parentElement!==row)row.append(add);if(size.parentElement!==row)row.append(size);
  }
  /* 재고 부족 알림: 줄마다 [품명 코드 …… 부족 N] / [색상 · 규격 …… 필요 · 보유] 두 줄로. 원래 문장에서 값만 읽어 다시 그린다. */
- // 받을 금액이 음수(입금이 납품보다 많음 = 선입금)면 '0원' + '미리 받은 돈 N원'. 계산은 그대로, 보이는 것만.
+ // 받을 금액이 음수(입금이 납품보다 많음 = 선입금)면 '0원' + '선입금 N원'. 계산은 그대로, 보이는 것만.
  // 고친 값은 끝에 보이지 않는 표시(​)를 달아, 앱이 다시 쓴 값과 구분한다(같은 값을 또 고치지 않게).
  const ADV='​';
  function advancePaid(){
@@ -11856,7 +11856,7 @@ const NaroCompanyLedger=(()=>{
    const m=/^\s*[-−]([\d,]+)원\s*$/.exec(t),old=host.querySelector(':scope>.nd-adv');
    if(!m){old?.remove();continue;}
    v.textContent='0원'+ADV;v.classList.remove('neg');
-   const n=old||document.createElement('div');n.className='nd-adv';n.textContent='미리 받은 돈 '+m[1]+'원';if(!old)host.append(n);
+   const n=old||document.createElement('div');n.className='nd-adv';n.textContent='선입금 '+m[1]+'원';if(!old)host.append(n);
   }
  }
  function shortageTidy(){
@@ -13287,10 +13287,10 @@ const NaroOrderImport=(()=>{
      <p class="nd-qa-note">삭제를 누르면 한 번에 처리돼요.</p>
      <div class="nd-qa-lines">
       ${back.moves.length?`<div class="nd-qa-ln"><div><span>납품한 ${won(L.dq||backQty)}개</span></div><b class="nd-qa-tag">${backQty>0?`재고로 ${won(backQty)}개 되돌림`:'재고 되돌림'}</b></div>`:''}
-      ${net>0?`<div class="nd-qa-ln"><div><span>받은 돈 ${won(net)}원</span></div><b class="nd-qa-tag${refund==='yes'?'':' mute'}">${refund==='yes'?'돌려준 것으로(출금) 기록':'거래처에 맡긴 돈으로 남김'}</b></div>`:''}
+      ${net>0?`<div class="nd-qa-ln"><div><span>입금액 ${won(net)}원</span></div><b class="nd-qa-tag${refund==='yes'?'':' mute'}">${refund==='yes'?'돌려준 것으로(출금) 기록':'선입금으로 남김'}</b></div>`:''}
       <div class="nd-qa-ln"><div><span>견적서</span></div><b class="nd-qa-tag mute">목록에서 빠짐 · 복원 가능</b></div>
      </div>
-     ${net>0?`<div class="nd-qa-chips" role="group" aria-label="받은 돈"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
+     ${net>0?`<div class="nd-qa-chips" role="group" aria-label="입금액"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
      <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 위 필터(≡)의 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">삭제</button></div>`);
@@ -13656,9 +13656,9 @@ const NaroOrderImport=(()=>{
    const fx=p.cur!=='KRW',amt=n=>fx?`${p.cur} ${Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2})}`:won(n);
    const ev=[...p.receipts.map(r=>({date:r.date,kind:'입고',text:`${money(r.qty)}개`,amount:0})),
     ...p.pays.map(x=>({date:x.date,kind:x.kind==='지급'?'출금':'돌려받음',text:x.method||'출금',amount:(x.kind==='지급'?1:-1)*x.amount}))].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-   if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
+   if(!p.receipts.length&&!p.payee)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
    const left=p.due-p.paid;
-   return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
+   return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:(p.payee||p.got>=p.qty)&&left<=0.5,
     leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 초과 지급`:'0원 · 출금 완료',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
@@ -13686,11 +13686,11 @@ const NaroOrderImport=(()=>{
    deals,has:deals.length>0||pays.length>0,noPurchases:!globalThis.NaroPurchases?.vendor};
  }
 
- // 요약 한 줄: 82% 받음 · 160,100원 남음 / 납품 전 · 미리 받은 돈 50,000원 / 100% 받음 · 다 받았어요
+ // 요약 한 줄: 82% 받음 · 160,100원 남음 / 납품 전 · 미리 받은 돈 50,000원 / 100% 받음 · 입금 완료
  function ovText(s){
-  const sep='<span class="sep">·</span>',pre=s.sell&&s.left<0?`${sep}<span class="cp-pre">미리 받은 돈 ${won(-s.left)}</span>`:'';
+  const sep='<span class="sep">·</span>',pre=s.sell&&s.left<0?`${sep}<span class="cp-pre">선입금 ${won(-s.left)}</span>`:'';
   if(!(s.base>0))return `<b>${s.sell?'납품 전':'입고 전'}</b>${pre}`;
-  if(s.left<=0)return `<b>100%</b>${esc(s.verb)}${sep}<span>${s.sell?'다 받았어요':'다 줬어요'}</span>${pre}`;
+  if(s.left<=0)return `<b>100%</b>${esc(s.verb)}${sep}<span>${s.sell?'입금 완료':'출금 완료'}</span>${pre}`;
   return `<b>${s.pct}%</b>${esc(s.verb)}${sep}<span class="cp-warn">${won(s.left)} 남음</span>`;
  }
  function dealHtml(s){
@@ -14630,7 +14630,7 @@ html body #appView #view-dash.nd-dashboard .nd-db-values :is(.nd-db-sale,.nd-db-
   const metric=(label,value,hint,target)=>`<button type="button" class="nd-db-metric" data-go="${target}"><span>${label}${icon('arrow')}</span><strong>${amountHtml(value)}</strong><small>${hint}</small></button>`;
   const quoteRows=qs.map(q=>`<button type="button" class="nd-db-quote" data-quote="${esc(q.id)}"><span class="nd-db-name"><strong>${esc(coName(q.company_id))}</strong><small>${esc(q.no||'—')} · ${esc(q.date||'날짜 없음')}</small></span><span class="nd-db-quote-amount"><strong>${amountHtml(quoteTotals(q).total)}</strong><span class="pill ${esc(QT_STATUS_CLASS[q.status]||'st-draft')}">${esc(q.status==='작성중'?'작성 중':q.status)}</span></span></button>`).join('')||'<p class="nd-db-empty">아직 견적이 없습니다. 위의 ‘새 견적’으로 시작하세요.</p>';
   const stageRows=stagesNow.map(s=>`<button type="button" class="nd-db-stage" data-status="${s.status}"><span class="nd-db-stage-icon">${icon(s.icon)}</span><span class="nd-db-stage-name"><strong>${s.label}</strong> <small>(${s.hint})</small></span><b>${s.count}<small>건</small></b>${icon('chevron')}</button>`).join('');
-  root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,prepaid>0?`미리 받은 돈 ${Math.round(prepaid).toLocaleString('ko-KR')}원`:'전체 납품 − 입금','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
+  root.innerHTML=panel(monthHeading(today),`<div class="nd-db-metrics">${metric('이번 달 매출',sales.total,'납품 기준 · 부가세 포함','sales')}${metric('이번 달 입금',receipt,'입금일 기준','payments')}${metric('받을 금액',open,prepaid>0?`선입금 ${Math.round(prepaid).toLocaleString('ko-KR')}원`:'전체 납품 − 입금','ar')}</div>`,`<span>${esc(month)} · ${Number(today.slice(8))}일 기준</span>`)
    +'<section class="nd-db-card nd-db-chart" aria-label="매출·입금 현황"></section>'
    +panel('확인해야 할 일',`<div class="nd-db-attention">${[['ar','wallet','30일 이상 미수',aged.length,'곳'],['tax','file','계산서 미발행',tax.length,'건'],['stock','box','재고 부족',short,'옵션']].map(([key,i,label,count,unit])=>`<button type="button" data-review="${key}" aria-expanded="false">${icon(i)}<span>${label}</span><b class="${needsAttention(count)?'needs-attention':''}">${count.toLocaleString('ko-KR')}${unit}</b>${icon('chevron')}</button>`).join('')}</div><div class="nd-db-review" hidden></div>`, '<span>필요한 업무로 바로 연결</span>')
    +`<div class="nd-db-work">${panel('최근 견적',quoteRows,'<button type="button" class="nd-db-link" data-all-quotes>전체 보기 '+icon('arrow')+'</button>')}${panel('견적 진행',stageRows,'<span>상태별 견적 수</span>')}</div>`
@@ -14983,7 +14983,7 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
   if(q){
    const due=amountOf(q),paid=paidOf(q);rest=Math.max(0,due-paid);
    chip=due>0?(rest<=0.5?'<span class="pp-chip ok">입금 완료</span>':'<span class="pp-chip warn">일부 입금</span>'):'';
-   prog=due>0?`<section class="pp-prog"><div><span>받을 금액 ${won(due)} 중</span><b>${rest<=0.5?'다 받았어요':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
+   prog=due>0?`<section class="pp-prog"><div><span>받을 금액 ${won(due)} 중</span><b>${rest<=0.5?'입금 완료':'남은 금액 '+won(rest)}</b></div><div class="pp-pbar"><span style="width:${Math.min(100,Math.max(0,paid/due*100)).toFixed(1)}%"></span></div></section>`:'';
    list=(data()?.payments||[]).filter(x=>x.quote_id===q.id&&!x.void_at);title='이 견적의 입금·환불';
   }else if(p.purchase_id){list=(data()?.payments||[]).filter(x=>x.purchase_id===p.purchase_id&&!x.void_at);title='이 매입의 출금';}
   else{list=history(p);title=`이 거래처의 입출금 · ${periodLabel()}`;}
@@ -15074,7 +15074,7 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
   entry.classList.toggle('pp-has-pick',!!qs.length);
   if(!qs.length)pick?.remove();
   else if(co){
-   if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 돈인가요?');co.after(pick);}
+   if(!pick){pick=document.createElement('div');pick.className='pp-qpick';pick.setAttribute('role','group');pick.setAttribute('aria-label','어느 견적의 입금인가요?');co.after(pick);}
    const cur=value('payQuote');
    const html=`<span class="pp-qpick-k">연결할 견적 · 잔액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
@@ -15101,12 +15101,21 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
    syncEntry();
   },0);
  }
+ async function addLinked(o){
+  const date=value('payDate'),method=value('payMethod'),memo=value('payMemo').trim(),amount=Math.round(Number(value('payAmt').replace(/[^\d]/g,''))||0),save=fn('saveTable');
+  if(!date){fn('toast')?.('날짜를 선택하세요');return;}
+  if(amount<=0){fn('toast')?.('금액을 입력하세요');return;}
+  const row={id:crypto.randomUUID(),date,company_id:o.company_id,quote_id:null,kind:o.kind,method,amount,memo,created_at:new Date().toISOString(),purchase_id:o.purchase_id,client_ref:'edit_'+crypto.randomUUID().slice(0,12),
+   ...(o.refund?{refund:true}:{}),...(o.amount_fx?{currency:o.currency,amount_fx:o.amount_fx,fx_rate:Math.round(amount/o.amount_fx*10000)/10000}:{})};
+  const next=[...db.payments,row];if(!save||!await save('payments',next))return;db.payments=next;
+ }
  // 고치기: 새 기록이 저장된 뒤에 원래 기록을 지운다(저장소는 기록 수정을 받지 않고 추가·삭제만 받는다 — 견적서 진행 탭과 같음).
  function wrapAdd(){
   const base=fn('addPayment');if(!base||base.ndPayEdit)return;
   const wrapped=async function(){
-   const before=new Set((data()?.payments||[]).map(p=>p.id)),orig=state.editing;
-   const r=await base.apply(this,arguments);
+   const before=new Set((data()?.payments||[]).map(p=>p.id)),orig=state.editing,o=orig&&get(orig);
+   // 매입에 연결된 출금을 수정하면 연결(purchase_id)·외화 금액·환불 표시를 그대로 옮긴다 — 기본 저장은 이 칸들을 모른다(전엔 매입이 다시 미지급으로 보였다)
+   const r=o?.purchase_id&&value('payCo')===o.company_id?await addLinked(o):await base.apply(this,arguments);
    const added=(data()?.payments||[]).find(p=>!before.has(p.id));
    if(added&&orig&&(data()?.payments||[]).some(p=>p.id===orig)){
     state.editing=null;const next=db.payments.filter(p=>p.id!==orig),save=fn('saveTable');

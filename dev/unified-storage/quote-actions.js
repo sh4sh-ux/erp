@@ -389,10 +389,10 @@
      <p class="nd-qa-note">삭제를 누르면 한 번에 처리돼요.</p>
      <div class="nd-qa-lines">
       ${back.moves.length?`<div class="nd-qa-ln"><div><span>납품한 ${won(L.dq||backQty)}개</span></div><b class="nd-qa-tag">${backQty>0?`재고로 ${won(backQty)}개 되돌림`:'재고 되돌림'}</b></div>`:''}
-      ${net>0?`<div class="nd-qa-ln"><div><span>받은 돈 ${won(net)}원</span></div><b class="nd-qa-tag${refund==='yes'?'':' mute'}">${refund==='yes'?'돌려준 것으로(출금) 기록':'거래처에 맡긴 돈으로 남김'}</b></div>`:''}
+      ${net>0?`<div class="nd-qa-ln"><div><span>입금액 ${won(net)}원</span></div><b class="nd-qa-tag${refund==='yes'?'':' mute'}">${refund==='yes'?'돌려준 것으로(출금) 기록':'선입금으로 남김'}</b></div>`:''}
       <div class="nd-qa-ln"><div><span>견적서</span></div><b class="nd-qa-tag mute">목록에서 빠짐 · 복원 가능</b></div>
      </div>
-     ${net>0?`<div class="nd-qa-chips" role="group" aria-label="받은 돈"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
+     ${net>0?`<div class="nd-qa-chips" role="group" aria-label="입금액"><button type="button" data-refund="yes" aria-pressed="${refund==='yes'}">돌려줬어요</button><button type="button" data-refund="keep" aria-pressed="${refund==='keep'}">다음 거래에 쓸게요</button></div>`:''}
      <p class="nd-qa-note">기록은 지우지 않고 남아요. 목록 위 필터(≡)의 '삭제·취소된 견적 보기'에서 다시 열어 [복원]할 수 있어요.</p>
     </div>
     <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del">삭제</button></div>`);
