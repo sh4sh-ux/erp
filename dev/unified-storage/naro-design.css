@@ -1380,6 +1380,8 @@ html[data-theme="dark"]{
 #appView .pill.st-sent{background:var(--nd-blue-soft)!important;color:var(--nd-blue)!important}
 #appView .pill.st-won{background:var(--nd-green-soft)!important;color:var(--nd-green)!important}
 #appView .pill.st-done{background:var(--nd-green-fill)!important;color:#fff!important}
+/* 완료(견적: 납품+계산서+입금 / 매입: 입고+출금): 할 일 없음 — 채우지 않은 회색 테두리(작성중 회색 채움과 구분) */
+#appView .pill.st-complete{background:transparent!important;color:var(--nd-ink-3,#8A8F99)!important;box-shadow:inset 0 0 0 1px var(--nd-line)!important}
 /* 이익·조정 = 청록 */
 #appView #view-sales #slMargin.pos,#appView .nd-profit{color:var(--nd-teal)!important}
 #appView .pill.adj{background:var(--nd-teal-soft)!important;color:var(--nd-teal)!important}

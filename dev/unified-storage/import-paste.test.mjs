@@ -1,6 +1,6 @@
 // 수입 매입 붙여넣기 — AI가 정리한 글(시험용 이름·숫자)을 읽어 검사하고 매입 1건 재료를 만든다. 밖으로 아무것도 보내지 않는다.
 import test from 'node:test';import assert from 'node:assert/strict';
-import {IMPORT_PROMPT,parseImportPaste,parsePay,costTypeOf,checkImport,importDraft,rememberedMap,num,day} from './import-paste.mjs';
+import {IMPORT_PROMPT,parseImportPaste,parsePay,costTypeOf,checkImport,importDraft,rememberedMap,rememberedTypes,num,day} from './import-paste.mjs';
 import {validatePurchasesChange} from '../personal-cloud-onboarding/purchase-contract.mjs';
 import {unitCosts,paymentStatus} from './purchase-ledger.mjs';
 import {AT,base,doc} from './purchase-fixtures.mjs';
@@ -104,7 +104,7 @@ test('품명 짝 기억: 같은 매입처의 지난 수입 매입에서 최근 �
   {kind:'수입',vendor_id:'v2',date:'2026-02-01',lines:[{item_id:'jk',color:'WH',src_name:'CHEF JACKET'}]},
   {kind:'수입',vendor_id:'v1',date:'2026-03-01',lines:[{item_id:'ch',src_name:'CHEF PANTS'}]},
   {kind:'수입',vendor_id:'v2',date:'2026-04-01',removed_at:AT,lines:[{item_id:'ch',src_name:'CHEF JACKET'}]}];
- assert.deepEqual(rememberedMap(rows,'v2',['CHEF JACKET','CHEF PANTS']),[{item_id:'jk',color:'WH',spec:''},null]);
+ assert.deepEqual(rememberedMap(rows,'v2',['CHEF JACKET','CHEF PANTS']),[{item_id:'jk',color:'WH'},null]);
 });
 test('AI가 덧붙인 합계 줄·자리 표시 줄은 품목·청구 항목으로 넣지 않는다',()=>{
  const t=`[수입신고필증]
@@ -141,4 +141,19 @@ test('청구서에 관세·부가세가 없으면 세관에 직접 낸 것 — �
  // 운임 133,397 + 통관 70,000 + 국내운송 80,000 + 기타 25,000 + 수수료 부가세 13,500
  assert.equal(paymentStatus(p,[]).costs.find(c=>c.payee_id==='f2').due,321897);
  assert.throws(()=>validatePurchasesChange(doc([]),doc([{...p,import_vat:{...p.import_vat,direct:'yes'}}]),s),e=>e.code==='VALIDATION');
+});
+test('사이즈 나누기: 필증 한 줄 → 같은 단가의 매입 품목 여러 줄, 청구서 구분은 낸 곳별로 기억',()=>{
+ const s=base();s.companies.push({id:'f2',name:'(시험) 바다 해운',type:'매입',prices:[]});
+ let n=0;const parsed=parseImportPaste(PASTE);
+ const d=importDraft(parsed,{uid:()=>String(++n),vendor_id:'v2',payee_id:'f2',map:[{item_id:'jk',color:'WH',parts:[{spec:'S',qty:120},{spec:'M',qty:80},{spec:'L',qty:0}]},{item_id:'ap'}],types:[undefined,undefined,'운임']});
+ assert.deepEqual(d.lines.map(l=>[l.spec||'',l.qty,l.unit_price,l.src_name]),[['S',120,70,'CHEF JACKET'],['M',80,70,'CHEF JACKET'],['',20,40,'CHEF PANTS']]);
+ assert.equal(d.invoice_map.find(x=>x.name==='DOCUMENT FEE').type,'운임');
+ const p={id:'p9',no:'IM-1',status:'작성중',receipts:[],cost_runs:[],created_at:AT,updated_at:AT,...d};
+ assert.equal(validatePurchasesChange(doc([]),doc([p]),s).rows.length,1);
+ assert.deepEqual(rememberedTypes([p],'f2',['document fee','NEW ITEM']),['운임',null]);
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([{...p,invoice_map:[{name:'X',type:'아무거나'}]}]),s),e=>e.code==='VALIDATION');
+});
+test('사전 보강: 통화·유류 할증은 운임, CLEARANCE는 통관수수료',()=>{
+ assert.equal(costTypeOf('CURRENCY ADJUSTMENT FACTOR CHARGE'),'운임');assert.equal(costTypeOf('BUNKER SURCHARGE'),'운임');assert.equal(costTypeOf('LSS'),'운임');
+ assert.equal(costTypeOf('CUSTOMS CLEARANCE FEE'),'통관수수료');assert.equal(costTypeOf('DOCUMENT FEE'),'기타');assert.equal(costTypeOf('D/O FEE'),'기타');
 });
