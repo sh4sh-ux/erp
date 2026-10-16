@@ -208,7 +208,7 @@
    else if(a==='pay')addPay(c,s);
    else if(a==='new')newDeal(c,s);
   };
-  form.querySelector('[data-cp="log"]')?.addEventListener('click',()=>window.NaroChangeLog?.open({ref:c.id,title:c.name||'거래처'}));
+  form.querySelector('[data-cp="log"]')?.addEventListener('click',()=>window.NaroChangeLog?.open({ref:c.id,title:c.name||'거래처',noun:'거래처'}));
  }
  const orig=renderCoDetail;
  renderCoDetail=function(){const r=orig.apply(this,arguments);try{enhance();}catch(e){console.error('[company-panel]',e);}return r;};

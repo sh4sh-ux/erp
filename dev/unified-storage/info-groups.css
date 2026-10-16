@@ -1,0 +1,39 @@
+/* 정보 칸 묶음(10/16 시안, UI-RULES 'Information groups'). 묶음 모양(.cp-grp)은 company-panel.css 규칙을
+   `:is(#coForm.cp,#view-settings,.nd-info)`로 함께 쓰고, 여기에는 견적서 · 매입 · 품목에만 필요한 것만 둔다. */
+/* 칸: 회색 바탕 · 테두리 없음(거래처 정보와 같은 모양) */
+html body #appView .nd-info :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView .nd-info :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView .nd-info :is(input,select,textarea):disabled{opacity:.7}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 16px;margin:0}
+html body #appView .nd-info .cp-grpb .hint{margin:6px 0 0 2px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .cp-grpb>.hint{display:block;margin:-10px 0 var(--nd-info-field-gap,18px) 2px!important;padding:0!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
+html body #appView .nd-info .cp-grpb>.hint:last-child{margin-bottom:0}
+/* 견적서 · 매입 정보 탭: 옛 소제목 · 상태 칸 위 선 · 밑줄 링크를 묶음 모양에 맞춘다 */
+html body #appView :is(#qtForm,#puForm) .nd-info .qt-sec-t{display:none!important}
+html body #appView #qtForm .nd-info .qp-status-manual{margin-top:0;padding-top:0;border-top:0}
+html body #appView #qtForm .nd-info .qp-status-manual label{color:var(--nd-ink-3)}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .nd-log-link{display:inline-block;margin:0;padding:2px 0;border:0;background:none;color:var(--nd-blue);font:500 13px/20px var(--sans);text-decoration:none;cursor:pointer;min-height:0;height:auto}
+html body #appView .nd-info .cp-grpb>.field+.nd-log-link{margin-top:2px}
+/* 품목: 머리 오른쪽 매출단가 · 셋째 줄(코드 · 유형 · 카테고리 · 옵션 수) */
+html body #appView #itForm .workspace-record-heading.nd-ig-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:24px;row-gap:0!important;align-content:start}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt{text-align:right;min-width:0}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt .k{font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt .v{margin-top:6px;font:700 24px/30px var(--sans);letter-spacing:-.4px;color:var(--nd-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #itForm .nd-ig-head>.nd-ig-meta{grid-column:1/-1;display:flex;align-items:center;gap:6px 8px;height:22px;line-height:22px;margin-top:16px;font:400 12px/22px var(--sans);color:var(--nd-ink-2);white-space:nowrap;overflow:hidden}
+html body #appView #itForm .nd-ig-head>.nd-ig-meta .dot{font-style:normal;color:var(--nd-ink-3)}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grp:first-child{padding-top:24px}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .nd-photo-itembox{margin:0 0 var(--nd-info-field-gap,18px)!important;padding:0!important;border:0!important}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .nd-photo-itembox .nd-photo-ttl{display:none}
+@media(max-width:1023px){
+ html body #appView #itForm .nd-ig-head>.nd-ig-amt .v{margin-top:4px;font:700 19px/26.6px var(--sans)}
+ html body #appView #itForm .nd-ig-head>.nd-ig-meta{margin-top:12px}
+}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) #fi_codeHint{display:block;margin:-10px 0 var(--nd-info-field-gap,18px) 2px!important;padding:0!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important;position:static!important}
+/* 두 칸 줄: 줄 아래 여백은 줄이 갖고(칸 자신은 0), 폰에서 한 줄씩 쌓일 때도 같은 간격 */
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair{gap:var(--nd-info-field-gap,18px) 16px!important;margin:0 0 var(--nd-info-field-gap,18px)!important}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair>.field{margin:0!important}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair:last-child{margin-bottom:0!important}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .cp-grpb>.nd-ig-pair+.hint,html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb>.nd-ig-pair+#fi_codeHint{margin-top:calc(6px - var(--nd-info-field-gap,18px))!important}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-content:start!important;justify-content:flex-start!important;row-gap:0!important}
+/* 폰: 첫 묶음 제목(15px)이 품목·진행 탭의 첫 소제목과 같은 줄에 오게(UI-RULES 'Information groups' · ui-contract 첫 소제목 줄 검사) */
+@media(max-width:1023px){html body #appView :is(#qtForm,#puForm) .nd-info>.cp-grp:first-child{padding-top:11px!important}}

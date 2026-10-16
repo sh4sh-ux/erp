@@ -85,15 +85,15 @@ html body #appView #coForm.cp section.cp-prices{margin:0!important;padding:0!imp
 html body #appView #coForm.cp section.cp-prices>h3{margin:0 0 6px!important;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
 html body #appView #coForm.cp section.cp-prices>.hint{font-size:12.5px;line-height:19px;color:var(--nd-ink-3)}
 /* 정보: 묶음(왼쪽 이름·설명 / 오른쪽 입력 칸) */
-html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grp:first-child{padding-top:4px;border-top:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb{min-width:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.field:last-child,html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.grid2:last-child .field{margin-bottom:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
-html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
-html body #appView :is(#coForm.cp,#view-settings) .cp-log{margin-top:8px}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp:first-child{padding-top:4px;border-top:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph :is(h3,h4){margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb{min-width:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb>.field:last-child,html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb>.grid2:last-child .field{margin-bottom:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-log{margin-top:8px}
 /* 아래 버튼 줄: PC = [이메일] [거래명세서] … [삭제] [저장] · 폰 = [⋯] [전화] [이메일] [저장] */
 html body #appView #coForm.cp .form-actions>.cp-act{flex:none;height:40px;min-height:0;margin:0;padding:0 14px;gap:6px;font-size:13.5px}
 html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
@@ -133,10 +133,10 @@ html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
  html body #appView #coForm.cp .cp-qr .s>.sd{display:inline}
  html body #appView #coForm.cp .cp-tl{margin:0 0 12px 4px}
  html body #appView #coForm.cp .cp-ev{grid-template-columns:42px 34px minmax(0,1fr) auto;gap:6px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:block;padding:20px 0}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grph{margin-bottom:14px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){font-size:15px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .grid2{grid-template-columns:1fr!important}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp{display:block;padding:20px 0}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph{margin-bottom:14px}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph :is(h3,h4){font-size:15px}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb .grid2{grid-template-columns:1fr!important}
  html body #appView #coForm.cp .form-actions>.cp-tel{display:inline-flex}
  html body #appView #coForm.cp .form-actions>.cp-act{order:5;flex:1 1 0;height:48px;min-width:0;padding:0 8px;justify-content:center;border-radius:12px;font-size:15px;white-space:nowrap}
  html body #appView #coForm.cp .form-actions>.panel-b-danger{order:1!important;margin-left:0!important}
@@ -152,9 +152,9 @@ html body #appView #view-settings .cp-grpb .nd-addr-detail{margin-top:0}
 @media(max-width:1023px){html body #appView #view-settings .sup-sec.cp-grp{padding:20px 0!important}}
 
 /* Match the company Information form's existing field rhythm. */
-html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:18px}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
-@media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:16px}}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info){--nd-info-field-gap:18px}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
+@media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings,.nd-info){--nd-info-field-gap:16px}}
 /* 최근 입금·출금의 견적·매입 번호 = 그 문서로 가는 링크(거래 내역의 '견적서 열기 ›'와 같은 동작) */
 html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;height:auto;min-height:0;margin-left:8px;padding:0;border:0;background:none;box-shadow:none;font:400 12px/20px var(--sans);color:var(--nd-blue);cursor:pointer}
 html body #appView #coForm.cp .cp-pr .cp-qlink:hover{text-decoration:underline;text-underline-offset:3px}

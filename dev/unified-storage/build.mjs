@@ -403,6 +403,7 @@ html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(he
 html=html.replace('</body>',`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-payment-panel">${await readFile(resolve(here,'payment-panel.css'),'utf8')}</style><script id="naro-payment-panel-script">${await readFile(resolve(here,'payment-panel.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-ar-panel">${await readFile(resolve(here,'ar-panel.css'),'utf8')}</style><script id="naro-ar-panel-script">${await readFile(resolve(here,'ar-panel.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-info-groups">${await readFile(resolve(here,'info-groups.css'),'utf8')}</style><script id="naro-info-groups-script">${await readFile(resolve(here,'info-groups.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-ui-contract">${await readFile(resolve(here,'ui-contract.css'),'utf8')}</style></body>`);
 html=html.replace('const APP_VERSION = "v1.186";','const APP_VERSION = "v1.187";');
 // Strip legacy OAuth/network transport and snapshot writes from the business bundle.

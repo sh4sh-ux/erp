@@ -10605,15 +10605,15 @@ html body #appView #coForm.cp section.cp-prices{margin:0!important;padding:0!imp
 html body #appView #coForm.cp section.cp-prices>h3{margin:0 0 6px!important;padding:0!important;font:700 15px/22px var(--sans);color:var(--nd-ink)}
 html body #appView #coForm.cp section.cp-prices>.hint{font-size:12.5px;line-height:19px;color:var(--nd-ink-3)}
 /* 정보: 묶음(왼쪽 이름·설명 / 오른쪽 입력 칸) */
-html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grp:first-child{padding-top:4px;border-top:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb{min-width:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.field:last-child,html body #appView :is(#coForm.cp,#view-settings) .cp-grpb>.grid2:last-child .field{margin-bottom:0}
-html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
-html body #appView :is(#coForm.cp,#view-settings) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
-html body #appView :is(#coForm.cp,#view-settings) .cp-log{margin-top:8px}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp{display:grid;grid-template-columns:180px minmax(0,1fr);gap:28px;padding:24px 0;border-top:1px solid var(--nd-line)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp:first-child{padding-top:4px;border-top:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph :is(h3,h4){margin:0;font:700 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph p{margin:4px 0 0;font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb{min-width:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb>.field:last-child,html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb>.grid2:last-child .field{margin-bottom:0}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-log{margin-top:8px}
 /* 아래 버튼 줄: PC = [이메일] [거래명세서] … [삭제] [저장] · 폰 = [⋯] [전화] [이메일] [저장] */
 html body #appView #coForm.cp .form-actions>.cp-act{flex:none;height:40px;min-height:0;margin:0;padding:0 14px;gap:6px;font-size:13.5px}
 html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
@@ -10653,10 +10653,10 @@ html body #appView #coForm.cp .form-actions>.cp-tel{display:none}
  html body #appView #coForm.cp .cp-qr .s>.sd{display:inline}
  html body #appView #coForm.cp .cp-tl{margin:0 0 12px 4px}
  html body #appView #coForm.cp .cp-ev{grid-template-columns:42px 34px minmax(0,1fr) auto;gap:6px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grp{display:block;padding:20px 0}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grph{margin-bottom:14px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grph :is(h3,h4){font-size:15px}
- html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .grid2{grid-template-columns:1fr!important}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grp{display:block;padding:20px 0}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph{margin-bottom:14px}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grph :is(h3,h4){font-size:15px}
+ html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb .grid2{grid-template-columns:1fr!important}
  html body #appView #coForm.cp .form-actions>.cp-tel{display:inline-flex}
  html body #appView #coForm.cp .form-actions>.cp-act{order:5;flex:1 1 0;height:48px;min-width:0;padding:0 8px;justify-content:center;border-radius:12px;font-size:15px;white-space:nowrap}
  html body #appView #coForm.cp .form-actions>.panel-b-danger{order:1!important;margin-left:0!important}
@@ -10672,9 +10672,9 @@ html body #appView #view-settings .cp-grpb .nd-addr-detail{margin-top:0}
 @media(max-width:1023px){html body #appView #view-settings .sup-sec.cp-grp{padding:20px 0!important}}
 
 /* Match the company Information form's existing field rhythm. */
-html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:18px}
-html body #appView :is(#coForm.cp,#view-settings) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
-@media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings){--nd-info-field-gap:16px}}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info){--nd-info-field-gap:18px}
+html body #appView :is(#coForm.cp,#view-settings,.nd-info) .cp-grpb .field{margin-bottom:var(--nd-info-field-gap)}
+@media(max-width:1023px){html body #appView :is(#coForm.cp,#view-settings,.nd-info){--nd-info-field-gap:16px}}
 /* 최근 입금·출금의 견적·매입 번호 = 그 문서로 가는 링크(거래 내역의 '견적서 열기 ›'와 같은 동작) */
 html body #appView #coForm.cp .cp-pr .cp-qlink{display:inline;height:auto;min-height:0;margin-left:8px;padding:0;border:0;background:none;box-shadow:none;font:400 12px/20px var(--sans);color:var(--nd-blue);cursor:pointer}
 html body #appView #coForm.cp .cp-pr .cp-qlink:hover{text-decoration:underline;text-underline-offset:3px}
@@ -12877,7 +12877,7 @@ const NaroOrderImport=(()=>{
   const q=current();const anchor=f.querySelector('[role="tabpanel"]');
   f.dataset.ndSt=q?q.status:'new';
   editMode(f,q);
-  {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector(':scope>.nd-log-link');
+  {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector('.nd-log-link');
    if(!q||!window.NaroChangeLog){lk?.remove();}else if(info&&!lk){lk=document.createElement('button');lk.type='button';lk.className='nd-log-link';lk.textContent='이 견적서의 변경 기록 보기';lk.onclick=()=>{const c=current();if(c)window.NaroChangeLog.open({ref:c.id,title:`${c.no||''} · ${coName(c.company_id)}`});};info.append(lk);}}
   recs(f,q);
   const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
@@ -13737,7 +13737,7 @@ const NaroOrderImport=(()=>{
    else if(a==='pay')addPay(c,s);
    else if(a==='new')newDeal(c,s);
   };
-  form.querySelector('[data-cp="log"]')?.addEventListener('click',()=>window.NaroChangeLog?.open({ref:c.id,title:c.name||'거래처'}));
+  form.querySelector('[data-cp="log"]')?.addEventListener('click',()=>window.NaroChangeLog?.open({ref:c.id,title:c.name||'거래처',noun:'거래처'}));
  }
  const orig=renderCoDetail;
  renderCoDetail=function(){const r=orig.apply(this,arguments);try{enhance();}catch(e){console.error('[company-panel]',e);}return r;};
@@ -15293,6 +15293,154 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
  window.NaroArPanel={render:schedule,companies};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
 })();
+</script><style id="naro-info-groups">/* 정보 칸 묶음(10/16 시안, UI-RULES 'Information groups'). 묶음 모양(.cp-grp)은 company-panel.css 규칙을
+   `:is(#coForm.cp,#view-settings,.nd-info)`로 함께 쓰고, 여기에는 견적서 · 매입 · 품목에만 필요한 것만 둔다. */
+/* 칸: 회색 바탕 · 테두리 없음(거래처 정보와 같은 모양) */
+html body #appView .nd-info :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){border-color:transparent!important;background-color:var(--nd-fill)!important;box-shadow:none!important}
+html body #appView .nd-info :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:var(--nd-blue)!important;background-color:var(--nd-surface)!important}
+html body #appView .nd-info :is(input,select,textarea):disabled{opacity:.7}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:0 16px;margin:0}
+html body #appView .nd-info .cp-grpb .hint{margin:6px 0 0 2px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .cp-grpb>.hint{display:block;margin:-10px 0 var(--nd-info-field-gap,18px) 2px!important;padding:0!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
+html body #appView .nd-info .cp-grpb>.hint:last-child{margin-bottom:0}
+/* 견적서 · 매입 정보 탭: 옛 소제목 · 상태 칸 위 선 · 밑줄 링크를 묶음 모양에 맞춘다 */
+html body #appView :is(#qtForm,#puForm) .nd-info .qt-sec-t{display:none!important}
+html body #appView #qtForm .nd-info .qp-status-manual{margin-top:0;padding-top:0;border-top:0}
+html body #appView #qtForm .nd-info .qp-status-manual label{color:var(--nd-ink-3)}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .nd-log-link{display:inline-block;margin:0;padding:2px 0;border:0;background:none;color:var(--nd-blue);font:500 13px/20px var(--sans);text-decoration:none;cursor:pointer;min-height:0;height:auto}
+html body #appView .nd-info .cp-grpb>.field+.nd-log-link{margin-top:2px}
+/* 품목: 머리 오른쪽 매출단가 · 셋째 줄(코드 · 유형 · 카테고리 · 옵션 수) */
+html body #appView #itForm .workspace-record-heading.nd-ig-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:24px;row-gap:0!important;align-content:start}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt{text-align:right;min-width:0}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt .k{font:400 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #itForm .nd-ig-head>.nd-ig-amt .v{margin-top:6px;font:700 24px/30px var(--sans);letter-spacing:-.4px;color:var(--nd-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #appView #itForm .nd-ig-head>.nd-ig-meta{grid-column:1/-1;display:flex;align-items:center;gap:6px 8px;height:22px;line-height:22px;margin-top:16px;font:400 12px/22px var(--sans);color:var(--nd-ink-2);white-space:nowrap;overflow:hidden}
+html body #appView #itForm .nd-ig-head>.nd-ig-meta .dot{font-style:normal;color:var(--nd-ink-3)}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grp:first-child{padding-top:24px}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .nd-photo-itembox{margin:0 0 var(--nd-info-field-gap,18px)!important;padding:0!important;border:0!important}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .nd-photo-itembox .nd-photo-ttl{display:none}
+@media(max-width:1023px){
+ html body #appView #itForm .nd-ig-head>.nd-ig-amt .v{margin-top:4px;font:700 19px/26.6px var(--sans)}
+ html body #appView #itForm .nd-ig-head>.nd-ig-meta{margin-top:12px}
+}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) #fi_codeHint{display:block;margin:-10px 0 var(--nd-info-field-gap,18px) 2px!important;padding:0!important;font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important;position:static!important}
+/* 두 칸 줄: 줄 아래 여백은 줄이 갖고(칸 자신은 0), 폰에서 한 줄씩 쌓일 때도 같은 간격 */
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair{gap:var(--nd-info-field-gap,18px) 16px!important;margin:0 0 var(--nd-info-field-gap,18px)!important}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair>.field{margin:0!important}
+html body #appView .nd-info .cp-grpb>.grid2.nd-ig-pair:last-child{margin-bottom:0!important}
+html body #appView :is(#qtForm .nd-info,#puForm .nd-info,#itForm.nd-info,#itForm .nd-info) .cp-grpb>.nd-ig-pair+.hint,html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb>.nd-ig-pair+#fi_codeHint{margin-top:calc(6px - var(--nd-info-field-gap,18px))!important}
+html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-content:start!important;justify-content:flex-start!important;row-gap:0!important}
+/* 폰: 첫 묶음 제목(15px)이 품목·진행 탭의 첫 소제목과 같은 줄에 오게(UI-RULES 'Information groups' · ui-contract 첫 소제목 줄 검사) */
+@media(max-width:1023px){html body #appView :is(#qtForm,#puForm) .nd-info>.cp-grp:first-child{padding-top:11px!important}}
+</style><script id="naro-info-groups-script">/* 정보 칸 묶음(10/16 시안, UI-RULES 'Information groups'): 견적서 정보 탭 · 품목을 거래처·공급자 정보와 같은
+   '왼쪽 묶음 이름 + 한 줄 설명 / 오른쪽 칸' 모양(.cp-grp)으로 모은다. 기본 앱이 그린 입력 칸을 그대로 옮길 뿐이라
+   id · 이벤트 · 저장 규칙은 바뀌지 않는다. 기본 앱이 다시 그리면 다시 모은다(이미 모였으면 아무것도 하지 않는다).
+   매입 정보 탭은 purchase-ui.mjs가 처음부터 같은 모양으로 그린다. */
+(()=>{
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const D=()=>{try{return db;}catch{return null;}};
+ const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
+ const grp=(key,title,desc)=>{const g=document.createElement('section');g.className='cp-grp nd-ig-'+key;g.innerHTML=`<div class="cp-grph"><h4>${esc(title)}</h4>${desc?`<p>${esc(desc)}</p>`:''}</div><div class="cp-grpb"></div>`;return g;};
+ const body=g=>g.querySelector(':scope>.cp-grpb');
+ const field=el=>el?.closest('.field')||null;
+ const setText=(el,t)=>{if(el&&el.textContent!==t)el.textContent=t;};
+ const hint=(host,cls,text)=>{if(!host)return;let h=host.querySelector(':scope>.'+cls);if(!h){h=document.createElement('div');h.className='hint '+cls;host.append(h);}setText(h,text);};
+ const pair=(...nodes)=>{const r=document.createElement('div');r.className='grid2 nd-ig-pair';nodes.filter(Boolean).forEach(n=>r.append(n));return r;};
+
+ // ── 견적서 정보 탭: 기본 정보(거래처 → 견적일자 · 유효기간) / 비고 / 관리(상태 직접 바꾸기 · 변경 기록) ──
+ function quote(){
+  const panel=document.getElementById('qp-panel-basic');if(!panel)return;
+  const log=panel.querySelector('.nd-log-link');
+  if(panel.classList.contains('nd-info')&&panel.querySelector(':scope>.nd-ig-basic')){
+   // 기본 앱이 링크만 다시 붙였으면 '관리' 묶음 맨 아래로
+   const mg=panel.querySelector(':scope>.nd-ig-manage>.cp-grpb');if(log&&mg&&log.parentElement!==mg)mg.append(log);
+   return;
+  }
+  const co=field(document.getElementById('fq_co')),date=field(document.getElementById('fq_date')),valid=field(document.getElementById('fq_valid'));
+  const memo=field(document.getElementById('fq_memo')),status=panel.querySelector('.qp-status-manual');
+  if(!co||!date)return;
+  const g1=grp('basic','기본 정보','견적서에 나와요'),g2=grp('memo','비고','견적서 아래에 나와요'),g3=grp('manage','관리','보통은 진행 탭에서 바뀌어요');
+  body(g1).append(co,pair(date,valid));
+  if(memo){body(g2).append(memo);hint(memo,'nd-ig-hint',"거래처의 '견적서 기본 비고'가 새 견적에 먼저 채워져요");}
+  if(status){setText(status.querySelector('label'),'상태 직접 바꾸기');hint(status,'nd-ig-hint','취소하거나 되돌릴 때만 써요');body(g3).append(status);}
+  if(log)body(g3).append(log);
+  panel.replaceChildren(g1,g2,...(status||log?[g3]:[]));
+  panel.classList.add('nd-info');
+ }
+
+ // ── 품목: 기본 정보 / 가격 / 옵션 / 사진·메모 / 관리, 머리 오른쪽 = 매출단가 · 셋째 줄 = 코드 · 유형 · 카테고리 · 옵션 수 ──
+ function item(){
+  const form=document.getElementById('itForm');if(!form||form.classList.contains('hidden'))return;
+  const fb=form.querySelector(':scope>.workspace-form-body')||form;
+  head(form);
+  const photo=fb.querySelector(':scope>.nd-photo-itembox,.nd-photo-itembox');
+  if(fb.classList.contains('nd-info')&&fb.querySelector(':scope>.nd-ig-basic')){
+   const pm=fb.querySelector(':scope>.nd-ig-media>.cp-grpb');if(photo&&pm&&pm.firstElementChild!==photo)pm.prepend(photo); // 사진 먼저, 메모 다음(asset-ui는 메모가 있는 묶음 안이면 옮기지 않는다)
+   logLink(fb,'item');return;
+  }
+  const $=id=>document.getElementById(id);
+  const name=field($('fi_name')),code=field($('fi_code')),codeHint=$('fi_codeHint'),type=field($('fi_type')),unit=field($('fi_unit')),cat=field($('fi_category'));
+  const spec=field($('fi_spec')),buy=field($('fi_buy')),sell=field($('fi_sell')),margin=$('fi_margin'),colors=field($('fi_colors')),opts=field($('fi_quick')),memo=field($('fi_memo'));
+  const comps=field($('fi_addComp')),note=fb.querySelector(':scope>.copy-note');
+  if(!name||!buy||!sell)return;
+  // 글: 묶음 이름이 '기본'을 말해 주니 칸 이름은 짧게(작업 품목의 '작업 …'은 그대로)
+  const lb=(f,t)=>{const l=f?.querySelector(':scope>label');if(!l)return;const v=typeof t==='function'?t(l.textContent):t;if(l.textContent!==v)l.textContent=v;};
+  const short=t=>t.replace(/\s*\(기본\)\s*$/,'');
+  lb(buy,short);lb(sell,short);lb(colors,'색상 · 쉼표로 구분');lb(opts,'규격/옵션 · 단가가 다를 때만');lb(cat,'카테고리');lb(spec,'기본 규격/옵션');
+  cat?.querySelector(':scope>.hint')?.remove();const ci=$('fi_category');if(ci&&!/미분류/.test(ci.placeholder))ci.placeholder=(ci.placeholder||'기존 분류 선택 또는 새 카테고리 입력')+' — 비우면 미분류';
+  const set=!!comps;
+  const g1=grp('basic','기본 정보','견적서·거래명세서에 나와요'),g2=grp('price','가격',set?'비워 두면 구성품 합계를 써요':'옵션에 단가가 없으면 이 값을 써요');
+  const g3=set?grp('opts','구성품','세트를 이루는 품목이에요'):grp('opts','옵션','견적서에서 고를 수 있어요'),g4=grp('media','사진 · 메모','');
+  if(note)body(g1).append(note);
+  body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));if(cat)body(g1).append(cat);
+  body(g2).append(pair(buy,sell));if(margin&&!set)body(g2).append(margin);
+  [comps,colors,opts,spec].forEach(n=>n&&body(g3).append(n));
+  if(photo)body(g4).append(photo);if(memo)body(g4).append(memo);
+  // 위에서 옮기지 않은 칸은 버리지 않고 옵션(구성품) 묶음 끝에 둔다. 빈 줄·옛 소제목만 지운다.
+  const keep=[...fb.children].filter(n=>n.matches?.('.workspace-record-heading,.back-btn,.panel-b-back,[data-keep]'));
+  for(const n of [...fb.children]){if(keep.includes(n))continue;if(n.matches('.ops-section-title')||(n.matches('.grid2')&&!n.querySelector('input,select,textarea,button')))continue;body(g3).append(n);}
+  fb.replaceChildren(...keep,g1,g2,g3,g4);
+  fb.classList.add('nd-info');form.classList.add('nd-info-form');
+  logLink(fb,'item');
+ }
+ function logLink(fb,kind){
+  let sel=null;try{sel=itSel;}catch{}
+  const it=(D()?.items||[]).find(x=>x.id===sel);
+  let g=fb.querySelector(':scope>.nd-ig-manage');
+  if(!it||!window.NaroChangeLog){g?.remove();return;}
+  if(!g){g=grp('manage','관리','자주 쓰지 않아요');body(g).innerHTML='<button type="button" class="nd-log-link nd-ig-log">이 품목의 변경 기록 보기</button>';fb.append(g);}
+  const b=g.querySelector('.nd-ig-log');if(b.dataset.ref!==it.id){b.dataset.ref=it.id;b.onclick=()=>window.NaroChangeLog.open({ref:it.id,title:it.name||'품목',noun:'품목'});}
+  if(g.nextElementSibling)fb.append(g);
+ }
+ function head(form){
+  const h=form.querySelector('.workspace-record-heading');if(!h)return;
+  let sel=null;try{sel=itSel;}catch{}
+  const it=(D()?.items||[]).find(x=>x.id===sel);
+  let amt=h.querySelector(':scope>.nd-ig-amt'),meta=h.querySelector(':scope>.nd-ig-meta');
+  if(!it){amt?.remove();meta?.remove();return;}
+  const opts=(it.variants||[]).length;
+  // 세트는 판매가를 비워 두면 구성품 합계를 쓴다(기본 앱 setCompSums와 같은 값).
+  let sell=Number(it.sell_price)||0,k='매출단가 (기본)';
+  if(!sell&&it.type==='세트'){try{sell=setCompSums(it).sell||0;k='세트 판매가 · 구성 합계';}catch{}}
+  const a=`<div class="k">${k}</div><div class="v">${num(sell)}원</div>`;
+  const m=[it.code,it.type||'단품',(it.category||'').trim()||'미분류',opts?`옵션 ${opts}개`:''].filter(Boolean).map(esc).join('<i class="dot">·</i>');
+  if(!amt){amt=document.createElement('div');amt.className='nd-ig-amt';h.append(amt);}
+  if(!meta){meta=document.createElement('div');meta.className='nd-ig-meta';h.append(meta);}
+  if(amt.innerHTML!==a)amt.innerHTML=a;if(meta.innerHTML!==m)meta.innerHTML=m;
+  h.classList.add('nd-ig-head');
+ }
+
+ let queued=false;
+ const run=()=>{queued=false;try{quote();item();}catch(e){console.error(e);}};
+ const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(run);};
+ function mount(){
+  for(const id of ['qtForm','itForm']){const el=document.getElementById(id);if(el)new MutationObserver(schedule).observe(el,{childList:true,subtree:true});}
+  document.addEventListener('input',e=>{if(e.target?.closest?.('#itForm'))schedule();},true);
+  schedule();
+ }
+ window.NaroInfoGroups={run:schedule};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
+})();
 </script><style id="naro-ui-contract">/* Shared screen typography contract. Loaded last, after feature styles.
    Same role = same token. Keep status, warning, loss and destructive colors semantic.
    Do not apply to print documents or flatten headings into body text. */
@@ -15608,17 +15756,17 @@ html body #appView[data-layout-system] .shell .main :is(#qtForm,#puForm) .qt-her
 /* Header third line (UI-RULES 'Header third line'): 견적서의 '번호 · 날짜 · [상태]' 줄과 같은 자리.
    줄 높이 22px. PC = 줄 가운데가 머리 위에서 111px(--nd-header-meta-center, 제목 아래 20px).
    폰 = 제목 바로 아래 12px. 입금·출금 · 거래처 · 업체 제공 자재 · 매출 집계의 세 번째 줄이 모두 여기에 맞춘다. */
-html body #appView[data-layout-system] .shell .main :is(#view-payments .pp-detail .pp-meta,#coForm.cp .cp-meta,#view-materials .mp-meta){min-height:22px;line-height:22px;align-items:center}
-html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{height:22px;flex-wrap:nowrap;overflow:visible}
-html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta>*{min-height:0!important;height:auto!important;line-height:20px!important;padding-block:0!important}
+html body #appView[data-layout-system] .shell .main :is(:is(#view-payments,#view-ar) .pp-detail .pp-meta,#coForm.cp .cp-meta,#view-materials .mp-meta){min-height:22px;line-height:22px;align-items:center}
+html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar) .pp-detail .pp-meta{height:22px;flex-wrap:nowrap;overflow:visible}
+html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar) .pp-detail .pp-meta>*{min-height:0!important;height:auto!important;line-height:20px!important;padding-block:0!important}
 @media screen and (min-width:1024px){
- html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{margin-top:10px!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar) .pp-detail .pp-meta{margin-top:10px!important}
  html body #appView[data-layout-system] .shell .main #coForm.cp .cp-meta{margin-top:20px!important}
  html body #appView[data-layout-system] .shell .main #view-materials .mp-meta{margin-top:20px!important}
 }
 @media (max-width:1023px){
- html body #appView[data-layout-system] .shell .main #view-payments .pp-detail h3{margin-top:4px!important}
- html body #appView[data-layout-system] .shell .main #view-payments .pp-detail .pp-meta{margin-top:-4px!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar) .pp-detail h3{margin-top:4px!important}
+ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar) .pp-detail .pp-meta{margin-top:-4px!important}
  html body #appView[data-layout-system] .shell .main #coForm.cp .cp-meta{margin-top:12px!important}
  html body #appView[data-layout-system] .shell .main #view-materials .mp-meta{margin-top:12px!important}
 }
