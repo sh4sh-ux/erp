@@ -45,7 +45,12 @@ export function validateExtendedChange(key,before,next,snapshot){
  const removed=before.filter(r=>!ids.has(r.id)),changed=next.filter(r=>!old.has(r.id)||!equal(r,old.get(r.id)));
  if(removed.length){valid(removed.length===1&&changed.length===0);deletion(key,removed[0],snapshot);return structuredClone(next);}
  if(key==='material_moves'){
-  valid(changed.length<=1);for(const r of changed)if(old.has(r.id)){const prior=old.get(r.id);valid(!prior.void_at&&r.created_at===prior.created_at);if(r.void_at)valid(equal({...r,void_at:undefined},{...prior,void_at:undefined}));}
+  // 자재 이름 바꾸기(10/17): 한 업체의 같은 이름 기록들을 한 번에 새 이름으로 — 이름 말고는 아무것도 바뀌지 않아야 한다(수정 시각 제외).
+  // 하나씩 저장하면 중간에 '받지 않은 자재를 쓴' 상태가 돼 장부 검사에 걸리므로 한 번에.
+  const p0=changed.length>1?old.get(changed[0].id):null,from=p0?.material,to=changed[0]?.material;
+  const rename=!!p0&&typeof to==='string'&&!!to.trim()&&to.length<=200&&to!==from&&changed.every(r=>{const pr=old.get(r.id);
+   return pr&&!pr.void_at&&!r.void_at&&pr.company_id===p0.company_id&&pr.material===from&&r.material===to&&r.created_at===pr.created_at&&(r.updated_at===undefined||typeof r.updated_at==='string')&&equal({...r,material:undefined,updated_at:undefined},{...pr,material:undefined,updated_at:undefined});});
+  valid(changed.length<=1||rename);if(!rename)for(const r of changed)if(old.has(r.id)){const prior=old.get(r.id);valid(!prior.void_at&&r.created_at===prior.created_at);if(r.void_at)valid(equal({...r,void_at:undefined},{...prior,void_at:undefined}));}
   material(next,snapshot);return structuredClone(next);
  }
  if(key==='stock_moves'&&changed.some(r=>old.has(r.id))){
