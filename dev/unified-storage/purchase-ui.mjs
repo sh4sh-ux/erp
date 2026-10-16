@@ -1,7 +1,8 @@
 // 매입 화면(2단계 — feature/naro-purchase). 견적서 화면과 같은 부품·같은 스타일 규칙을 쓴다(10/10 시안).
 // 데이터: 매입 파일은 PURCHASE_* 메시지로(저장소 쪽 business-workspace), 재고·입출금은 기존 Table.save(SAVE_TABLE) 그대로.
 // 매입 저장(작성)과 재고 입고 확정은 서로 다른 버튼·창. 입고·반품·입고 취소는 purchase-saga 절차(끊겨도 이어서, 두 번 안 됨).
-import {paymentStatus,lineBase} from './purchase-ledger.mjs';
+import {paymentStatus,lineBase,unitCosts} from './purchase-ledger.mjs';
+import {IMPORT_PROMPT,parseImportPaste,checkImport,importDraft,rememberedMap,costTypeOf} from './import-paste.mjs';
 import {postReceipt,resume,postReturn,voidReceipt,unfinished,receiptState,stockMoveId,voidMoveId} from './purchase-saga.mjs';
 
 const MSG={BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_CONFLICT:'다른 기기에서 먼저 바뀌었어요. 최신 내용으로 다시 불러왔어요.',VALIDATION:'입력 내용을 확인해 주세요(수량·금액·이미 처리된 기록).',WRITE_BLOCKED:'이 작업은 지금 할 수 없어요.',UNAVAILABLE:'Google Drive에서는 아직 매입을 쓸 수 없어요. Dropbox에서 쓸 수 있어요.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했어요. [저장 결과 확인]을 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',QUOTA_LIMIT:'저장 공간이 부족해요.'};
@@ -19,6 +20,12 @@ const OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-widt
 const RM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 const mdShort=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?`${Number(m[2])}.${m[3]}`:'';};
 const num=v=>Math.floor(Number(String(v??'').replace(/[^\d]/g,''))||0);
+// 수입 매입(외화): 단가·금액은 소수 둘째 자리까지, 원화는 원 단위
+const dec=v=>{const n=Number(String(v??'').replace(/[^\d.]/g,''));return Number.isFinite(n)?Math.round(n*100)/100:0;};
+const fx=(v,c)=>`${c?c+' ':''}${(Number(v)||0).toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const fxs=v=>Number.isInteger(Math.round((Number(v)||0)*100)/100)?n0(v):fx(v); // 진행 줄처럼 좁은 곳: 정수면 소수점 없이
+const isFx=p=>!!p?.currency&&p.currency!=='KRW';
+const COST_TYPES=['운임','보험','관세','통관수수료','국내운송','기타'];
 
 // ── 견적서 화면의 스타일을 매입 화면에 그대로 ──
 // 견적서 규칙은 #view-quotes·#qtForm 같은 이름에 묶여 있다. 같은 규칙을 이름만 바꿔 원래 규칙 바로 뒤에 한 벌 더 넣는다
@@ -62,7 +69,12 @@ export function installPurchaseUI({port,features=()=>true}){
  const received=(p,l)=>(p.receipts||[]).filter(r=>!r.void_at).reduce((s,r)=>s+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);
  const returned=(p,l)=>(p.returns||[]).reduce((s,r)=>s+(r.lines.find(x=>x.line_id===l.id)?.qty||0),0);
  const qtyOf=p=>p.lines.reduce((s,l)=>s+(l.qty||0),0),gotOf=p=>p.lines.reduce((s,l)=>s+received(p,l),0);
- const totals=p=>{const supply=Object.values(lineBase(p)).reduce((s,v)=>s+v,0);const tax=p.vat_on===false?0:Math.round(supply*.1);return {supply,tax,total:supply+tax};};
+ const totals=p=>{const supply=Object.values(lineBase(p)).reduce((s,v)=>s+v,0);
+  if(isFx(p)){const costs=(p.costs||[]).filter(c=>!c.void_at).reduce((s,c)=>s+(Number(c.amount_krw)||0),0);return {supply,tax:0,total:supply,fx:Math.round(p.lines.reduce((s,l)=>s+(l.qty||0)*(l.unit_price||0),0)*100)/100,costs,landed:supply+costs};}
+  const tax=p.vat_on===false?0:Math.round(supply*.1);return {supply,tax,total:supply+tax};};
+ const amtOf=(p,v)=>isFx(p)?fx(v,p.currency):money(v);
+ // 부대비용·수입부가세를 낸 곳(운송사·관세사)에 남은 돈(원)
+ const costLeft=ps=>(ps.costs||[]).reduce((s,c)=>s+Math.max(0,c.due-c.paid),0);
  const payState=p=>paymentStatus(p,D()?.payments||[]);
  const pays=p=>(D()?.payments||[]).filter(x=>x.purchase_id===p.id);
  const toast=t=>typeof g.toast==='function'?g.toast(t):null;
@@ -75,7 +87,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const q=qtyOf(p),got=gotOf(p);
   if(!saved(p)||!got)return ['작성중','st-draft'];
   if(got<q)return ['부분 입고','st-sent st-partial'];
-  const ps=payState(p);if(ps.due-ps.paid>0)return ['미출금','st-won'];
+  const ps=payState(p);if(ps.due-ps.paid>(isFx(p)?0.005:0)||costLeft(ps)>0.5)return ['미출금','st-won'];
   return ['완료','st-done'];
  }
  const pill=p=>{const [t,c]=disp(p);return `<span class="pill ${c}">${esc(t)}</span>`;};
@@ -149,7 +161,7 @@ export function installPurchaseUI({port,features=()=>true}){
  function listHtml(list){
   if(st.status!=='ready')return '';
   if(!list.length)return `<div class="empty">${rows().length?'조건에 맞는 매입이 없어요.':'아직 매입이 없어요. + 버튼으로 첫 매입을 적어 보세요.'}</div>`;
-  return list.map(p=>`<div class="list-item${p.id===st.sel?' on':''}" data-id="${esc(p.id)}" role="button" tabindex="0"><div class="li-body"><div class="li-title"><span class="li-nm">${esc(coName(p.vendor_id)||'매입처 없음')}</span><span class="li-no">${esc(p.no)}</span></div><div class="li-date">${esc(p.date)}</div></div><div class="li-right"><div class="li-amt">${money(totals(p).total)}</div>${pill(p)}</div></div>`).join('');
+  return list.map(p=>`<div class="list-item${p.id===st.sel?' on':''}" data-id="${esc(p.id)}" role="button" tabindex="0"><div class="li-body"><div class="li-title"><span class="li-nm">${esc(coName(p.vendor_id)||'매입처 없음')}</span><span class="li-no">${esc(p.no)}</span></div><div class="li-date">${esc(p.date)}</div></div><div class="li-right"><div class="li-amt">${isFx(p)?fx(totals(p).fx,p.currency):money(totals(p).total)}</div>${pill(p)}</div></div>`).join('');
  }
  function emptyCard(hide=false){
   const box=(t,b,act='')=>`<div class="detail-empty pu-empty${hide?' hidden':''}" id="puEmpty">${ICON.cart}<div><b>${t}</b><br>${b}</div>${act}</div>`;
@@ -174,8 +186,8 @@ export function installPurchaseUI({port,features=()=>true}){
   const head=`    ${mob.matches?`<div class="qp-mobile-actions"><button type="button" data-act="back">‹ 매입</button><button type="button" class="qp-primary naro-compact-action" data-act="save">저장</button></div>`:''}
     <div class="qt-hero quote-summary">
      <div class="qs-info"><div class="qs-row"><span class="qs-k">매입처</span><span class="qs-val co">${esc(coName(p.vendor_id)||'매입처 선택')}</span></div></div>
-     <div class="qs-amount"><div class="qs-amt-k">금액 (부가세 포함)</div><div class="qs-amt-v" id="pu_heroTotal">${money(t.total)}</div></div>
-     <div class="qp-metadata"><b class="pu-no">${esc(p.no)}</b><span>${esc(md(p.date))}</span>${pill(p)}</div>
+     <div class="qs-amount"><div class="qs-amt-k">${isFx(p)?`금액 (${esc(p.currency)})`:'금액 (부가세 포함)'}</div><div class="qs-amt-v" id="pu_heroTotal">${isFx(p)?fx(t.fx):money(t.total)}</div></div>
+     <div class="qp-metadata"><b class="pu-no">${esc(p.no)}</b><span>${esc(md(p.date))}</span>${pill(p)}${isFx(p)?`<span class="pu-fx-sub">${money(t.supply)} · 환율 ${esc(String(p.fx?.booking_rate??''))}</span>`:''}</div>
     </div>
     <div class="qp-tabs" role="tablist" aria-label="매입 상세">${tabs.map(([k,l])=>`<button type="button" id="pp-tab-${k}" role="tab" data-tab="${k}" aria-controls="pp-panel-${k}" aria-selected="${st.tab===k}" tabindex="${st.tab===k?0:-1}">${l}</button>`).join('')}</div>`;
   return `<div class="detail workspace-form${st.editing?'':' nd-view'}" id="puForm" data-nd-st="${esc(disp(p)[0])}">
@@ -198,18 +210,20 @@ export function installPurchaseUI({port,features=()=>true}){
   if(p.removed_at)return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>삭제됨</b><span>${mdShort(p.removed_at.slice(0,10))} 삭제 · 재고·지급할 금액에서 빠졌어요</span></div><button type="button" class="btn ghost" data-act="restore">복원</button></div>`;
   if(p.status==='취소')return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>취소됨</b><span>재고·지급할 금액에서 빠졌어요</span></div></div>`;
   const q=qtyOf(p),got=gotOf(p),ps=sv?payState(p):{due:totals(p).total,paid:0},left=Math.max(0,ps.due-ps.paid),tax=!!p.tax_invoice?.received;
-  const allIn=sv&&q>0&&got>=q;
+  const allIn=sv&&q>0&&got>=q,fxp=isFx(p),cDue=(ps.costs||[]).reduce((s,c)=>s+c.due,0),cPaid=(ps.costs||[]).reduce((s,c)=>s+c.paid,0),cLeft=fxp?costLeft(ps):0;
   const list=[
    {t:'발주',st:sv?'done':'cur'},
    {t:`입고 ${n0(got)}/${n0(q)}개`,st:allIn?'done':sv?'cur':'todo',tab:'flow'},
-   {t:`출금 ${n0(ps.paid)} / ${n0(ps.due)}원`,st:sv&&ps.due>0&&!left?'done':allIn?'cur':'todo',tab:'flow'},
+   fxp?{t:`출금 ${fxs(ps.paid)} / ${fxs(ps.due)} ${p.currency}`,st:sv&&ps.due>0&&left<0.005?'done':allIn?'cur':'todo',tab:'flow'}
+    :{t:`출금 ${n0(ps.paid)} / ${n0(ps.due)}원`,st:sv&&ps.due>0&&!left?'done':allIn?'cur':'todo',tab:'flow'},
+   ...(fxp?[{t:cLeft>0.5?`부대비용 ${n0(cLeft)}원 남음`:cDue>0&&sv?'부대비용 완료':'부대비용',st:sv&&cDue>0&&cLeft<0.5?'done':sv?'cur':'todo',tab:'flow'}]:[]),
    {t:tax?'계산서 받음':'계산서 미수취',st:tax?'done':'todo',tab:'flow'}];
   const acts=[];
   if(sv&&!st.dirty){
-   if(left>0)acts.push(`<button type="button" class="nd-next-b${got<q?'':' pri'}" data-act="pay">출금 기록</button>`);
+   if(left>(fxp?0.005:0)||cLeft>0.5)acts.push(`<button type="button" class="nd-next-b${got<q?'':' pri'}" data-act="pay">출금 기록</button>`);
    if(got<q)acts.push('<button type="button" class="nd-next-b pri" data-act="receive">입고 처리</button>');
   }
-  const sum=sv?{t:`입고 ${n0(got)} / ${n0(q)}개`,s:`출금 ${n0(ps.paid)}원 · ${tax?'계산서 받음':'계산서 미수취'}`}:{t:'작성 중',s:'저장하면 입고 처리를 할 수 있어요'};
+  const sum=sv?{t:`입고 ${n0(got)} / ${n0(q)}개`,s:fxp?`출금 ${fx(ps.paid,p.currency)} · 부대비용 ${n0(cPaid)}원`:`출금 ${n0(ps.paid)}원 · ${tax?'계산서 받음':'계산서 미수취'}`}:{t:'작성 중',s:'저장하면 입고 처리를 할 수 있어요'};
   return `<div class="nd-next"><button type="button" class="nd-sum" data-tab="flow"><b>${esc(sum.t)}</b><span>${esc(sum.s)}</span></button><ol class="nd-steps">${list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?OK:''}</i>${esc(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${acts.length?`<div class="nd-next-act">${acts.join('')}</div>`:''}</div>`;
  }
  const editBtn=p=>saved(p)&&editable(p)?`<button type="button" class="nd-edit-b" data-act="edit">${st.editing?'완료':'편집'}</button>`:'';
@@ -221,20 +235,20 @@ export function installPurchaseUI({port,features=()=>true}){
    return `<div class="qline" data-idx="${i}"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it)}</button>
     <div class="dual"><select data-f="lcolor" data-idx="${i}" aria-label="색상">${colors.length?colors.map(c=>`<option ${c===l.color?'selected':''}>${esc(c)}</option>`).join(''):'<option value="">—</option>'}</select><select data-f="vspec" data-idx="${i}" aria-label="규격/옵션">${specs.length?specs.map(s=>`<option ${s===l.spec?'selected':''}>${esc(s)}</option>`).join(''):'<option value="">—</option>'}</select></div>
     <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${i}" value="${l.qty?n0(l.qty):''}" aria-label="수량">
-    <input type="text" inputmode="numeric" class="num" data-f="price" data-idx="${i}" value="${l.unit_price?n0(l.unit_price):''}" placeholder="0" aria-label="단가">
-    <span class="amt" data-amt="${i}">${n0((l.qty||0)*(l.unit_price||0))}</span>
+    <input type="text" inputmode="${isFx(p)?'decimal':'numeric'}" class="num" data-f="price" data-idx="${i}" value="${l.unit_price?(isFx(p)?fx(l.unit_price):n0(l.unit_price)):''}" placeholder="0" aria-label="단가">
+    <span class="amt" data-amt="${i}">${isFx(p)?fx((l.qty||0)*(l.unit_price||0)):n0((l.qty||0)*(l.unit_price||0))}</span>
     <button type="button" class="rm" data-rm="${i}" title="행 삭제" aria-label="행 삭제">${RM}</button></div>`;}).join('');
   const cards=mob.matches?`<div class="qp-cards"><section class="qp-products"><h3>품목 ${p.lines.filter(l=>l.item_id).length}건${editBtn(p)}</h3>
-   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${money((l.qty||0)*(l.unit_price||0))}</strong></div></div>
-    <div class="qp-card-sub"><p class="qp-muted">${optLabel(l)}</p><small class="qp-unit">${money(l.unit_price)}<span class="qp-per"> / ${esc(it?.unit||'EA')}</span></small></div>
+   ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${amtOf(p,(l.qty||0)*(l.unit_price||0))}</strong></div></div>
+    <div class="qp-card-sub"><p class="qp-muted">${[optLabel(l),l.src_name?esc(l.src_name):''].filter(Boolean).join(' · ')}</p><small class="qp-unit">${amtOf(p,l.unit_price)}<span class="qp-per"> / ${esc(it?.unit||'EA')}</span></small></div>
     <div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div><button class="qp-card-more" type="button" data-qp-more="${i}">편집</button></div></article>`;}).join('')}
    <div class="nd-addrow"><button class="qp-add nd-gi-plus nd-gi-f" type="button" data-act="addline">품목 추가</button><button class="btn-line-add qp-add" type="button" data-act="size">⊞ 옵션별 한번에</button></div></section></div>`:'';
   return `<div class="qt-sec-t">품목 <span class="cnt">${cnt}</span>${mob.matches?'':editBtn(p)}</div>
    ${cards}
-   <div class="qlines"><div class="qline head"><span>품목</span><span class="dual" style="text-align:center"><span>색상</span><span>규격/옵션</span></span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가</span><span style="text-align:right">금액</span><span></span></div>${lines}</div>
+   <div class="qlines"><div class="qline head"><span>품목</span><span class="dual" style="text-align:center"><span>색상</span><span>규격/옵션</span></span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가${isFx(p)?` (${esc(p.currency)})`:''}</span><span style="text-align:right">금액</span><span></span></div>${lines}</div>
    <div class="line-btns"><button class="btn-line-add nd-gi-plus nd-gi-f" id="pu_addLine" type="button" data-act="addline">행 추가</button><button class="btn-line-add" id="pu_sizeBtn" type="button" data-act="size">⊞ 옵션별 한번에</button></div>
    <div id="pu_sizePanel">${st.sz&&st.editing?sizePanel(p):''}</div>
-   <div class="qtotals"><div class="row"><span class="k">공급가액</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부가세 ${p.vat_on===false?'(없음)':'(10%)'}</span><span class="v" id="pu_vat">${money(t.tax)}</span></div><div class="row grand"><span class="k">합계</span><span class="v" id="pu_total">${money(t.total)}</span></div></div>
+   ${isFx(p)?`<div class="qtotals pu-fx-totals"><div class="row"><span class="k">합계 (${esc(p.currency)})</span><span class="v" id="pu_fxTotal">${fx(t.fx)}</span></div><div class="row"><span class="k">원화 환산 · 환율 ${esc(String(p.fx?.booking_rate??''))}</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부대비용</span><span class="v">${money(t.costs)}</span></div><div class="row grand"><span class="k">도착원가</span><span class="v" id="pu_total">${money(t.landed)}</span></div></div>`:`<div class="qtotals"><div class="row"><span class="k">공급가액</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부가세 ${p.vat_on===false?'(없음)':'(10%)'}</span><span class="v" id="pu_vat">${money(t.tax)}</span></div><div class="row grand"><span class="k">합계</span><span class="v" id="pu_total">${money(t.total)}</span></div></div>`}
    ${sv&&!editable(p)&&p.status!=='취소'?'<div class="hint" style="text-align:right;margin-top:6px">입고가 시작된 매입은 품목을 수정할 수 없어요 — 진행 탭에서 입고 취소·반품으로 바로잡아요</div>':''}`;
  }
  // 옵션별 한번에(견적서와 같은 칸): 품목·색상을 고르고 옵션마다 수량·단가
@@ -276,15 +290,27 @@ export function installPurchaseUI({port,features=()=>true}){
    if(s==='void')return dlRow('r',r,'',n,'',true);
    return dlRow('r',r,s==='posted'?'입고 완료':warn('마무리 필요'),n,s==='posted'&&live?`<button type="button" class="nd-rec-more" data-menu-r="${esc(r.id)}" aria-label="이 입고 기록 메뉴" aria-expanded="false">${DOTS}</button>`:'',false);}).join('');
   const payList=pays(p).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const payRows=payList.map(x=>x.kind==='지급'?row(x.date,esc(x.method||'출금'),x.memo&&!/^매입 /.test(x.memo)?esc(x.memo):'',money(x.amount)):row(x.date,'환불 받음',x.memo?esc(x.memo):'',`−${money(x.amount)}`)).join('');
+  const fxp=isFx(p),payTo=x=>fxp?esc(x.company_id===p.vendor_id?'매입처':coName(x.company_id)||'낸 곳')+' · ':'';
+  const payAmt=x=>x.amount_fx?`${fx(x.amount_fx,x.currency||p.currency)}<small>${money(x.amount)}</small>`:money(x.amount);
+  const payRows=payList.map(x=>x.kind==='지급'?row(x.date,payTo(x)+esc(x.method||'출금'),x.memo&&!/^매입 /.test(x.memo)?esc(x.memo):'',payAmt(x)):row(x.date,payTo(x)+'환불 받음',x.memo?esc(x.memo):'',`−${payAmt(x)}`)).join('');
+  // 수입: 부대비용(원가에 금액 비율로 나눔) · 수입부가세(원가 밖) · 개당 원가
+  const costs=(p.costs||[]).filter(c=>!c.void_at),iv=p.import_vat||{},cSum=costs.reduce((a,c)=>a+(Number(c.amount_krw)||0),0),cl=costLeft(ps);
+  const costRows=costs.map(c=>row(c.added_at?c.added_at.slice(0,10):p.date,esc(c.type),[esc(coName(c.payee_id)||'낸 곳 미지정'),`${esc(c.alloc||'금액')} 비율로 나눔`].join(' · '),money(c.amount_krw))).join('')
+   +(iv.amount?row(p.date,'수입부가세',`원가 제외 · 공제${iv.payee_id?' · '+esc(coName(iv.payee_id)):''}`,money(iv.amount)):'')
+   +(iv.fee_vat?row(p.date,'수수료 부가세',`원가 제외${iv.payee_id?' · '+esc(coName(iv.payee_id)):''}`,money(iv.fee_vat)):'');
+  const uc=fxp?unitCosts(p):{};
+  const unitRows=fxp?p.lines.map(l=>{const u=uc[l.id]||{};return row('',esc(itemName(l)),[opt(l),`${n0(l.qty)}개`,`도착원가 ${money(u.total)}`].filter(Boolean).join(' · '),money(u.unit));}).join(''):'';
   const retRows=(p.returns||[]).map(t=>dlRow('t',t,(t.posted_at?esc(t.reason||'반품 완료'):warn('마무리 필요')),t.lines.reduce((a,x)=>a+x.qty,0),'',false)).join('');
   const retQty=(p.returns||[]).reduce((a,t)=>a+t.lines.reduce((b,x)=>b+x.qty,0),0);
   const canReturn=live&&p.lines.some(l=>received(p,l)-returned(p,l)>0),tax=p.tax_invoice||{};
   const recSum=live?`${n0(q)}개 중 ${n0(got)}개${got<q?' · '+warn(n0(q-got)+'개 남음'):got?' · 완료':''}`:`취소된 매입${got?` · 재고에 ${n0(got)}개 남음`:''}`;
-  const paySum=live?`${n0(ps.due)}원 중 ${n0(ps.paid)}원${left>0?' · '+warn(n0(left)+'원 남음'):ps.paid>ps.due?' · '+warn(n0(ps.paid-ps.due)+'원 초과'):ps.paid?' · 완료':''}`:cancelPaySummary(p);
+  const paySum=!live?cancelPaySummary(p):fxp?`매입처 ${fx(ps.due,p.currency)} 중 ${fx(ps.paid)}${left>=0.005?' · '+warn(fx(left)+' 남음'):ps.paid?' · 완료':''}${cl>0.5?' · '+warn('부대비용 '+n0(cl)+'원 남음'):''}`
+   :`${n0(ps.due)}원 중 ${n0(ps.paid)}원${left>0?' · '+warn(n0(left)+'원 남음'):ps.paid>ps.due?' · '+warn(n0(ps.paid-ps.due)+'원 초과'):ps.paid?' · 완료':''}`;
   return `<div class="nd-rec">
    ${section('receipt','입고',recSum,live&&got<q?action('입고 추가','receive-part'):'',recs?dlHead([['날짜'],['품목'],['상태'],['수량',true],['']])+recs:empty(live?'아직 입고 기록이 없어요.':'입고 기록이 없어요.'))}
-   ${section('payment','출금',paySum,live?action('출금 추가','pay'):'',payRows?head([['날짜'],['방법 · 메모'],['금액',true],['']])+payRows:empty(live&&ps.due>0?`아직 출금 기록이 없어요 · 지급할 금액 ${n0(left)}원`:'출금 기록이 없어요.'))}
+   ${section('payment','출금',paySum,live?action('출금 추가','pay'):'',payRows?head([['날짜'],[fxp?'받는 곳 · 방법':'방법 · 메모'],['금액',true],['']])+payRows:empty(live&&ps.due>0?`아직 출금 기록이 없어요 · 지급할 금액 ${fxp?fx(left,p.currency):n0(left)+'원'}`:'출금 기록이 없어요.'))}
+   ${fxp?section('cost','부대비용',`${n0(cSum)}원 · 원가에 포함`,live?action('비용 추가','cost'):'',costRows?head([['날짜'],['구분 · 낸 곳'],['금액',true],['']])+costRows:empty('운임·관세·통관수수료 같은 비용을 더하면 개당 원가에 나눠 들어가요.')):''}
+   ${fxp?section('unit','개당 원가',`환율 ${esc(String(p.fx?.booking_rate??''))} · 부대비용 금액 비율`,'',head([[''],['품목'],['개당',true],['']])+unitRows):''}
    ${section('return','반품',retQty?`${n0(retQty)}개 돌려보냄`:'없음',canReturn?action('반품','return'):'',retRows?dlHead([['날짜'],['품목'],['사유'],['수량',true],['']])+retRows:empty('입고된 것 중 매입처로 돌려보낸 수량을 기록해요.'))}
    ${section('tax','계산서',tax.received?'받음':warn('미수취'),action(tax.received?'수정':'받음 기록','tax'),tax.received?head([['날짜'],['구분'],['합계',true],['']])+row(tax.date||'','수취','',money(ps.due)):empty('계산서를 받으면 받은 날을 남겨 두세요.'))}
   </div>`;
@@ -296,9 +322,19 @@ export function installPurchaseUI({port,features=()=>true}){
   const grp=(k,t,d,h)=>`<section class="cp-grp nd-ig-${k}"><div class="cp-grph"><h4>${t}</h4>${d?`<p>${d}</p>`:''}</div><div class="cp-grpb">${h}</div></section>`;
   return grp('basic','기본 정보','매입 장부 기록',`<div class="field"><label for="pu_co">매입처 *</label><select id="pu_co" ${lockV?'disabled':''}><option value="">매입처 선택</option>${vendors.map(c=>`<option value="${esc(c.id)}" ${c.id===p.vendor_id?'selected':''}>${esc(c.name)}</option>`).join('')}</select>${vendors.length?'':'<div class="hint">거래처 화면에서 구분을 \'매입\'으로 등록하면 이곳에 표시됩니다.</div>'}</div>
     <div class="grid2 nd-ig-pair"><div class="field"><label for="pu_date">매입일</label>${dateHtml}</div>
-    <div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div></div>`)
+    ${isFx(p)?`<div class="field"><label for="pu_curView">통화</label><input id="pu_curView" value="${esc(p.currency)}" disabled></div>`:`<div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div>`}</div>`)
+   +(isFx(p)?importGroup(p,grp,lockV):'')
    +grp('memo','비고','내부 메모(출력 안 됨)',`<div class="field"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div>`)
    +(sv&&g.NaroChangeLog?grp('manage','관리','','<button type="button" class="nd-log-link nd-ig-log" data-act="log">이 매입의 변경 기록 보기</button>'):'');
+ }
+ // 수입 정보(10/17 결정 ①②): 수입신고번호 · B/L · 인도조건 · 결제방법 · 신고일 · 수리일 · 매입 환율(기본 = 과세 환율)
+ function importGroup(p,grp,lock){
+  const cu=p.customs||{},f=(id,label,v,type='text',mode='')=>`<div class="field"><label for="${id}">${label}</label><input type="${type}" id="${id}" value="${esc(v??'')}" ${mode?`inputmode="${mode}"`:''} ${lock?'disabled':''}></div>`,pair=(a,b)=>`<div class="grid2 nd-ig-pair">${a}${b}</div>`;
+  return grp('import','수입 정보','수입신고필증 기록',pair(f('pu_declNo','수입신고번호',cu.declaration_no),f('pu_bl','B/L 번호',cu.bl_no))
+   +pair(f('pu_inco','인도조건',cu.incoterms),f('pu_payMethod','결제방법',cu.pay_method))
+   +pair(f('pu_declOn','신고일',cu.declared_on,'date'),f('pu_accOn','수리일',cu.accepted_on,'date'))
+   +pair(f('pu_rateBook',`매입 환율 (${esc(p.currency)} → 원)`,p.fx?.booking_rate,'text','decimal'),f('pu_rateCustoms','과세 환율',p.fx?.customs_rate,'text','decimal'))
+   +'<div class="hint">매입 환율로 원가를 계산해요. 실제 송금 때 원화를 적으면 차이는 환차손익으로 보여요.</div>');
  }
  const moreBtns=p=>p.removed_at?'':`${p.status!=='취소'?'<button class="btn ghost" type="button" data-act="cancel">매입 취소</button>':''}<button class="btn del" type="button" data-act="delete">삭제</button>`;
  const cancelPaySummary=p=>{const ps=pays(p),out=ps.filter(x=>x.kind==='지급').reduce((a,x)=>a+(Number(x.amount)||0),0),back=ps.filter(x=>x.kind!=='지급').reduce((a,x)=>a+(Number(x.amount)||0),0);return `취소된 매입 · 지급할 금액 없음${out?` · 보낸 돈 ${n0(out)}원`:''}${back?` · 돌려받음 ${n0(back)}원`:''}${out>back?` · <b class="amber">${n0(out-back)}원 아직 못 돌려받음</b>`:''}`;};
@@ -311,7 +347,7 @@ export function installPurchaseUI({port,features=()=>true}){
  function pickItem(i,id){
   if(id==='__free__'){toast('매입은 등록된 품목만 넣을 수 있어요. 품목 화면에서 먼저 등록해 주세요.');return;}
   const it=itemOf(id);if(!it)return;if(isWork(it)){toast('작업 품목은 매입에 넣을 수 없어요.');return;}
-  edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
+  edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=isFx(p)?(l.unit_price||0):buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
  }
  function chooseVendor(){
   const p=shown(),sel=view.querySelector('#pu_co'),anchor=view.querySelector('#puForm .quote-summary .co');
@@ -331,7 +367,7 @@ export function installPurchaseUI({port,features=()=>true}){
   p.lines=p.lines.filter(l=>l.item_id);
   if(!p.vendor_id){toast('매입처를 선택해 주세요.');st.tab='basic';render();return;}
   if(!p.lines.length||p.lines.some(l=>!(Number.isSafeInteger(l.qty)&&l.qty>0)||!(l.unit_price>=0))){toast('품목·수량·단가를 확인해 주세요.');st.tab='items';st.editing=true;render();return;}
-  recalcVat(p);p.updated_at=nowIso();
+  if(!isFx(p))recalcVat(p);p.updated_at=nowIso();
   const next={...st.doc,rows:cur()?st.doc.rows.map(x=>x.id===p.id?p:x):[...st.doc.rows,p]};
   st.working=true;const b=view.querySelector('#puSaveBtn');if(b){b.disabled=true;b.textContent='저장 중…';}
   try{await savePurchase(next);st.draft=null;st.dirty=false;st.editing=false;st.sz=null;toast('매입을 저장했어요');}catch(e){st.working=false;await fail(e);return;}
@@ -340,10 +376,10 @@ export function installPurchaseUI({port,features=()=>true}){
 
  // ── 처리 창: 견적서의 납품 처리·입금 받기 창과 같은 부품(nd-pay-sheet nd-qa-sheet) ──
  let sheetEl=null;
- function qa(html){
+ function qa(html,cls=''){
   if(!sheetEl){sheetEl=document.createElement('dialog');sheetEl.className='nd-pay-sheet nd-qa-sheet pu-qa';sheetEl.addEventListener('click',ev=>{if(ev.target===sheetEl)sheetEl.close();});}
   if(!sheetEl.isConnected)(document.getElementById('appView')||document.body).append(sheetEl);
-  sheetEl.innerHTML=html;if(!sheetEl.open){sheetEl.tabIndex=-1;sheetEl.showModal();sheetEl.focus({preventScroll:true});}
+  sheetEl.classList.toggle('pu-imp',cls==='pu-imp');sheetEl.innerHTML=html;if(!sheetEl.open){sheetEl.tabIndex=-1;sheetEl.showModal();sheetEl.focus({preventScroll:true});}
   sheetEl.querySelector('[data-x]')?.addEventListener('click',()=>sheetEl.close());
   return sheetEl;
  }
@@ -397,32 +433,157 @@ export function installPurchaseUI({port,features=()=>true}){
    onGo:async(d,lines)=>{if(!lines.length)throw Error('반품할 수량을 넣어 주세요.');void unit;await postReturn(io,p.id,{returnId:tid,date:d.querySelector('#puQaDate').value||today(),lines,reason:d.querySelector('#puQaMemo').value.trim(),at:nowIso()});toast('반품을 기록했어요 · 재고에서 뺐어요');}});
  }
  const METHODS=['계좌이체','카드','현금','기타'];
+ // 출금 기록: 국내는 매입처에 원화. 수입은 받는 곳을 고른다 — 매입처(외화 금액 + 실제 보낸 원화 → 환율) 또는 운송사·관세사(원화).
  function paySheet(){
-  const p=cur();if(!p)return;const ps=payState(p),bal=Math.max(0,ps.due-ps.paid),ref='pay_'+uid();
-  let amount=bal,method='계좌이체',preset='all',date=today(),memo='';
+  const p=cur();if(!p)return;const ps=payState(p),ref='pay_'+uid(),fxp=isFx(p),rate=Number(p.fx?.booking_rate)||0;
+  const targets=[{id:p.vendor_id,fx:fxp,bal:Math.max(0,Math.round((ps.due-ps.paid)*100)/100),name:coName(p.vendor_id)||'매입처'},
+   ...(fxp?(ps.costs||[]).filter(c=>c.payee_id!==p.vendor_id).map(c=>({id:c.payee_id,fx:false,bal:Math.max(0,Math.round(c.due-c.paid)),name:coName(c.payee_id)||'낸 곳'})):[])];
+  let t=targets.find(x=>x.bal>0)||targets[0];
+  let amount=t.bal,krw=t.fx?Math.round(t.bal*rate):0,method='계좌이체',preset='all',date=today(),memo='';
+  const unitOf=x=>x.fx?p.currency:'원',show=(x,v)=>x.fx?fx(v,p.currency):`${n0(v)}원`,parse=v=>t.fx?dec(v):num(v);
+  const label=()=>amount>0?`${show(t,amount)} 출금 확인`:'금액을 넣어 주세요';
   const paint=()=>{
-   const over=amount>bal;
-   const d=qa(`${head('출금 기록',`${esc(coName(p.vendor_id))} · 남은 금액 ${n0(bal)}원`)}<div class="nd-qa-body">
-     <label class="nd-qa-money">보낸 금액<input id="puQaAmt" inputmode="numeric" value="${amount?n0(amount):''}" placeholder="0"><span>원</span></label>
-     <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,t])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${t}</button>`).join('')}</div>
+   const over=amount>t.bal+(t.fx?0.005:0);
+   const d=qa(`${head('출금 기록',`${esc(t.name)} · 남은 금액 ${show(t,t.bal)}`)}<div class="nd-qa-body">
+     ${targets.length>1?`<div class="nd-qa-chips pu-pay-to" role="group" aria-label="받는 곳">${targets.map((x,i)=>`<button type="button" data-to="${i}" aria-pressed="${x===t}">${esc(x.id===p.vendor_id?'매입처':x.name)} · ${show(x,x.bal)}</button>`).join('')}</div>`:''}
+     <label class="nd-qa-money">보낸 금액${t.fx?` (${esc(p.currency)})`:''}<input id="puQaAmt" inputmode="${t.fx?'decimal':'numeric'}" value="${amount?(t.fx?fx(amount):n0(amount)):''}" placeholder="0"><span>${esc(unitOf(t))}</span></label>
+     ${t.fx?`<label class="nd-qa-money">실제 보낸 원화<input id="puQaKrw" inputmode="numeric" value="${krw?n0(krw):''}" placeholder="0"><span>원</span></label><p class="nd-qa-note" id="puQaRate">${amount>0&&krw>0?`송금 환율 ${(krw/amount).toFixed(2)} · 매입 환율 ${rate} · 환차 ${n0(amount*rate-krw)}원`:'은행 출금 원화를 적으면 환차손익이 계산돼요.'}</p>`:''}
+     <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,x])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${x}</button>`).join('')}</div>
      <div class="nd-qa-chips" role="group" aria-label="출금 방법">${METHODS.map(m=>`<button type="button" data-me="${m}" aria-pressed="${method===m}">${m}</button>`).join('')}</div>
      <div class="nd-qa-fields"><label>출금일<input type="date" id="puQaDate" value="${esc(date)}"></label><label>메모 (선택)<input id="puQaMemo" value="${esc(memo)}" placeholder="예: 잔금"></label></div>
-     ${over?`<p class="nd-qa-warn">남은 금액보다 ${n0(amount-bal)}원 많아요. 초과 출금으로 기록돼요.</p>`:''}
-    </div>${acts(amount>0?`${n0(amount)}원 출금 확인`:'금액을 넣어 주세요',amount>0)}`);
+     ${over?`<p class="nd-qa-warn">남은 금액보다 ${show(t,Math.round((amount-t.bal)*100)/100)} 많아요. 초과 출금으로 기록돼요.</p>`:''}
+    </div>${acts(label(),amount>0&&(!t.fx||krw>0))}`);
    d.querySelector('#puQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#puQaMemo').oninput=ev=>{memo=ev.target.value;};
-   const inp=d.querySelector('#puQaAmt');
-   inp.oninput=()=>{amount=num(inp.value);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const b=d.querySelector('.nd-qa-go');b.disabled=!(amount>0);b.textContent=amount>0?`${n0(amount)}원 출금 확인`:'금액을 넣어 주세요';};
+   const inp=d.querySelector('#puQaAmt'),ki=d.querySelector('#puQaKrw');
+   const sync=()=>{const b=d.querySelector('.nd-qa-go');b.disabled=!(amount>0&&(!t.fx||krw>0));b.textContent=label();const r=d.querySelector('#puQaRate');if(r)r.textContent=amount>0&&krw>0?`송금 환율 ${(krw/amount).toFixed(2)} · 매입 환율 ${rate} · 환차 ${n0(amount*rate-krw)}원`:'은행 출금 원화를 적으면 환차손익이 계산돼요.';};
+   inp.oninput=()=>{amount=parse(inp.value);if(t.fx&&!ki.dataset.touched)krw=Math.round(amount*rate),ki.value=krw?n0(krw):'';preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));sync();};
    // 손을 뗄 때 창을 다시 그리면 같이 누른 확인 버튼이 사라진다 — 숫자 모양만 정리
-   inp.onblur=()=>{inp.value=amount?n0(amount):'';};
-   d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=bal;else if(preset==='half')amount=Math.round(bal/2);paint();if(preset==='custom'){const i=sheetEl.querySelector('#puQaAmt');i.focus();i.select();}});
+   inp.onblur=()=>{inp.value=amount?(t.fx?fx(amount):n0(amount)):'';};
+   if(ki){ki.oninput=()=>{ki.dataset.touched='1';krw=num(ki.value);sync();};ki.onblur=()=>{ki.value=krw?n0(krw):'';};}
+   d.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{t=targets[Number(b.dataset.to)];amount=t.bal;krw=t.fx?Math.round(t.bal*rate):0;preset='all';paint();});
+   d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=t.bal;else if(preset==='half')amount=t.fx?Math.round(t.bal*50)/100:Math.round(t.bal/2);if(t.fx&&preset!=='custom')krw=Math.round(amount*rate);paint();if(preset==='custom'){const i=sheetEl.querySelector('#puQaAmt');i.focus();i.select();}});
    d.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{method=b.dataset.me;paint();});
    d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
-    if(!(amount>0))throw Error('금액을 넣어 주세요.');
+    if(!(amount>0))throw Error('금액을 넣어 주세요.');if(t.fx&&!(krw>0))throw Error('실제 보낸 원화를 넣어 주세요.');
     const list=D().payments||[];if(list.some(x=>x.client_ref===ref))return; // 같은 창에서 두 번 눌러도 한 번만
-    await app.Table.save('payments',[...list,{id:'pay'+uid(),date:d.querySelector('#puQaDate').value||today(),company_id:p.vendor_id,kind:'지급',method,amount,memo:d.querySelector('#puQaMemo').value.trim()||`매입 ${p.no}`,purchase_id:p.id,client_ref:ref,created_at:nowIso()}]);
-    toast(`${n0(amount)}원 출금을 기록했어요`);});
+    const row={id:'pay'+uid(),date:d.querySelector('#puQaDate').value||today(),company_id:t.id,kind:'지급',method,amount:t.fx?krw:amount,memo:d.querySelector('#puQaMemo').value.trim()||`매입 ${p.no}`,purchase_id:p.id,client_ref:ref,created_at:nowIso(),
+     ...(t.fx?{currency:p.currency,amount_fx:amount,fx_rate:Math.round(krw/amount*10000)/10000}:{})};
+    await app.Table.save('payments',[...list,row]);
+    toast(`${show(t,amount)} 출금을 기록했어요`);});
   };
   paint();
+ }
+ // 부대비용 더하기(수입): 저장 규칙상 비용은 더하기만 한다. 원가에는 금액 비율로 나눠 들어간다(결정 ③).
+ function costSheet(){
+  const p=cur();if(!p)return;let type='운임',amount=0;
+  const payees=companies().filter(c=>c.type==='매입'&&c.id!==p.vendor_id),last=(p.costs||[]).map(c=>c.payee_id).filter(Boolean).pop()||p.import_vat?.payee_id||'';
+  const paint=()=>{
+   const d=qa(`${head('비용 추가',`${esc(p.no)} · 개당 원가에 금액 비율로 나눠 들어가요`)}<div class="nd-qa-body">
+     <div class="nd-qa-chips" role="group" aria-label="구분">${COST_TYPES.map(x=>`<button type="button" data-ty="${x}" aria-pressed="${x===type}">${x}</button>`).join('')}</div>
+     <label class="nd-qa-money">금액<input id="puQaAmt" inputmode="numeric" value="${amount?n0(amount):''}" placeholder="0"><span>원</span></label>
+     <div class="nd-qa-fields"><label>낸 곳<select id="puQaPayee"><option value="">미지정</option>${payees.map(c=>`<option value="${esc(c.id)}" ${c.id===last?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label></div>
+     <p class="nd-qa-after">낸 곳을 고르면 그곳에 <b>지급할 금액</b>으로 잡혀요. 입고 전에 더하면 입고 원가에 바로 들어가요.</p></div>${acts(amount>0?`${n0(amount)}원 추가`:'금액을 넣어 주세요',amount>0)}`);
+   const inp=d.querySelector('#puQaAmt');inp.oninput=()=>{amount=num(inp.value);const b=d.querySelector('.nd-qa-go');b.disabled=!(amount>0);b.textContent=amount>0?`${n0(amount)}원 추가`:'금액을 넣어 주세요';};inp.onblur=()=>{inp.value=amount?n0(amount):'';};
+   d.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{type=b.dataset.ty;d.querySelectorAll('[data-ty]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});
+   d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
+    if(!(amount>0))throw Error('금액을 넣어 주세요.');const payee=d.querySelector('#puQaPayee').value,np=structuredClone(p);
+    np.costs=[...(np.costs||[]),{id:'c'+uid(),type,amount_krw:amount,alloc:'금액',...(payee?{payee_id:payee}:{}),added_at:nowIso()}];np.updated_at=nowIso();
+    await savePurchase({...st.doc,rows:st.doc.rows.map(x=>x.id===p.id?np:x)});toast(`${type} ${n0(amount)}원을 더했어요`);});
+  };
+  paint();
+ }
+ // ── 수입 매입 붙여넣기(10/17 시안): 프롬프트 복사 → AI 답 붙여넣기 → 확인(품목 짝 · 구분 · 검사) → [매입 만들기] ──
+ const nameKey=s=>String(s||'').replace(/\(주\)|주식회사|\s+/g,'').toLowerCase();
+ const findCo=name=>name?companies().find(c=>nameKey(c.name)===nameKey(name))||null:null;
+ async function ensureCompany(name){
+  const hit=findCo(name);if(hit)return hit.id;
+  // 거래처 저장 규칙(company-contract)의 칸을 빠짐없이
+  const row={id:crypto.randomUUID(),name:name.trim().slice(0,200),type:'매입',biz_no:'',contact:'',phone:'',email:'',address_base:'',address_detail:'',address:'',memo:'수입 매입 붙여넣기로 등록',quote_memo:'',prices:[],created_at:nowIso()};
+  const next=[...companies(),row];await app.Table.save('companies',next);if(!companies().some(c=>c.id===row.id))D().companies=next;
+  return row.id;
+ }
+ function importSheet(){
+  let text='',parsed=null,vendor='',payee='',map=[],types=[],copied=false;
+  const goods=()=>(D()?.items||[]).filter(i=>!isWork(i)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
+  const coOpts=(sel,name)=>`${name&&!findCo(name)?`<option value="new" ${sel==='new'?'selected':''}>새로 등록 · ${esc(name)}</option>`:''}<option value="" ${sel===''?'selected':''}>선택해 주세요</option>${companies().filter(c=>c.type==='매입').map(c=>`<option value="${esc(c.id)}" ${c.id===sel?'selected':''}>${esc(c.name)}</option>`).join('')}`;
+  const reparse=()=>{
+   const prevNames=parsed?.decl.lines.map(l=>l.name).join('\n');parsed=text.trim()?parseImportPaste(text):null;if(!parsed?.found)return;
+   const v=findCo(parsed.decl.vendor);if(!vendor||vendor==='new'||!companies().some(c=>c.id===vendor))vendor=v?v.id:parsed.decl.vendor?'new':'';
+   const py=findCo(parsed.inv?.payee);if(!payee||payee==='new'||!companies().some(c=>c.id===payee))payee=py?py.id:parsed.inv?.payee?'new':'';
+   types=(parsed.inv?.items||[]).map(x=>costTypeOf(x.name));
+   if(parsed.decl.lines.map(l=>l.name).join('\n')!==prevNames)map=parsed.decl.lines.map(()=>null);
+   remember();
+  };
+  // 같은 매입처의 지난 수입 매입에서 짝을 채운다(사용자가 이미 고른 줄은 그대로)
+  const remember=()=>{if(!parsed?.found||!vendor||vendor==='new')return;const r=rememberedMap(rows(),vendor,parsed.decl.lines.map(l=>l.name));map=map.map((m,i)=>m||(r[i]?{...r[i],auto:true}:null));};
+  const checks=()=>{if(!parsed?.found)return [];const out=checkImport(parsed);
+   const miss=parsed.decl.lines.filter((l,i)=>!map[i]?.item_id).length;if(miss)out.push({ok:false,block:true,text:`등록 품목을 고르지 않은 줄이 ${miss}개 있어요`});
+   if(!vendor)out.push({ok:false,block:true,text:'매입처를 선택해 주세요'});
+   const dup=parsed.decl.no&&rows().find(x=>!x.removed_at&&x.customs?.declaration_no===parsed.decl.no);if(dup)out.push({ok:false,block:true,text:`이미 만든 수입 매입이에요(신고번호 ${parsed.decl.no} · ${dup.no})`});
+   if(parsed.inv&&!payee)out.push({ok:false,block:true,text:'청구서를 낸 곳(운송사·관세사)을 선택해 주세요'});
+   return out;};
+  const preview=()=>{
+   if(!text.trim())return '';
+   if(!parsed?.found)return '<p class="nd-qa-warn">[수입신고필증] 부분을 찾지 못했어요. AI 답을 그대로 붙여 넣어 주세요.</p>';
+   const {decl,inv}=parsed,its=goods();
+   const lineRow=(l,i)=>{const m=map[i]||{},it=itemOf(m.item_id),colors=it?.colors||[],specs=specsOf(it);
+    return `<tr><td>${esc(l.name||'이름 없음')}${l.hs?`<small>${esc(l.hs)}</small>`:''}</td>
+     <td><select data-map="${i}" aria-label="${esc(l.name)} 등록 품목" class="${m.item_id?'':'pu-imp-need'}"><option value="">품목 선택</option>${its.map(x=>`<option value="${esc(x.id)}" ${x.id===m.item_id?'selected':''}>${esc(x.name)}${x.code?` [${esc(x.code)}]`:''}</option>`).join('')}</select>
+      ${colors.length||specs.length?`<span class="pu-imp-opt">${colors.length?`<select data-mc="${i}" aria-label="색상">${colors.map(c=>`<option ${c===m.color?'selected':''}>${esc(c)}</option>`).join('')}</select>`:''}${specs.length?`<select data-ms="${i}" aria-label="규격/옵션">${specs.map(c=>`<option ${c===m.spec?'selected':''}>${esc(c)}</option>`).join('')}</select>`:''}</span>`:''}
+      <small>${m.item_id?(m.auto?'지난번 짝 기억':'이 매입처에 기억해요'):'처음 보는 품명 — 한 번 고르면 기억'}</small></td>
+     <td class="n">${n0(l.qty)}</td><td class="n">${fx(l.price)}</td><td class="n">${fx(l.amount)}</td></tr>`;};
+   const invRow=(x,i)=>`<tr><td>${esc(x.name)}${x.currency&&x.currency!=='KRW'&&x.amount_fx?`<small>${esc(x.currency)} ${fx(x.amount_fx)}</small>`:''}</td>
+     <td><select data-ty="${i}" aria-label="${esc(x.name)} 구분">${[...COST_TYPES,'import_vat','skip'].map(k=>`<option value="${k}" ${types[i]===k?'selected':''}>${k==='import_vat'?'수입부가세(필증 값)':k==='skip'?'넣지 않음':k}</option>`).join('')}</select>${types[i]==='관세'?'<small>원가는 필증 관세로</small>':''}</td>
+     <td class="n">${n0(x.amount_krw)}</td><td class="n">${n0(x.vat)}</td></tr>`;
+   const cs=checks();
+   return `<div class="pu-imp-kv"><label>매입처<select id="puImpVendor">${coOpts(vendor,decl.vendor)}</select></label><div>신고번호<b>${esc(decl.no||'—')}</b></div><div>B/L<b>${esc(decl.bl||'—')}</b></div><div>결제 · 과세 환율<b>${esc([decl.incoterms,decl.currency].filter(Boolean).join(' '))} · ${esc(String(decl.customs_rate??'—'))}</b></div></div>
+    <div class="pu-imp-scroll"><table class="pu-imp-t"><colgroup><col style="width:24%"><col style="width:40%"><col style="width:9%"><col style="width:12%"><col></colgroup>
+     <thead><tr><th>필증 품명</th><th>등록 품목 · 옵션</th><th class="n">수량</th><th class="n">단가</th><th class="n">금액(${esc(decl.currency||'')})</th></tr></thead>
+     <tbody>${decl.lines.map(lineRow).join('')}<tr class="tot"><td colspan="4">합계</td><td class="n">${fx(decl.lines.reduce((a,l)=>a+(l.amount||0),0))}</td></tr></tbody></table></div>
+    ${inv?`<div class="pu-imp-kv"><label>청구서 낸 곳<select id="puImpPayee">${coOpts(payee,inv.payee)}</select></label><div>관세 (필증)<b>${n0(decl.duty_total??decl.lines.reduce((a,l)=>a+(l.duty||0),0))}원</b></div><div>수입부가세 (필증)<b>${n0(decl.vat_total??decl.lines.reduce((a,l)=>a+(l.vat||0),0))}원</b></div></div>
+    <div class="pu-imp-scroll"><table class="pu-imp-t"><colgroup><col style="width:34%"><col style="width:30%"><col style="width:20%"><col></colgroup>
+     <thead><tr><th>청구서 항목</th><th>앱 구분</th><th class="n">금액(원)</th><th class="n">부가세</th></tr></thead><tbody>${inv.items.map(invRow).join('')}</tbody></table></div>`:'<p class="nd-qa-note">청구서가 없으면 관세만 부대비용으로 넣어요. 운임 등은 나중에 [비용 추가]로 더할 수 있어요.</p>'}
+    <ul class="pu-imp-checks">${cs.map(c=>`<li class="${c.ok?'ok':c.block?'bad':'warn'}">${c.ok?OK:'!'}<span>${esc(c.text)}</span></li>`).join('')}</ul>`;
+  };
+  const ready=()=>parsed?.found&&!checks().some(c=>!c.ok&&c.block);
+  let d;
+  const paintPreview=()=>{const box=d.querySelector('#puImpPreview');box.innerHTML=preview();const b=d.querySelector('.nd-qa-go');b.disabled=!ready();bindPreview();};
+  const bindPreview=()=>{
+   d.querySelector('#puImpVendor')?.addEventListener('change',e=>{vendor=e.target.value;map=map.map(m=>m?.auto?null:m);remember();paintPreview();});
+   d.querySelector('#puImpPayee')?.addEventListener('change',e=>{payee=e.target.value;paintPreview();});
+   d.querySelectorAll('[data-map]').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.map),it=itemOf(el.value);map[i]=it?{item_id:it.id,color:(it.colors||[])[0]||'',spec:specsOf(it)[0]||''}:null;paintPreview();});
+   d.querySelectorAll('[data-mc]').forEach(el=>el.onchange=()=>{const m=map[Number(el.dataset.mc)];if(m){m.color=el.value;m.auto=false;}paintPreview();});
+   d.querySelectorAll('[data-ms]').forEach(el=>el.onchange=()=>{const m=map[Number(el.dataset.ms)];if(m){m.spec=el.value;m.auto=false;}paintPreview();});
+   d.querySelectorAll('[data-ty]').forEach(el=>el.onchange=()=>{types[Number(el.dataset.ty)]=el.value;paintPreview();});
+  };
+  d=qa(`${head('수입 매입 붙여넣기','수입신고필증 · 운송사 청구서를 AI로 정리해 붙여 넣어요')}<div class="nd-qa-body">
+    <div class="pu-imp-step"><span class="pu-imp-n">1</span><div><b>프롬프트 복사</b><p>ChatGPT · Claude 같은 AI에 이 프롬프트와 필증 PDF(+ 청구서)를 함께 올리세요. 앱은 파일을 밖으로 보내지 않아요.</p><button type="button" class="nd-record-action" id="puImpCopy">프롬프트 복사</button></div></div>
+    <div class="pu-imp-step"><span class="pu-imp-n">2</span><div><b>AI 결과 붙여넣기</b><textarea id="puImpText" rows="6" placeholder="[수입신고필증]&#10;신고번호: …" aria-label="AI 결과"></textarea></div></div>
+    <div class="pu-imp-step"><span class="pu-imp-n">3</span><div><b>확인</b><div id="puImpPreview"><p class="nd-qa-note">붙여 넣으면 품목 짝 · 합계 · B/L 검사가 여기에 나와요.</p></div></div></div>
+   </div>${acts('매입 만들기',false)}`,'pu-imp');
+  d.querySelector('#puImpCopy').onclick=async ev=>{const b=ev.currentTarget;try{await navigator.clipboard.writeText(IMPORT_PROMPT);copied=true;b.textContent='복사했어요';}catch{const ta=d.querySelector('#puImpText');ta.value=IMPORT_PROMPT;ta.select();b.textContent='아래 글을 복사해 주세요';}};
+  let tm=0;const ta=d.querySelector('#puImpText');
+  ta.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(ta.value===IMPORT_PROMPT&&!copied)return;text=ta.value;reparse();paintPreview();},250);});
+  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
+   if(!ready())throw Error('확인 항목을 먼저 처리해 주세요.');
+   const {decl,inv}=parsed;
+   const vendor_id=vendor==='new'?await ensureCompany(decl.vendor):vendor;
+   const payee_id=inv?(payee==='new'?await ensureCompany(inv.payee):payee):'';
+   const draft=importDraft(parsed,{uid,vendor_id,payee_id,map,types});
+   const dd=draft.date||today(),n=rows().filter(x=>x.date===dd).length+1;
+   const np={id:'pu_'+uid(),no:`IM-${dd.slice(0,4)}${dd.slice(5,7)}${dd.slice(8)}-${n}`,status:'작성중',...draft,date:dd,tax_invoice:{received:false},receipts:[],returns:[],cost_runs:[],created_at:nowIso(),updated_at:nowIso()};
+   while(rows().some(x=>x.no===np.no))np.no=np.no.replace(/-(\d+)$/,(m,x)=>'-'+(Number(x)+1));
+   for(const l of np.lines){for(const k of ['color','spec'])if(!l[k])delete l[k];}
+   await savePurchase({...st.doc,rows:[...st.doc.rows,np]});
+   st.sel=np.id;st.draft=null;st.dirty=false;st.editing=false;st.tab='items';toast('수입 매입을 만들었어요 · 물건이 오면 [입고 처리]');});
+  setTimeout(()=>ta.focus(),0);
+ }
+ function newMenu(btn){
+  if(!window.NaroPop){newPurchase();return;}
+  window.NaroPop.open(btn,el=>{el.classList.add('pu-new-pop');const w=document.createElement('div');w.className='pu-new-menu';
+   w.innerHTML='<button type="button" data-k="d"><b>국내 매입</b><small>매입처 · 품목 · 수량 · 단가 직접 입력</small></button><button type="button" data-k="i"><b>수입 매입 붙여넣기</b><small>수입신고필증 · 청구서를 AI로 정리해 붙여넣기</small></button>';
+   w.querySelector('[data-k="d"]').onclick=()=>{window.NaroPop.close();newPurchase();};
+   w.querySelector('[data-k="i"]').onclick=()=>{window.NaroPop.close();importSheet();};el.append(w);},null,'새 매입');
  }
  // 입고 취소로 재고가 음수가 되는 옵션(이미 나간 수량) — 창에서 미리 알린다.
  function negWarn(p,receipts){
@@ -515,16 +676,16 @@ export function installPurchaseUI({port,features=()=>true}){
      <div class="qp-sheet-body"><div class="qp-field"><label>품목</label><button type="button" class="ip-btn" data-search>${it?`${esc(it.name||'')}<span class="cd">${esc(it.code||'')}</span>`:'<span class="ph">품목 선택</span>'}</button></div>
       <div class="qp-field"><label>색상</label>${chips('color',colors,w.color)}</div><div class="qp-field"><label>규격/옵션</label>${chips('spec',specs,w.spec)}</div>
       <div class="qp-field"><label for="pu-edit-qty">수량</label><div class="qp-edit-stepper"><button type="button" data-q="-1" aria-label="수량 줄이기">−</button><input type="text" inputmode="numeric" class="num" id="pu-edit-qty" value="${n0(w.qty)}"><button type="button" data-q="1" aria-label="수량 늘리기">+</button></div></div>
-      <div class="qp-field"><label for="pu-edit-price">단가</label><input type="text" inputmode="numeric" class="num" id="pu-edit-price" value="${w.unit_price?n0(w.unit_price):''}" placeholder="0"></div>
-      <div class="qp-edit-amount">금액<span class="amt">${n0((w.qty||0)*(w.unit_price||0))}</span></div></div>
+      <div class="qp-field"><label for="pu-edit-price">단가</label><input type="text" inputmode="${isFx(p)?'decimal':'numeric'}" class="num" id="pu-edit-price" value="${w.unit_price?(isFx(p)?fx(w.unit_price):n0(w.unit_price)):''}" placeholder="0"></div>
+      <div class="qp-edit-amount">금액<span class="amt">${isFx(p)?fx((w.qty||0)*(w.unit_price||0)):n0((w.qty||0)*(w.unit_price||0))}</span></div></div>
      <div class="qp-sheet-footer"><button class="qp-delete" type="button" data-del>${confirmDel?'삭제 확인':'행 삭제'}</button><button class="qp-primary" type="button" data-apply>적용</button></div>`;
-    const sync=()=>{w.qty=num(lineSheet.querySelector('#pu-edit-qty').value);w.unit_price=num(lineSheet.querySelector('#pu-edit-price').value);};
+    const sync=()=>{w.qty=num(lineSheet.querySelector('#pu-edit-qty').value);w.unit_price=(isFx(p)?dec:num)(lineSheet.querySelector('#pu-edit-price').value);};
     lineSheet.querySelector('[data-search]').onclick=()=>{sync();search=true;draw();};
     lineSheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{sync();w.color=b.dataset.color;draw();});
     lineSheet.querySelectorAll('[data-spec]').forEach(b=>b.onclick=()=>{sync();w.spec=b.dataset.spec;w.unit_price=buyOf(itemOf(w.item_id),w.spec)||w.unit_price;draw();});
     lineSheet.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{sync();w.qty=Math.max(0,w.qty+Number(b.dataset.q));draw();});
     // 손을 뗄 때 창을 다시 그리면 같이 누른 [적용]이 사라진다 — 금액 숫자만 고친다
-    lineSheet.querySelectorAll('#pu-edit-qty,#pu-edit-price').forEach(inp=>inp.oninput=()=>{sync();lineSheet.querySelector('.qp-edit-amount .amt').textContent=n0((w.qty||0)*(w.unit_price||0));});
+    lineSheet.querySelectorAll('#pu-edit-qty,#pu-edit-price').forEach(inp=>inp.oninput=()=>{sync();lineSheet.querySelector('.qp-edit-amount .amt').textContent=isFx(p)?fx((w.qty||0)*(w.unit_price||0)):n0((w.qty||0)*(w.unit_price||0));});
     lineSheet.querySelector('[data-del]').onclick=()=>{if(!confirmDel){confirmDel=true;draw();return;}close();edit(p=>{p.lines.splice(i,1);if(!p.lines.length)p.lines.push(blank());});};
     lineSheet.querySelector('[data-apply]').onclick=()=>{sync();close();if(!w.item_id)return;edit(p=>{const l={...w};for(const k of ['color','spec'])if(!l[k])delete l[k];p.lines[i]=l;});};
    }
@@ -591,12 +752,13 @@ export function installPurchaseUI({port,features=()=>true}){
    if(a==='receive')return receiveSheet('all');
    if(a==='receive-part')return receiveSheet('part');
    if(a==='pay')return paySheet();
+   if(a==='cost')return costSheet();
    if(a==='return')return returnSheet();
    if(a==='tax')return taxSheet();
    if(a==='cancel'){b.closest('details')?.removeAttribute('open');return cancelSheet();}
    if(a==='delete'){b.closest('details')?.removeAttribute('open');return removeSheet();}
   }));
-  view.querySelector('#puNewBtn')?.addEventListener('click',()=>{if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}newPurchase();});
+  view.querySelector('#puNewBtn')?.addEventListener('click',ev=>{if(st.dirty){toast('저장하지 않은 변경이 있어요. [저장] 또는 [되돌리기]를 먼저 눌러 주세요.');return;}newMenu(ev.currentTarget);});
   view.querySelectorAll('#puList .list-item').forEach(el=>{el.onclick=()=>select(el.dataset.id);el.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(el.dataset.id);}};});
   // 필터(≡): 다른 화면과 같은 팝업 — 맨 아래 '삭제된 항목'
   const fb=view.querySelector('#puFilterBtn');if(fb&&window.NaroPop)fb.onclick=()=>window.NaroPop.open(fb,el=>{el.classList.add('nd-pop-filter');const n=rows().filter(x=>x.removed_at).length,w=document.createElement('div');w.className='nd-pop-field nd-trash-field nd-trash-solo';
@@ -610,7 +772,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const f=view.querySelector('#puForm');if(!f)return;
   f.querySelectorAll('.qline .ip-btn[data-f="item"]').forEach(el=>el.onclick=()=>{const i=Number(el.dataset.idx);if(typeof g.openItemPicker==='function')g.openItemPicker(el,v=>pickItem(i,v));});
   f.querySelectorAll('.qline [data-f]:not(.ip-btn)').forEach(el=>el.addEventListener('change',()=>{const i=Number(el.dataset.idx),k=el.dataset.f;
-   edit(p=>{const l=p.lines[i];if(!l)return;if(k==='qty')l.qty=num(el.value);else if(k==='price')l.unit_price=num(el.value);else if(k==='lcolor'){if(el.value)l.color=el.value;else delete l.color;}else if(k==='vspec'){if(el.value)l.spec=el.value;else delete l.spec;l.unit_price=buyOf(itemOf(l.item_id),l.spec)||l.unit_price;}});}));
+   edit(p=>{const l=p.lines[i];if(!l)return;if(k==='qty')l.qty=num(el.value);else if(k==='price')l.unit_price=(isFx(p)?dec:num)(el.value);else if(k==='lcolor'){if(el.value)l.color=el.value;else delete l.color;}else if(k==='vspec'){if(el.value)l.spec=el.value;else delete l.spec;l.unit_price=buyOf(itemOf(l.item_id),l.spec)||l.unit_price;}});}));
   f.querySelectorAll('.qline [data-rm]').forEach(b=>b.onclick=()=>edit(p=>{p.lines.splice(Number(b.dataset.rm),1);if(!p.lines.length)p.lines.push(blank());}));
   f.querySelectorAll('[data-qp-edit],[data-qp-more]').forEach(b=>b.onclick=()=>{if(st.editing)lineEditor(Number(b.dataset.qpEdit??b.dataset.qpMore));});
   f.querySelectorAll('[data-qstep]').forEach(b=>b.onclick=()=>edit(p=>{const l=p.lines[Number(b.dataset.qstep)];if(l)l.qty=Math.max(0,(l.qty||0)+Number(b.dataset.v));}));
@@ -621,6 +783,9 @@ export function installPurchaseUI({port,features=()=>true}){
   }
   f.querySelector('#pu_date')?.addEventListener('change',e=>edit(p=>{p.date=e.target.value||p.date;}));
   f.querySelector('#pu_co')?.addEventListener('change',e=>{if(e.target.value&&!saved(shown()))st.tab='items';edit(p=>{p.vendor_id=e.target.value;});});
+  const cuMap={pu_declNo:'declaration_no',pu_bl:'bl_no',pu_inco:'incoterms',pu_payMethod:'pay_method',pu_declOn:'declared_on',pu_accOn:'accepted_on'};
+  for(const [id,k] of Object.entries(cuMap))f.querySelector('#'+id)?.addEventListener('change',e=>edit(p=>{const c={...(p.customs||{})},v=e.target.value.trim();if(v)c[k]=k==='incoterms'?v.toUpperCase():v;else delete c[k];p.customs=c;}));
+  for(const [id,k] of [['pu_rateBook','booking_rate'],['pu_rateCustoms','customs_rate']])f.querySelector('#'+id)?.addEventListener('change',e=>edit(p=>{const v=Number(String(e.target.value).replace(/[^\d.]/g,''));if(v>0)p.fx={...p.fx,[k]:v};}));
   f.querySelector('#pu_vatSel')?.addEventListener('change',e=>edit(p=>{p.vat_on=e.target.value!=='0';}));
   f.querySelector('#pu_memo')?.addEventListener('change',e=>{if(st.draft&&st.draft.id===st.sel&&(st.draft.memo||'')===e.target.value)return;edit(p=>{p.memo=e.target.value;});}); // 치는 동안 이미 반영했으면 다시 그리지 않는다(그 사이 누른 [저장]이 사라지지 않게)
   // 글자를 치는 동안에도 '저장'이 켜지게(다시 그리지 않음) — 비고를 쓰고 바로 [저장]을 눌러도 한 번에 저장된다.

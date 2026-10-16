@@ -471,6 +471,7 @@ if(business){
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
  await writeFile(resolve(release,'erp/log-ui.mjs'),(await readFile(resolve(here,'log-ui.mjs'),'utf8')).replace("from './change-log.mjs'","from '../change-log.mjs'"));
  // 매입 화면(2단계): 업무 화면 모듈은 erp/ 안, 규칙·원가 계산은 저장소와 같은 파일(release 맨 위)을 함께 쓴다.
+ await copyFile(resolve(here,'import-paste.mjs'),resolve(release,'erp/import-paste.mjs'));
  await writeFile(resolve(release,'erp/purchase-ui.mjs'),(await readFile(resolve(here,'purchase-ui.mjs'),'utf8')).replace("from './purchase-ledger.mjs'","from '../purchase-ledger.mjs'"));
  await writeFile(resolve(release,'erp/purchase-saga.mjs'),(await readFile(resolve(here,'purchase-saga.mjs'),'utf8')).replace("from '../personal-cloud-onboarding/purchase-contract.mjs'","from '../purchase-contract.mjs'").replace("from './purchase-ledger.mjs'","from '../purchase-ledger.mjs'"));
 }

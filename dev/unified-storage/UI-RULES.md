@@ -198,6 +198,8 @@ the desktop item header is compared when that component exists.
 
 Both + buttons open a new editable draft with no company selected and immediately
 open the same searchable company picker (`NaroQuoteActions.chooseCompany`).
+The purchase + first shows a two-item menu (국내 매입 / 수입 매입 붙여넣기); 국내 매입
+follows this flow, the paste sheet is described in 'Import purchase paste'.
 Purchases filter this shared picker to purchase vendors; never silently choose the
 first vendor. Selecting a company in the picker or the information select advances
 new drafts to the items tab. Existing saved records retain their current tab.
@@ -434,3 +436,12 @@ measures it at 1440 and 390.
 
 ## Purchase entry rows (매입 입고 · 반품 줄)
 - 견적서 진행 탭의 납품 줄과 같은 부품(.nd-pl-dl): 날짜 · 품목(첫 품목 [코드] 외 N건) · 상태(입고 완료 / 마무리 필요, 반품은 사유) · 수량 · [⋯]. 줄을 누르면(또는 Enter) 품목 · 옵션 · 수량이 펼쳐진다. 취소된 입고는 흐리게, 펼치지 않는다.
+
+## Import purchase paste (수입 매입 붙여넣기)
+- 영수증 앱과 같은 방식: 앱은 파일을 밖으로 보내지 않는다. 매입 [+] → '수입 매입 붙여넣기' → ① 프롬프트 복사(import-paste.mjs `IMPORT_PROMPT`, 형식 고정 — 숫자 쉼표 없이, 모르면 '없음') ② AI 답 붙여넣기 ③ 확인 → [매입 만들기]. 입고는 물건이 오면 따로.
+- 확인 창: 매입처(이름이 같은 매입 거래처, 없으면 '새로 등록') · 필증 품명 ↔ 등록 품목·옵션 짝 · 청구서 항목 ↔ 앱 구분(운임·보험·관세·통관수수료·국내운송·기타 / 수입부가세 / 넣지 않음) · 청구서 낸 곳 · 검사 줄(✓ 맞음 / 주황 경고 / 빨강 막음).
+- 막는 것: 품목 표·통화·과세환율을 못 읽음, 수량이 정수가 아님, 필증과 청구서 B/L이 다름(기호 무시 비교), 품목 짝·매입처·낸 곳 미선택, 같은 신고번호로 이미 만든 매입. 경고만: 합계 불일치, 수량×단가≠금액, 청구서 관세 ≠ 필증 관세(원가는 필증 기준).
+- 10/17 결정: ① 수입 정보(수입신고번호 · B/L · 인도조건 · 결제방법 · 신고일 · 수리일)를 매입에 저장(정보 탭 '수입 정보' 묶음) ② 매입 환율 기본 = 필증 과세 환율 ③ 부대비용은 금액 비율로 나눔 ④ 관세는 필증 값 ⑤ 품명 짝은 매입처별로 기억 — 따로 저장하지 않고 지난 수입 매입 줄의 src_name에서 읽는다.
+- 수입부가세와 수수료 부가세는 원가에 넣지 않는다(공제). 대신 낸 곳(운송사·관세사)의 지급할 금액에는 더한다.
+- 외화 매입 화면: 머리 금액 '금액 (CNY)' + 번호 줄 오른쪽 '원화 · 환율'. 품목 단가·금액은 소수 둘째 자리. 합계 칸은 합계(외화) · 원화 환산 · 부대비용 · 도착원가(부가세 줄 없음). 진행 줄은 발주 · 입고 · 출금(외화) · 부대비용(남은 원화) · 계산서 — 좁은 줄이라 정수 외화는 소수점 없이.
+- 진행 탭(외화): 입고 · 출금(받는 곳 · 방법, 외화 아래 실제 원화) · 부대비용([비용 추가] — 더하기만) · 개당 원가 · 반품 · 계산서. 출금 창은 받는 곳을 고른다: 매입처(외화 + 실제 보낸 원화 → 송금 환율·환차) 또는 낸 곳(원화).

@@ -41,6 +41,8 @@ function line(l,items){
  valid((l.color===undefined||str(l.color,200))&&(l.spec===undefined||str(l.spec,200)));
  valid(int(l.qty)&&l.qty>0&&num(l.unit_price)&&l.unit_price>=0);
  valid(l.weight===undefined||num(l.weight)&&l.weight>=0);
+ // 수입: 필증 품명(다음 필증의 품목 짝 찾기용) · 세번부호
+ valid((l.src_name===undefined||str(l.src_name,200))&&(l.hs===undefined||str(l.hs,20)));
 }
 function cost(c,p,companies){
  valid(c&&typeof c==='object'&&id(c.id)&&COST_TYPES.includes(c.type)&&num(c.amount_krw)&&ALLOC.includes(c.alloc));
@@ -95,7 +97,13 @@ export function validatePurchase(p,snapshot){
  valid(p.cost_runs===undefined||Array.isArray(p.cost_runs));unique(p.cost_runs||[]);
  (p.cost_runs||[]).forEach((cr,i)=>run(cr,p,p.cost_runs.slice(0,i)));
  valid(p.returns===undefined||Array.isArray(p.returns));unique(p.returns||[]);for(const r of p.returns||[])ret(r,p);
- valid(p.import_vat===undefined||p.import_vat&&num(p.import_vat.amount)&&p.import_vat.amount>=0);
+ // 수입부가세: 원가가 아니다(공제). payee_id = 대신 낸 곳(운송사·관세사), fee_vat = 그곳 수수료에 붙은 부가세(역시 원가 아님).
+ valid(p.import_vat===undefined||p.import_vat&&num(p.import_vat.amount)&&p.import_vat.amount>=0&&(p.import_vat.payee_id===undefined||companies.some(c=>c.id===p.import_vat.payee_id))&&(p.import_vat.fee_vat===undefined||num(p.import_vat.fee_vat)&&p.import_vat.fee_vat>=0));
+ // 수입 정보(수입신고필증 기준, 10/17): 신고번호 · B/L · 인도조건 · 결제방법 · 신고일 · 수리일
+ if(p.customs!==undefined){const c=p.customs;valid(c&&typeof c==='object'&&!Array.isArray(c));
+  for(const k of Object.keys(c))valid(['declaration_no','bl_no','incoterms','pay_method','declared_on','accepted_on'].includes(k));
+  for(const k of ['declaration_no','bl_no','incoterms','pay_method'])valid(c[k]===undefined||str(c[k],60));
+  for(const k of ['declared_on','accepted_on'])valid(c[k]===undefined||day(c[k]));}
  valid(p.tax_invoice===undefined||p.tax_invoice&&typeof p.tax_invoice.received==='boolean'&&(p.tax_invoice.date===undefined||day(p.tax_invoice.date)));
  valid(p.attachments===undefined||Array.isArray(p.attachments)&&p.attachments.every(a=>str(a,500)&&/^NARO Biz\/Documents\//.test(a)&&!a.includes('..')));
  // 입고 수량은 주문 수량을 넘을 수 없다(취소된 차수 제외) — 같은 물건을 두 번 입고하는 실수를 막는다.
@@ -180,7 +188,7 @@ export function validatePurchaseLinks(key,before,next,purchasesDoc){
    valid(row.id===stockMoveId(r.id,rl.line_id)&&row.kind==='입고'&&row.item_id===l.item_id&&(row.color||'')===(l.color||'')&&(row.spec||'')===(l.spec||'')&&row.qty===rl.qty);
   }else{
    valid(p.kind!=='기초재고'&&str(row.client_ref,160)&&row.client_ref.length>0);
-   valid(row.company_id===p.vendor_id||(p.costs||[]).some(c=>c.payee_id===row.company_id));
+   valid(row.company_id===p.vendor_id||(p.costs||[]).some(c=>c.payee_id===row.company_id)||p.import_vat?.payee_id===row.company_id);
    valid(row.kind==='지급'||row.kind==='수금'&&row.refund===true);
    valid(row.currency===undefined||/^[A-Z]{3}$/.test(row.currency));
    valid(row.amount_fx===undefined||num(row.amount_fx)&&row.amount_fx>0);
