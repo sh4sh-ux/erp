@@ -47,7 +47,7 @@
   else if(m.kind==='받음')parts.push([m.source,m.order_no].filter(Boolean).map(esc).join(' · '));
   if(m.kind==='작업 완료')parts.push(`${esc(m.work_name||'작업')}${m.work_qty?` ${n0(m.work_qty)}개${Number(m.per_unit)>1?` × ${n0(m.per_unit)}`:''}`:''}`);
   if(m.memo)parts.push(esc(m.memo));
-  return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')} ›</button>`:''}`;};
+  return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')}</button>`:''}`;};
  const signed=m=>`${m.kind==='받음'?'+':'−'}${n0(m.qty)}`;
 
  /* ── 왼쪽 목록 ── */
@@ -79,7 +79,7 @@
 
  /* ── 오른쪽 상세 ── */
  function detailHtml(cid){
-  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객이 맡긴 자재를 받으면 기록해 두세요. 남은 수량과 쓴 내역이 업체별로 모여요.</span><button type="button" class="btn save" data-mp-new="받음">＋ 자재 받음</button></div></main>`;
+  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객이 맡긴 자재를 받으면 기록해 두세요. 남은 수량과 쓴 내역이 업체별로 모여요.</span><button type="button" class="btn save" data-mp-new="받음">자재 받음</button></div></main>`;
   const s=companyStats(cid),co=coById(cid)||{};
   const rows=(db.material_moves||[]).filter(m=>m.company_id===cid).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
   const live=rows.filter(m=>!m.void_at);
@@ -95,7 +95,7 @@
     const on=ui.open.has(g.name),pct=g.received?Math.round(g.balance/g.received*100):0;
     const recs=live.filter(m=>m.material===g.name).slice(0,6);
     const sub=recs.map(m=>`<div class="mp-sub"><span class="num">${md(m.date)}</span><span class="mp-k ${KCLS[m.kind]}">${KIND[m.kind]||esc(m.kind)}</span><span class="mp-src">${srcText(m)}</span><span class="num">${signed(m)}</span></div>`).join('');
-    const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기 ›</button>`:'';
+    const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기</button>`:'';
     return `<div class="mp-rec${on?' on':''}"><div class="mp-row-t mp-g6 mp-main" data-mp-open="${esc(g.name)}" role="button" tabindex="0" aria-expanded="${on}"><span class="mp-nm">${esc(g.name)}</span><span class="num">${n0(g.received)}</span><span class="num">${n0(g.used+g.returned+g.lost)}</span><span class="num mp-b">${n0(g.balance)}</span><span class="mp-pct" title="${g.balance>0?`${pct}% 남음`:'다 씀'}">${bar({received:g.received,balance:g.balance,used:g.used,out:g.returned+g.lost},'mp-mini')}${g.balance>0?'':'<small>다 씀</small>'}</span><span class="mp-act"><button type="button" class="mp-dots" data-mp-mat="${esc(g.name)}" aria-label="${esc(g.name)} 메뉴" aria-expanded="false">${DOTS}</button></span></div>${on?`<div class="mp-x">${sub||'<p class="mp-empty">기록이 없어요</p>'}${more}</div>`:''}</div>`;}).join(''):`<p class="mp-empty mp-line">아직 자재가 없어요</p>`);
   }else if(ui.tab==='history'){
    const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'))||(ui.rec==='네이버'&&isNaver(m));
@@ -115,7 +115,7 @@
    <div class="material-balance-hero"><span>남은 수량</span><strong>${n0(s.balance)}개</strong></div></div>
    <div class="qp-tabs nd-material-tabs" role="tablist" aria-label="자재 상세">${tabs}</div>
    <div class="mp-body">${sum}<section class="mp-panel" role="tabpanel">${body}</section></div>
-   <div class="mp-bar"><button type="button" class="btn ghost" data-mp-statement>재고내역서</button><span class="mp-sp"></span><button type="button" class="btn save" data-mp-new="">＋ 기록</button></div></main>`;
+   <div class="mp-bar"><button type="button" class="btn ghost" data-mp-statement>재고내역서</button><span class="mp-sp"></span><button type="button" class="btn save" data-mp-new="">기록 추가</button></div></main>`;
  }
 
  function render(){
@@ -185,7 +185,7 @@
    const input=(key,label,attrs='')=>field('',label,`<input data-mm="${key}" ${attrs} value="${esc(d[key])}">`);
    const verb=KIND[d.kind]||d.kind;
    const label=edit?'수정 내용 저장':qty>0&&d.material?`${n0(qty)}개 ${verb} 기록`:`${verb} 기록`;
-   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 고치기':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 골라 주세요')}</span></div>
+   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 수정':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 골라 주세요')}</span></div>
     <div class="nd-qa-body">
      <div class="nd-qa-seg" role="tablist" aria-label="기록 구분">${kinds.map(([k,l])=>`<button type="button" role="tab" data-mp-kind="${esc(k)}" aria-selected="${d.kind===k}">${l}</button>`).join('')}</div>
      <div class="nd-qa-fields">
@@ -250,7 +250,7 @@
   if(t.matches('[data-mp-company]')){try{switchView('companies');coSel=materialSelectedCompanyId;renderCoList?.();renderCoDetail();}catch{}return;}
   if(t.matches('[data-mp-quote]')){ev.stopPropagation();try{switchView('quotes');qtSel=t.dataset.mpQuote;renderQtList();renderQtDetail();}catch{}return;}
   if(t.matches('[data-mp-mat]')){ev.stopPropagation();const name=t.dataset.mpMat;openMenu(t,[{t:'받음 기록',sub:'더 받은 수량',icon:'plus',fn:()=>recordSheet({kind:'받음',material:name})},{t:'사용 기록',sub:'작업에 쓴 수량',icon:'plus',fn:()=>recordSheet({kind:'작업 완료',material:name})},{t:'반환·불량 기록',sub:'돌려준 수량 · 불량·분실',icon:'undo',fn:()=>recordSheet({kind:'반환',material:name})}]);return;}
-  if(t.matches('[data-mp-rm]')){ev.stopPropagation();const id=t.dataset.mpRm;openMenu(t,[{t:'고치기',sub:'수량 · 날짜 · 메모 · 연결 견적',fn:()=>recordSheet({editId:id})},{t:'기록 취소',sub:'남은 수량이 다시 계산돼요',icon:'undo',danger:true,fn:()=>cancelRecord(id)}]);return;}
+  if(t.matches('[data-mp-rm]')){ev.stopPropagation();const id=t.dataset.mpRm;openMenu(t,[{t:'수정',sub:'수량 · 날짜 · 메모 · 연결 견적',fn:()=>recordSheet({editId:id})},{t:'기록 취소',sub:'남은 수량이 다시 계산돼요',icon:'undo',danger:true,fn:()=>cancelRecord(id)}]);return;}
   const open=t.closest('[data-mp-open]');if(open&&!ev.target.closest('button')){const n=open.dataset.mpOpen;ui.open.has(n)?ui.open.delete(n):ui.open.add(n);materialSelectedName=n;render();}
  });
  document.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('#materialContent [data-mp-open]')){ev.preventDefault();ev.target.click();}});

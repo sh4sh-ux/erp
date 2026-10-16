@@ -227,7 +227,7 @@ export function installPurchaseUI({port,features=()=>true}){
   const cards=mob.matches?`<div class="qp-cards"><section class="qp-products"><h3>품목 ${p.lines.filter(l=>l.item_id).length}건${editBtn(p)}</h3>
    ${p.lines.map((l,i)=>{const it=itemOf(l.item_id);return `<article class="qp-card"><div class="qp-card-head"><button class="qp-card-edit" type="button" data-qp-edit="${i}"><strong>${it?`${esc(it.name||'')} <small class="qp-code">${esc(it.code||'')}</small>`:'품목 선택'}</strong></button><div class="qp-card-amount"><strong>${money((l.qty||0)*(l.unit_price||0))}</strong></div></div>
     <div class="qp-card-sub"><p class="qp-muted">${optLabel(l)}</p><small class="qp-unit">${money(l.unit_price)}<span class="qp-per"> / ${esc(it?.unit||'EA')}</span></small></div>
-    <div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div><button class="qp-card-more" type="button" data-qp-more="${i}">편집 ›</button></div></article>`;}).join('')}
+    <div class="qp-card-bottom"><div class="qp-stepper"><button type="button" data-qstep="${i}" data-v="-1" aria-label="수량 줄이기">−</button><span>${n0(l.qty)}</span><button type="button" data-qstep="${i}" data-v="1" aria-label="수량 늘리기">+</button></div><button class="qp-card-more" type="button" data-qp-more="${i}">편집</button></div></article>`;}).join('')}
    <div class="nd-addrow"><button class="qp-add nd-gi-plus nd-gi-f" type="button" data-act="addline">품목 추가</button><button class="btn-line-add qp-add" type="button" data-act="size">⊞ 옵션별 한번에</button></div></section></div>`:'';
   return `<div class="qt-sec-t">품목 <span class="cnt">${cnt}</span>${mob.matches?'':editBtn(p)}</div>
    ${cards}
@@ -235,7 +235,7 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="line-btns"><button class="btn-line-add nd-gi-plus nd-gi-f" id="pu_addLine" type="button" data-act="addline">행 추가</button><button class="btn-line-add" id="pu_sizeBtn" type="button" data-act="size">⊞ 옵션별 한번에</button></div>
    <div id="pu_sizePanel">${st.sz&&st.editing?sizePanel(p):''}</div>
    <div class="qtotals"><div class="row"><span class="k">공급가액</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부가세 ${p.vat_on===false?'(없음)':'(10%)'}</span><span class="v" id="pu_vat">${money(t.tax)}</span></div><div class="row grand"><span class="k">합계</span><span class="v" id="pu_total">${money(t.total)}</span></div></div>
-   ${sv&&!editable(p)&&p.status!=='취소'?'<div class="hint" style="text-align:right;margin-top:6px">입고가 시작된 매입은 품목을 고칠 수 없어요 — 진행 탭에서 입고 취소·반품으로 바로잡아요</div>':''}`;
+   ${sv&&!editable(p)&&p.status!=='취소'?'<div class="hint" style="text-align:right;margin-top:6px">입고가 시작된 매입은 품목을 수정할 수 없어요 — 진행 탭에서 입고 취소·반품으로 바로잡아요</div>':''}`;
  }
  // 옵션별 한번에(견적서와 같은 칸): 품목·색상을 고르고 옵션마다 수량·단가
  function sizePanel(p){

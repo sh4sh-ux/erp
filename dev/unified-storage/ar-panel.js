@@ -66,7 +66,7 @@
     <div class="pp-section-head"><h4>거래처별 <small>${list.length}곳 · 오래된 순</small></h4></div>${table}
     <p class="pp-note">받을 금액은 납품한 금액에서 받은 금액(입금)을 뺀 것이에요. 수주만 하고 아직 납품하지 않은 금액(납품 전 금액)은 더하지 않아요.</p>
    </div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay">＋ 입금 기록</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay">입금 기록</button></div>`;
  }
  // 입금을 채울 견적: 견적 탭에서 고른 것, 아니면 가장 오래된 것.
  const pick=r=>r.opens.find(o=>o.q.id===state.quote)||r.opens[0];
@@ -82,10 +82,10 @@
     <div class="pp-section-head"><h4>받을 돈이 남은 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
     ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th></tr></thead><tbody>${r.opens.map(o=>`<tr class="${state.quote===o.q.id?'on':''}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">받을 돈이 남은 견적이 없어요.</div>'}
     ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
-    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기 ›</button></div>
+    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
     ${pays.length?`<table class="pp-table ap-table"><tbody>${pays.map(p=>`<tr><td class="pp-c-date">${short(p.date)}</td><td><span class="pp-t-nm">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="doc" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span></td><td class="pp-c-num">${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
    </div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기 ›</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'＋ 입금 기록'}</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'입금 기록'}</button></div>`;
  }
  function syncLeft(v,list){
   const left=v.querySelector('.workspace-left');if(!left)return;

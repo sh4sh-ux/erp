@@ -10097,7 +10097,7 @@ html body #appView #qtForm:is([data-nd-st="부분납품"],[data-nd-st="납품"],
 /* 재고 부족(납품 전): 처음엔 제목 한 줄만 — 누르면 펼침 */
 html body #appView #qtForm #fq_short:not(.nd-open)>div>:not(.hd){display:none!important}
 html body #appView #qtForm #fq_short>div>.hd{cursor:pointer;position:relative;padding-right:64px}
-html body #appView #qtForm #fq_short>div>.hd::after{content:'보기 ›';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
+html body #appView #qtForm #fq_short>div>.hd::after{content:'보기';position:absolute;right:0;top:50%;transform:translateY(-50%);font:600 12.5px/1 var(--sans);color:var(--nd-ink-2)}
 html body #appView #qtForm #fq_short.nd-open>div>.hd::after{content:'접기'}
 html body #appView #qtForm #fq_short:not(.nd-open)>div>.hd{border-bottom:0!important;margin-bottom:0!important;padding-bottom:0!important}
 /* 폰(10/8 다시): 단계 줄 대신 한 줄 요약(지금 상태 · 나머지) + 오른쪽 버튼 하나. 요약을 누르면 진행 탭. */
@@ -11218,6 +11218,19 @@ const NaroCompanyLedger=(()=>{
  // 거래처 주소 검색 uses the same window (the app binds #coAddressSearch to this global on each render).
  window.openCompanyAddressSearch=function(){const address=document.getElementById('f_address'),detail=document.getElementById('f_address_detail'),btn=document.getElementById('coAddressSearch');
   addressWindow(btn,(v,b)=>{if(address?.isConnected){address.value=v;address.dispatchEvent(new Event('input',{bubbles:true}));}if(detail?.isConnected){fillDetail(detail,b);}});};
+ // 저장된 한 줄 주소를 '기본주소 | 상세주소'로 나눈다(공급자 정보는 주소를 한 칸에 저장 — 저장할 때 다시 합친다).
+ // 도로명(…로/…길 + 건물번호) 또는 지번(…동/리/가 + 번지)까지가 기본주소, 그 뒤가 상세주소. 못 나누면 그대로 둔다.
+ function splitAddress(v){const t=String(v||'').trim();
+  const m=/^(.+?(?:로|길)\s?\d+(?:-\d+)?)(?:\s*,\s*|\s+)(.+)$/.exec(t)||/^(.+?(?:동|리|가)\s\d+(?:-\d+)?)(?:\s*,\s*|\s+)(.+)$/.exec(t);
+  return m?[m[1].trim(),m[2].trim()]:[t,''];}
+ window.naroSplitAddress=splitAddress;
+ function supplierAddressSplit(){
+  const input=document.getElementById('st_address'),detail=document.getElementById('nd_address_detail');if(!input||!detail)return;
+  if(document.activeElement===input||document.activeElement===detail||input.dataset.ndSplit===input.value)return;
+  const d=detail.value.trim(),v=input.value.trim();
+  // 기본 앱이 칸을 다시 그리면 기본주소 칸에 합친 주소가 다시 들어온다 → 상세주소 부분을 떼어 낸다(두 번 들어가지 않게)
+  if(d){if(v.endsWith(d)&&v.length>d.length){input.value=v.slice(0,v.length-d.length).replace(/[\s,]+$/,'');}input.dataset.ndSplit=input.value;return;}
+  const [base,rest]=splitAddress(v);if(rest){input.value=base;detail.value=rest;}input.dataset.ndSplit=input.value;}
  function supplierAddress(){
   const input=document.getElementById('st_address');if(!input||input.dataset.ndAddr)return;input.dataset.ndAddr='1';
   const wrap=document.createElement('div');wrap.className='nd-addr';input.before(wrap);wrap.append(input);
@@ -11226,7 +11239,7 @@ const NaroCompanyLedger=(()=>{
   // 상세 주소 gets its own box like 거래처; on save it joins the base address (the record keeps one address field).
   const detail=document.createElement('input');detail.id='nd_address_detail';detail.type='text';detail.autocomplete='address-line2';detail.placeholder='상세 주소 (동·층·호수)';detail.setAttribute('aria-label','상세 주소');detail.className='nd-addr-detail';wrap.after(detail);
   b.onclick=()=>addressWindow(b,(v,bn)=>{input.value=v;input.dispatchEvent(new Event('input',{bubbles:true}));detail.value='';fillDetail(detail,bn);});
-  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim();if(d){input.value=(input.value.trim()+' '+d).trim();detail.value='';}},true);}
+  document.addEventListener('click',e=>{if(!e.target.closest?.('#stSaveBtn'))return;const d=detail.value.trim(),v=input.value.trim();if(d){input.value=v.endsWith(d)?v:(v+' '+d).trim();detail.value='';input.dataset.ndSplit='';}},true);}
 
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
@@ -11898,7 +11911,7 @@ const NaroCompanyLedger=(()=>{
   if(q)set('payQuote',q.id);
   const n=Math.min(r.open,q?quoteBalance(q):r.open);if(amt)amt.value=n.toLocaleString('ko-KR');
   await jWait(60);
-  jBanner(entry?.querySelector('.pay-add')||entry,`받을 금액 <b>${jEsc(jWon(r.open))}</b> 입금을 기록합니다 · ${jEsc(coName(cid))}${q?` · ${jEsc(q.no||'')}`:''} · 금액이 다르면 고쳐서 저장하세요`);
+  jBanner(entry?.querySelector('.pay-add')||entry,`받을 금액 <b>${jEsc(jWon(r.open))}</b> 입금을 기록합니다 · ${jEsc(coName(cid))}${q?` · ${jEsc(q.no||'')}`:''} · 금액이 다르면 수정한 뒤 저장하세요`);
   jFocus(amt);
  }
  function jPayList(){
@@ -11927,7 +11940,7 @@ const NaroCompanyLedger=(()=>{
    const all=[...document.querySelectorAll('#view-stock .stock-add input')].filter(i=>i.getAttribute('aria-label')===lab);
    for(const inp of all){inp.value=String(z.lack);inp.dispatchEvent(new Event('input',{bubbles:true}));if(!inp.matches('[data-stock-size]')){inp.classList.add('nd-jfocus');if(inp.getClientRects().length)first=first||inp;}}}
   const add=document.querySelector('#view-stock .stock-add');
-  jBanner(add,gr.total?`<b>부족한 수량</b>을 미리 넣었어요 · 실제 입고 수량으로 고친 뒤 [변경 내용 확인]을 눌러 주세요`:`<b>${jEsc(gr.item.name)} · ${jEsc(gr.color)}</b> 입고 수량을 넣어 주세요`);
+  jBanner(add,gr.total?`<b>부족한 수량</b>을 미리 넣었어요 · 실제 입고 수량으로 수정한 뒤 [변경 내용 확인]을 눌러 주세요`:`<b>${jEsc(gr.item.name)} · ${jEsc(gr.color)}</b> 입고 수량을 넣어 주세요`);
   (first||document.querySelector('#view-stock .stock-add input:not([type=hidden])'))?.scrollIntoView({block:'center',behavior:'smooth'});first?.focus({preventScroll:true});
  }
  function jShortList(){
@@ -12437,7 +12450,7 @@ const NaroCompanyLedger=(()=>{
  document.addEventListener('input',e=>{if(e.target.matches?.(SEARCH_INPUTS))requestAnimationFrame(searchClearButtons);});
  addEventListener('resize',()=>requestAnimationFrame(searchClearButtons));
  document.addEventListener('focusin',()=>requestAnimationFrame(searchClearButtons));
- const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();optionCols();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
+ const v5Again=()=>{if(v5Queued)return;v5Queued=true;requestAnimationFrame(()=>{v5Queued=false;try{railDocs();chips();actions();searchClearButtons();retireCsv();supplierAddress();supplierAddressSplit();settingsPolish();tools();stockMatrix();periodPresets();dashHover();navIcons();mobileNavPreferences();materialsMobile();colorTags();stockMobile();tableAlign();optionCols();payKindChips();itemPickers();quoteAddRow();shortageTidy();advancePaid();jumpMarks();statLinks();saveState();payTidy();paymentsMobile();statDividers();stockActBar();stockKindTabs();kindSaveLabels();glyphTidy();itemsMobile();phoneListState();materialDedupe();materialHeadTools();materialDetailDesign();window.NaroOrderImportUI?.ensure();vatIncLegend();window.NaroQuoteActions?.bar();watchMaterials();watchSettings();eyebrows();paymentDotSpacing();}catch(e){}});};
  const v5Watch=()=>{const main=document.querySelector('#appView');if(main&&!main.dataset.ndV5){main.dataset.ndV5='1';new MutationObserver(v5Again).observe(main,{childList:true,subtree:true});
   // 화면 상태(목록↔상세 등)는 class만 바뀌고 내용은 그대로일 때가 있다 → 화면(.view)의 class 변화에도 다시 맞춘다(거래처 뒤로 가기 뒤 회색 배경이 남던 것)
   const vo=new MutationObserver(v5Again);document.querySelectorAll('#appView .view,#qtCols').forEach(v=>vo.observe(v,{attributes:true,attributeFilter:['class','hidden']}));}};
@@ -12562,7 +12575,7 @@ const NaroSalesAnalysis=(()=>{
   const ph=view.querySelector(':scope>.page-head'),h2=ph?.querySelector('h2');if(h2){let c=ph.querySelector(':scope>.nd-sa-tcount');if(!c){c=document.createElement('span');c.className='count nd-sa-tcount';h2.after(c);}setText(c,`${p.index.length}${unit}`);}
   const ov=p.overall,ovm=ov.unknownCost?'예상 마진 — · 원가 미등록':`예상 마진 ${Math.round(ov.margin).toLocaleString('ko-KR')}원 · ${ov.marginRate===null?'—':ov.marginRate.toFixed(1)+'%'}`;
   setHTML(msum,`<span class="nd-sa-msum-top"><small>판매 금액 · 부가세 포함</small><b>${money(ov.total)}</b></span><span class="nd-sa-msum-io"><small>${e(ovm)}</small><small>수량 ${n(ov.qty)}</small></span>`);
-  const go=p.selected&&state.mode!=='category'?(state.mode==='company'?['company','거래처 보기 ›']:['item','품목 보기 ›']):null;
+  const go=p.selected&&state.mode!=='category'?(state.mode==='company'?['company','거래처 보기']:['item','품목 보기']):null;
   setHTML(abar,`<button type="button" class="nd-sa-btn" data-sa-act="export">내보내기</button><span class="nd-sa-sp"></span>${go?`<button type="button" class="nd-sa-btn" data-sa-act="${go[0]}">${go[1]}</button>`:''}`);
   const entry=(g,i)=>`<button type="button" class="nd-sa-entry${(i===-1?!p.selected:state.selected===g.id)?' on':''}" data-sa-select="${i}" aria-pressed="${i===-1?!p.selected:state.selected===g.id}"><span class="nd-sa-entry-name" title="${e(g.name)}">${e(g.name)}</span><span class="nd-sa-entry-note" title="${e(g.code||'')}">${g.code?e(g.code)+' · ':''}${i===-1?'전체 합계':'수량 '+n(g.qty)}</span><span class="nd-sa-entry-amount">${money(g.total)}</span>${margin(g)}</button>`;
   setHTML(list,entry({name:'전체 '+label,...p.overall},-1)+p.index.map(entry).join('')+(p.index.length?'':'<p class="nd-sa-empty">검색 결과가 없습니다.</p>'));
@@ -12880,7 +12893,7 @@ const NaroOrderImport=(()=>{
   {const info=f.querySelector('#qp-panel-basic');let lk=info?.querySelector('.nd-log-link');
    if(!q||!window.NaroChangeLog){lk?.remove();}else if(info&&!lk){lk=document.createElement('button');lk.type='button';lk.className='nd-log-link';lk.textContent='이 견적서의 변경 기록 보기';lk.onclick=()=>{const c=current();if(c)window.NaroChangeLog.open({ref:c.id,title:`${c.no||''} · ${coName(c.company_id)}`});};info.append(lk);}}
   recs(f,q);
-  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 고치거나 지울 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
+  const note=f.querySelector('.delivery-panel .quote-flow-body>.quote-flow-sub');const NOTE='저장된 납품 기록은 재고·매출의 근거라 수정하거나 삭제할 수 없어요. 잘못 넣었다면 ··· → 삭제를 누르면 재고가 되돌아가고, 나중에 복원할 수도 있어요.';
   if(note&&q&&(q.deliveries||[]).length&&note.textContent!==NOTE)note.textContent=NOTE;
   let el=f.querySelector(':scope .nd-next');
   cancelToggle();
@@ -12911,7 +12924,7 @@ const NaroOrderImport=(()=>{
   if(b.parentNode!==where)where.append(b);
  }
  function guard(){
-  if(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 먼저 저장해 주세요. 저장한 뒤 다시 눌러 주세요.');return false;}
+  if(typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('수정한 내용을 먼저 저장해 주세요. 저장한 뒤 다시 눌러 주세요.');return false;}
   return true;
  }
  function open(html){
@@ -12963,7 +12976,7 @@ const NaroOrderImport=(()=>{
   let amount=edit?Number(edit.amount)||0:Math.max(0,s.balance),method=edit?.method||'계좌이체',preset=edit?'custom':'all',date=edit?.date||localDate(),memo=edit?.memo||'';
   const paint=()=>{
    const over=amount>s.balance&&s.balance>=0;
-   const d=open(`<div class="nd-ps-hd"><b>${edit?'입금 고치기':'입금 받기'}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>${edit?'입금 수정':'입금 받기'}</b><span class="nd-qa-sub">${e(coName(q.company_id))} · 남은 금액 ${won(s.balance)}원</span></div>
     <div class="nd-qa-body">
      <label class="nd-qa-money">받은 금액<input id="ndQaAmt" inputmode="numeric" value="${amount?won(amount):''}" placeholder="0"><span>원</span></label>
      <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,t])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${t}</button>`).join('')}</div>
@@ -12971,10 +12984,10 @@ const NaroOrderImport=(()=>{
      <div class="nd-qa-fields"><label>입금일<input type="date" id="ndQaDate" value="${e(date)}"></label><label>메모 (선택)<input id="ndQaMemo" value="${e(memo)}" placeholder="예: 잔금"></label></div>
      ${over?`<p class="nd-qa-warn">남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.</p>`:''}
     </div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${amount>0?'':'disabled'}>${amount>0?won(amount)+(edit?'원으로 수정':'원 입금 확인'):'금액을 넣어 주세요'}</button></div>`);
    d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value;};d.querySelector('#ndQaMemo').oninput=ev=>{memo=ev.target.value;};
    const inp=d.querySelector('#ndQaAmt');
-   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 고치기':'원 입금 확인'):'금액을 넣어 주세요';};
+   inp.oninput=()=>{amount=Math.floor(Number(inp.value.replace(/[^\d]/g,''))||0);preset='custom';d.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.p==='custom')));const go=d.querySelector('.nd-qa-go');go.disabled=!(amount>0);go.textContent=amount>0?won(amount)+(edit?'원으로 수정':'원 입금 확인'):'금액을 넣어 주세요';};
    // 손을 뗄 때 창을 다시 그리면 같이 누른 [입금 확인]이 사라져 두 번 눌러야 했다 — 숫자 모양과 초과 안내만 고친다
    inp.onblur=()=>{inp.value=amount?won(amount):'';const over=amount>s.balance&&s.balance>=0;let w=d.querySelector('.nd-qa-warn');if(over){if(!w){w=document.createElement('p');w.className='nd-qa-warn';d.querySelector('.nd-qa-body').append(w);}w.textContent=`남은 금액보다 ${won(amount-s.balance)}원 많아요. 초과 입금으로 기록돼요.`;}else w?.remove();};
    d.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{preset=b.dataset.p;if(preset==='all')amount=Math.max(0,s.balance);else if(preset==='half')amount=Math.max(0,Math.round(s.balance/2));paint();if(preset==='custom'){const i=sheet.querySelector('#ndQaAmt');i.focus();i.select();}});
@@ -13009,7 +13022,7 @@ const NaroOrderImport=(()=>{
  function parcelsOf(v){if(!v||v.method!=='택배')return [];if(Array.isArray(v.parcels)&&v.parcels.length)return v.parcels;return v.carrier||v.tracking?[{carrier:v.carrier,tracking:v.tracking||''}]:[];}
  function shipNorm(v){if(!v||v.method!=='택배')return {method:v?.method||''};const all=parcelsOf(v),list=all.filter(p=>p.tracking);const first=list[0]||all[0]||{carrier:'cj',tracking:''};const out={method:'택배',carrier:first.carrier,tracking:list[0]?.tracking||''};if(list.length>1)out.parcels=list.map(p=>({carrier:p.carrier,tracking:p.tracking}));return out;}
  function parcelRow(p,i,n){const first=!i;return `<div class="nd-qa-parcel" data-pr><label><span class="nd-qa-sr">택배사</span><select ${first?'id="ndShipCarrier"':''} data-pc aria-label="송장 ${i+1} 택배사">${Object.entries(CARRIERS).map(([k,[name]])=>`<option value="${k}" ${p.carrier===k?'selected':''}>${name}</option>`).join('')}</select></label><label><span class="nd-qa-sr">송장번호</span><input ${first?'id="ndShipTracking"':''} data-pt inputmode="numeric" value="${e(p.tracking||'')}" placeholder="숫자만 입력" aria-label="송장 ${i+1} 번호"><a ${first?'id="ndShipLookup"':''} class="nd-qa-look" target="_blank" rel="noopener noreferrer" aria-disabled="true">조회 ↗</a></label>${n>1?`<button type="button" class="nd-qa-prm" data-prm aria-label="송장 ${i+1} 지우기">×</button>`:''}</div>`;}
- function shippingFields(v={},lead=''){const ps=parcelsOf(v),list=ps.length?ps:[{carrier:v.carrier||'cj',tracking:v.tracking||''}];return `<div class="nd-qa-fields nd-qa-ship">${lead}<label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><div class="nd-qa-parcels" id="ndShipParcels"><span class="nd-qa-pcount">송장 <b>${list.length}</b>개</span>${list.map((p,i)=>parcelRow(p,i,list.length)).join('')}<button type="button" class="nd-qa-padd" data-padd ${list.length>=MAX_PARCELS?'hidden':''}>＋ 송장 추가</button></div></div>`;}
+ function shippingFields(v={},lead=''){const ps=parcelsOf(v),list=ps.length?ps:[{carrier:v.carrier||'cj',tracking:v.tracking||''}];return `<div class="nd-qa-fields nd-qa-ship">${lead}<label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><div class="nd-qa-parcels" id="ndShipParcels"><span class="nd-qa-pcount">송장 <b>${list.length}</b>개</span>${list.map((p,i)=>parcelRow(p,i,list.length)).join('')}<button type="button" class="nd-qa-padd" data-padd ${list.length>=MAX_PARCELS?'hidden':''}>송장 추가</button></div></div>`;}
  // final=true(저장): 빈 송장은 빼고 저장 모양으로. final=false(입력 중): 빈 줄도 남겨 다시 그릴 때 사라지지 않게.
  function readShipping(d,final=true){const method=d.querySelector('#ndShipMethod').value;if(method!=='택배')return {method};const rows=[...d.querySelectorAll('#ndShipParcels [data-pr]')].map(r=>({carrier:r.querySelector('[data-pc]').value,tracking:r.querySelector('[data-pt]').value.replace(/[\s-]/g,'')}));
   if(rows.some(p=>p.tracking&&!/^\d{8,30}$/.test(p.tracking))){if(final)say('송장번호는 숫자 8~30자리로 입력해 주세요.');return null;}
@@ -13060,7 +13073,7 @@ const NaroOrderImport=(()=>{
   const dItems=d=>{let src=d.lines||[];try{if(typeof deliveryRecordLines==='function')src=deliveryRecordLines(w,d);}catch{}return src.map(x=>({...(w.lines||[]).find(l=>l.id===x.line_id),qty:x.qty})).filter(l=>Number(l.qty)>0);};
   const dRow=(d,isGone)=>{const key=q.id+':'+d.id,on=!isGone&&recordOpen.get('row:'+key)===true,orig=d.corrects?dels.find(x=>x.id===d.corrects):null;
    const items=dItems(d).map(l=>`<div class="nd-pl-row nd-pl-sub nd-pl-dl"><span></span><span class="nd-pl-in">${e(l.name||'품목')}${opt(l)?`<small>${opt(l)}</small>`:''}</span><span></span><span class="num">${won(l.qty)}</span><span></span></div>`).join('');
-   const pl=parcelsOf(d.shipping),notes=[...(pl.length>1?pl.map((p,i)=>{const name=CARRIERS[p.carrier]?.[0]||'택배',url=trackingUrl({method:'택배',...p});return `<span><b>송장 ${i+1}</b>${e(name)} <i class="nd-pl-trk num">${e(p.tracking)}</i>${url?` <a class="nd-pl-ext" href="${e(url)}" target="_blank" rel="noopener noreferrer" aria-label="송장 ${i+1} ${e(name)} 배송 조회">조회 ↗</a>`:''}</span>`;}):[]),d.memo?`<span><b>메모</b>${linkify(d.memo)}</span>`:'',orig?`<span><b>고친 기록</b>${fixText(orig,d)}</span>`:''].filter(Boolean).join('');
+   const pl=parcelsOf(d.shipping),notes=[...(pl.length>1?pl.map((p,i)=>{const name=CARRIERS[p.carrier]?.[0]||'택배',url=trackingUrl({method:'택배',...p});return `<span><b>송장 ${i+1}</b>${e(name)} <i class="nd-pl-trk num">${e(p.tracking)}</i>${url?` <a class="nd-pl-ext" href="${e(url)}" target="_blank" rel="noopener noreferrer" aria-label="송장 ${i+1} ${e(name)} 배송 조회">조회 ↗</a>`:''}</span>`;}):[]),d.memo?`<span><b>메모</b>${linkify(d.memo)}</span>`:'',orig?`<span><b>수정 기록</b>${fixText(orig,d)}</span>`:''].filter(Boolean).join('');
    return `<div class="nd-pl-rec${on?' on':''}${isGone?' gone':''}"><div class="nd-rec-row nd-pl-row nd-pl-dl nd-pl-main" ${isGone?'':`data-pl-open="${e(d.id)}" role="button" tabindex="0" aria-expanded="${on}"`}><span class="nd-pl-d num">${md(d.date)}</span><span class="nd-pl-nm">${e(recLabel(w,d)||'납품')}${isGone?'<small>취소됨</small>':''}</span><span class="nd-pl-ship">${isGone?'':shipText(d)}</span><span class="num nd-pl-q">${won(recQty(d))}</span><span class="nd-pl-act">${isGone?'':more(`data-rm-d="${e(d.id)}"`,'이 납품 메뉴')}</span></div>${on?`<div class="nd-pl-x">${items}${notes?`<p class="nd-pl-note">${notes}</p>`:''}</div>`:''}</div>`;};
   const restRows=s.rest.map(r=>`<div class="nd-pl-rec"><div class="nd-pl-row nd-pl-dl nd-pl-main nd-pl-left"><span class="nd-pl-d">남음</span><span class="nd-pl-nm">${e(r.l.name||'품목')}${opt(r.l)?`<small>${opt(r.l)}</small>`:''}</span><span class="nd-pl-ship">아직 안 보냄</span><span class="num nd-pl-q">${won(r.left)}</span><span></span></div></div>`).join('');
   const dBody=(live.length||gone.length||(can&&s.rest.length))?head('nd-pl-dl',[['날짜'],['품목'],['배송'],['수량',true],['']])+live.map(d=>dRow(d,false)).join('')+(live.length?restRows:'')+gone.map(d=>dRow(d,true)).join(''):empty(can?'아직 납품 기록이 없어요':'수주하면 납품을 기록할 수 있어요');
@@ -13101,10 +13114,10 @@ const NaroOrderImport=(()=>{
   const qty=Object.fromEntries(rows.map(r=>[r.id,r.was]));let date=d0.date||localDate(),memo=d0.memo||'',shipping=structuredClone(d0.shipping||{method:''});
   const paint=()=>{
    const was=rows.reduce((a,r)=>a+r.was,0),now=rows.reduce((a,r)=>a+qty[r.id],0),same=now===was&&rows.every(r=>qty[r.id]===r.was)&&date===d0.date&&memo===(d0.memo||'')&&JSON.stringify(shipNorm(shipping))===JSON.stringify(shipNorm(d0.shipping||{method:''})),qtySame=rows.every(r=>qty[r.id]===r.was),what=[date!==d0.date?'납품일':'',JSON.stringify(shipNorm(shipping))!==JSON.stringify(shipNorm(d0.shipping||{method:''}))?'배송 정보':'',memo!==(d0.memo||'')?'메모':''].filter(Boolean).join('·');
-   const d=open(`<div class="nd-ps-hd"><b>납품 기록 고치기</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'납품')} · ${won(rows.reduce((a,r)=>a+r.was,0))}개</span></div>
+   const d=open(`<div class="nd-ps-hd"><b>납품 기록 수정</b><span class="nd-qa-sub">${md(d0.date)} 납품 · ${e(recLabel(q,d0)||'납품')} · ${won(rows.reduce((a,r)=>a+r.was,0))}개</span></div>
     <div class="nd-qa-body"><span class="nd-qa-label">수량</span><div class="nd-qa-lines">${rows.map(r=>`<div class="nd-qa-ln"><div><span>${e(r.l.name||'품목')}</span><small>${[r.l.color,r.l.spec].filter(Boolean).map(e).join(' · ')}${r.l.color||r.l.spec?' · ':''}원래 ${won(r.was)}개</small></div><span class="nd-qa-step"><button type="button" data-d="${e(r.id)}" data-v="-1" aria-label="줄이기">−</button><input inputmode="numeric" data-q="${e(r.id)}" value="${qty[r.id]}" aria-label="납품 수량"><button type="button" data-d="${e(r.id)}" data-v="1" aria-label="늘리기">+</button></span></div>`).join('')}</div>
      ${shippingFields(shipping,`<label>납품일<input type="date" id="ndQaDate" value="${e(date)}"></label>`)}<div class="nd-qa-fields"><label class="nd-qa-wide">메모 <small>(선택) · 링크를 붙이면 바로 열려요</small><input id="ndQaMemo" value="${e(memo)}" placeholder="예: 박스 2개 · 사진 링크"></label></div>${same?'':`<p class="nd-qa-after">${qtySame?`<b>${what}만 바뀌어요.</b> 수량이 그대로라 재고는 변하지 않아요.`:now?`확인하면 <b>원래 ${won(was)}개 기록은 '고침'으로 남고 ${won(now)}개 기록이 새로 생겨요.</b> 재고는 차이(${now>was?'+':''}${won(now-was)}개)만큼 반영돼요.`:`0개면 <b>이 납품을 취소</b>하는 것과 같아요. 재고 ${won(was)}개가 되돌아와요.`}</p>`}</div>
-    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${same?'disabled':''}>${same||qtySame?'고치기':now?`${won(now)}개로 고치기`:'이 납품 취소'}</button></div>`);
+    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go" ${same?'disabled':''}>${same||qtySame?'수정':now?`${won(now)}개로 수정`:'이 납품 취소'}</button></div>`);
    d.querySelector('#ndQaDate').onchange=ev=>{date=ev.target.value||date;paint();};d.querySelector('#ndQaMemo').onchange=ev=>{memo=ev.target.value.trim();paint();};
    bindShipping(d);d.querySelector('.nd-qa-ship').addEventListener('change',ev=>{const next=readShipping(d,false);if(next){shipping=next;const keep=ev.target.closest?.('[data-pr]')?[...d.querySelectorAll('[data-pr]')].indexOf(ev.target.closest('[data-pr]')):-1;paint();if(keep>=0&&ev.target.matches('[data-pt]'))document.querySelectorAll('#ndShipParcels [data-pt]')[keep]?.focus();}});
    d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const r=rows.find(x=>x.id===b.dataset.d);qty[r.id]=Math.max(0,Math.min(r.max,qty[r.id]+Number(b.dataset.v)));paint();});
@@ -13168,8 +13181,8 @@ const NaroOrderImport=(()=>{
   if(b.dataset.rmR){const id=b.dataset.rmR;return openMenu(b,[{t:'환불 기록 지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(id)}]);}
   if(b.dataset.rec==='part')return deliver('part');if(b.dataset.rec==='all')return deliver('all');
   if(b.dataset.rec==='pay')return pay();if(b.dataset.rec==='tax')return taxSheet();
-  if(b.dataset.rmD){const id=b.dataset.rmD;return openMenu(b,[{t:'고치기',sub:'수량 · 날짜 · 배송 · 메모',fn:()=>editDelivery(id)},{t:'납품 취소',sub:'재고가 되돌아가요',icon:'undo',danger:true,fn:()=>cancelDelivery(id)}]);}
-  if(b.dataset.rmP){const p=(db.payments||[]).find(x=>x.id===b.dataset.rmP);if(!p)return;return openMenu(b,[{t:'고치기',sub:'금액 · 날짜 · 방법 · 메모',fn:()=>pay(p)},{t:'지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(p.id)}]);}
+  if(b.dataset.rmD){const id=b.dataset.rmD;return openMenu(b,[{t:'수정',sub:'수량 · 날짜 · 배송 · 메모',fn:()=>editDelivery(id)},{t:'납품 취소',sub:'재고가 되돌아가요',icon:'undo',danger:true,fn:()=>cancelDelivery(id)}]);}
+  if(b.dataset.rmP){const p=(db.payments||[]).find(x=>x.id===b.dataset.rmP);if(!p)return;return openMenu(b,[{t:'수정',sub:'금액 · 날짜 · 방법 · 메모',fn:()=>pay(p)},{t:'지우기',sub:'받을 금액이 다시 계산돼요',danger:true,fn:()=>deletePayment(p.id)}]);}
  });
  document.addEventListener('click',ev=>{
   const t=ev.target.closest?.('#qtForm .nd-next [data-qa],#qtForm .nd-next [data-st],#qtForm .nd-next [data-tab],#qtForm .nd-next [data-restore],#qtForm .nd-edit-b');if(!t)return;ev.preventDefault();
@@ -13178,7 +13191,7 @@ const NaroOrderImport=(()=>{
   if(t.dataset.tab){document.getElementById('qp-tab-'+t.dataset.tab)?.click();return;}
   if(t.dataset.st){if(typeof qtEditing==='undefined'||!qtEditing)return;qtEditing.status=t.dataset.st;const sel=document.getElementById('fq_status');if(sel)sel.value=t.dataset.st;document.getElementById('qtSaveBtn')?.click();return;}
   const q=current();if(!q)return;
-  if(isEditing(q)&&typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('고친 내용을 저장하면 보기 화면으로 돌아가요');return;}
+  if(isEditing(q)&&typeof qtHasUnsavedChanges==='function'&&qtHasUnsavedChanges()){say('수정한 내용을 저장하면 보기 화면으로 돌아가요');return;}
   editing.set(q.id,!isEditing(q));bar();
  });
  document.addEventListener('click',ev=>{const h=ev.target.closest?.('#qtForm #fq_short>div>.hd');if(h)h.closest('#fq_short').classList.toggle('nd-open');});
@@ -13290,7 +13303,7 @@ const NaroOrderImport=(()=>{
    return;
   }
   const d=open(`<div class="nd-ps-hd"><b>저장된 납품 기록은 지울 수 없어요</b><span class="nd-qa-sub">${e(coName(q.company_id))} · ${e(q.no||'')}</span></div>
-   <div class="nd-qa-body"><p class="nd-qa-note">납품 기록은 재고와 매출의 근거라서 저장한 뒤에는 고치거나 지울 수 없게 되어 있어요.</p>
+   <div class="nd-qa-body"><p class="nd-qa-note">납품 기록은 재고와 매출의 근거라서 저장한 뒤에는 수정하거나 삭제할 수 없게 되어 있어요.</p>
     <p class="nd-qa-note">잘못 넣었다면 <b>견적서를 삭제</b>하면 재고가 되돌아오고 매출에서 빠져요(나중에 복원 가능). 그다음 새 견적서로 다시 만들면 돼요.</p></div>
    <div class="nd-ps-act"><button type="button" class="nd-ps-close" data-x>닫기</button><button type="button" class="nd-qa-go nd-qa-del" data-cancel-q>견적서 삭제하기</button></div>`);
   d.querySelector('[data-cancel-q]').onclick=()=>removeQuote(q.id);
@@ -13574,7 +13587,7 @@ const NaroOrderImport=(()=>{
    const left=delivered-paid;
    const done=full&&left<=0;
    const leftText=!dels.length?(paid>0?`선입금 ${won(paid)}`:'납품 전'):left>0?won(left):left<0?`${won(-left)} 더 받음`:'0원 · 다 받음';
-   return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기 ›',kind:'quote'};
+   return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기',kind:'quote'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
  // ── 매입처: 매입별 입고·출금(매입 화면이 켜져 있을 때) ──
@@ -13589,7 +13602,7 @@ const NaroOrderImport=(()=>{
    if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
    const left=p.due-p.paid;
    return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
-    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기 ›',kind:'purchase'};
+    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
  function summary(c){
@@ -13637,7 +13650,7 @@ const NaroOrderImport=(()=>{
     <div class="cp-track"><i style="width:${s.pct}%"></i></div>
     <div class="cp-stats">${s.line.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
    </div>
-   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기 ›'}</button>`:''}</div>
+   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기'}</button>`:''}</div>
     ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?(p.go?`<button type="button" class="q cp-qlink" data-cp-go="${esc(p.go)}" data-cp-kind="${p.goKind}" aria-label="${esc(p.ref)} ${p.goKind==='quote'?'견적서':'매입'} 열기">${esc(p.ref)}</button>`:`<span class="q">${esc(p.ref)}</span>`):''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
    </section>
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>
@@ -13794,7 +13807,7 @@ const NaroOrderImport=(()=>{
   else if(m.kind==='받음')parts.push([m.source,m.order_no].filter(Boolean).map(esc).join(' · '));
   if(m.kind==='작업 완료')parts.push(`${esc(m.work_name||'작업')}${m.work_qty?` ${n0(m.work_qty)}개${Number(m.per_unit)>1?` × ${n0(m.per_unit)}`:''}`:''}`);
   if(m.memo)parts.push(esc(m.memo));
-  return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')} ›</button>`:''}`;};
+  return `${parts.filter(Boolean).join(' · ')}${q?` <button type="button" class="mp-qlink" data-mp-quote="${esc(q.id)}">${esc(q.no||'견적')}</button>`:''}`;};
  const signed=m=>`${m.kind==='받음'?'+':'−'}${n0(m.qty)}`;
 
  /* ── 왼쪽 목록 ── */
@@ -13826,7 +13839,7 @@ const NaroOrderImport=(()=>{
 
  /* ── 오른쪽 상세 ── */
  function detailHtml(cid){
-  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객이 맡긴 자재를 받으면 기록해 두세요. 남은 수량과 쓴 내역이 업체별로 모여요.</span><button type="button" class="btn save" data-mp-new="받음">＋ 자재 받음</button></div></main>`;
+  if(!cid)return `<main class="material-detail mp-detail mp-none"><div class="mp-blank"><b>업체 제공 자재</b><span>고객이 맡긴 자재를 받으면 기록해 두세요. 남은 수량과 쓴 내역이 업체별로 모여요.</span><button type="button" class="btn save" data-mp-new="받음">자재 받음</button></div></main>`;
   const s=companyStats(cid),co=coById(cid)||{};
   const rows=(db.material_moves||[]).filter(m=>m.company_id===cid).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created_at||'').localeCompare(a.created_at||''));
   const live=rows.filter(m=>!m.void_at);
@@ -13842,7 +13855,7 @@ const NaroOrderImport=(()=>{
     const on=ui.open.has(g.name),pct=g.received?Math.round(g.balance/g.received*100):0;
     const recs=live.filter(m=>m.material===g.name).slice(0,6);
     const sub=recs.map(m=>`<div class="mp-sub"><span class="num">${md(m.date)}</span><span class="mp-k ${KCLS[m.kind]}">${KIND[m.kind]||esc(m.kind)}</span><span class="mp-src">${srcText(m)}</span><span class="num">${signed(m)}</span></div>`).join('');
-    const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기 ›</button>`:'';
+    const more=live.filter(m=>m.material===g.name).length>6?`<button type="button" class="mp-more-link" data-mp-tab="history">기록 탭에서 모두 보기</button>`:'';
     return `<div class="mp-rec${on?' on':''}"><div class="mp-row-t mp-g6 mp-main" data-mp-open="${esc(g.name)}" role="button" tabindex="0" aria-expanded="${on}"><span class="mp-nm">${esc(g.name)}</span><span class="num">${n0(g.received)}</span><span class="num">${n0(g.used+g.returned+g.lost)}</span><span class="num mp-b">${n0(g.balance)}</span><span class="mp-pct" title="${g.balance>0?`${pct}% 남음`:'다 씀'}">${bar({received:g.received,balance:g.balance,used:g.used,out:g.returned+g.lost},'mp-mini')}${g.balance>0?'':'<small>다 씀</small>'}</span><span class="mp-act"><button type="button" class="mp-dots" data-mp-mat="${esc(g.name)}" aria-label="${esc(g.name)} 메뉴" aria-expanded="false">${DOTS}</button></span></div>${on?`<div class="mp-x">${sub||'<p class="mp-empty">기록이 없어요</p>'}${more}</div>`:''}</div>`;}).join(''):`<p class="mp-empty mp-line">아직 자재가 없어요</p>`);
   }else if(ui.tab==='history'){
    const pass=m=>ui.rec==='all'||(ui.rec==='받음'&&m.kind==='받음')||(ui.rec==='사용'&&m.kind==='작업 완료')||(ui.rec==='반환'&&(m.kind==='반환'||m.kind==='불량/분실'))||(ui.rec==='네이버'&&isNaver(m));
@@ -13862,7 +13875,7 @@ const NaroOrderImport=(()=>{
    <div class="material-balance-hero"><span>남은 수량</span><strong>${n0(s.balance)}개</strong></div></div>
    <div class="qp-tabs nd-material-tabs" role="tablist" aria-label="자재 상세">${tabs}</div>
    <div class="mp-body">${sum}<section class="mp-panel" role="tabpanel">${body}</section></div>
-   <div class="mp-bar"><button type="button" class="btn ghost" data-mp-statement>재고내역서</button><span class="mp-sp"></span><button type="button" class="btn save" data-mp-new="">＋ 기록</button></div></main>`;
+   <div class="mp-bar"><button type="button" class="btn ghost" data-mp-statement>재고내역서</button><span class="mp-sp"></span><button type="button" class="btn save" data-mp-new="">기록 추가</button></div></main>`;
  }
 
  function render(){
@@ -13932,7 +13945,7 @@ const NaroOrderImport=(()=>{
    const input=(key,label,attrs='')=>field('',label,`<input data-mm="${key}" ${attrs} value="${esc(d[key])}">`);
    const verb=KIND[d.kind]||d.kind;
    const label=edit?'수정 내용 저장':qty>0&&d.material?`${n0(qty)}개 ${verb} 기록`:`${verb} 기록`;
-   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 고치기':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 골라 주세요')}</span></div>
+   const s=openSheet(`<div class="nd-ps-hd"><b>${edit?'자재 기록 수정':'자재 기록'}</b><span class="nd-qa-sub">${esc(d.company_id?coName(d.company_id):'업체를 골라 주세요')}</span></div>
     <div class="nd-qa-body">
      <div class="nd-qa-seg" role="tablist" aria-label="기록 구분">${kinds.map(([k,l])=>`<button type="button" role="tab" data-mp-kind="${esc(k)}" aria-selected="${d.kind===k}">${l}</button>`).join('')}</div>
      <div class="nd-qa-fields">
@@ -13997,7 +14010,7 @@ const NaroOrderImport=(()=>{
   if(t.matches('[data-mp-company]')){try{switchView('companies');coSel=materialSelectedCompanyId;renderCoList?.();renderCoDetail();}catch{}return;}
   if(t.matches('[data-mp-quote]')){ev.stopPropagation();try{switchView('quotes');qtSel=t.dataset.mpQuote;renderQtList();renderQtDetail();}catch{}return;}
   if(t.matches('[data-mp-mat]')){ev.stopPropagation();const name=t.dataset.mpMat;openMenu(t,[{t:'받음 기록',sub:'더 받은 수량',icon:'plus',fn:()=>recordSheet({kind:'받음',material:name})},{t:'사용 기록',sub:'작업에 쓴 수량',icon:'plus',fn:()=>recordSheet({kind:'작업 완료',material:name})},{t:'반환·불량 기록',sub:'돌려준 수량 · 불량·분실',icon:'undo',fn:()=>recordSheet({kind:'반환',material:name})}]);return;}
-  if(t.matches('[data-mp-rm]')){ev.stopPropagation();const id=t.dataset.mpRm;openMenu(t,[{t:'고치기',sub:'수량 · 날짜 · 메모 · 연결 견적',fn:()=>recordSheet({editId:id})},{t:'기록 취소',sub:'남은 수량이 다시 계산돼요',icon:'undo',danger:true,fn:()=>cancelRecord(id)}]);return;}
+  if(t.matches('[data-mp-rm]')){ev.stopPropagation();const id=t.dataset.mpRm;openMenu(t,[{t:'수정',sub:'수량 · 날짜 · 메모 · 연결 견적',fn:()=>recordSheet({editId:id})},{t:'기록 취소',sub:'남은 수량이 다시 계산돼요',icon:'undo',danger:true,fn:()=>cancelRecord(id)}]);return;}
   const open=t.closest('[data-mp-open]');if(open&&!ev.target.closest('button')){const n=open.dataset.mpOpen;ui.open.has(n)?ui.open.delete(n):ui.open.add(n);materialSelectedName=n;render();}
  });
  document.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('#materialContent [data-mp-open]')){ev.preventDefault();ev.target.click();}});
@@ -14900,12 +14913,12 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
  }
  function overviewMarkup(){
   const ids=records(),rows=rowsOf(ids),sum=totals(rows),net=sum.in-sum.out,ar=receivable(),ap=payable(),label=periodLabel();
-  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액 ›</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입 ›</em></button>`:''}</section>`:'';
+  const todo=ar||ap?`<section class="pp-todo">${ar?`<button type="button" data-pp="ar"><span><small>아직 못 받은 돈${ar.n?' · '+ar.n+'곳':''}</small><b>${ar.n?won(ar.sum):'없음'}</b></span><em>받을 금액</em></button>`:''}${ap?`<button type="button" data-pp="purchases"><span><small>아직 안 준 돈${ap.n?' · '+ap.n+'건':''}</small><b>${ap.n?won(ap.sum):'없음'}</b></span><em>매입</em></button>`:''}</section>`:'';
   const table=rows.length?`<table class="pp-table"><thead><tr><th class="pp-c-date">날짜</th><th>거래처 · 연결</th><th class="pp-c-method">방법</th><th class="pp-c-num pp-c-io">입금</th><th class="pp-c-num pp-c-io">출금</th><th class="pp-c-num pp-c-amt">금액</th></tr></thead><tbody>${rows.map(p=>`<tr data-pp="record" data-id="${esc(p.id)}" tabindex="0"><td class="pp-c-date">${esc(short(p.date))}</td><td><span class="pp-t-nm">${esc(coName(p.company_id))}</span><small>${esc([p.refund?'환불':'',docNo(p)?(p.purchase_id?'매입 ':'견적 ')+docNo(p):'',p.memo||''].filter(Boolean).join(' · ')||'연결 없음')}</small></td><td class="pp-c-method">${esc(p.method||'—')}</td><td class="pp-c-num pp-c-io in">${isIn(p)?num(p.amount):''}</td><td class="pp-c-num pp-c-io">${isIn(p)?'':num(p.amount)}</td><td class="pp-c-num pp-c-amt${isIn(p)&&!p.refund?' in':''}">${isIn(p)?'+':'−'}${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">이 기간에 입금·출금 기록이 없어요.<br>아래 [＋ 입금·출금 기록]으로 시작하세요.</div>';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">입출금 현황</span><h3 title="${esc(label)}">${esc(label)}</h3></div><div class="pp-amount"><span>차액 · 입금 − 출금</span><strong class="${net<0?'neg':''}">${net<0?'−':''}${won(Math.abs(net))}</strong></div><div class="pp-meta">${sum.count}건${kindNote()?' · '+kindNote():''}</div></header>
    <div class="pp-body" id="pp-body">${flowMarkup(sum)}${todo}<div class="pp-section-head"><h4>${esc(label.replace(/^\d{4}년 /,''))} 내역 <small>${sum.count}건</small></h4></div>${table}<p class="pp-note">차액은 이 기간의 입금 − 출금이에요. 통장 잔액과는 달라요.</p></div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-pp="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-pp="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button></div>`;
  }
  function detailMarkup(p){
   const q=quoteOf(p),pu=purchaseOf(p),co=company(p.company_id),word=kindWord(p);
@@ -14920,15 +14933,15 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
   list=list.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.created_at||'').localeCompare(String(b.created_at||'')));
   const docBtn=q?`<button type="button" class="pp-link" data-pp="doc">${esc(q.no||'견적서')}</button>`:pu?`<button type="button" class="pp-link" data-pp="doc">${esc(pu.no||'매입')}</button>`:'';
   const created=String(p.created_at||'').slice(0,10);
-  const docLink=q?'<button type="button" data-pp="doc">견적서 열기 ›</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기 ›</button>':'';
+  const docLink=q?'<button type="button" data-pp="doc">견적서 열기</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기</button>':'';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">${word}</span><h3 title="${esc(co?.name||'거래처 없음')}">${esc(co?.name||'거래처 없음')}</h3></div><div class="pp-amount"><span>${word}액</span><strong>${won(p.amount)}</strong></div><div class="pp-meta">${docBtn}<span>${esc(p.date||'날짜 없음')}</span><span>${esc(p.method||'방법 미기록')}</span>${chip}</div></header>
    <div class="pp-body" id="pp-body">${prog}
     <div class="pp-section-head"><h4>${esc(title)} <small>${list.length}건</small></h4>${docLink}</div>
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
-    <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)} ›</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
+    <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
    </div>
-   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">고치기</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">＋ 입금·출금 기록</button>'}</div>`;
+   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
  }
  const markup=p=>p?detailMarkup(p):overviewMarkup();
  function syncLeft(left,ids){
@@ -15010,9 +15023,9 @@ html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-nu
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
   const head=document.querySelector('#view-payments>.workspace-heading');
-  if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 고치기`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
+  if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 수정`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
   let note=entry.querySelector('.pp-edit-note');const orig=state.editing&&(data()?.payments||[]).find(x=>x.id===state.editing);
-  if(orig){if(!note){note=document.createElement('p');note.className='pp-edit-note';(entry.querySelector('.pay-add')||entry).prepend(note);}const t=`고치는 중 · 원래 기록(${short(orig.date)} · ${won(orig.amount)})은 저장하면 새 기록으로 바뀌어요.`;if(note.textContent!==t)note.textContent=t;}
+  if(orig){if(!note){note=document.createElement('p');note.className='pp-edit-note';(entry.querySelector('.pay-add')||entry).prepend(note);}const t=`수정 중 · 원래 기록(${short(orig.date)} · ${won(orig.amount)})은 저장하면 새 기록으로 바뀌어요.`;if(note.textContent!==t)note.textContent=t;}
   else note?.remove();
  }
  function openEntry(kind,fill={}){
@@ -15198,7 +15211,7 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
     <div class="pp-section-head"><h4>거래처별 <small>${list.length}곳 · 오래된 순</small></h4></div>${table}
     <p class="pp-note">받을 금액은 납품한 금액에서 받은 금액(입금)을 뺀 것이에요. 수주만 하고 아직 납품하지 않은 금액(납품 전 금액)은 더하지 않아요.</p>
    </div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay">＋ 입금 기록</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="export">내보내기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay">입금 기록</button></div>`;
  }
  // 입금을 채울 견적: 견적 탭에서 고른 것, 아니면 가장 오래된 것.
  const pick=r=>r.opens.find(o=>o.q.id===state.quote)||r.opens[0];
@@ -15214,10 +15227,10 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
     <div class="pp-section-head"><h4>받을 돈이 남은 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
     ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th></tr></thead><tbody>${r.opens.map(o=>`<tr class="${state.quote===o.q.id?'on':''}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">받을 돈이 남은 견적이 없어요.</div>'}
     ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
-    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기 ›</button></div>
+    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
     ${pays.length?`<table class="pp-table ap-table"><tbody>${pays.map(p=>`<tr><td class="pp-c-date">${short(p.date)}</td><td><span class="pp-t-nm">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="doc" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span></td><td class="pp-c-num">${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
    </div>
-   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기 ›</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'＋ 입금 기록'}</button></div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'입금 기록'}</button></div>`;
  }
  function syncLeft(v,list){
   const left=v.querySelector('.workspace-left');if(!left)return;
@@ -15774,5 +15787,7 @@ html body #appView[data-layout-system] .shell .main :is(#view-payments,#view-ar)
  html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-header-bottom{margin-top:20px!important;align-items:flex-start!important}
  html body #appView[data-layout-system] .shell .main #view-sales .nd-sa-period{min-height:22px;line-height:22px;align-items:center}
 }
+/* 글자 버튼에는 기호를 붙이지 않는다(UI-RULES 'Wording'): '＋ 입금·출금 기록' → '입금·출금 기록'. 글자 없는 [+] 아이콘 버튼(nd-tadd 등)은 그대로. */
+html body #appView .nd-gi-plus:not(#itNewBtn)::before{display:none!important;content:none!important}
 </style></body>
 </html>

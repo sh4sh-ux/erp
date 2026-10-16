@@ -15,6 +15,6 @@ test('KPIs: 예상 마진 first with its rate below, no span around numbers; sel
 });
 test('table uses line rules without a header fill; bottom bar offers export and the matching record screen',()=>{
  assert.match(css,/\.nd-sa-table th\{background:none;border-bottom:1\.5px solid #D4D4D8/);
- assert.match(js,/data-sa-act=\\"export\\">내보내기|data-sa-act="export">내보내기/);assert.match(js,/'거래처 보기 ›'/);assert.match(js,/'품목 보기 ›'/);
+ assert.match(js,/data-sa-act=\\"export\\">내보내기|data-sa-act="export">내보내기/);assert.match(js,/'거래처 보기'/);assert.match(js,/'품목 보기'/);assert.doesNotMatch(js,/보기 ›/);
  assert.match(css,/\.nd-sales-analysis \.nd-sa-abar\{position:sticky;bottom:0/);
 });

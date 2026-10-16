@@ -44,15 +44,15 @@ test('overview header says 차액 (입금 − 출금) without a plus sign; numbe
  assert.match(html,/입금 · 3건/);assert.match(html,/출금 · 0건/);assert.match(html,/차액<em class="pp-hint"> \(입금 − 출금\)/);
  assert.match(html,/<th class="pp-c-num pp-c-io">입금<\/th><th class="pp-c-num pp-c-io">출금<\/th><th class="pp-c-num pp-c-amt">금액<\/th>/);
  assert.doesNotMatch(html,/들어온 돈|나간 돈|남은 돈|pp-overview|pp-list-scope|초기화/);
- assert.match(html,/data-pp="add">＋ 입금·출금 기록/);
+ assert.match(html,/data-pp="add">입금·출금 기록<\/button>/);
 });
 test('record detail: quote-linked list, current row marked once, edit and delete actions, no voided or other-company rows',()=>{
  const {api,db}=fixture(),html=api.markup(db.payments[0]);
  assert.match(html,/<span class="pp-caption">입금<\/span><h3 title="검증 거래처">검증 거래처<\/h3>/);
  assert.match(html,/<span>입금액<\/span><strong>100,000원<\/strong>/);
- assert.match(html,/이 견적의 입금·환불 <small>1건<\/small>/);assert.match(html,/견적서 열기 ›/);
+ assert.match(html,/이 견적의 입금·환불 <small>1건<\/small>/);assert.match(html,/>견적서 열기<\/button>/);assert.doesNotMatch(html,/[＋›]/);
  assert.equal((html.match(/aria-current="true"/g)||[]).length,1);
- assert.match(html,/data-pp="edit">고치기/);assert.match(html,/data-pp="menu"/);
+ assert.match(html,/data-pp="edit">수정/);assert.match(html,/data-pp="menu"/);
  assert.doesNotMatch(html,/777,777|888,888|999,999/);
  const refund=api.markup(db.payments[1]);assert.match(refund,/<span class="pp-caption">환불<\/span>/);assert.match(refund,/이 거래처의 입출금/);
 });

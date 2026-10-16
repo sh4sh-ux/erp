@@ -42,7 +42,7 @@ test('overview: header, three numbers, 30/60-day buckets and table sorted oldest
  assert.match(html,/받을 금액 현황/);assert.match(html,/<span>받을 금액 · 납품 − 입금<\/span><strong>80,000원<\/strong>/);
  assert.match(html,/받을 금액 · 2건/);assert.match(html,/납품 전 금액/);assert.match(html,/계산서 미발행/);
  assert.match(html,/30일 안 <b>80,000원<\/b>/);assert.match(html,/31–60일 <b>0원<\/b>/);assert.match(html,/61일 넘음 <b>0원<\/b>/);
- assert.match(html,/data-ap="pay">＋ 입금 기록/);assert.doesNotMatch(html,/수금|미수/);
+ assert.match(html,/data-ap="pay">입금 기록/);assert.doesNotMatch(html,/수금|미수/);
 });
 test('company detail: progress, open quotes with links, recent payments without voids, and a prefilled 입금 button',()=>{
  const {api}=fixture(),state=api.state,c=api.companies().find(r=>r.cid==='c');let html=api.detailMarkup(c);

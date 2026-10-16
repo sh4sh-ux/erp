@@ -45,7 +45,7 @@
    const left=delivered-paid;
    const done=full&&left<=0;
    const leftText=!dels.length?(paid>0?`선입금 ${won(paid)}`:'납품 전'):left>0?won(left):left<0?`${won(-left)} 더 받음`:'0원 · 다 받음';
-   return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기 ›',kind:'quote'};
+   return {id:q.id,date:q.date||'',title:names(q.lines),sub:q.no||'',st:q.status||'',cls:STATUS_CLASS[q.status]||'st-draft',amount:total,ev,done,leftText,leftWarn:dels.length&&left>0,go:'견적서 열기',kind:'quote'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
  // ── 매입처: 매입별 입고·출금(매입 화면이 켜져 있을 때) ──
@@ -60,7 +60,7 @@
    if(!p.receipts.length)ev.unshift({date:'',kind:'입고',text:p.qty?`아직 입고 전 · ${money(p.qty)}개`:'아직 입고 전',amount:0,todo:true});
    const left=p.due-p.paid;
    return {id:p.id,date:p.date||'',title:p.title,sub:p.no||'',st:p.label,cls:p.cls,amount:p.total,amountText:amt(p.total),ev,done:p.got>=p.qty&&left<=0.5,
-    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기 ›',kind:'purchase'};
+    leftText:left>0.5?amt(left):left<-0.5?`${amt(-left)} 더 줌`:'0원 · 다 줌',leftWarn:left>0.5,go:'매입 열기',kind:'purchase'};
   }).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sub||'').localeCompare(a.sub||''));
  }
  function summary(c){
@@ -108,7 +108,7 @@
     <div class="cp-track"><i style="width:${s.pct}%"></i></div>
     <div class="cp-stats">${s.line.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
    </div>
-   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기 ›'}</button>`:''}</div>
+   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기'}</button>`:''}</div>
     ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?(p.go?`<button type="button" class="q cp-qlink" data-cp-go="${esc(p.go)}" data-cp-kind="${p.goKind}" aria-label="${esc(p.ref)} ${p.goKind==='quote'?'견적서':'매입'} 열기">${esc(p.ref)}</button>`:`<span class="q">${esc(p.ref)}</span>`):''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
    </section>
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>

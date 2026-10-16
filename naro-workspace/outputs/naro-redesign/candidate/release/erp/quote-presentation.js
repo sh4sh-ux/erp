@@ -170,7 +170,7 @@
         const bottom = el('div', 'qp-card-bottom');
         if (!n) bottom.append(stepper(index, line.qty));
         else bottom.append(el('span', 'qp-muted', `${fmt(line.qty)}${line.unit || '개'}${isDecorationWorkLine(line) ? line.auto_qty === false ? ' · 수동 수량' : ' · 전체 수량 연동' : ''}`));
-        bottom.append(button('편집 ›', () => openEdit(line), 'qp-card-more'));
+        bottom.append(button('편집', () => openEdit(line), 'qp-card-more'));
         card.append(bottom); group.append(card);
       });
       group.append(button(n ? '+ 작업 추가' : '+ 품목 추가', () => openSearch(!!n), 'qp-add'));

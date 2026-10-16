@@ -111,7 +111,7 @@ const NaroSalesAnalysis=(()=>{
   const ph=view.querySelector(':scope>.page-head'),h2=ph?.querySelector('h2');if(h2){let c=ph.querySelector(':scope>.nd-sa-tcount');if(!c){c=document.createElement('span');c.className='count nd-sa-tcount';h2.after(c);}setText(c,`${p.index.length}${unit}`);}
   const ov=p.overall,ovm=ov.unknownCost?'예상 마진 — · 원가 미등록':`예상 마진 ${Math.round(ov.margin).toLocaleString('ko-KR')}원 · ${ov.marginRate===null?'—':ov.marginRate.toFixed(1)+'%'}`;
   setHTML(msum,`<span class="nd-sa-msum-top"><small>판매 금액 · 부가세 포함</small><b>${money(ov.total)}</b></span><span class="nd-sa-msum-io"><small>${e(ovm)}</small><small>수량 ${n(ov.qty)}</small></span>`);
-  const go=p.selected&&state.mode!=='category'?(state.mode==='company'?['company','거래처 보기 ›']:['item','품목 보기 ›']):null;
+  const go=p.selected&&state.mode!=='category'?(state.mode==='company'?['company','거래처 보기']:['item','품목 보기']):null;
   setHTML(abar,`<button type="button" class="nd-sa-btn" data-sa-act="export">내보내기</button><span class="nd-sa-sp"></span>${go?`<button type="button" class="nd-sa-btn" data-sa-act="${go[0]}">${go[1]}</button>`:''}`);
   const entry=(g,i)=>`<button type="button" class="nd-sa-entry${(i===-1?!p.selected:state.selected===g.id)?' on':''}" data-sa-select="${i}" aria-pressed="${i===-1?!p.selected:state.selected===g.id}"><span class="nd-sa-entry-name" title="${e(g.name)}">${e(g.name)}</span><span class="nd-sa-entry-note" title="${e(g.code||'')}">${g.code?e(g.code)+' · ':''}${i===-1?'전체 합계':'수량 '+n(g.qty)}</span><span class="nd-sa-entry-amount">${money(g.total)}</span>${margin(g)}</button>`;
   setHTML(list,entry({name:'전체 '+label,...p.overall},-1)+p.index.map(entry).join('')+(p.index.length?'':'<p class="nd-sa-empty">검색 결과가 없습니다.</p>'));
