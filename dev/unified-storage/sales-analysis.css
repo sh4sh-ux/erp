@@ -194,3 +194,49 @@ html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail){cur
 html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail):active{background:color-mix(in srgb,var(--nd-fill) 60%,var(--nd-surface))}
 html body #appView #view-sales .nd-sa-open-detail:focus{outline:none}
 html body #appView #view-sales .nd-sa-open-detail:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+/* 10/16 시안(UI-RULES 'Sales'): 입금·출금 · 받을 금액과 같은 짜임 — 제목 옆 개수, 머리 셋째 줄은 기간 정보만,
+   요약 숫자 셋(예상 마진 · 수량 · 개수/비중), 표 머리 줄에 검색·정렬, 표는 선만, 아래 바 [내보내기] … [거래처 보기 ›]. */
+@media screen{
+ html body #appView #view-sales .nd-sa-count{display:none!important}
+ html body #appView #view-sales>.page-head>.nd-sa-tcount{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-header-bottom .nd-sa-period{gap:2px 10px}
+ #appView .nd-sa-kpis.nd-sa-overview{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #appView .nd-sa-kpis strong.is-negative{color:var(--nd-red,#E53E3E)}
+ #appView .nd-sa-kpis .nd-sa-kpi-sub{display:block;margin-top:2px;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-3);font-variant-numeric:tabular-nums}
+ #appView .nd-sa-sectionhead{min-height:40px;margin:0 0 6px}
+ #appView .nd-sa-sectionhead h4{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+ #appView .nd-sa-sectionhead h4 small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-sectionhead .nd-sa-toolbar{width:320px}
+ /* 표: 견적서 품목 표와 같은 선(머리 1.5px · 줄 1px), 머리 바탕색 없음 */
+ html body #appView #view-sales .nd-sa-table th{background:none;border-bottom:1.5px solid #D4D4D8;padding:10px;color:var(--nd-ink-3)}
+ html[data-theme="dark"] body #appView #view-sales .nd-sa-table th{border-bottom-color:var(--nd-line)}
+ html body #appView #view-sales .nd-sa-table td{border-bottom:1px solid var(--ws-line,var(--nd-line-2));padding:14px 10px}
+ html body #appView #view-sales .nd-sa-table tfoot td{border-bottom:0;padding-top:16px}
+ html body #appView #view-sales .nd-sa-table tbody tr{cursor:pointer}
+ #appView .nd-sa-abar{display:flex;align-items:center;gap:8px}
+ #appView .nd-sa-sp{flex:1}
+ html body #appView #view-sales .nd-sa-btn{flex:none;height:40px;min-height:0;padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);box-shadow:none;font:500 13.5px/1 var(--sans);color:var(--nd-ink);cursor:pointer}
+ #appView .nd-sa-msum{display:none}
+}
+@media screen and (hover:hover){html body #appView #view-sales .nd-sa-table tbody tr:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}html body #appView #view-sales .nd-sa-table tbody tr:hover td{background:transparent}}
+@media screen and (min-width:1024px){
+ /* 아래 바: 오른쪽 패널 맨 아래에 붙는다(견적서 · 입금·출금과 같은 자리). 내용이 짧아도 바닥에 둔다. */
+ html body #appView #view-sales.nd-sales-ready .workspace-right:has(>.nd-sales-analysis){display:flex;flex-direction:column}
+ #appView #view-sales .workspace-right>.nd-sales-analysis{flex:1 0 auto;display:flex;flex-direction:column}
+ #appView #view-sales .nd-sales-analysis>.nd-sa-result{flex:1 0 auto}
+ #appView .nd-sales-analysis .nd-sa-abar{position:sticky;bottom:0;z-index:2;margin:24px calc(-1 * var(--panel-inset,28px)) -20px;padding:12px var(--panel-inset,28px);border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+}
+@media screen and (min-width:1024px) and (max-width:1279px){#appView .nd-sa-sectionhead .nd-sa-toolbar{width:300px}#appView .nd-sa-sectionhead .nd-sa-toolbar select{width:112px}}
+@media screen and (max-width:1023px){
+ #appView .nd-sales-index>.nd-sa-msum{display:block;width:100%;margin:0;padding:4px 16px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+ #appView .nd-sa-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ #appView .nd-sa-msum-top small,#appView .nd-sa-msum-io small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-msum-top b{font:700 20px/28px var(--nd-number-font);letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+ #appView .nd-sa-msum-top b .nd-sa-currency{font-size:12px;font-weight:400}
+ #appView .nd-sa-msum-io{display:flex;justify-content:space-between;gap:12px;margin-top:4px}
+ #appView .nd-sa-sectionhead{flex-wrap:wrap}
+ #appView .nd-sa-sectionhead .nd-sa-toolbar{width:100%;order:3}
+ #appView .nd-sa-kpis.nd-sa-overview,#appView .nd-sa-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #appView .nd-sa-kpis>div{padding-left:12px}
+ #appView .nd-sa-abar{position:sticky;bottom:0;margin:20px -24px 0;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+}

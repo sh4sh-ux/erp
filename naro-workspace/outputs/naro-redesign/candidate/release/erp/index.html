@@ -9923,6 +9923,52 @@ html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail){cur
 html body #appView #view-sales .nd-sa-table tbody tr:has(.nd-sa-open-detail):active{background:color-mix(in srgb,var(--nd-fill) 60%,var(--nd-surface))}
 html body #appView #view-sales .nd-sa-open-detail:focus{outline:none}
 html body #appView #view-sales .nd-sa-open-detail:focus-visible{outline:2px solid var(--nd-blue);outline-offset:2px}
+/* 10/16 시안(UI-RULES 'Sales'): 입금·출금 · 받을 금액과 같은 짜임 — 제목 옆 개수, 머리 셋째 줄은 기간 정보만,
+   요약 숫자 셋(예상 마진 · 수량 · 개수/비중), 표 머리 줄에 검색·정렬, 표는 선만, 아래 바 [내보내기] … [거래처 보기 ›]. */
+@media screen{
+ html body #appView #view-sales .nd-sa-count{display:none!important}
+ html body #appView #view-sales>.page-head>.nd-sa-tcount{font:600 12px/1 var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-header-bottom .nd-sa-period{gap:2px 10px}
+ #appView .nd-sa-kpis.nd-sa-overview{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #appView .nd-sa-kpis strong.is-negative{color:var(--nd-red,#E53E3E)}
+ #appView .nd-sa-kpis .nd-sa-kpi-sub{display:block;margin-top:2px;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-3);font-variant-numeric:tabular-nums}
+ #appView .nd-sa-sectionhead{min-height:40px;margin:0 0 6px}
+ #appView .nd-sa-sectionhead h4{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+ #appView .nd-sa-sectionhead h4 small{font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-sectionhead .nd-sa-toolbar{width:320px}
+ /* 표: 견적서 품목 표와 같은 선(머리 1.5px · 줄 1px), 머리 바탕색 없음 */
+ html body #appView #view-sales .nd-sa-table th{background:none;border-bottom:1.5px solid #D4D4D8;padding:10px;color:var(--nd-ink-3)}
+ html[data-theme="dark"] body #appView #view-sales .nd-sa-table th{border-bottom-color:var(--nd-line)}
+ html body #appView #view-sales .nd-sa-table td{border-bottom:1px solid var(--ws-line,var(--nd-line-2));padding:14px 10px}
+ html body #appView #view-sales .nd-sa-table tfoot td{border-bottom:0;padding-top:16px}
+ html body #appView #view-sales .nd-sa-table tbody tr{cursor:pointer}
+ #appView .nd-sa-abar{display:flex;align-items:center;gap:8px}
+ #appView .nd-sa-sp{flex:1}
+ html body #appView #view-sales .nd-sa-btn{flex:none;height:40px;min-height:0;padding:0 14px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);box-shadow:none;font:500 13.5px/1 var(--sans);color:var(--nd-ink);cursor:pointer}
+ #appView .nd-sa-msum{display:none}
+}
+@media screen and (hover:hover){html body #appView #view-sales .nd-sa-table tbody tr:hover{background:var(--nd-tint-hover,rgba(24,24,27,.035))}html body #appView #view-sales .nd-sa-table tbody tr:hover td{background:transparent}}
+@media screen and (min-width:1024px){
+ /* 아래 바: 오른쪽 패널 맨 아래에 붙는다(견적서 · 입금·출금과 같은 자리). 내용이 짧아도 바닥에 둔다. */
+ html body #appView #view-sales.nd-sales-ready .workspace-right:has(>.nd-sales-analysis){display:flex;flex-direction:column}
+ #appView #view-sales .workspace-right>.nd-sales-analysis{flex:1 0 auto;display:flex;flex-direction:column}
+ #appView #view-sales .nd-sales-analysis>.nd-sa-result{flex:1 0 auto}
+ #appView .nd-sales-analysis .nd-sa-abar{position:sticky;bottom:0;z-index:2;margin:24px calc(-1 * var(--panel-inset,28px)) -20px;padding:12px var(--panel-inset,28px);border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+}
+@media screen and (min-width:1024px) and (max-width:1279px){#appView .nd-sa-sectionhead .nd-sa-toolbar{width:300px}#appView .nd-sa-sectionhead .nd-sa-toolbar select{width:112px}}
+@media screen and (max-width:1023px){
+ #appView .nd-sales-index>.nd-sa-msum{display:block;width:100%;margin:0;padding:4px 16px 16px;border:0;border-bottom:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;text-align:left;color:var(--nd-ink);cursor:pointer}
+ #appView .nd-sa-msum-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+ #appView .nd-sa-msum-top small,#appView .nd-sa-msum-io small{font:400 12.5px/18px var(--sans);color:var(--nd-ink-3)}
+ #appView .nd-sa-msum-top b{font:700 20px/28px var(--nd-number-font);letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+ #appView .nd-sa-msum-top b .nd-sa-currency{font-size:12px;font-weight:400}
+ #appView .nd-sa-msum-io{display:flex;justify-content:space-between;gap:12px;margin-top:4px}
+ #appView .nd-sa-sectionhead{flex-wrap:wrap}
+ #appView .nd-sa-sectionhead .nd-sa-toolbar{width:100%;order:3}
+ #appView .nd-sa-kpis.nd-sa-overview,#appView .nd-sa-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #appView .nd-sa-kpis>div{padding-left:12px}
+ #appView .nd-sa-abar{position:sticky;bottom:0;margin:20px -24px 0;padding:12px 24px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--nd-line);background:var(--nd-surface)}
+}
 
 /* 쇼핑몰 주문 가져오기 — 작은 창 규칙(PC 600px, 폰 아래 시트)은 .nd-pay-sheet 공통을 그대로 쓴다. */
 .nd-oi-sheet .nd-oi-cnt{font:400 13px/18px var(--sans);color:var(--nd-ink-3)}
@@ -12476,11 +12522,17 @@ const NaroSalesAnalysis=(()=>{
  const phone=matchMedia('(max-width:1023px)');
  const section=document.createElement('section');section.className='nd-sales-analysis';section.setAttribute('aria-label','매출 상세');
  const result=document.createElement('div');result.className='nd-sa-result';section.append(result);
+ // 10/16 시안(UI-RULES 'Sales'): 요약 숫자 · 표 머리(제목 + 검색·정렬) · 표를 따로 두어 검색 중에도 입력 칸이 다시 그려지지 않게 한다.
+ const kpiEl=document.createElement('div'),headEl=document.createElement('div'),bodyEl=document.createElement('div');
+ headEl.className='nd-sa-sectionhead';headEl.innerHTML='<h4><span class="nd-sa-sec-title"></span><small role="status"></small></h4>';result.append(kpiEl,headEl,bodyEl);
+ const abar=document.createElement('div');abar.className='nd-sa-abar';section.append(abar);
+ const msum=document.createElement('button');msum.type='button';msum.className='nd-sa-msum';
  const index=document.createElement('section');index.className='nd-sales-index';index.setAttribute('aria-label','매출 목록');
  index.innerHTML=`<div class="nd-sa-tabs" role="group" aria-label="매출 집계 방식"><button type="button" data-sa-mode="company">거래처별</button><button type="button" data-sa-mode="item">품목별</button><button type="button" data-sa-mode="category">카테고리별</button></div><div class="nd-sa-count" aria-live="polite"></div><div class="nd-sa-list"></div>`;
  const header=document.createElement('header');header.className='nd-sa-header';
  header.innerHTML=`<button type="button" class="nd-sa-back" aria-label="매출 목록으로 돌아가기"><span aria-hidden="true"></span>목록</button><div class="nd-sa-headline"><div class="nd-sa-heading"><div class="nd-sa-eyebrow"></div><h3 class="nd-sa-title"></h3></div><div class="nd-sa-header-amount"><div class="nd-sa-label">판매 금액 · 부가세 포함</div><strong></strong></div></div><div class="nd-sa-header-bottom"><div class="nd-sa-period"></div><div class="nd-sa-toolbar"><label class="nd-sa-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" aria-label="상세 품목·코드 검색" placeholder="품목·코드 검색"></label><select class="nd-sa-sort" aria-label="상세 정렬"><option value="amount">매출 높은 순</option><option value="qty">수량 많은 순</option><option value="name">이름순</option></select></div></div>`;
- const input=header.querySelector('input'),sort=header.querySelector('select'),list=index.querySelector('.nd-sa-list');
+ headEl.append(header.querySelector('.nd-sa-toolbar'));index.prepend(msum);
+ const input=headEl.querySelector('input'),sort=headEl.querySelector('select'),list=index.querySelector('.nd-sa-list');
  header.querySelector('.nd-sa-back').lastChild.textContent='매출 집계';
  let queued=false,current=null,lastFilter=null;
  const value=id=>document.getElementById(id)?.value||'';
@@ -12507,22 +12559,30 @@ const NaroSalesAnalysis=(()=>{
   const label=labels[state.mode],name=p.selected?.name||'전체 '+label,unit=state.mode==='company'?'곳':'종';
   index.querySelectorAll('[data-sa-mode]').forEach(b=>{const pressed=String(b.dataset.saMode===state.mode);if(b.getAttribute('aria-pressed')!==pressed)b.setAttribute('aria-pressed',pressed);});
   setText(index.querySelector('.nd-sa-count'),`${p.index.length}${unit} · 부가세 포함`);
+  const ph=view.querySelector(':scope>.page-head'),h2=ph?.querySelector('h2');if(h2){let c=ph.querySelector(':scope>.nd-sa-tcount');if(!c){c=document.createElement('span');c.className='count nd-sa-tcount';h2.after(c);}setText(c,`${p.index.length}${unit}`);}
+  const ov=p.overall,ovm=ov.unknownCost?'예상 마진 — · 원가 미등록':`예상 마진 ${Math.round(ov.margin).toLocaleString('ko-KR')}원 · ${ov.marginRate===null?'—':ov.marginRate.toFixed(1)+'%'}`;
+  setHTML(msum,`<span class="nd-sa-msum-top"><small>판매 금액 · 부가세 포함</small><b>${money(ov.total)}</b></span><span class="nd-sa-msum-io"><small>${e(ovm)}</small><small>수량 ${n(ov.qty)}</small></span>`);
+  const go=p.selected&&state.mode!=='category'?(state.mode==='company'?['company','거래처 보기 ›']:['item','품목 보기 ›']):null;
+  setHTML(abar,`<button type="button" class="nd-sa-btn" data-sa-act="export">내보내기</button><span class="nd-sa-sp"></span>${go?`<button type="button" class="nd-sa-btn" data-sa-act="${go[0]}">${go[1]}</button>`:''}`);
   const entry=(g,i)=>`<button type="button" class="nd-sa-entry${(i===-1?!p.selected:state.selected===g.id)?' on':''}" data-sa-select="${i}" aria-pressed="${i===-1?!p.selected:state.selected===g.id}"><span class="nd-sa-entry-name" title="${e(g.name)}">${e(g.name)}</span><span class="nd-sa-entry-note" title="${e(g.code||'')}">${g.code?e(g.code)+' · ':''}${i===-1?'전체 합계':'수량 '+n(g.qty)}</span><span class="nd-sa-entry-amount">${money(g.total)}</span>${margin(g)}</button>`;
   setHTML(list,entry({name:'전체 '+label,...p.overall},-1)+p.index.map(entry).join('')+(p.index.length?'':'<p class="nd-sa-empty">검색 결과가 없습니다.</p>'));
   setText(header.querySelector('.nd-sa-eyebrow'),p.selected?label:'매출 현황');
   setText(header.querySelector('.nd-sa-title'),name);header.querySelector('.nd-sa-title').title=name;
   setHTML(header.querySelector('.nd-sa-header-amount strong'),money(p.summary.total));
-  setHTML(header.querySelector('.nd-sa-period'),`<span>${e(value('slFrom')||'전체')} – ${e(value('slTo')||'전체')}</span><span>견적일 기준</span>`);
+  const dot=d=>d?String(d).replace(/-/g,'.'):'';const from=value('slFrom'),to=value('slTo'),co=value('slCo'),coNm=co?(db.companies||[]).find(c=>c.id===co)?.name:'';
+  setHTML(header.querySelector('.nd-sa-period'),`<span>${from||to?e(dot(from)||'처음')+' – '+e(dot(to)||'오늘'):'전체 기간'}</span><span>견적일 기준</span><span>${value('slStatus')==='all'?'모든 상태':'수주·부분납품·납품'}</span>${coNm?`<span>${e(coNm)}</span>`:''}`);
   const detailsLabel=!p.selected?labels[p.detailMode]+'별 매출':p.detailMode==='company'?'구매 거래처':'판매 품목',detailUnit=p.detailMode==='company'?'곳':'종',searchLabel=p.detailMode==='company'?'거래처 검색':p.detailMode==='category'?'카테고리 검색':'품목·코드 검색';
   if(input.placeholder!==searchLabel){input.placeholder=searchLabel;input.setAttribute('aria-label','상세 '+searchLabel);}
   sort.value=state.sort;
   const share=model.share(p.summary.total,p.overall.total).label;
-  const summary=`<div class="nd-sa-kpis${p.selected?'':' nd-sa-overview'}"><div><span>수량 합계</span><strong>${n(p.summary.qty)}</strong></div><div><span>${p.selected?detailsLabel:labels[p.detailMode]}</span><strong>${p.detailCount}<small class="nd-sa-currency">${detailUnit}</small></strong></div>${p.selected?`<div><span>전체 매출 비중</span><strong>${e(share)}</strong></div>`:''}</div>`;
+  const mg=p.summary,mgCell=mg.unknownCost?`<strong>—</strong><em class="nd-sa-kpi-sub">원가 미등록</em>`:`<strong${mg.margin<0?' class="is-negative"':''}>${Math.round(mg.margin).toLocaleString('ko-KR')}<small class="nd-sa-currency">원</small></strong><em class="nd-sa-kpi-sub">마진율 ${mg.marginRate===null?'—':mg.marginRate.toFixed(1)+'%'}</em>`;
+  const summary=`<div class="nd-sa-kpis${p.selected?'':' nd-sa-overview'}"><div class="nd-sa-kpi-margin"><span>예상 마진</span>${mgCell}</div><div><span>수량 합계</span><strong>${n(p.summary.qty)}</strong></div>${p.selected?'':`<div><span>${labels[p.detailMode]}</span><strong>${p.detailCount}<small class="nd-sa-currency">${detailUnit}</small></strong></div>`}${p.selected?`<div><span>전체 매출 비중</span><strong>${e(share)}</strong></div>`:''}</div>`;
   const meter=amount=>{const s=model.share(amount,p.summary.total);return `<span class="nd-sa-share-meter" aria-label="매출 비중 ${e(s.label)}"><span>${e(s.label)}</span><span class="nd-sa-share-track" aria-hidden="true"><span style="width:${s.width}%"></span></span></span>`;};
   const shown=model.summary(p.details),searching=!!state.query.trim();
   const itemName=(r,i)=>(p.selected?`<span class="nd-sa-item-name" title="${e(r.name)}">${e(r.name)}</span>`:`<button type="button" class="nd-sa-open-detail" data-sa-detail="${i}" title="${e(r.name)}" aria-label="${e(r.name)} 상세 보기"><span class="nd-sa-item-name">${e(r.name)}</span><span aria-hidden="true">›</span></button>`)+`<small class="nd-sa-mobile-qty">수량 ${n(r.qty)}${r.code?' · ':''}</small>`;
   const table=p.details.length?`<table class="nd-sa-table" aria-label="${detailsLabel} 상세"><thead><tr><th>${labels[p.detailMode]}</th><th class="nd-sa-n">수량</th><th class="nd-sa-n nd-sa-share">비중</th><th class="nd-sa-n">판매 금액</th></tr></thead><tbody>${p.details.map((r,i)=>`<tr><td class="nd-sa-name">${itemName(r,i)}${r.code?`<small class="nd-sa-code">${e(r.code)}</small>`:''}<span class="nd-sa-mobile-share">${meter(r.total)}</span></td><td class="nd-sa-n nd-sa-qty">${n(r.qty)}</td><td class="nd-sa-n nd-sa-share">${meter(r.total)}</td><td class="nd-sa-n nd-sa-money"><span class="nd-sa-sale">${money(r.total)}</span>${margin(r)}</td></tr>`).join('')}</tbody><tfoot><tr><td>${searching?'검색 합계':'합계'}</td><td class="nd-sa-n">${n(shown.qty)}</td><td class="nd-sa-n nd-sa-share">${e(model.share(shown.total,p.summary.total).label)}</td><td class="nd-sa-n nd-sa-money"><span class="nd-sa-sale">${money(shown.total)}</span>${margin(shown)}</td></tr></tfoot></table>`:'<p class="nd-sa-empty">조건에 맞는 매출 내역이 없습니다.<br>기간·검색어를 확인해 주세요.</p>';
-  setHTML(result,summary+`<div class="nd-sa-sectionhead"><h4>${detailsLabel}</h4><span role="status">${searching?'검색 결과 ':''}${p.details.length}${detailUnit}</span></div>`+table+`<p class="nd-sa-note">견적일 · ${value('slStatus')==='all'?'모든 견적 상태':'수주·부분납품·납품'} · 부가세 포함<br>마진은 부가세 제외 매출 − 현재 등록 매입원가의 예상값이며, 마진율은 부가세 제외 매출 기준입니다. 원가 미등록 항목이 포함되면 마진을 표시하지 않습니다.<br>실제 납품 매출·입금액과 다를 수 있습니다. 수량은 품목·작업 합계입니다.${state.mode==='category'?' 카테고리는 현재 품목 분류이며 미등록·삭제 품목은 미분류입니다.':''}</p>`);
+  setHTML(kpiEl,summary);setText(headEl.querySelector('.nd-sa-sec-title'),detailsLabel);setText(headEl.querySelector('small'),`${searching?'검색 결과 ':''}${p.details.length}${detailUnit}`);
+  setHTML(bodyEl,table+`<p class="nd-sa-note">견적일 · ${value('slStatus')==='all'?'모든 견적 상태':'수주·부분납품·납품'} · 부가세 포함<br>마진은 부가세 제외 매출 − 현재 등록 매입원가의 예상값이며, 마진율은 부가세 제외 매출 기준입니다. 원가 미등록 항목이 포함되면 마진을 표시하지 않습니다.<br>실제 납품 매출·입금액과 다를 수 있습니다. 수량은 품목·작업 합계입니다.${state.mode==='category'?' 카테고리는 현재 품목 분류이며 미등록·삭제 품목은 미분류입니다.':''}</p>`);
  }
  function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});}
  function focusSelected(){const i=current?.index.findIndex(g=>g.id===state.selected)??-1;list.querySelector(`[data-sa-select="${i}"]`)?.focus({preventScroll:true});}
@@ -12531,14 +12591,21 @@ const NaroSalesAnalysis=(()=>{
   if(b.dataset.saMode){state.mode=b.dataset.saMode;state.selected=null;state.leftQuery='';state.query='';input.value='';view.querySelectorAll('.panel-b-search,.nd-tools input').forEach(el=>el.value='');render();return;}
   if(b.hasAttribute('data-sa-select')){state.selected=current.index[Number(b.dataset.saSelect)]?.id??null;state.query='';input.value='';state.mobileDetail=true;render();if(phone.matches){header.querySelector('.nd-sa-back').focus({preventScroll:true});section.scrollIntoView({block:'start'});}else focusSelected();}
  });
- header.addEventListener('input',ev=>{if(ev.target===input){state.query=input.value;render();}});
+ headEl.addEventListener('input',ev=>{if(ev.target===input){state.query=input.value;render();}});
+ msum.addEventListener('click',()=>{state.selected=null;state.query='';input.value='';state.mobileDetail=true;render();if(phone.matches)header.querySelector('.nd-sa-back').focus({preventScroll:true});});
+ abar.addEventListener('click',ev=>{const b=ev.target.closest('[data-sa-act]');if(!b)return;const act=b.dataset.saAct,id=state.selected;
+  if(act==='export'){[...document.querySelectorAll('.nd-nav-act')].find(x=>x.textContent.includes('데이터 내보내기'))?.click();return;}
+  // 거래처 · 품목 화면으로: 기본 앱의 선택 변수와 다시 그리기를 그대로 쓴다.
+  if(act==='company'&&id&&switchView('companies')!==false){try{coSel=id;}catch{}globalThis.renderCoList?.();globalThis.renderCoDetail?.();}
+  if(act==='item'&&id){let iid=null;try{const k=JSON.parse(id);if(k[0]==='id')iid=k[1];}catch{}if(iid&&switchView('items')!==false){try{itSel=iid;}catch{}globalThis.renderItList?.();globalThis.renderItDetail?.();}}
+ });
  result.addEventListener('click',ev=>{
   const button=ev.target.closest('[data-sa-detail]')||ev.target.closest('tbody tr')?.querySelector('[data-sa-detail]');if(!button||current?.selected)return; // 줄 어디를 눌러도 그 항목으로
   const selected=current.details[Number(button.dataset.saDetail)];if(!selected)return;
   state.selected=selected.id;state.query='';input.value='';render();
   if(phone.matches)header.querySelector('.nd-sa-back').focus({preventScroll:true});else input.focus({preventScroll:true});
  });
- header.addEventListener('change',ev=>{if(ev.target===sort){state.sort=sort.value;render();}});
+ headEl.addEventListener('change',ev=>{if(ev.target===sort){state.sort=sort.value;render();}});
  header.querySelector('.nd-sa-back').addEventListener('click',()=>{state.mobileDetail=false;render();focusSelected();});
  view.addEventListener('input',ev=>{if(ev.target.matches('.panel-b-search,.nd-tools input')){state.leftQuery=ev.target.value;render();}});
  document.addEventListener('click',ev=>{if(ev.target.closest('.nd-sales-reset')){state.selected=null;state.query='';state.sort='amount';input.value='';schedule();}});
