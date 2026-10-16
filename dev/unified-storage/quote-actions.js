@@ -510,5 +510,50 @@
    if(qtSel!=='__new__')coAuto='';
   }catch{}return r;};}
  if(legacyDelete)window.deleteQuote=removeQuote;
+ // ── 자동 수주(10/17 사용자 결정) ──
+ // 작성중·발송 견적에 입금(받은 돈)·계산서 발행·납품 기록이 새로 생기면 수주로 바꾼다. 거래가 확정된 것이므로.
+ // 저장 흐름을 건드리지 않으려고, 저장(saveTable)이 모두 끝나고 잠깐 뒤에 '새로 생긴 근거'만 보고 따로 한 번 저장한다.
+ // 이미 근거가 있던 견적(사용자가 일부러 발송으로 되돌린 것 포함)은 다시 바꾸지 않는다. 취소된 견적은 바꾸지 않고 알리기만.
+ if(typeof window.saveTable==='function'&&!window.saveTable.__autoOrder){
+  const OPEN=['작성중','발송'],orig=window.saveTable;
+  const paidOf=q=>typeof quoteNetPaid==='function'?quoteNetPaid(q):(db.payments||[]).filter(p=>p.quote_id===q.id&&p.kind==='수금'&&!p.refund).reduce((n,p)=>n+(Number(p.amount)||0),0);
+  const liveDel=q=>(q.deliveries||[]).filter(d=>!d.void_at).length;
+  const why=q=>paidOf(q)>0?'입금':(q.tax_at&&!q.no_tax)?'계산서 발행':liveDel(q)?'납품 기록':'';
+  const evidence=()=>new Set((db.quotes||[]).filter(q=>why(q)).map(q=>q.id));
+  let base=null,inflight=0,timer=0,busyPromote=false;
+  const actToast=(msg,label,fn)=>{const t=document.getElementById('toast');if(!t){say(msg);return;}
+   t.innerHTML=`<span>${e(msg)}</span>`+(fn?` <button type="button" class="nd-toast-act">${e(label)}</button>`:'');t.classList.add('show');
+   const b=t.querySelector('.nd-toast-act');if(b){t.style.pointerEvents='auto';b.onclick=()=>{t.classList.remove('show');t.style.pointerEvents='';fn();};}
+   try{clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.classList.remove('show');t.style.pointerEvents='';},5000);}catch{setTimeout(()=>t.classList.remove('show'),5000);}};
+  const refresh=()=>{try{renderQtList();renderQtDetail();}catch{}try{window.NaroDashboard?.render?.();}catch{}};
+  const syncEditor=(id,status)=>{try{if(qtEditing&&qtEditing.id===id){const clean=typeof quoteSnapshot==='function'&&quoteSnapshot(qtEditing)===qtBaseline;qtEditing.status=status;if(clean)qtBaseline=quoteSnapshot(qtEditing);}}catch{}};
+  async function run(){
+   if(inflight||busyPromote){schedule();return;}
+   const before=base;base=null;if(!before)return;
+   const fresh=[...evidence()].filter(id=>!before.has(id)).map(id=>(db.quotes||[]).find(q=>q.id===id)).filter(Boolean);
+   const cancelled=fresh.filter(q=>q.status==='취소');
+   const targets=fresh.filter(q=>OPEN.includes(q.status));
+   if(!targets.length){if(cancelled.length)say(`취소된 견적(${cancelled[0].no||''})에 ${why(cancelled[0])}이 기록됐어요 · 상태는 그대로 두었어요`);return;}
+   const prev=new Map(targets.map(q=>[q.id,q.status]));
+   const next=(db.quotes||[]).map(q=>{if(!prev.has(q.id))return q;const n={...q,status:'수주'};if(liveDel(n)&&typeof normalizeDeliveryStatus==='function')normalizeDeliveryStatus(n);return n;});
+   busyPromote=true;
+   try{
+    if(!await orig('quotes',next))return;
+    db.quotes=next;targets.forEach(q=>syncEditor(q.id,next.find(x=>x.id===q.id).status));refresh();
+    const q0=targets[0],label=targets.length>1?`견적 ${targets.length}건`:(q0.no||'견적');
+    actToast(`${why(next.find(x=>x.id===q0.id))}이 기록돼서 ${label}을(를) 수주로 바꿨어요`,'되돌리기',async()=>{
+     const back=(db.quotes||[]).map(q=>prev.has(q.id)&&q.status==='수주'?{...q,status:prev.get(q.id)}:q);
+     if(await orig('quotes',back)){db.quotes=back;prev.forEach((st,id)=>syncEditor(id,st));refresh();say('상태를 되돌렸어요');}});
+   }finally{busyPromote=false;}
+  }
+  function schedule(){clearTimeout(timer);timer=setTimeout(run,350);}
+  const wrapped=async function(name,data){
+   if(base===null&&!busyPromote)try{base=evidence();}catch{base=null;}
+   inflight++;
+   try{return await orig.apply(this,arguments);}
+   finally{inflight--;if(base)schedule();}
+  };
+  wrapped.__autoOrder=true;window.saveTable=wrapped;
+ }
  window.NaroQuoteActions={bar,deliver,pay,removeQuote,chooseCompany:openCoPop,closeCompanyPicker:closeCoPop};
 })();
