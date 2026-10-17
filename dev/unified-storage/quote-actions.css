@@ -204,7 +204,7 @@ html body #appView #view-quotes .qfilter-btn>#qtFilterBadge:not([hidden]){positi
  html body #appView #qtForm .qlines .qline{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
  html body #appView #qtForm .qtotals{padding-left:var(--nd-in)!important;padding-right:var(--nd-in)!important}
  html body #appView #qtForm .qlines{border-radius:0!important} /* 둥근 모서리가 마지막 구분선 양끝을 잘랐다 — 구분선은 끝까지 곧게 */
- html body #appView #qtForm.nd-view .qlines .qline{grid-template-columns:minmax(0,1fr) minmax(112px,176px) 56px minmax(76px,100px) minmax(80px,100px)!important}
+ html body #appView #qtForm.nd-view .qlines .qline{grid-template-columns:minmax(40px,1.6fr) minmax(96px,1fr) 44px minmax(76px,100px) minmax(80px,100px)!important}
  html body #appView #qtForm.nd-view .qlines .qline>:is(.rm,:nth-child(6)){display:none!important}
  html body #appView #qtForm.nd-view .qlines .qline:not(.head) .ip-btn{padding-left:0!important;border-left-width:0!important}
 }
@@ -474,3 +474,10 @@ html body #appView :is(#qtForm,#puForm) .qp-cards .qp-card{padding:14px 0}
 /* 머리 번호(버튼)는 글자 높이 그대로 — 폰의 44px 버튼 규칙 때문에 번호 줄이 커져 머리 밖으로 잘리던 것. 누르는 범위는 보이지 않게 넓힌다. */
 html body #appView #qtForm .qp-metadata>.nd-quote-link{position:relative;min-height:0!important;height:auto!important;padding:0!important;line-height:inherit}
 html body #appView #qtForm .qp-metadata>.nd-quote-link::after{content:'';position:absolute;inset:-13px -6px}
+/* 10/17: 색상 · 규격/옵션 칸 — 규격('800X1200mm' 등)이 더 길어 규격 쪽을 넓게(머리 줄도 같은 비율이라 글자 선이 맞음) */
+html body #appView :is(#qtForm,#puForm) .qline .dual>:last-child{flex:1.4 1 0}
+/* 보기 상태(읽기 전용)의 색상·규격 칸은 옆 여백을 줄여 글자가 덜 잘리게, 그래도 길면 '…' */
+html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head) .dual>:is(input,select),
+html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){padding-left:4px!important;padding-right:4px!important;text-overflow:ellipsis}
+/* 색상이 없는 줄(작업·직접 입력)의 규격 칸도 위 비율(1 : 1.4)의 규격 자리와 같은 폭 */
+html body #appView :is(#qtForm,#puForm) .qline:not(.head):not(.nd-x)>:is([data-f="spec"],[data-f="vspec"]){width:calc((100% - 8px) * 1.4 / 2.4)!important} /* :not(.nd-x) = ui-contract.css의 반쪽 폭 규칙보다 앞서게 */
