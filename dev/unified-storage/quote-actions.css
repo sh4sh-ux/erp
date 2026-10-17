@@ -480,4 +480,4 @@ html body #appView :is(#qtForm,#puForm) .qline .dual>:last-child{flex:1.4 1 0}
 html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head) .dual>:is(input,select),
 html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){padding-left:4px!important;padding-right:4px!important;text-overflow:ellipsis}
 /* 색상이 없는 줄(작업·직접 입력)의 규격 칸도 위 비율(1 : 1.4)의 규격 자리와 같은 폭 */
-html body #appView :is(#qtForm,#puForm) .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){width:calc((100% - 8px) * 1.4 / 2.4)!important}
+html body #appView :is(#qtForm,#puForm) .qline:not(.head):not(.nd-x)>:is([data-f="spec"],[data-f="vspec"]){width:calc((100% - 8px) * 1.4 / 2.4)!important} /* :not(.nd-x) = ui-contract.css의 반쪽 폭 규칙보다 앞서게 */
