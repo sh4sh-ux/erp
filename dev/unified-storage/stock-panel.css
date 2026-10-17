@@ -273,3 +273,29 @@ html body #appView #view-stock .stock-add.sp-form :is(.nd-sz-total>b,.nd-sz-tabl
 html body #appView #view-stock #spDetail .sp-mx{min-width:calc(72px + (var(--sp-n,4) + 1) * 56px)}
 html body #appView #view-stock #spDetail .sp-mx :is(th,td):first-child{position:sticky;left:0;z-index:1;background:var(--nd-surface)}
 @media (max-width:780px){html body #appView #view-stock #spDetail .sp-mx{min-width:calc(44px + var(--sp-n,4) * 52px)}}
+/* 10/17 2차: 줄 이름(현재·입고·변경 후 / 장부·실제·차이)은 같은 크기, 글자색 더 진하게 */
+html body #appView #view-stock .stock-add.sp-form .nd-sz-table td.k{font:500 13px/18px var(--sans)!important;color:var(--nd-ink-2)!important}
+html body #appView #view-stock .stock-add.sp-form .nd-sz-table tr.qty>td.k{font:600 13px/18px var(--sans)!important;color:var(--nd-ink)!important}
+html body #appView #view-stock .stock-add.sp-form .nd-sz-table th{color:var(--nd-ink-2)!important;font-weight:600!important}
+html body #appView #view-stock .stock-add.sp-form .nd-sz-table tr.now td:not(.k){color:var(--nd-ink-2)!important}
+html body #appView #view-stock .stock-add.sp-form .nd-sz-table tr.after td:not(.k){color:var(--nd-ink-2)!important}
+html body #appView #view-stock .stock-add.sp-form .nd-sz-tip{color:var(--nd-ink-2)!important}
+html body #appView #view-stock .stock-add.sp-form>label{color:var(--nd-ink-2)!important}
+/* 옵션 하나뿐인 품목: 색상·규격 고르는 칸 숨김(머리 줄에 표시), 수량 · 날짜 한 줄, 수량 아래 '현재 → 바뀐 뒤' */
+html body #appView #view-stock .stock-add.sp-form.sp-onecolor>label:has(#ivColor){display:none!important}
+html body #appView #view-stock .stock-add.sp-form.sp-onespec>label:has(#ivSpec){display:none!important}
+html body #appView #view-stock .stock-add.sp-form.sp-single>label:has(#ivSpec){order:4;grid-column:1/2}
+html body #appView #view-stock .stock-add.sp-form.sp-single>label:has(#ivQty){order:4;grid-column:2/3}
+html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onespec>label:has(#ivQty){grid-column:1/2}
+html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onecolor.sp-onespec>label:has(#ivQty){order:2}
+html body #appView #view-stock .stock-add.sp-form.sp-single #ivQty{text-align:center!important;font:600 15px/1 var(--sans)!important}
+html body #appView #view-stock .stock-add.sp-form .sp-qhint{display:block;margin-top:2px;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock .stock-add.sp-form .sp-qhint.neg{color:var(--nd-red)}
+@media (max-width:780px){
+ html body #appView #view-stock .stock-add.sp-form.sp-single>label:has(#ivQty),html body #appView #view-stock .stock-add.sp-form.sp-single>label:has(#ivSpec){grid-column:1/-1!important}
+}
+/* 품목을 아직 안 골랐을 때(전체 현황에서 [⇅]): 옛 안내 줄 대신 새 머리 + 품목 고르기 한 칸 */
+html body #appView #view-stock .stock-add.sp-form>.stock-entry-heading{display:none!important}
+html body #appView #view-stock .stock-add.sp-form.stock-entry-empty>.sp-fhd{display:flex!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem .sp-fpick{display:none!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem>label.stock-entry-item{grid-column:1/-1!important;display:flex!important}

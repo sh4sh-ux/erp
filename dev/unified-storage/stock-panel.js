@@ -153,6 +153,7 @@
   // 입력 창: 저장되면(기록 수가 바뀜) 닫는다
   if(ui.entry&&(db.stock_moves||[]).length!==ui.entryMoves)closeEntry(true);
   try{decorateForm();}catch{}
+  try{iconPlus();}catch{}
  }
  const orig=renderStock;
  renderStock=function(){const r=orig.apply(this,arguments);try{paint();}catch(err){console.error(err);}return r;};
@@ -162,13 +163,24 @@
  let backdrop=null;
  function openEntry(btnId){
   const v=view();if(!v)return;
-  if(PC.matches){ui.entry=true;ui.entryMoves=(db.stock_moves||[]).length;v.classList.add('sp-entry');
-   if(!backdrop){backdrop=document.createElement('div');backdrop.className='sp-backdrop';backdrop.addEventListener('click',()=>document.getElementById('ivCancelBtn')?.click());}
-   v.append(backdrop);}
-  document.getElementById(btnId)?.click();
+  if(!PC.matches){const a=v.querySelector(`.nd-st-act [data-go="${btnId}"]`);if(a){a.click();requestAnimationFrame(()=>{try{decorateForm();}catch{}});return;}}
+  document.getElementById(btnId)?.click(); // 아래 캡처 단계에서 PC 창 상태가 켜진다
   requestAnimationFrame(()=>{try{decorateForm();}catch{}});
   if(PC.matches)requestAnimationFrame(()=>{const add=v.querySelector('.stock-add');if(add&&add.hidden)closeEntry(false);else add?.querySelector('input,select,button')?.focus({preventScroll:true});});
  }
+ function enterModal(){
+  const v=view();if(!v||!PC.matches)return;
+  if(!ui.entry){ui.entry=true;ui.entryMoves=(db.stock_moves||[]).length;}
+  v.classList.add('sp-entry');
+  if(!backdrop){backdrop=document.createElement('div');backdrop.className='sp-backdrop';backdrop.addEventListener('click',()=>document.getElementById('ivCancelBtn')?.click());}
+  if(!backdrop.isConnected)v.append(backdrop);
+ }
+ // 입고·출고·조정을 어디서 열든(아래 줄 · 왼쪽 [⇅] · 원래 메뉴) PC에서는 가운데 창으로 — 10/17 '+를 눌러도 반응 없음' 수정
+ document.addEventListener('click',ev=>{if(ev.target.closest?.('#stockRegister,#stockOutbound,#stockAdjust'))enterModal();},true);
+ // 왼쪽 머리 [+] = 메뉴 대신 바로 입력 창(입고부터, 창 안에서 출고·조정으로 바꿈). 모양은 ⇅(들어오고 나감)
+ document.addEventListener('click',ev=>{const b=ev.target.closest?.('#view-stock .nd-tadd');if(!b)return;ev.preventDefault();ev.stopImmediatePropagation();openEntry('stockRegister');},true);
+ const ARROWS='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg>';
+ const iconPlus=()=>{const b=document.querySelector('#view-stock .nd-tadd');if(!b||b.dataset.spIcon)return;b.dataset.spIcon='1';b.innerHTML=ARROWS;b.setAttribute('aria-label','입고·출고·조정');b.title='입고·출고·조정';};
  function closeEntry(saved){
   const v=view();ui.entry=false;v?.classList.remove('sp-entry');backdrop?.remove();
   const add0=v?.querySelector('.stock-add');add0?.classList.remove('sp-pick');
@@ -188,12 +200,26 @@
   if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b><span class="sp-fs"><span class="sp-fi"></span><button type="button" class="sp-fpick">바꾸기</button></span>';add.prepend(hd);
    hd.querySelector('.sp-fpick').addEventListener('click',()=>{add.classList.toggle('sp-pick');decorateForm();if(add.classList.contains('sp-pick'))add.querySelector('label.stock-entry-item button,label.stock-entry-item select')?.focus();});}
   const kind=add.querySelector(':scope>.nd-sk-tabs')?.dataset.kind||'in';
-  const t=TITLE[kind]||'재고 입력',ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
+  const t=add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력'),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
   const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi'),txt=it?[it.name,it.code].filter(Boolean).join(' · '):'품목을 골라 주세요';
   if(fi.textContent!==txt)fi.textContent=txt;
   const pk=hd.querySelector('.sp-fpick'),pt=add.classList.contains('sp-pick')?'접기':it?'바꾸기':'고르기';if(pk.textContent!==pt)pk.textContent=pt;
   add.classList.toggle('sp-noitem',!it);
   const cb=document.getElementById('ivCancelBtn');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';
+  // 색상·규격이 하나뿐이면 고르는 칸을 숨기고 머리 줄에 적는다. 사이즈 표가 없는 품목(옵션 1개)은 수량 아래에 '현재 → 바뀐 뒤'.
+  const csel=document.getElementById('ivColor'),ssel=document.getElementById('ivSpec'),qin=document.getElementById('ivQty');
+  const real=sel=>sel?[...sel.options].filter(o=>o.value!==''):[];
+  const single=!add.querySelector('#stockQuickEntry .nd-sz'),oneC=real(csel).length<=1,oneS=single&&real(ssel).length<=1;
+  add.classList.toggle('sp-single',single);add.classList.toggle('sp-onecolor',oneC);add.classList.toggle('sp-onespec',oneS);
+  const extra=[oneC&&csel?.value?csel.value:'',oneS&&ssel?.value?ssel.value:''].filter(Boolean).join(' · ');
+  const txt2=(it?[it.name,it.code].filter(Boolean).join(' · '):'품목을 골라 주세요')+(it&&extra?' · '+extra:'');if(fi.textContent!==txt2)fi.textContent=txt2;
+  if(single&&qin){const ql=qin.closest('label');let h=ql?.querySelector('.sp-qhint');if(ql&&!h){h=document.createElement('span');h.className='sp-qhint';ql.append(h);qin.addEventListener('input',()=>decorateForm());}
+   if(qin.placeholder!=='0')qin.placeholder='0';
+   const cur=it&&typeof currentStocks==='function'?(currentStocks()[stockKeyOf({item_id:it.id,color:csel?.value||'',spec:ssel?.value||''})]||0):0;
+   const raw=String(qin.value||'').replace(/,/g,'').trim(),q=Number(raw)||0,b=document.getElementById('ivAddBtn');let ht,bt;
+   if(kind==='adj'){const d=q-cur;ht=raw===''?`장부 ${n0(cur)}개 · 실제로 센 수량을 적어 주세요`:`장부 ${n0(cur)}개 → 실제 ${n0(q)}개 · 차이 ${d>0?'+':d<0?'−':''}${n0(Math.abs(d))}`;bt=raw!==''&&d?`${d>0?'+':'−'}${n0(Math.abs(d))} 조정`:'조정 기록';}
+   else{const a=kind==='out'?cur-q:cur+q;ht=`현재 ${n0(cur)}개 → ${n0(a)}개`;bt=q?`${n0(q)}개 ${kind==='out'?'출고':'입고'} 기록`:`${kind==='out'?'출고':'입고'} 기록`;h?.classList.toggle('neg',a<0);}
+   if(h&&h.textContent!==ht)h.textContent=ht;if(b&&b.textContent!==bt)b.textContent=bt;}
   const n=Math.max(0,add.querySelectorAll('.nd-sz-table thead th').length-2),c=n<=7?'s':n<=10?'m':'l';if(add.dataset.spCols!==c)add.dataset.spCols=c;if(add.style.getPropertyValue('--sp-n')!==String(n))add.style.setProperty('--sp-n',String(n));
   if(!add.dataset.spObs){add.dataset.spObs='1';let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;decorateForm();});}).observe(add,{subtree:true,childList:true,attributes:true,attributeFilter:['data-kind']});
    document.getElementById('ivItem')?.addEventListener('change',()=>requestAnimationFrame(decorateForm));}
