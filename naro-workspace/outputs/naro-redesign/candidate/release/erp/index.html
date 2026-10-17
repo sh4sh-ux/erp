@@ -10764,15 +10764,16 @@ html body #appView #puForm .pu-solo>.btn{width:auto!important;min-width:72px;hei
 html body #appView #puForm .pu-solo>.btn.del{color:var(--nd-red)!important}
 @media screen and (max-width:1023px){html body #appView #puForm .pu-solo>.btn{height:48px!important;min-height:48px!important;border-radius:12px!important;min-width:76px}}
 /* 10/17 매입 비용 줄 · 줄마다 견적: 품목 이름 아래 작은 표시(비용 · 견적 번호), 직접 적는 비용은 이름 칸 */
-html body #appView #puForm .qline>.pu-iname,html body #appView #puForm .qline>.pu-cname{display:flex;flex-direction:column;gap:3px;min-width:0}
-html body #appView #puForm .qline>.pu-iname>.ip-btn{width:100%}
-html body #appView #puForm .qline>.pu-cname>input{width:100%;height:40px;box-sizing:border-box}
+/* 표시는 둘째 줄(1열)로 — 첫 줄(품목·칸·금액·×)은 다른 줄처럼 가운데 맞춤. 전엔 표시 높이만큼 금액·×가 위로 붙어 솟아 보였다 */
+html body #appView #puForm .qline>.pu-iname,html body #appView #puForm .qline>.pu-cname{display:contents}
+html body #appView #puForm .qline>.pu-iname>.pu-ltags,html body #appView #puForm .qline>.pu-cname>.pu-ltags{grid-column:1;grid-row:2;margin-top:-2px}
+html body #appView #puForm .qline>.pu-iname>.ip-btn{width:100%;min-width:0}
+html body #appView #puForm .qline>.pu-cname>input{width:100%;min-width:0;box-sizing:border-box}
 html body #appView #puForm .pu-ltags{display:flex;flex-wrap:wrap;gap:4px;padding-left:2px}
 html body #appView #puForm .pu-ltags>span{display:inline-block;padding:0 6px;border-radius:5px;font:500 11px/17px var(--sans);white-space:nowrap}
 html body #appView #puForm .pu-cost{color:var(--nd-amber,#D97706);background:var(--nd-amber-soft,rgba(255,149,0,.12))}
 html body #appView #puForm .pu-qt{color:var(--nd-blue);background:var(--nd-blue-soft,rgba(67,85,232,.08))}
-html body #appView #puForm .qline.pu-tagged{align-items:start}
-html body #appView #puForm .qline.pu-tagged>:not(.pu-iname):not(.pu-cname){margin-top:0}
+html body #appView #puForm .qline.pu-tagged{row-gap:4px}
 html body #appView #puForm .line-btns.pu-btns3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 html body #appView #puForm .line-btns.pu-btns3>.btn-line-add{width:100%;margin:0}
 html body #appView #puForm .pu-fromq{color:var(--nd-blue)!important;border-color:var(--nd-blue-line,rgba(67,85,232,.4))!important}
@@ -10792,6 +10793,8 @@ html body #appView #puForm .qp-card .pu-ltags{margin-top:4px}
 html body #appView #puForm .pu-ltags>.pu-vat{display:inline-block;padding:0 6px;border-radius:5px;font:500 11px/17px var(--sans);white-space:nowrap;color:var(--nd-ink-2,#5B606B);background:var(--nd-fill,rgba(0,0,0,.05));border:0;margin:0;height:auto;min-height:0;width:auto;cursor:default}
 html body #appView #puForm .pu-ltags>button.pu-vat{cursor:pointer;box-shadow:inset 0 0 0 1px var(--nd-line,rgba(0,0,0,.12))}
 html body #appView #puForm .pu-ltags>.pu-vat.off{color:var(--nd-blue);background:var(--nd-blue-soft,rgba(67,85,232,.08))}
+/* 보기 모드: 직접 적는 비용 이름도 다른 품목 이름과 같은 자리에서 시작 */
+html body #appView #puForm.nd-view .qline>.pu-cname>input{padding-left:0;padding-right:0}
 
 /* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
 html body #appView #coForm.cp{--cp-x:28px}
