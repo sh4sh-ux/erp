@@ -178,3 +178,7 @@ html body #appView #puForm .qp-card .pu-ltags{margin-top:4px}
 .pu-qa .pu-qi-ln small{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
 .pu-qa .pu-qi-ln.is-dim{cursor:default}.pu-qa .pu-qi-ln.is-dim b{color:var(--nd-ink-3)}
 .pu-qa .pu-qi-am{font:400 12.5px/18px var(--sans);color:var(--nd-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* 10/17 줄마다 부가세: 비용 줄의 [부가세 별도 | 없음] 칩 — 편집 중엔 눌러서 바꾼다 */
+html body #appView #puForm .pu-ltags>.pu-vat{display:inline-block;padding:0 6px;border-radius:5px;font:500 11px/17px var(--sans);white-space:nowrap;color:var(--nd-ink-2,#5B606B);background:var(--nd-fill,rgba(0,0,0,.05));border:0;margin:0;height:auto;min-height:0;width:auto;cursor:default}
+html body #appView #puForm .pu-ltags>button.pu-vat{cursor:pointer;box-shadow:inset 0 0 0 1px var(--nd-line,rgba(0,0,0,.12))}
+html body #appView #puForm .pu-ltags>.pu-vat.off{color:var(--nd-blue);background:var(--nd-blue-soft,rgba(67,85,232,.08))}

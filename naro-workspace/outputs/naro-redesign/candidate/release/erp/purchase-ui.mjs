@@ -75,7 +75,9 @@ export function installPurchaseUI({port,features=()=>true}){
  const lineQuote=(p,l)=>l?.quote_id||p.quote_id||''; // 줄마다 견적 — 없으면 매입의 기본 견적
  const totals=p=>{const supply=Object.values(lineBase(p)).reduce((s,v)=>s+v,0);
   if(isFx(p)){const costs=(p.costs||[]).filter(c=>!c.void_at).reduce((s,c)=>s+(Number(c.amount_krw)||0),0);return {supply,tax:0,total:supply,fx:Math.round(p.lines.reduce((s,l)=>s+(l.qty||0)*(l.unit_price||0),0)*100)/100,costs,landed:supply+costs};}
-  const tax=p.vat_on===false?0:Math.round(supply*.1);return {supply,tax,total:supply+tax};};
+  // 줄마다 부가세(10/17): 배송비처럼 부가세가 없는 줄(no_vat)은 부가세 계산에서 뺀다.
+  const base=lineBase(p),taxable=p.lines.filter(l=>!l.no_vat).reduce((s,l)=>s+(base[l.id]||0),0);
+  const tax=p.vat_on===false?0:Math.round(taxable*.1);return {supply,tax,total:supply+tax};};
  const amtOf=(p,v)=>isFx(p)?fx(v,p.currency):money(v);
  // 부대비용·수입부가세를 낸 곳(운송사·관세사)에 남은 돈(원)
  const costLeft=ps=>(ps.costs||[]).reduce((s,c)=>s+Math.max(0,c.due-c.paid),0);
@@ -246,10 +248,13 @@ export function installPurchaseUI({port,features=()=>true}){
   const optLabel=l=>[l.color,l.spec].filter(Boolean).map(esc).join(' · ');
   const name=(it,id)=>it?`${esc(it.name||'')}<span class="cd">${esc(it.code||'')}</span>`:id?'<span class="ph">(삭제된 품목)</span>':'<span class="ph">품목 선택</span>';
   const qno=id=>(D()?.quotes||[]).find(q=>q.id===id)?.no||'';
-  const tags=l=>{const q=lineQuote(p,l),qq=q?qno(q)||'지워진 견적':'';return (isCost(l)||qq)?`<span class="pu-ltags">${isCost(l)?'<span class="pu-cost">비용 · 재고 안 늘어남</span>':''}${qq?`<span class="pu-qt">${esc(qq)}</span>`:''}</span>`:'';};
+  // 부가세 칩: 비용 줄(배송비 등)만, 국내 매입에서. 편집 중이면 눌러서 별도 ↔ 없음
+  const canVat=l=>!isFx(p)&&p.vat_on!==false&&(isCost(l)||l.no_vat),tapVat=st.editing||!sv;
+  const vatTag=(l,i,live)=>canVat(l)?(live&&tapVat?`<button type="button" class="pu-vat${l.no_vat?' off':''}" data-novat="${i}" aria-pressed="${!!l.no_vat}" title="눌러서 부가세 별도 ↔ 없음">${l.no_vat?'부가세 없음':'부가세 별도'}</button>`:`<span class="pu-vat${l.no_vat?' off':''}">${l.no_vat?'부가세 없음':'부가세 별도'}</span>`):'';
+  const tags=(l,i=-1,live=false)=>{const q=lineQuote(p,l),qq=q?qno(q)||'지워진 견적':'';return (isCost(l)||qq||canVat(l))?`<span class="pu-ltags">${isCost(l)?'<span class="pu-cost">비용 · 재고 안 늘어남</span>':''}${vatTag(l,i,live)}${qq?`<span class="pu-qt">${esc(qq)}</span>`:''}</span>`:'';};
   const lines=p.lines.map((l,i)=>{const it=itemOf(l.item_id),colors=it?.colors||[],specs=specsOf(it);
-   const head=isCost(l)&&!l.item_id?`<span class="pu-cname"><input type="text" data-f="cname" data-idx="${i}" value="${esc(l.name||'')}" placeholder="비용 이름 (예: 퀵 비용)" aria-label="비용 이름">${tags(l)}</span>`
-    :`<span class="pu-iname"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it,l.item_id)}</button>${tags(l)}</span>`;
+   const head=isCost(l)&&!l.item_id?`<span class="pu-cname"><input type="text" data-f="cname" data-idx="${i}" value="${esc(l.name||'')}" placeholder="비용 이름 (예: 퀵 비용)" aria-label="비용 이름">${tags(l,i,true)}</span>`
+    :`<span class="pu-iname"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it,l.item_id)}</button>${tags(l,i,true)}</span>`;
    return `<div class="qline${isCost(l)?' pu-costline':''}${tags(l)?' pu-tagged':''}" data-idx="${i}">${head}
     <div class="dual"><select data-f="lcolor" data-idx="${i}" aria-label="색상">${colors.length?colors.map(c=>`<option ${c===l.color?'selected':''}>${esc(c)}</option>`).join(''):'<option value="">—</option>'}</select><select data-f="vspec" data-idx="${i}" aria-label="규격/옵션">${specs.length?specs.map(s=>`<option ${s===l.spec?'selected':''}>${esc(s)}</option>`).join(''):'<option value="">—</option>'}</select></div>
     <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${i}" value="${l.qty?n0(l.qty):''}" aria-label="수량">
@@ -266,7 +271,7 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="qlines"><div class="qline head"><span>품목</span><span class="dual" style="text-align:center"><span>색상</span><span>규격/옵션</span></span><span style="text-align:center">수량</span><span style="text-align:right;padding-right:10px">단가${isFx(p)?` (${esc(p.currency)})`:''}</span><span style="text-align:right">금액</span><span></span></div>${lines}</div>
    <div class="line-btns pu-btns3"><button class="btn-line-add nd-gi-plus nd-gi-f" id="pu_addLine" type="button" data-act="addline">행 추가</button><button class="btn-line-add pu-fromq" id="pu_fromQuote" type="button" data-act="fromquote">견적에서 불러오기</button><button class="btn-line-add" id="pu_sizeBtn" type="button" data-act="size">⊞ 옵션별 한번에</button></div>
    <div id="pu_sizePanel">${st.sz&&st.editing?sizePanel(p):''}</div>
-   ${isFx(p)?`<div class="qtotals pu-fx-totals"><div class="row"><span class="k">합계 (${esc(p.currency)})</span><span class="v" id="pu_fxTotal">${fx(t.fx)}</span></div><div class="row"><span class="k">원화 환산 · 환율 ${esc(String(p.fx?.booking_rate??''))}</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부대비용</span><span class="v">${money(t.costs)}</span></div><div class="row grand"><span class="k">도착원가</span><span class="v" id="pu_total">${money(t.landed)}</span></div></div>`:`<div class="qtotals"><div class="row"><span class="k">공급가액</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부가세 ${p.vat_on===false?'(없음)':'(10%)'}</span><span class="v" id="pu_vat">${money(t.tax)}</span></div><div class="row grand"><span class="k">합계</span><span class="v" id="pu_total">${money(t.total)}</span></div></div>`}
+   ${isFx(p)?`<div class="qtotals pu-fx-totals"><div class="row"><span class="k">합계 (${esc(p.currency)})</span><span class="v" id="pu_fxTotal">${fx(t.fx)}</span></div><div class="row"><span class="k">원화 환산 · 환율 ${esc(String(p.fx?.booking_rate??''))}</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부대비용</span><span class="v">${money(t.costs)}</span></div><div class="row grand"><span class="k">도착원가</span><span class="v" id="pu_total">${money(t.landed)}</span></div></div>`:`<div class="qtotals"><div class="row"><span class="k">공급가액</span><span class="v" id="pu_supply">${money(t.supply)}</span></div><div class="row"><span class="k">부가세 ${p.vat_on===false?'(없음)':p.lines.some(l=>l.no_vat)?`(10% · ${p.lines.filter(l=>l.no_vat).length}줄 제외)`:'(10%)'}</span><span class="v" id="pu_vat">${money(t.tax)}</span></div><div class="row grand"><span class="k">합계</span><span class="v" id="pu_total">${money(t.total)}</span></div></div>`}
    ${sv&&!editable(p)&&p.status!=='취소'?'<div class="hint" style="text-align:right;margin-top:6px">입고가 시작된 매입은 품목을 수정할 수 없어요 — 진행 탭에서 입고 취소·반품으로 바로잡아요</div>':''}`;
  }
  // 옵션별 한번에(견적서와 같은 칸): 품목·색상을 고르고 옵션마다 수량·단가
@@ -310,7 +315,8 @@ export function installPurchaseUI({port,features=()=>true}){
   const payList=pays(p).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const fxp=isFx(p),payTo=x=>fxp?esc(x.company_id===p.vendor_id?'매입처':coName(x.company_id)||'낸 곳')+' · ':'';
   const payAmt=x=>x.amount_fx?`${fx(x.amount_fx,x.currency||p.currency)}<small>${money(x.amount)}</small>`:money(x.amount);
-  const payRows=payList.map(x=>x.kind==='지급'?row(x.date,payTo(x)+esc(x.method||'출금'),x.memo&&!/^매입 /.test(x.memo)?esc(x.memo):'',payAmt(x)):row(x.date,payTo(x)+'환불 받음',x.memo?esc(x.memo):'',`−${payAmt(x)}`)).join('');
+  const payMenu=x=>live?`<button type="button" class="nd-rec-more" data-menu-p="${esc(x.id)}" aria-label="이 출금 기록 메뉴" aria-expanded="false">${DOTS}</button>`:'';
+  const payRows=payList.map(x=>x.kind==='지급'?row(x.date,payTo(x)+esc(x.method||'출금'),x.memo&&!/^매입 /.test(x.memo)?esc(x.memo):'',payAmt(x),payMenu(x)):row(x.date,payTo(x)+'환불 받음',x.memo?esc(x.memo):'',`−${payAmt(x)}`)).join('');
   // 수입: 부대비용(원가에 금액 비율로 나눔) · 수입부가세(원가 밖) · 개당 원가
   const costs=(p.costs||[]).filter(c=>!c.void_at),iv=p.import_vat||{},cSum=costs.reduce((a,c)=>a+(Number(c.amount_krw)||0),0),cl=costLeft(ps);
   const costRows=costs.map(c=>row(c.added_at?localDay(c.added_at):p.date,esc(c.type),[esc(coName(c.payee_id)||'낸 곳 미지정'),`${esc(c.alloc||'금액')} 비율로 나눔`].join(' · '),money(c.amount_krw))).join('')
@@ -376,7 +382,7 @@ export function installPurchaseUI({port,features=()=>true}){
   if(id==='__free__'){if(p0().kind==='기초재고'){toast('기초 재고에는 비용을 넣을 수 없어요.');return;}edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());const keep={id:l.id,qty:l.qty||1,unit_price:l.unit_price||0,...(l.quote_id?{quote_id:l.quote_id}:{})};p.lines[i]={...keep,cost:true,name:''};});setTimeout(()=>view.querySelector(`.qline [data-f="cname"][data-idx="${i}"]`)?.focus(),0);return;}
   const it=itemOf(id);if(!it)return;
   if(isWork(it)){if(p0().kind==='기초재고'){toast('기초 재고에는 작업 품목을 넣을 수 없어요.');return;}edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());const keep={id:l.id,qty:l.qty||1,...(l.quote_id?{quote_id:l.quote_id}:{})};p.lines[i]={...keep,cost:true,item_id:it.id,unit_price:isFx(p)?(l.unit_price||0):buyOf(it,specsOf(it)[0])};});return;}
-  edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());delete l.cost;delete l.name;l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=isFx(p)?(l.unit_price||0):buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
+  edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());delete l.cost;delete l.name;delete l.no_vat;l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=isFx(p)?(l.unit_price||0):buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
  }
  const p0=()=>shown()||{};
  function chooseVendor(){
@@ -506,21 +512,25 @@ export function installPurchaseUI({port,features=()=>true}){
  }
  const METHODS=['계좌이체','카드','현금','기타'];
  // 출금 기록: 국내는 매입처에 원화. 수입은 받는 곳을 고른다 — 매입처(외화 금액 + 실제 보낸 원화 → 환율) 또는 운송사·관세사(원화).
- function paySheet(){
+ // orig가 있으면 그 출금 기록 고치기: 같은 창에서 값만 채워 두고, 저장할 때 원래 기록을 빼고 새 기록을 한 번에 저장한다.
+ function paySheet(orig=null){
   const p=cur();if(!p)return;const ps=payState(p),ref='pay_'+uid(),fxp=isFx(p),rate=Number(p.fx?.booking_rate)||0;
-  const targets=[{id:p.vendor_id,fx:fxp,bal:Math.max(0,Math.round((ps.due-ps.paid)*100)/100),name:coName(p.vendor_id)||'매입처'},
+  let targets=[{id:p.vendor_id,fx:fxp,bal:Math.max(0,Math.round((ps.due-ps.paid)*100)/100),name:coName(p.vendor_id)||'매입처'},
    ...(fxp?(ps.costs||[]).filter(c=>c.payee_id!==p.vendor_id).map(c=>({id:c.payee_id,fx:false,bal:Math.max(0,Math.round(c.due-c.paid)),name:coName(c.payee_id)||'낸 곳'})):[])];
   let t=targets.find(x=>x.bal>0)||targets[0];
   let amount=t.bal,krw=t.fx?Math.round(t.bal*rate):0,method='계좌이체',preset='all',date=today(),memo='';
+  if(orig){const ofx=!!orig.amount_fx,ov=ofx?Number(orig.amount_fx):Number(orig.amount)||0,base=targets.find(x=>x.id===orig.company_id&&x.fx===ofx);
+   t={id:orig.company_id,fx:ofx,name:base?.name||coName(orig.company_id)||'매입처',bal:Math.round(((base?.bal||0)+ov)*100)/100};targets=[t];
+   amount=ov;krw=ofx?Number(orig.amount)||0:0;method=orig.method||'계좌이체';preset='custom';date=orig.date||today();memo=/^매입 /.test(orig.memo||'')?'':orig.memo||'';}
   const unitOf=x=>x.fx?p.currency:'원',show=(x,v)=>x.fx?fx(v,p.currency):`${n0(v)}원`,parse=v=>t.fx?dec(v):num(v);
-  const label=()=>amount>0?`${show(t,amount)} 출금 확인`:'금액을 넣어 주세요';
+  const label=()=>amount>0?`${show(t,amount)}${orig?'으로 고치기':' 출금 확인'}`:'금액을 넣어 주세요';
   const paint=()=>{
    const over=amount>t.bal+(t.fx?0.005:0);
-   const d=qa(`${head('출금 기록',`${esc(t.name)} · 남은 금액 ${show(t,t.bal)}`)}<div class="nd-qa-body">
+   const d=qa(`${head(orig?'출금 수정':'출금 기록',orig?`${esc(t.name)} · 원래 ${mdShort(orig.date)} ${esc(orig.method||'')} ${show(t,orig.amount_fx||orig.amount)}`:`${esc(t.name)} · 남은 금액 ${show(t,t.bal)}`)}<div class="nd-qa-body">
      ${targets.length>1?`<div class="nd-qa-chips pu-pay-to" role="group" aria-label="받는 곳">${targets.map((x,i)=>`<button type="button" data-to="${i}" aria-pressed="${x===t}">${esc(x.id===p.vendor_id?'매입처':x.name)} · ${show(x,x.bal)}</button>`).join('')}</div>`:''}
      <label class="nd-qa-money">보낸 금액${t.fx?` (${esc(p.currency)})`:''}<input id="puQaAmt" inputmode="${t.fx?'decimal':'numeric'}" value="${amount?(t.fx?fx(amount):n0(amount)):''}" placeholder="0"><span>${esc(unitOf(t))}</span></label>
      ${t.fx?`<label class="nd-qa-money">실제 보낸 원화<input id="puQaKrw" inputmode="numeric" value="${krw?n0(krw):''}" placeholder="0"><span>원</span></label><p class="nd-qa-note" id="puQaRate">${amount>0&&krw>0?`송금 환율 ${(krw/amount).toFixed(2)} · 매입 환율 ${rate} · 환차 ${n0(amount*rate-krw)}원`:'은행 출금 원화를 적으면 환차손익이 계산돼요.'}</p>`:''}
-     <div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,x])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${x}</button>`).join('')}</div>
+     ${orig?'':`<div class="nd-qa-chips" role="group" aria-label="금액">${[['all','남은 금액 전부'],['half','절반'],['custom','직접 입력']].map(([k,x])=>`<button type="button" data-p="${k}" aria-pressed="${preset===k}">${x}</button>`).join('')}</div>`}
      <div class="nd-qa-chips" role="group" aria-label="출금 방법">${METHODS.map(m=>`<button type="button" data-me="${m}" aria-pressed="${method===m}">${m}</button>`).join('')}</div>
      <div class="nd-qa-fields"><label>출금일<input type="date" id="puQaDate" value="${esc(date)}"></label><label>메모 (선택)<input id="puQaMemo" value="${esc(memo)}" placeholder="예: 잔금"></label></div>
      ${over?`<p class="nd-qa-warn">남은 금액보다 ${show(t,Math.round((amount-t.bal)*100)/100)} 많아요. 초과 출금으로 기록돼요.</p>`:''}
@@ -538,12 +548,20 @@ export function installPurchaseUI({port,features=()=>true}){
    d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{
     if(!(amount>0))throw Error('금액을 넣어 주세요.');if(t.fx&&!(krw>0))throw Error('실제 보낸 원화를 넣어 주세요.');
     const list=D().payments||[];if(list.some(x=>x.client_ref===ref))return; // 같은 창에서 두 번 눌러도 한 번만
+    if(orig&&!list.some(x=>x.id===orig.id))throw Error('원래 기록이 이미 바뀌었어요. 창을 닫고 다시 열어 주세요.');
     const row={id:'pay'+uid(),date:d.querySelector('#puQaDate').value||today(),company_id:t.id,kind:'지급',method,amount:t.fx?krw:amount,memo:d.querySelector('#puQaMemo').value.trim()||`매입 ${p.no}`,purchase_id:p.id,client_ref:ref,created_at:nowIso(),
-     ...(t.fx?{currency:p.currency,amount_fx:amount,fx_rate:Math.round(krw/amount*10000)/10000}:{})};
+     ...(t.fx?{currency:orig?.currency||p.currency,amount_fx:amount,fx_rate:Math.round(krw/amount*10000)/10000}:{})};
     await app.Table.save('payments',[...list,row]);
-    toast(`${show(t,amount)} 출금을 기록했어요`);});
+    // 저장소는 추가와 삭제를 한 번에 받지 않는다 — 새 기록이 저장된 뒤 원래 기록을 지운다(입금·출금 화면의 수정과 같음)
+    if(orig){try{await app.Table.save('payments',(D().payments||[]).filter(x=>x.id!==orig.id));}catch{toast('새 기록은 저장했지만 원래 기록을 지우지 못했어요. 원래 기록을 메뉴에서 삭제해 주세요.');return;}}
+    toast(orig?'출금 기록을 고쳤어요':`${show(t,amount)} 출금을 기록했어요`);});
   };
   paint();
+ }
+ function payDelSheet(id){
+  const p=cur(),x=(D().payments||[]).find(y=>y.id===id);if(!p||!x)return;const amt=x.amount_fx?fx(x.amount_fx,x.currency||p.currency):`${n0(x.amount)}원`;
+  const d=qa(`${head('출금 삭제',`${mdShort(x.date)} ${esc(x.method||'출금')} ${amt}`)}<div class="nd-qa-body"><p class="nd-qa-after">삭제하면 이 매입의 <b>남은 금액이 ${amt} 늘어나요</b>.</p></div>${acts('삭제',true,' danger')}`);
+  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{const list=D().payments||[];if(!list.some(y=>y.id===id))return;await app.Table.save('payments',list.filter(y=>y.id!==id));toast('출금 기록을 삭제했어요');});
  }
  // 부대비용 더하기(수입): 저장 규칙상 비용은 더하기만 한다. 원가에는 금액 비율로 나눠 들어간다(결정 ③).
  function costSheet(){
@@ -854,7 +872,7 @@ export function installPurchaseUI({port,features=()=>true}){
     const list=()=>{const q=inp.value.trim().toLowerCase();const m=(D()?.items||[]).filter(x=>(p.kind!=='기초재고'||!isWork(x))&&`${x.name||''} ${x.code||''}`.toLowerCase().includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
      res.innerHTML=m.length?m.map(x=>`<button type="button" class="qp-result" data-pick="${esc(x.id)}"><span><strong>${esc(x.name||'')}</strong><small>${esc(x.code||'')}</small></span><span>${isFx(p)?'':money(buyOf(x,specsOf(x)[0]))}</span></button>`).join(''):'<p>검색 결과가 없습니다.</p>';
      if(p.kind!=='기초재고'){const fb=document.createElement('button');fb.type='button';fb.className='qp-result pu-free-cost';fb.innerHTML='<span><strong>직접 적는 비용</strong><small>퀵 비용·포장비 등 · 재고 안 늘어남</small></span><span></span>';fb.onclick=()=>{w={id:w.id,qty:w.qty||1,unit_price:w.unit_price||0,...(w.quote_id?{quote_id:w.quote_id}:{}),cost:true,name:w.name||''};search=false;draw();};res.prepend(fb);}
-     res.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=itemOf(b.dataset.pick);w.item_id=x.id;delete w.name;if(isWork(x))w.cost=true;else delete w.cost;w.color=(x.colors||[])[0];w.spec=specsOf(x)[0];for(const k of ['color','spec'])if(w[k]===undefined)delete w[k];w.unit_price=isFx(p)?(w.unit_price||0):buyOf(x,w.spec);search=false;draw();});};
+     res.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=itemOf(b.dataset.pick);w.item_id=x.id;delete w.name;if(isWork(x))w.cost=true;else{delete w.cost;delete w.no_vat;}w.color=(x.colors||[])[0];w.spec=specsOf(x)[0];for(const k of ['color','spec'])if(w[k]===undefined)delete w[k];w.unit_price=isFx(p)?(w.unit_price||0):buyOf(x,w.spec);search=false;draw();});};
     inp.oninput=list;list();setTimeout(()=>inp.focus(),0);
    }else{
     const chips=(f,opts,v)=>opts.length?`<div class="qp-chips option-chip-grid" role="group" aria-label="${f==='color'?'색상':'규격/옵션'}">${opts.map(o=>`<button type="button" data-${f}="${esc(o)}" aria-pressed="${o===v}">${esc(o)}</button>`).join('')}</div>`:'<p class="qp-muted">—</p>';
@@ -863,12 +881,14 @@ export function installPurchaseUI({port,features=()=>true}){
       <div class="qp-field"><label>색상</label>${chips('color',colors,w.color)}</div><div class="qp-field"><label>규격/옵션</label>${chips('spec',specs,w.spec)}</div>
       <div class="qp-field"><label for="pu-edit-qty">수량</label><div class="qp-edit-stepper"><button type="button" data-q="-1" aria-label="수량 줄이기">−</button><input type="text" inputmode="numeric" class="num" id="pu-edit-qty" value="${n0(w.qty)}"><button type="button" data-q="1" aria-label="수량 늘리기">+</button></div></div>
       <div class="qp-field"><label for="pu-edit-price">단가</label><input type="text" inputmode="${isFx(p)?'decimal':'numeric'}" class="num" id="pu-edit-price" value="${w.unit_price?(isFx(p)?fx(w.unit_price):n0(w.unit_price)):''}" placeholder="0"></div>
+      ${isCost(w)&&!isFx(p)&&p.vat_on!==false?`<div class="qp-field"><label>부가세</label><div class="qp-chips option-chip-grid" role="group" aria-label="부가세"><button type="button" data-nv="0" aria-pressed="${!w.no_vat}">별도</button><button type="button" data-nv="1" aria-pressed="${!!w.no_vat}">없음</button></div></div>`:''}
       <div class="qp-edit-amount">금액<span class="amt">${isFx(p)?fx((w.qty||0)*(w.unit_price||0)):n0((w.qty||0)*(w.unit_price||0))}</span></div></div>
      <div class="qp-sheet-footer"><button class="qp-delete" type="button" data-del>${confirmDel?'삭제 확인':'행 삭제'}</button><button class="qp-primary" type="button" data-apply>적용</button></div>`;
     const sync=()=>{w.qty=num(lineSheet.querySelector('#pu-edit-qty').value);w.unit_price=(isFx(p)?dec:num)(lineSheet.querySelector('#pu-edit-price').value);const cn=lineSheet.querySelector('#pu-edit-cname');if(cn)w.name=cn.value;};
     lineSheet.querySelector('[data-search]').onclick=()=>{sync();search=true;draw();};
     lineSheet.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{sync();w.color=b.dataset.color;draw();});
     lineSheet.querySelectorAll('[data-spec]').forEach(b=>b.onclick=()=>{sync();w.spec=b.dataset.spec;if(!isFx(p))w.unit_price=buyOf(itemOf(w.item_id),w.spec)||w.unit_price;draw();});
+    lineSheet.querySelectorAll('[data-nv]').forEach(b=>b.onclick=()=>{sync();if(b.dataset.nv==='1')w.no_vat=true;else delete w.no_vat;draw();});
     lineSheet.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{sync();w.qty=Math.max(0,w.qty+Number(b.dataset.q));draw();});
     // 손을 뗄 때 창을 다시 그리면 같이 누른 [적용]이 사라진다 — 금액 숫자만 고친다
     lineSheet.querySelectorAll('#pu-edit-qty,#pu-edit-price').forEach(inp=>inp.oninput=()=>{sync();lineSheet.querySelector('.qp-edit-amount .amt').textContent=isFx(p)?fx((w.qty||0)*(w.unit_price||0)):n0((w.qty||0)*(w.unit_price||0));});
@@ -953,6 +973,8 @@ export function installPurchaseUI({port,features=()=>true}){
    w.querySelector('button').onclick=()=>{window.NaroPop.close();st.filter='삭제됨';st.sel=null;render();};el.append(w);},null,'필터');
   view.querySelectorAll('.nd-chips [data-v]').forEach(b=>b.onclick=()=>{if(st.filter==='삭제됨'){st.filter=b.dataset.v;render();return;}st.filter=b.dataset.v;view.querySelectorAll('.nd-chips [data-v]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintList();});
   view.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{st.tab=b.dataset.tab;render();}));
+  view.querySelectorAll('[data-novat]').forEach(b=>b.onclick=()=>edit(p=>{const l=p.lines[Number(b.dataset.novat)];if(!l)return;if(l.no_vat)delete l.no_vat;else l.no_vat=true;}));
+  view.querySelectorAll('[data-menu-p]').forEach(b=>b.onclick=()=>{const x=(D().payments||[]).find(y=>y.id===b.dataset.menuP);if(x)openMenu(b,[{t:'수정',fn:()=>paySheet(x)},{t:'삭제',danger:true,fn:()=>payDelSheet(x.id)}]);});
   view.querySelectorAll('[data-menu-r]').forEach(b=>b.onclick=()=>openMenu(b,[{t:'입고 취소',danger:true,fn:()=>voidSheet(b.dataset.menuR)}]));
   view.querySelectorAll('#puForm [data-record-toggle]').forEach(b=>b.onclick=()=>{const t=b.dataset.recordToggle,open=b.getAttribute('aria-expanded')!=='true';(st.recOpen||(st.recOpen={}))[t]=open;b.setAttribute('aria-expanded',String(open));const body=document.getElementById(b.getAttribute('aria-controls'));if(body)body.hidden=!open;});
   const q=view.querySelector('#puSearch');if(q){let comp=false;q.addEventListener('compositionstart',()=>comp=true);q.addEventListener('compositionend',()=>{comp=false;st.q=q.value.trim();paintList();});q.addEventListener('input',()=>{if(comp)return;st.q=q.value.trim();paintList();});}

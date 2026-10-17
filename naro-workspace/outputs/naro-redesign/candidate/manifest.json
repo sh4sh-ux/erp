@@ -123,7 +123,7 @@
     },
     {
       "path": "erp/index.html",
-      "sha256": "282154821f43ea5caad7fa73c39678ab77b3f6b782431ec2f2901d91ba4d5803"
+      "sha256": "7b0316f4b9517a3130827d88e3a64ccb1986c89a4c8e8d8ca6decfd0f759ba54"
     },
     {
       "path": "erp/inventory-presentation.css",
@@ -163,7 +163,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "fd267d93f62bdb340c9ef7c9be1501a3be1160e787faad8723431b6049215d0f"
+      "sha256": "f08aa8348e744396681094161257e8d8a8021581368d72dcf1a51c7c7950bb7f"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -271,7 +271,7 @@
     },
     {
       "path": "purchase-contract.mjs",
-      "sha256": "a54362aad66a7dbef28eebd5357f06df043dcc2ab40f58538de05e66e7084328"
+      "sha256": "83bf48e3da426b7ef515b499e1af2110e4542b495161bad4d0d168f05edd70c4"
     },
     {
       "path": "purchase-ledger.mjs",
@@ -302,7 +302,7 @@
       "sha256": "6072d0c934ebd870210f9d3690bf24613b7cb3ade6da064bb59d3fe46eb0824c"
     }
   ],
-  "aggregate": "e41b78afd66d2513c5d2d62f96ea95f786950fd1a98b6e191e85c01cd0f66e8b",
+  "aggregate": "0a446a52c0c3e28cb025767fb9a3db8def7c34ea77b7359e4b2ed254dd264cbf",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

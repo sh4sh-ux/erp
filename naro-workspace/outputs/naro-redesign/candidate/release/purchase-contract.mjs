@@ -42,6 +42,8 @@ function line(l,items){
  else{valid(items.some(i=>i.id===l.item_id));valid(l.name===undefined);}
  // 견적 연결(줄마다): 이 줄이 어느 견적 건의 원가인지. 견적이 지워져도 매입은 그대로.
  valid(l.quote_id===undefined||id(l.quote_id));
+ // 줄마다 부가세(10/17): 배송비처럼 부가세가 붙지 않는 줄. 없으면 부가세 별도.
+ valid(l.no_vat===undefined||l.no_vat===true);
  valid((l.color===undefined||str(l.color,200))&&(l.spec===undefined||str(l.spec,200)));
  valid(int(l.qty)&&l.qty>0&&num(l.unit_price)&&l.unit_price>=0);
  valid(l.weight===undefined||num(l.weight)&&l.weight>=0);
