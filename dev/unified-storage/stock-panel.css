@@ -300,7 +300,19 @@ html body #appView #view-stock .stock-add.sp-form.stock-entry-empty>.sp-fhd{disp
 html body #appView #view-stock .stock-add.sp-form.sp-noitem .sp-fpick{display:none!important}
 html body #appView #view-stock .stock-add.sp-form.sp-noitem>label.stock-entry-item{grid-column:1/-1!important;display:flex!important}
 /* 10/17 3차: 같은 줄의 칸(수량·날짜 / 색상·날짜)은 위 끝·높이가 같게 — 라벨은 위에서부터 쌓고, 날짜 감싸개·선택칸에 따로 붙은 여백·높이를 없앤다 */
-html body #appView #view-stock .stock-add.sp-form>label{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-self:start!important}
+html body #appView #view-stock :where(.stock-add.sp-form>label:not([hidden])){display:flex!important}
+html body #appView #view-stock .stock-add.sp-form>label{flex-direction:column!important;justify-content:flex-start!important;align-self:start!important}
 html body #appView #view-stock .stock-add.sp-form>label>.date-control{flex:none!important;height:40px!important;min-height:40px!important;margin:0!important;padding:0!important;display:block!important}
 html body #appView #view-stock .stock-add.sp-form>label :is(input,select,.ip-btn,.date-control){margin:0!important;box-sizing:border-box!important}
 html body #appView #view-stock .stock-add.sp-form>label>.date-control>input{height:40px!important;width:100%!important}
+/* 10/17 4차: 무엇을 먼저 — 머리(품목명 · 코드) → 입고·출고·조정 → 색상(한 줄 전체) → 수량/사이즈 → 일자 · 메모 한 줄 → 요약 → 버튼 */
+html body #appView #view-stock .stock-add.sp-form .sp-ft{font:700 18px/25px var(--sans)!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivColor){order:2;grid-column:1/-1!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivDate){order:7;grid-column:1/2!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivMemo){order:7;grid-column:2/3!important}
+html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onecolor.sp-onespec>label:has(#ivQty){grid-column:1/-1!important}
+@media (max-width:780px){
+ html body #appView #view-stock .stock-add.sp-form>label:is(:has(#ivColor),:has(#ivDate),:has(#ivMemo)){grid-column:1/-1!important}
+}
+html body #appView #view-stock .stock-add.sp-form .sp-fc{flex:none;padding:1px 8px;border-radius:6px;background:var(--nd-fill,rgba(0,0,0,.05));font:600 12.5px/18px var(--sans);color:var(--nd-ink)}
+html body #appView #view-stock .stock-add.sp-form .sp-fc[hidden]{display:none}

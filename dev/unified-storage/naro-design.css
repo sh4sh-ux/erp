@@ -1102,7 +1102,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .nd-kind{display:flex;height:42px;padding:0;border-radius:0;background:transparent;gap:6px}
 #appView .nd-kind>button{flex:1;height:42px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13.5px/1 var(--sans);box-shadow:none;cursor:pointer}
 #appView .nd-kind>button:hover{color:var(--nd-ink)}
-#appView .nd-kind>button.on{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame);box-shadow:none}
+#appView .nd-kind>button.on{background:color-mix(in srgb,var(--nd-blue) 12%,var(--nd-surface));border-color:color-mix(in srgb,var(--nd-blue) 45%,var(--nd-surface));color:color-mix(in srgb,var(--nd-blue) 80%,var(--nd-ink));box-shadow:none}
 #appView .nd-period{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;width:100%;flex-basis:100%}
 #appView .nd-period>button{flex:none;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12px/1 var(--sans);white-space:nowrap;cursor:pointer}
 #appView .nd-period>button:hover{color:var(--nd-ink)}
@@ -1465,11 +1465,11 @@ html[data-theme="dark"]{
 #appView .view table.tbl :is(th,td).num,#appView .view table.tbl th[style*="text-align:right"]{text-align:right!important}
 #appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):first-child{padding-left:var(--nd-tx)!important}
 #appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):last-child{padding-right:var(--nd-tx)!important}
-/* ── 구분 버튼도 색 정의를 따른다: 고른 버튼이 그 뜻의 색으로 채워짐 (입고·입금·받음 = 초록, 출고·출금·사용·반환 = 빨강, 조정 = 청록, 불량·분실 = 진한 빨강) ── */
-#appView .nd-kind>button.on:is([data-v="입고"],[data-v="수금"],[data-v="입금"],[data-v="받음"]){background:var(--nd-green-fill)!important;border-color:var(--nd-green-fill)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="출고"],[data-v="지급"],[data-v="출금"],[data-v="작업 완료"],[data-v="반환"]){background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="조정"],[data-v="재고 조정"]){background:var(--nd-teal-fill)!important;border-color:var(--nd-teal-fill)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="불량/분실"]){background:var(--nd-bad)!important;border-color:var(--nd-bad)!important;color:#fff!important}
+/* ── 구분 버튼도 색 정의를 따른다: 고른 버튼이 그 뜻의 색으로 옅게(12% 바탕 · 45% 테두리 · 진한 글자, 10/17) 물듦 (입고·입금·받음 = 초록, 출고·출금·사용·반환 = 빨강, 조정 = 청록, 불량·분실 = 진한 빨강) ── */
+#appView .nd-kind>button.on:is([data-v="입고"],[data-v="수금"],[data-v="입금"],[data-v="받음"]){background:color-mix(in srgb,var(--nd-green) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-green) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-green) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="출고"],[data-v="지급"],[data-v="출금"],[data-v="작업 완료"],[data-v="반환"]){background:color-mix(in srgb,var(--nd-red) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-red) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-red) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="조정"],[data-v="재고 조정"]){background:color-mix(in srgb,var(--nd-teal) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-teal) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-teal) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="불량/분실"]){background:color-mix(in srgb,var(--nd-bad) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-bad) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-bad) 80%,var(--nd-ink))!important;box-shadow:none!important}
 #appView #view-payments .nd-pay-kind{margin-top:0}
 /* 재고 입력 합계·변경 후 수치도 고른 구분의 색 */
 #appView .stock-add:has(.nd-kind>button.on[data-v="입고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-green)!important}
