@@ -148,3 +148,8 @@ dialog.nd-pay-sheet.pu-imp .nd-ps-hd,dialog.nd-pay-sheet.pu-imp .nd-ps-act{paddi
  .pu-imp .pu-imp-resume{margin:0 -18px}
  .pu-imp .pu-imp-leave span,.pu-imp .pu-imp-resume span{flex-basis:100%}
 }
+/* 하단 버튼 규칙: ⋮ 안에 하나뿐이면(취소된 매입의 삭제) ⋮ 대신 그 버튼을 바로 — 거래처·품목 [삭제]와 같은 모양 */
+html body #appView #puForm .pu-solo{display:inline-flex;flex:none}
+html body #appView #puForm .pu-solo>.btn{width:auto!important;min-width:72px;height:40px!important;min-height:40px!important;margin:0!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;box-shadow:none!important;font:600 13.5px/1 var(--sans)!important;color:var(--nd-ink)!important}
+html body #appView #puForm .pu-solo>.btn.del{color:var(--nd-red)!important}
+@media screen and (max-width:1023px){html body #appView #puForm .pu-solo>.btn{height:48px!important;min-height:48px!important;border-radius:12px!important;min-width:76px}}

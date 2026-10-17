@@ -191,19 +191,18 @@
   new MutationObserver(()=>{if(add.hidden&&ui.entry)closeEntry(false);}).observe(add,{attributes:true,attributeFilter:['hidden']});};
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&ui.entry&&!document.querySelector('dialog[open]')){ev.preventDefault();document.getElementById('ivCancelBtn')?.click();}});
 
- /* ── 입력 창 모양(10/17 재고 입력 창 시안): 머리 = 제목 + 품목 · 코드 [바꾸기], 사이즈 수에 따라 창 폭(7개 560 · 10개 720 · 그 이상 760 + 표 옆으로) ── */
+ /* ── 입력 창 모양(10/17 재고 입력 창 시안): 머리 = 제목, 품목 · 색상 칸 항상, 사이즈 수에 따라 창 폭(7개 560 · 10개 720 · 그 이상 760 + 표 옆으로) ── */
  const TITLE={in:'입고 기록',out:'출고 기록',adj:'재고 조정'};
  function decorateForm(){
   const add=view()?.querySelector('.stock-add');if(!add)return;
   if(!add.classList.contains('sp-form'))add.classList.add('sp-form');
+  // 10/17 5차: 머리는 제목만(입고 기록 · 출고 기록 · 재고 조정). 품목 · 품목코드와 색상은 항상 칸으로 보인다([바꾸기]/[접기] 없음 — 헷갈렸다).
   let hd=add.querySelector(':scope>.sp-fhd');
-  if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b><span class="sp-fs"><span class="sp-fi"></span><button type="button" class="sp-fpick">바꾸기</button></span>';add.prepend(hd);
-   hd.querySelector('.sp-fpick').addEventListener('click',()=>{add.classList.toggle('sp-pick');decorateForm();if(add.classList.contains('sp-pick'))add.querySelector('label.stock-entry-item button,label.stock-entry-item select')?.focus();});}
+  if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b>';add.prepend(hd);}
+  hd.querySelectorAll('.sp-fs').forEach(x=>x.remove());add.classList.remove('sp-pick');
   const kind=add.querySelector(':scope>.nd-sk-tabs')?.dataset.kind||'in';
-  // 10/17 4차: 무엇을(품목·색상) 먼저 — 제목 = 품목명, 아래 줄 = 코드(+하나뿐인 색상·규격). 입고·출고·조정은 탭과 버튼이 알려 준다.
-  const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi');
-  const t=it?.name||(add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력')),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
-  const pk=hd.querySelector('.sp-fpick'),pt=add.classList.contains('sp-pick')?'접기':it?'바꾸기':'고르기';if(pk.textContent!==pt)pk.textContent=pt;
+  const it=itemOf(document.getElementById('ivItem')?.value||'');
+  const t=add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력'),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
   add.classList.toggle('sp-noitem',!it);
   const cb=document.getElementById('ivCancelBtn');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';
   // 색상·규격이 하나뿐이면 고르는 칸을 숨기고 머리 줄에 적는다. 사이즈 표가 없는 품목(옵션 1개)은 수량 아래에 '현재 → 바뀐 뒤'.
@@ -211,10 +210,6 @@
   const real=sel=>sel?[...sel.options].filter(o=>o.value!==''):[];
   const single=!add.querySelector('#stockQuickEntry .nd-sz'),oneC=real(csel).length<=1,oneS=single&&real(ssel).length<=1;
   add.classList.toggle('sp-single',single);add.classList.toggle('sp-onecolor',oneC);add.classList.toggle('sp-onespec',oneS);
-  const extra=[oneC&&csel?.value?csel.value:'',oneS&&ssel?.value?ssel.value:''].filter(Boolean).join(' · ');
-  const txt2=it?(it.code||''):'품목을 골라 주세요';if(fi.textContent!==txt2)fi.textContent=txt2;
-  let fc=hd.querySelector('.sp-fc');if(!fc){fc=document.createElement('b');fc.className='sp-fc';fi.after(fc);}
-  const ex=it?extra:'';if(fc.textContent!==ex)fc.textContent=ex;fc.hidden=!ex;
   if(single&&qin){const ql=qin.closest('label');let h=ql?.querySelector('.sp-qhint');if(ql&&!h){h=document.createElement('span');h.className='sp-qhint';ql.append(h);qin.addEventListener('input',()=>decorateForm());}
    if(qin.placeholder!=='0')qin.placeholder='0';
    const cur=it&&typeof currentStocks==='function'?(currentStocks()[stockKeyOf({item_id:it.id,color:csel?.value||'',spec:ssel?.value||''})]||0):0;

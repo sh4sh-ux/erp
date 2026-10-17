@@ -105,7 +105,7 @@
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
     <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
    </div>
-   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn pp-del" data-pp="delete">삭제</button><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
  }
  const markup=p=>p?detailMarkup(p):overviewMarkup();
  function syncLeft(left,ids){
@@ -149,15 +149,15 @@
  function render(){
   const v=document.getElementById('view-payments');if(!v)return;
   const ids=records();if(state.id&&!ids.includes(state.id)){state.id=null;state.signature='';state.menu=false;}
-  const entryOpen=!!document.getElementById('payEntry')?.open;
-  v.classList.toggle('pp-entry-open',entryOpen);
+  const entryOpen=!!document.getElementById('payEntry')?.open,inDlg=deskDialog(),docked=entryOpen&&!inDlg;
+  v.classList.toggle('pp-entry-open',docked);
   syncCount(v,ids);
   if(!desk.matches)mobileList(v,ids);
   syncLeft(v.querySelector('.workspace-left'),ids);
   syncEntry();
   const p=get(state.id);
   let host=v.querySelector(':scope>.pp-detail');
-  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!entryOpen;
+  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!docked;
   v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);
   if(!active){if(host)host.hidden=true;return;}
   if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','입출금 상세');v.append(host);}
@@ -167,6 +167,19 @@
    host.innerHTML=html;host.dataset.for=p?.id||'';if(same){const b=host.querySelector('.pp-body');if(b)b.scrollTop=top;}state.signature=html;
   }
   v.querySelectorAll('#payTbl tbody tr').forEach(r=>r.classList.toggle('panel-b-selected',!!p&&r.querySelector('.rm')?.dataset.id===state.id));
+ }
+ // 10/17: PC 입력 = 재고 입력처럼 지금 화면 위의 창(폰은 naro-design.js의 아래 창). 원래 입력 칸(#payEntry)을 창으로 옮겼다가 닫으면 제자리로 — 저장·확인 처리는 원래 것 그대로.
+ let dlg=null,home=null;
+ function deskDialog(){
+  const v=document.getElementById('view-payments'),entry=document.getElementById('payEntry');if(!v||!entry)return false;
+  if(!dlg){dlg=document.createElement('dialog');dlg.className='pp-entry-dlg';dlg.setAttribute('aria-label','입금·출금 기록');v.append(dlg);
+   const close=()=>document.getElementById('payClose')?.click();
+   dlg.addEventListener('cancel',e=>{e.preventDefault();close();});
+   dlg.addEventListener('click',e=>{if(e.target===dlg)close();});
+   dlg.addEventListener('close',()=>{if(home){home.replaceWith(entry);home=null;}if(entry.open)entry.open=false;schedule();});}
+  if(desk.matches&&entry.open&&!dlg.open){home=document.createComment('pp-entry-home');entry.before(home);dlg.append(entry);dlg.showModal();setTimeout(()=>document.getElementById('payCo')?.focus(),0);}
+  else if((!entry.open||!desk.matches)&&dlg.open)dlg.close();
+  return dlg.open;
  }
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});};
  // ---------- 입력 창: 거래처를 고르면 남은 금액이 있는 견적이 뜨고, 누르면 금액이 채워진다 ----------
@@ -186,6 +199,12 @@
    const html=`<span class="pp-qpick-k">연결할 견적 · 잔액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
+  // 창 제목 · 버튼 글자(재고 입력과 같게): 입금 기록 / 출금 기록 / 입금 기록 수정, [닫기]
+  {const k=value('payKind')==='지급'?'출금':'입금',tt=state.editing?`${k} 기록 수정`:`${k} 기록`,add=entry.querySelector('.pay-add');
+   let et=entry.querySelector('.pp-et');if(add&&!et){et=document.createElement('h3');et.className='pp-et';add.prepend(et);}
+   if(et&&et.textContent!==tt)et.textContent=tt;
+   const ph=document.getElementById('ndPayEntryTitle');if(ph&&ph.textContent!==tt)ph.textContent=tt;
+   const cb=document.getElementById('payClose');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';}
   const head=document.querySelector('#view-payments>.workspace-heading');
   if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 수정`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
   let note=entry.querySelector('.pp-edit-note');const orig=state.editing&&(data()?.payments||[]).find(x=>x.id===state.editing);

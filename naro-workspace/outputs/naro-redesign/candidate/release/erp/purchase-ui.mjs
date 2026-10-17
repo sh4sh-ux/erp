@@ -211,7 +211,8 @@ export function installPurchaseUI({port,features=()=>true}){
    <div class="form-actions quote-form-actions">
     <button class="btn save${st.dirty?'':' nd-saved'}" id="puSaveBtn" type="button" data-act="save" aria-label="${st.dirty?'저장':'저장됨 — 바뀐 내용 없음'}">${st.dirty?'저장':'저장됨'}</button>
     ${st.dirty?`<button class="btn ghost" id="puCancelBtn" type="button" data-act="revert">${sv?'되돌리기':'취소'}</button>`:''}
-    ${sv&&!p.removed_at?(mob.matches?`<details class="qp-more pu-more"><summary>··· 더보기</summary>${moreBtns(p)}</details>`:`<details class="panel-b-danger pu-more"><summary aria-label="더보기">더보기</summary><div class="nd-pop">${moreBtns(p)}</div></details>`):''}
+    ${sv&&!p.removed_at&&(moreBtns(p).match(/<button/g)||[]).length===1?`<span class="pu-solo">${moreBtns(p)}</span>`:''}
+    ${sv&&!p.removed_at&&(moreBtns(p).match(/<button/g)||[]).length>1?(mob.matches?`<details class="qp-more pu-more"><summary>··· 더보기</summary>${moreBtns(p)}</details>`:`<details class="panel-b-danger pu-more"><summary aria-label="더보기">더보기</summary><div class="nd-pop">${moreBtns(p)}</div></details>`):''}
    </div>
   </div>`;
  }

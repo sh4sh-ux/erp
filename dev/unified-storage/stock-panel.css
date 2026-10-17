@@ -316,3 +316,12 @@ html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onecolor.sp-onesp
 }
 html body #appView #view-stock .stock-add.sp-form .sp-fc{flex:none;padding:1px 8px;border-radius:6px;background:var(--nd-fill,rgba(0,0,0,.05));font:600 12.5px/18px var(--sans);color:var(--nd-ink)}
 html body #appView #view-stock .stock-add.sp-form .sp-fc[hidden]{display:none}
+/* 10/17 5차: 품목 · 품목코드와 색상은 항상 칸으로(바꾸기/접기 없음). 첫 줄 = 품목 | 색상, 색상이 하나뿐이어도 보인다 */
+html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label.stock-entry-item{display:flex!important;order:1!important;grid-column:1/2!important}
+html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivColor){display:flex!important;order:2!important;grid-column:2/3!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label.stock-entry-item{grid-column:1/-1!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivColor){display:none!important}
+html body #appView #view-stock .stock-add.sp-form.sp-single:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivQty){order:4!important}
+@media (max-width:780px){
+ html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:is(.stock-entry-item,:has(#ivColor)){grid-column:1/-1!important}
+}
