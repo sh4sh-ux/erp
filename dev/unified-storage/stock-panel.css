@@ -1,0 +1,198 @@
+/* 재고 화면(10/17 시안 A) — stock-panel.js. 머리·탭·아래 줄 수치는 업체 제공 자재 화면과 같게(실측: 머리 144 · 탭 47 · 아래 줄 69 · 좌우 28). */
+html body #appView #view-stock.sp-on>.stats,
+html body #appView #view-stock.sp-on>.workspace-right>:is(.stats,#stockOverview,.stock-history-title,.tbl-wrap),
+html body #appView #view-stock.sp-on>.cols>.card:nth-child(2)>:is(.stats,#stockOverview,.stock-history-title,.tbl-wrap){display:none!important}
+html body #appView #view-stock.sp-on>.cols>.card:nth-child(2){padding:0!important;display:flex!important;flex-direction:column;overflow:hidden}
+/* PC 나눔(1024~): 원래 '재고 상세' 머리 줄을 숨기고 오른쪽 칸 전체(머리 줄 자리까지)를 새 상세가 쓴다 */
+html body #appView[data-layout-system] .shell .main #view-stock.sp-on>.workspace-heading{display:none!important}
+html body #appView[data-layout-system] .shell .main #view-stock.sp-on>.workspace-right{grid-row:1/3!important;padding:0!important;overflow:hidden!important;display:flex!important;flex-direction:column}
+html body #appView #view-stock.sp-on #spDetail{display:flex;flex-direction:column;flex:1;min-height:0}
+html body #appView #view-stock #spDetail .sp-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:22px 28px 28px}
+/* 머리 */
+html body #appView #view-stock #spDetail .sp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;min-height:144px;padding:30px 28px 0;border-bottom:1px solid var(--nd-line);box-sizing:border-box}
+html body #appView #view-stock #spDetail .sp-hl{min-width:0}
+html body #appView #view-stock #spDetail .sp-eye{font:400 12px/13px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-title{margin:7px 0 0!important;font:650 22px/30px var(--sans)!important;letter-spacing:-.5px!important;color:var(--nd-ink)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #appView #view-stock #spDetail .sp-meta{margin-top:20px;font:400 12.5px/22px var(--sans);color:var(--nd-ink-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html body #appView #view-stock #spDetail .sp-meta .sp-dot{color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-code{color:var(--nd-blue)}
+html body #appView #view-stock #spDetail .sp-hero{text-align:right;flex:none}
+html body #appView #view-stock #spDetail .sp-hero span{display:block;font:400 12px/13px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-hero strong{display:block;margin-top:7px;font:650 22px/30px var(--nd-number-font,var(--sans));letter-spacing:-.3px;color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-hero small{display:block;margin-top:20px;font:400 12.5px/22px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-hero small b{color:var(--nd-ink);font-weight:600}
+/* 탭 */
+html body #appView #view-stock #spDetail .sp-tabs{display:flex;gap:28px;height:47px;padding:0 28px;border-bottom:1px solid var(--nd-line);flex:none}
+html body #appView #view-stock #spDetail .sp-tabs button{display:inline-flex;align-items:center;gap:4px;height:46px;padding:0;border:0;border-bottom:2px solid transparent;background:none;font:600 13px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer}
+html body #appView #view-stock #spDetail .sp-tabs button[aria-selected="true"]{color:var(--nd-ink);border-bottom-color:var(--nd-blue)}
+html body #appView #view-stock #spDetail .sp-tabs em{font-style:normal;font-weight:400;color:var(--nd-ink-3)}
+/* 섹션 머리 · 칩 */
+html body #appView #view-stock #spDetail .sp-sec{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 10px;min-height:32px}
+html body #appView #view-stock #spDetail .sp-sec>b{display:flex;align-items:center;gap:6px;font:700 15px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-sec em{font:400 12.5px/18px var(--sans);font-style:normal;color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-seg{display:flex;gap:6px;flex-wrap:wrap}
+html body #appView #view-stock #spDetail .sp-seg button{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--nd-line);background:var(--nd-surface);font:500 12.5px/1 var(--sans);color:var(--nd-ink-2);cursor:pointer;display:inline-flex;align-items:center}
+html body #appView #view-stock #spDetail .sp-seg button[aria-pressed="true"]{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-surface)}
+html body #appView #view-stock #spDetail .sp-optchip{height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--nd-blue);background:var(--nd-blue-soft,rgba(67,85,232,.08));color:var(--nd-blue);font:600 12px/1 var(--sans);cursor:pointer}
+html body #appView #view-stock #spDetail .sp-textbtn{border:0;background:none;color:var(--nd-blue);font:600 13px/1 var(--sans);cursor:pointer;padding:6px 0}
+/* 요약 막대 */
+html body #appView #view-stock #spDetail .sp-sum-bar{display:flex;flex-direction:column;gap:10px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--nd-line)}
+html body #appView #view-stock #spDetail .sp-cap{font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-track{display:flex;gap:2px;height:8px;border-radius:999px;overflow:hidden;background:var(--nd-fill,rgba(0,0,0,.05))}
+html body #appView #view-stock #spDetail .sp-track i{display:block;height:100%}
+html body #appView #view-stock #spDetail :is(.sp-track,.sp-leg) i.ok{background:var(--nd-blue)}
+html body #appView #view-stock #spDetail :is(.sp-track,.sp-leg) i.amb{background:var(--nd-amber,#D97706)}
+html body #appView #view-stock #spDetail :is(.sp-track,.sp-leg) i.red{background:var(--nd-red,#E53E3E)}
+html body #appView #view-stock #spDetail .sp-leg{display:flex;gap:16px;flex-wrap:wrap;font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-leg span{display:inline-flex;align-items:center;gap:5px}
+html body #appView #view-stock #spDetail .sp-leg i{width:8px;height:8px;border-radius:50%;display:inline-block}
+html body #appView #view-stock #spDetail .sp-leg b{color:var(--nd-ink);font-weight:600}
+/* 사이즈 숫자표(시안 A) */
+html body #appView #view-stock #spDetail .sp-mx-wrap{overflow-x:auto;margin-bottom:24px}
+html body #appView #view-stock #spDetail .sp-mx{width:100%;border-collapse:collapse;table-layout:fixed}
+html body #appView #view-stock #spDetail .sp-mx th{padding:0 0 10px;font:500 12px/18px var(--sans);color:var(--nd-ink-3);text-align:center}
+html body #appView #view-stock #spDetail .sp-mx th:first-child{width:72px;text-align:left}
+html body #appView #view-stock #spDetail .sp-mx td{padding:0;border-top:1px solid var(--nd-line);text-align:center;vertical-align:top}
+html body #appView #view-stock #spDetail .sp-mx td.sp-c{padding:14px 0;text-align:left;font:600 13px/22px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-mx td button{position:relative;display:block;width:100%;padding:14px 0 12px;border:0;background:none;font:600 17px/22px var(--nd-number-font,var(--sans));color:var(--nd-ink);cursor:pointer;font-variant-numeric:tabular-nums}
+html body #appView #view-stock #spDetail .sp-mx td button:hover{background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #view-stock #spDetail .sp-mx small{display:block;margin-top:3px;font:400 11px/14px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-mx td.out button{color:var(--nd-red,#E53E3E)}
+html body #appView #view-stock #spDetail .sp-mx td.low button{color:var(--nd-amber,#D97706)}
+html body #appView #view-stock #spDetail .sp-mx td.sel button::after{content:"";position:absolute;left:28%;right:28%;bottom:4px;height:2px;border-radius:2px;background:var(--nd-blue)}
+html body #appView #view-stock #spDetail .sp-mx td.none{padding:14px 0;font:400 13px/22px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-mx .sp-sum{padding:14px 0 12px;font:500 15px/22px var(--nd-number-font,var(--sans));color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-mx th.sp-sum{padding:0 0 10px;font:500 12px/18px var(--sans);color:var(--nd-ink-3)}
+/* 줄 표 */
+html body #appView #view-stock #spDetail :is(.sp-th,.sp-tr){position:relative;display:grid;align-items:center;column-gap:14px;padding:0 12px}
+html body #appView #view-stock #spDetail .sp-th{min-height:34px;border-bottom:1px solid var(--nd-line-strong,var(--nd-line));font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-tr{min-height:48px;border-bottom:1px solid var(--nd-line);font:400 13.5px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-tr[role="button"]{cursor:pointer}
+html body #appView #view-stock #spDetail .sp-tr[role="button"]:hover,html body #appView #view-stock #spDetail .sp-tr.sel{background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #view-stock #spDetail .sp-tr.gone{color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-tr.gone b{font-weight:400;text-decoration:line-through}
+html body #appView #view-stock #spDetail .num{text-align:right;white-space:nowrap;font-family:var(--nd-number-font,var(--sans));font-variant-numeric:tabular-nums}
+html body #appView #view-stock #spDetail .sp-tr .num{font-weight:600}
+html body #appView #view-stock #spDetail .sp-tr .num i{font-style:normal;font-weight:400;color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .num.red{color:var(--nd-red,#E53E3E)}
+html body #appView #view-stock #spDetail .num.dim{color:var(--nd-ink-3);font-weight:400}
+html body #appView #view-stock #spDetail .sp-g-opt{grid-template-columns:minmax(0,1.4fr) 70px 76px 70px 60px 84px}
+html body #appView #view-stock #spDetail .sp-g-log{grid-template-columns:84px 64px minmax(0,1.6fr) minmax(0,1fr) 64px 26px}
+html body #appView #view-stock #spDetail .sp-g-ov{grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) 96px 64px 84px 14px}
+html body #appView #view-stock #spDetail .sp-ol{font-weight:600}
+html body #appView #view-stock #spDetail .sp-d{font:400 13px/20px var(--nd-number-font,var(--sans));color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-k{display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
+html body #appView #view-stock #spDetail .sp-k i{width:7px;height:7px;border-radius:50%;flex:none}
+html body #appView #view-stock #spDetail .sp-k i.in{background:var(--nd-blue)}
+html body #appView #view-stock #spDetail .sp-k i.out{background:#B9C0F5}
+html body #appView #view-stock #spDetail .sp-k i.adj{background:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-k small{font-size:11px;color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-nmc{display:flex;align-items:baseline;gap:10px;min-width:0}
+html body #appView #view-stock #spDetail .sp-nmc>b{flex:none;font-weight:600;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #view-stock #spDetail .sp-src{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-memo{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-link{border:0;background:none;padding:0;color:var(--nd-blue);font:600 13px/20px var(--sans);cursor:pointer}
+html body #appView #view-stock #spDetail .sp-chev{color:var(--nd-ink-3);text-align:right}
+html body #appView #view-stock #spDetail .sp-empty{margin:18px 0;color:var(--nd-ink-3);font-size:13px}
+html body #appView #view-stock .sp-tag{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font:600 11px/1 var(--sans);white-space:nowrap}
+html body #appView #view-stock .sp-tag.red{color:var(--nd-red,#E53E3E);background:color-mix(in srgb,var(--nd-red,#E53E3E) 11%,transparent)}
+html body #appView #view-stock .sp-tag.amb{color:var(--nd-amber,#D97706);background:color-mix(in srgb,var(--nd-amber,#D97706) 13%,transparent)}
+html body #appView #view-stock .sp-tag.gray{color:var(--nd-ink-3);background:var(--nd-fill,rgba(0,0,0,.05));font-weight:500}
+html body #appView #view-stock .sp-tag.green{color:var(--nd-green,#1DAD53);background:color-mix(in srgb,var(--nd-green,#1DAD53) 12%,transparent)}
+html body #appView #view-stock #spDetail .sp-act{display:flex;justify-content:center}
+html body #appView #view-stock #spDetail .sp-dots{width:26px;height:26px;border:0;border-radius:6px;background:none;color:var(--nd-ink-3);display:grid;place-items:center;cursor:pointer}
+html body #appView #view-stock #spDetail .sp-dots:hover{background:var(--nd-fill,rgba(0,0,0,.05));color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-menu{position:absolute;right:0;z-index:20;min-width:200px;padding:6px;border:1px solid var(--nd-line);border-radius:12px;background:var(--nd-surface);box-shadow:0 8px 28px rgba(15,20,30,.14)}
+html body #appView #view-stock #spDetail .sp-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:none;text-align:left;cursor:pointer}
+html body #appView #view-stock #spDetail .sp-menu button:hover{background:var(--nd-fill,rgba(0,0,0,.04))}
+html body #appView #view-stock #spDetail .sp-menu b{font:600 13px/18px var(--sans);color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-menu small{font:400 11.5px/16px var(--sans);color:var(--nd-ink-3)}
+html body #appView #view-stock #spDetail .sp-menu .danger b{color:var(--nd-red,#E53E3E)}
+/* 전체 현황 숫자 */
+html body #appView #view-stock #spDetail .sp-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--nd-line);margin-bottom:22px}
+html body #appView #view-stock #spDetail .sp-kpis button{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:2px 18px 20px;border:0;border-left:1px solid var(--nd-line);background:none;text-align:left;cursor:pointer}
+html body #appView #view-stock #spDetail .sp-kpis button:first-child{border-left:0;padding-left:0}
+html body #appView #view-stock #spDetail .sp-kpis span{font:400 12.5px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView #view-stock #spDetail .sp-kpis b{font:650 22px/28px var(--nd-number-font,var(--sans));color:var(--nd-ink)}
+html body #appView #view-stock #spDetail .sp-kpis b small{margin-left:2px;font:400 13px/1 var(--sans)}
+html body #appView #view-stock #spDetail .sp-kpis b.red{color:var(--nd-red,#E53E3E)}
+html body #appView #view-stock #spDetail .sp-kpis b.amb{color:var(--nd-amber,#D97706)}
+/* 정보 */
+html body #appView #view-stock #spDetail .sp-kv{display:grid;grid-template-columns:110px minmax(0,1fr);margin:0}
+html body #appView #view-stock #spDetail .sp-kv dt,html body #appView #view-stock #spDetail .sp-kv dd{margin:0;padding:12px 0;border-bottom:1px solid var(--nd-line);font-size:13.5px}
+html body #appView #view-stock #spDetail .sp-kv dt{color:var(--nd-ink-3)}
+/* 아래 줄 */
+html body #appView #view-stock #spDetail .sp-bar{display:flex;align-items:center;gap:8px;padding:14px 28px;border-top:1px solid var(--nd-line);background:var(--nd-surface);flex:none}
+html body #appView #view-stock #spDetail .sp-bar .sp-sp{flex:1}
+html body #appView #view-stock #spDetail .sp-bar .btn{height:40px;min-height:40px;padding:0 16px;border-radius:10px;font:600 13px/1 var(--sans);display:inline-flex;align-items:center;justify-content:center;flex:none;width:auto;margin:0}
+html body #appView #view-stock #spDetail .sp-bar .btn.save{padding:0 22px}
+/* 왼쪽 줄 */
+html body #appView #view-stock #stockItems>.stock-item.sp-li{display:block!important;text-align:left}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-r1{display:flex!important;justify-content:space-between;align-items:baseline;gap:10px}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 14.5px/20px var(--sans)!important;color:inherit}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-v{flex:none;font:700 14.5px/20px var(--nd-number-font,var(--sans));color:var(--nd-ink)}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-v small{margin-left:1px;font:400 12px/1 var(--sans)}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-r2{display:flex!important;justify-content:space-between;align-items:center;gap:8px;margin-top:5px}
+html body #appView #view-stock #stockItems>.stock-item.sp-li .sp-r2 small{font:400 12px/18px var(--sans)!important;color:var(--nd-ink-3)!important}
+/* 입력 창(PC) */
+@media (min-width:781px){
+ html body #appView #view-stock.sp-on:not(.sp-entry) .stock-add{display:none!important}
+ html body #appView #view-stock.sp-entry .stock-add{position:fixed!important;left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important;z-index:61!important;width:min(760px,calc(100vw - 48px))!important;max-width:none!important;max-height:86vh!important;overflow-y:auto!important;margin:0!important;padding:22px 24px!important;border-radius:18px!important;background:var(--nd-surface)!important;box-shadow:0 18px 60px rgba(15,20,30,.22)!important}
+ html body #appView #view-stock .sp-backdrop{position:fixed;inset:0;z-index:60;background:rgba(15,20,30,.38)}
+}
+/* 최소 기준 창 */
+html body #appView dialog.sp-sheet .sp-mxin{width:100%;border-collapse:separate;border-spacing:6px;table-layout:fixed;margin:4px -6px 0}
+html body #appView dialog.sp-sheet .sp-mxin th{font:500 12px/18px var(--sans);color:var(--nd-ink-3);text-align:center}
+html body #appView dialog.sp-sheet .sp-mxin th:first-child{width:52px}
+html body #appView dialog.sp-sheet .sp-mxin td.sp-c{font:600 13px/1 var(--sans);color:var(--nd-ink-2)}
+html body #appView dialog.sp-sheet .sp-mxin input{width:100%;height:38px;border:1px solid var(--nd-line);border-radius:9px;background:var(--nd-surface);text-align:center;font:600 14px/1 var(--nd-number-font,var(--sans));color:var(--nd-ink);box-sizing:border-box}
+html body #appView dialog.sp-sheet .sp-mxin input:focus{outline:none;border-color:var(--nd-blue);box-shadow:0 0 0 3px var(--nd-blue-soft,rgba(67,85,232,.12))}
+html body #appView dialog.sp-sheet .sp-mxin .none{display:block;text-align:center;color:var(--nd-ink-3)}
+html body #appView dialog.sp-sheet .sp-fill{display:flex;align-items:center;gap:8px;margin-top:14px;font:400 12.5px/1 var(--sans);color:var(--nd-ink-2)}
+html body #appView dialog.sp-sheet .sp-fill input{width:90px;height:36px;border:1px solid var(--nd-line);border-radius:9px;text-align:center;font:600 14px/1 var(--sans);background:var(--nd-surface);color:var(--nd-ink)}
+html body #appView dialog.sp-sheet .sp-fill .btn{height:36px;min-height:36px;padding:0 14px;border-radius:9px;font:600 13px/1 var(--sans)}
+/* 폰: 원래 naro-design 흐름(목록 → 상세, 아래 [입고][출고][조정])을 그대로 쓰고 머리·표만 */
+@media (max-width:780px){
+ html body #appView #view-stock.sp-on .nd-st-title{display:none}
+ html body #appView #view-stock #spDetail .sp-bar{display:none}
+ html body #appView #view-stock #spDetail .sp-head{min-height:0;padding:14px 16px 16px;align-items:flex-end}
+ html body #appView #view-stock #spDetail .sp-eye{display:none}
+ html body #appView #view-stock #spDetail .sp-title{margin:0;font-size:22px;white-space:normal}
+ html body #appView #view-stock #spDetail .sp-meta{margin-top:8px}
+ html body #appView #view-stock #spDetail .sp-hero strong{margin-top:4px}
+ html body #appView #view-stock #spDetail .sp-hero small{display:none}
+ html body #appView #view-stock #spDetail .sp-tabs{padding:0 16px;gap:24px;height:45px}
+ html body #appView #view-stock #spDetail .sp-tabs button{height:44px;font-size:14px}
+ html body #appView #view-stock #spDetail .sp-body{padding:16px;overflow:visible}
+ html body #appView #view-stock #spDetail .sp-sec>b{white-space:nowrap}
+ html body #appView #view-stock #spDetail .sp-sec>b em.sp-hint{display:none}
+ html body #appView #view-stock #spDetail .sp-seg{flex-wrap:nowrap}
+ html body #appView #view-stock #spDetail .sp-mx th:first-child{width:44px}
+ html body #appView #view-stock #spDetail .sp-mx td button{font-size:15px;padding:12px 0 10px}
+ html body #appView #view-stock #spDetail .sp-mx td.sp-c{padding:12px 0}
+ html body #appView #view-stock #spDetail .sp-mx :is(th,td).sp-sum{display:none}
+ html body #appView #view-stock #spDetail .sp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html body #appView #view-stock #spDetail .sp-kpis button:nth-child(3){border-left:0;padding-left:0}
+ html body #appView #view-stock #spDetail .sp-th{display:none}
+ html body #appView #view-stock #spDetail .sp-g-opt{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"ol q" "meta tag";row-gap:2px;padding:10px 0}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(1){grid-area:ol}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(2){grid-area:q}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(3),html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(5){display:none}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(4){grid-area:meta;text-align:left;font-weight:400;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(4)::before{content:"가용 "}
+ html body #appView #view-stock #spDetail .sp-g-opt>:nth-child(6){grid-area:tag;justify-self:end}
+ html body #appView #view-stock #spDetail .sp-g-log{grid-template-columns:minmax(0,1fr) auto 28px;grid-template-areas:"nm q act" "meta meta act" "memo memo act";row-gap:2px;padding:10px 0}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-nmc{grid-area:nm}
+ html body #appView #view-stock #spDetail .sp-g-log>.num{grid-area:q}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-act{grid-area:act}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-d{grid-area:meta;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-k{display:none}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-memo{grid-area:memo;white-space:normal;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-stock #spDetail .sp-g-log>.sp-memo:empty{display:none}
+ html body #appView #view-stock #spDetail .sp-g-ov{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm tag" "ol q";row-gap:2px;padding:10px 0}
+ html body #appView #view-stock #spDetail .sp-g-ov>.sp-nmc{grid-area:nm}
+ html body #appView #view-stock #spDetail .sp-g-ov>.sp-ol{grid-area:ol;font-weight:400;font-size:12px;color:var(--nd-ink-3)}
+ html body #appView #view-stock #spDetail .sp-g-ov>.num:nth-child(3){grid-area:q;font-size:12.5px}
+ html body #appView #view-stock #spDetail .sp-g-ov>.num:nth-child(4),html body #appView #view-stock #spDetail .sp-g-ov>.sp-chev{display:none}
+ html body #appView #view-stock #spDetail .sp-g-ov>:nth-child(5){grid-area:tag;justify-self:end}
+}
