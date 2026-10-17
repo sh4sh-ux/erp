@@ -107,6 +107,8 @@ export function validatePurchase(p,snapshot){
   for(const k of ['declaration_no','bl_no','incoterms','pay_method'])valid(c[k]===undefined||str(c[k],60));
   for(const k of ['declared_on','accepted_on'])valid(c[k]===undefined||day(c[k]));}
  valid(p.tax_invoice===undefined||p.tax_invoice&&typeof p.tax_invoice.received==='boolean'&&(p.tax_invoice.date===undefined||day(p.tax_invoice.date)));
+ // 견적 연결(10/17, 건별 마진): 이 매입이 어느 견적 건의 원가인지. 견적이 나중에 지워져도 매입은 그대로 둔다(화면이 없는 견적은 무시).
+ valid(p.quote_id===undefined||id(p.quote_id));
  valid(p.attachments===undefined||Array.isArray(p.attachments)&&p.attachments.every(a=>str(a,500)&&/^NARO Biz\/Documents\//.test(a)&&!a.includes('..')));
  // 입고 수량은 주문 수량을 넘을 수 없다(취소된 차수 제외) — 같은 물건을 두 번 입고하는 실수를 막는다.
  for(const l of p.lines){

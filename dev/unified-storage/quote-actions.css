@@ -481,3 +481,40 @@ html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head) .dual>:is(inpu
 html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){padding-left:4px!important;padding-right:4px!important;text-overflow:ellipsis}
 /* 색상이 없는 줄(작업·직접 입력)의 규격 칸도 위 비율(1 : 1.4)의 규격 자리와 같은 폭 */
 html body #appView :is(#qtForm,#puForm) .qline:not(.head):not(.nd-x)>:is([data-f="spec"],[data-f="vspec"]){width:calc((100% - 8px) * 1.4 / 2.4)!important} /* :not(.nd-x) = ui-contract.css의 반쪽 폭 규칙보다 앞서게 */
+/* 10/17 견적금액 = 24px · 굵기 650(시안 A) — 이미지 저장(drawQuoteCanvas)과 같은 값 */
+#printArea .p-grand .v{font-size:24px!important;font-weight:650!important}
+/* 견적서 정보 탭: 안내문 넣기 스위치 + 공급자 정보로 */
+html body #appView #qtForm .nd-qn{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #qtForm .nd-qn-sw{display:flex;align-items:center;gap:10px;margin:0;cursor:pointer;font:500 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #qtForm .nd-qn-sw input{width:18px;height:18px;margin:0;accent-color:var(--nd-blue);flex:none}
+html body #appView #qtForm .nd-qn-t small{margin-left:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qn.is-empty .nd-qn-t small{color:var(--nd-amber,#D97706)}
+html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:600 13px/20px var(--sans);cursor:pointer}
+/* 공급자 정보: 견적서 안내문 */
+html body #appView #view-settings #st_quote_notice{min-height:76px;color:var(--nd-red);line-height:1.6;resize:vertical}
+html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+html body #appView #view-settings .nd-qn-row .hint{margin:0}
+/* 진행 탭: 건별 마진 */
+html body #appView #qtForm .nd-qm-b{padding:0 16px 14px}
+html body #appView #qtForm .nd-qm{margin-bottom:14px}
+html body #appView #qtForm .nd-qm-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--nd-line);border-radius:12px;overflow:hidden}
+html body #appView #qtForm .nd-qm-k>div{padding:14px 16px;border-left:1px solid var(--nd-line);min-width:0}
+html body #appView #qtForm .nd-qm-k>div:first-child{border-left:0}
+html body #appView #qtForm .nd-qm-k span{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qm-k em{display:block;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-qm-k .pos b{color:var(--nd-blue)}
+html body #appView #qtForm .nd-qm-k .neg b{color:var(--nd-red)}
+html body #appView #qtForm .nd-qm-h{margin:16px 0 4px;font:600 14px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #qtForm .nd-qm-r{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;min-height:50px;height:auto;margin:0;padding:6px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
+html body #appView #qtForm .nd-qm-r.is-static{cursor:default}
+@media(hover:hover){html body #appView #qtForm button.nd-qm-r:hover .n{color:var(--nd-blue)}}
+html body #appView #qtForm .nd-qm-r .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #qtForm .nd-qm-r small{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+@media(max-width:600px){
+ html body #appView #qtForm .nd-qm-k{grid-template-columns:1fr}
+ html body #appView #qtForm .nd-qm-k>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding:11px 14px;border-left:0;border-top:1px solid var(--nd-line)}
+ html body #appView #qtForm .nd-qm-k>div:first-child{border-top:0}
+ html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
+ html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
+}

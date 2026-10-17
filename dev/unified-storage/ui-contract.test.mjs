@@ -137,7 +137,7 @@ test('all rail destinations share rendered typography in desktop/mobile and ligh
       });
      }
      if(view==='settings'){
-      const groups=page.locator('#view-settings .sup-sec.cp-grp');assert.equal(await groups.count(),3);
+      const groups=page.locator('#view-settings .sup-sec.cp-grp');assert.equal(await groups.count(),4); // 기본 정보 · 연락처 · 계좌정보 · 견적서 안내문(10/17)
       const supplier=await groups.first().evaluate(e=>{
        const g=getComputedStyle(e),h=getComputedStyle(e.querySelector('.cp-grph h3')),p=getComputedStyle(e.querySelector('.cp-grph p')),input=getComputedStyle(e.querySelector('input'));
        return {display:g.display,columns:g.gridTemplateColumns,gap:g.columnGap,heading:h.font,description:p.font,descriptionColor:p.color,inputFont:input.font,inputHeight:input.height,inputBackground:input.backgroundColor,inputBorder:input.borderColor,inputRadius:input.borderRadius,inputPadding:input.padding,labelFont:getComputedStyle(e.querySelector('label')).font,labelColor:getComputedStyle(e.querySelector('label')).color,fieldMargin:getComputedStyle(e.querySelector('.field')).marginBottom,innerGap:getComputedStyle(e.querySelector('.cp-grpb .grid2')).columnGap};

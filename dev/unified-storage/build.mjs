@@ -418,6 +418,30 @@ patchFn('printQuote',[
  ['const rows=lines.map(l=>{','const rows=lines.map((l,li)=>{const sp=window.naroSplitName?window.naroSplitName(l):{name:l.name,code:""},pn=`<span class="nd-pn"><b>${escapeHtml(sp.name)}</b>${sp.code?`<small>${escapeHtml(sp.code)}</small>`:""}</span>`;const ph=window.naroQuotePhoto?.(l,lines[li-1])||null,nx=lines[li+1]&&window.naroQuotePhoto?.(lines[li+1],l);'],
  ['<tr>\n      <td>${escapeHtml(l.name)}</td>','<tr${ph&&nx&&!nx.first?\' class="nd-pq-grp"\':\'\'}>\n      <td>${ph?`<div class="nd-pq">${ph.first&&ph.url?`<img src="${ph.url}" alt="">`:\'<i></i>\'}${pn}</div>`:pn}</td>'],
 ]);
+// 10/17 견적서 안내문(quote-extras.js): 빨간 글씨는 공급자 정보의 '견적서 안내문'(없으면 기본 문구) — 견적서마다 끌 수 있다(quote.no_notice).
+// 견적금액은 24px · 굵기 650(시안 A, 사용자 확정) — 인쇄(naro-design.css)와 이미지(여기)가 같게.
+patchFn('printQuote',[
+ ['<div class="notice">자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.\n주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.</div>','${window.naroQuoteNoticeHtml?window.naroQuoteNoticeHtml(q):""}'],
+]);
+patchFn('drawQuoteCanvas',[
+ ['const NOTICE=["자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.",\n                "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];','const NOTICE=window.naroQuoteNoticeLines?window.naroQuoteNoticeLines(q):[];'],
+ ['ctx.fillStyle="#fff"; ctx.font=F(800,26); ctx.textAlign="right";','ctx.fillStyle="#fff"; ctx.font=F(650,24); ctx.textAlign="right";'],
+]);
+patchFn('renderSettings',[
+ ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn)qn.value=window.naroQuoteNoticeText?window.naroQuoteNoticeText():"";'],
+]);
+patchFn('saveSettings',[
+ ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(document.getElementById("st_quote_notice")&&window.naroNormNotice?{quote_notice:window.naroNormNotice(document.getElementById("st_quote_notice").value)}:{}),\n  };'],
+]);
+{const from='<section class="sup-sec sup-docs">';if(html.split(from).length!==2)throw Error('QUOTE_NOTICE_BOUNDARY');
+ html=html.replace(from,`<section class="sup-sec sup-notice">
+              <h3 class="sup-sec-t">견적서 안내문</h3>
+              <div class="field"><label for="st_quote_notice">안내문</label><textarea id="st_quote_notice" rows="3" placeholder="비우면 안내문 없이 출력돼요"></textarea>
+                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
+              </div>
+            </section>
+
+            `+from);}
 // Personal B layout replaces only the isolated inventory presentation, not its
 // native renderer, controls or calculations. Legacy /erp/ remains untouched.
 if(business){
@@ -426,7 +450,7 @@ if(business){
 }
 // NARO design layer (theme tokens, wide rail, panels) loads last; theme is set before first paint.
 html=html.replace('</head>',`<script>try{const p=localStorage.getItem('naroTheme');document.documentElement.dataset.theme=p==='light'||p==='dark'?p:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}</script><style>html[data-theme="dark"]{background:#0B0C0E;color-scheme:dark}</style></head>`);
-html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}\n${await readFile(resolve(here,'company-panel.css'),'utf8')}\n${await readFile(resolve(here,'material-panel.css'),'utf8')}\n${await readFile(resolve(here,'stock-panel.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}\n${await readFile(resolve(here,'trash-actions.js'),'utf8')}\n${await readFile(resolve(here,'company-panel.js'),'utf8')}\n${await readFile(resolve(here,'material-panel.js'),'utf8')}\n${await readFile(resolve(here,'stock-panel.js'),'utf8')}</script></body>`);
+html=html.replace('</body>',`<style id="naro-design">${await readFile(resolve(here,'naro-design.css'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.css'),'utf8')}\n${await readFile(resolve(here,'order-import.css'),'utf8')}\n${await readFile(resolve(here,'quote-actions.css'),'utf8')}\n${await readFile(resolve(here,'purchase-ui.css'),'utf8')}\n${await readFile(resolve(here,'company-panel.css'),'utf8')}\n${await readFile(resolve(here,'material-panel.css'),'utf8')}\n${await readFile(resolve(here,'stock-panel.css'),'utf8')}</style><script>${await readFile(resolve(here,'naro-design.js'),'utf8')}\n${await readFile(resolve(here,'sales-analysis.js'),'utf8')}\n${await readFile(resolve(here,'order-import.js'),'utf8')}\n${await readFile(resolve(here,'quote-actions.js'),'utf8')}\n${await readFile(resolve(here,'quote-extras.js'),'utf8')}\n${await readFile(resolve(here,'trash-actions.js'),'utf8')}\n${await readFile(resolve(here,'company-panel.js'),'utf8')}\n${await readFile(resolve(here,'material-panel.js'),'utf8')}\n${await readFile(resolve(here,'stock-panel.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-dashboard-style">${await readFile(resolve(here,'dashboard-refined.css'),'utf8')}</style><script id="naro-dashboard-script">${await readFile(resolve(here,'dashboard-refined.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-payment-panel">${await readFile(resolve(here,'payment-panel.css'),'utf8')}</style><script id="naro-payment-panel-script">${await readFile(resolve(here,'payment-panel.js'),'utf8')}</script></body>`);
 html=html.replace('</body>',`<style id="naro-ar-panel">${await readFile(resolve(here,'ar-panel.css'),'utf8')}</style><script id="naro-ar-panel-script">${await readFile(resolve(here,'ar-panel.js'),'utf8')}</script></body>`);
