@@ -8412,7 +8412,7 @@ html[data-theme] #appView .view :is(.list-head>.search,.nd-tsearch) input:not([t
 #appView .nd-kind{display:flex;height:42px;padding:0;border-radius:0;background:transparent;gap:6px}
 #appView .nd-kind>button{flex:1;height:42px;border:1px solid var(--nd-line);border-radius:10px;background:var(--nd-surface);color:var(--nd-ink-2);font:600 13.5px/1 var(--sans);box-shadow:none;cursor:pointer}
 #appView .nd-kind>button:hover{color:var(--nd-ink)}
-#appView .nd-kind>button.on{background:var(--nd-ink);border-color:var(--nd-ink);color:var(--nd-frame);box-shadow:none}
+#appView .nd-kind>button.on{background:color-mix(in srgb,var(--nd-blue) 12%,var(--nd-surface));border-color:color-mix(in srgb,var(--nd-blue) 45%,var(--nd-surface));color:color-mix(in srgb,var(--nd-blue) 80%,var(--nd-ink));box-shadow:none}
 #appView .nd-period{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;width:100%;flex-basis:100%}
 #appView .nd-period>button{flex:none;height:28px;padding:0 11px;border-radius:14px;border:1px solid var(--nd-line);background:var(--nd-surface);color:var(--nd-ink-2);font:600 12px/1 var(--sans);white-space:nowrap;cursor:pointer}
 #appView .nd-period>button:hover{color:var(--nd-ink)}
@@ -8775,11 +8775,11 @@ html[data-theme="dark"]{
 #appView .view table.tbl :is(th,td).num,#appView .view table.tbl th[style*="text-align:right"]{text-align:right!important}
 #appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):first-child{padding-left:var(--nd-tx)!important}
 #appView .view table.tbl[style*="--nd-tx"] tr>:is(th,td):last-child{padding-right:var(--nd-tx)!important}
-/* ── 구분 버튼도 색 정의를 따른다: 고른 버튼이 그 뜻의 색으로 채워짐 (입고·입금·받음 = 초록, 출고·출금·사용·반환 = 빨강, 조정 = 청록, 불량·분실 = 진한 빨강) ── */
-#appView .nd-kind>button.on:is([data-v="입고"],[data-v="수금"],[data-v="입금"],[data-v="받음"]){background:var(--nd-green-fill)!important;border-color:var(--nd-green-fill)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="출고"],[data-v="지급"],[data-v="출금"],[data-v="작업 완료"],[data-v="반환"]){background:var(--nd-red)!important;border-color:var(--nd-red)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="조정"],[data-v="재고 조정"]){background:var(--nd-teal-fill)!important;border-color:var(--nd-teal-fill)!important;color:#fff!important}
-#appView .nd-kind>button.on:is([data-v="불량/분실"]){background:var(--nd-bad)!important;border-color:var(--nd-bad)!important;color:#fff!important}
+/* ── 구분 버튼도 색 정의를 따른다: 고른 버튼이 그 뜻의 색으로 옅게(12% 바탕 · 45% 테두리 · 진한 글자, 10/17) 물듦 (입고·입금·받음 = 초록, 출고·출금·사용·반환 = 빨강, 조정 = 청록, 불량·분실 = 진한 빨강) ── */
+#appView .nd-kind>button.on:is([data-v="입고"],[data-v="수금"],[data-v="입금"],[data-v="받음"]){background:color-mix(in srgb,var(--nd-green) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-green) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-green) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="출고"],[data-v="지급"],[data-v="출금"],[data-v="작업 완료"],[data-v="반환"]){background:color-mix(in srgb,var(--nd-red) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-red) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-red) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="조정"],[data-v="재고 조정"]){background:color-mix(in srgb,var(--nd-teal) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-teal) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-teal) 80%,var(--nd-ink))!important;box-shadow:none!important}
+#appView .nd-kind>button.on:is([data-v="불량/분실"]){background:color-mix(in srgb,var(--nd-bad) 12%,var(--nd-surface))!important;border-color:color-mix(in srgb,var(--nd-bad) 45%,var(--nd-surface))!important;color:color-mix(in srgb,var(--nd-bad) 80%,var(--nd-ink))!important;box-shadow:none!important}
 #appView #view-payments .nd-pay-kind{margin-top:0}
 /* 재고 입력 합계·변경 후 수치도 고른 구분의 색 */
 #appView .stock-add:has(.nd-kind>button.on[data-v="입고"]) :is(.nd-sz-table tr.qty .sum,.nd-sz-total b,.nd-sz :is(td,b).chg){color:var(--nd-green)!important}
@@ -11353,10 +11353,22 @@ html body #appView #view-stock .stock-add.sp-form.stock-entry-empty>.sp-fhd{disp
 html body #appView #view-stock .stock-add.sp-form.sp-noitem .sp-fpick{display:none!important}
 html body #appView #view-stock .stock-add.sp-form.sp-noitem>label.stock-entry-item{grid-column:1/-1!important;display:flex!important}
 /* 10/17 3차: 같은 줄의 칸(수량·날짜 / 색상·날짜)은 위 끝·높이가 같게 — 라벨은 위에서부터 쌓고, 날짜 감싸개·선택칸에 따로 붙은 여백·높이를 없앤다 */
-html body #appView #view-stock .stock-add.sp-form>label{display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-self:start!important}
+html body #appView #view-stock :where(.stock-add.sp-form>label:not([hidden])){display:flex!important}
+html body #appView #view-stock .stock-add.sp-form>label{flex-direction:column!important;justify-content:flex-start!important;align-self:start!important}
 html body #appView #view-stock .stock-add.sp-form>label>.date-control{flex:none!important;height:40px!important;min-height:40px!important;margin:0!important;padding:0!important;display:block!important}
 html body #appView #view-stock .stock-add.sp-form>label :is(input,select,.ip-btn,.date-control){margin:0!important;box-sizing:border-box!important}
 html body #appView #view-stock .stock-add.sp-form>label>.date-control>input{height:40px!important;width:100%!important}
+/* 10/17 4차: 무엇을 먼저 — 머리(품목명 · 코드) → 입고·출고·조정 → 색상(한 줄 전체) → 수량/사이즈 → 일자 · 메모 한 줄 → 요약 → 버튼 */
+html body #appView #view-stock .stock-add.sp-form .sp-ft{font:700 18px/25px var(--sans)!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivColor){order:2;grid-column:1/-1!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivDate){order:7;grid-column:1/2!important}
+html body #appView #view-stock .stock-add.sp-form>label:has(#ivMemo){order:7;grid-column:2/3!important}
+html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onecolor.sp-onespec>label:has(#ivQty){grid-column:1/-1!important}
+@media (max-width:780px){
+ html body #appView #view-stock .stock-add.sp-form>label:is(:has(#ivColor),:has(#ivDate),:has(#ivMemo)){grid-column:1/-1!important}
+}
+html body #appView #view-stock .stock-add.sp-form .sp-fc{flex:none;padding:1px 8px;border-radius:6px;background:var(--nd-fill,rgba(0,0,0,.05));font:600 12.5px/18px var(--sans);color:var(--nd-ink)}
+html body #appView #view-stock .stock-add.sp-form .sp-fc[hidden]{display:none}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -14804,9 +14816,9 @@ const NaroOrderImport=(()=>{
   if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b><span class="sp-fs"><span class="sp-fi"></span><button type="button" class="sp-fpick">바꾸기</button></span>';add.prepend(hd);
    hd.querySelector('.sp-fpick').addEventListener('click',()=>{add.classList.toggle('sp-pick');decorateForm();if(add.classList.contains('sp-pick'))add.querySelector('label.stock-entry-item button,label.stock-entry-item select')?.focus();});}
   const kind=add.querySelector(':scope>.nd-sk-tabs')?.dataset.kind||'in';
-  const t=add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력'),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
-  const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi'),txt=it?[it.name,it.code].filter(Boolean).join(' · '):'품목을 골라 주세요';
-  if(fi.textContent!==txt)fi.textContent=txt;
+  // 10/17 4차: 무엇을(품목·색상) 먼저 — 제목 = 품목명, 아래 줄 = 코드(+하나뿐인 색상·규격). 입고·출고·조정은 탭과 버튼이 알려 준다.
+  const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi');
+  const t=it?.name||(add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력')),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
   const pk=hd.querySelector('.sp-fpick'),pt=add.classList.contains('sp-pick')?'접기':it?'바꾸기':'고르기';if(pk.textContent!==pt)pk.textContent=pt;
   add.classList.toggle('sp-noitem',!it);
   const cb=document.getElementById('ivCancelBtn');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';
@@ -14816,7 +14828,9 @@ const NaroOrderImport=(()=>{
   const single=!add.querySelector('#stockQuickEntry .nd-sz'),oneC=real(csel).length<=1,oneS=single&&real(ssel).length<=1;
   add.classList.toggle('sp-single',single);add.classList.toggle('sp-onecolor',oneC);add.classList.toggle('sp-onespec',oneS);
   const extra=[oneC&&csel?.value?csel.value:'',oneS&&ssel?.value?ssel.value:''].filter(Boolean).join(' · ');
-  const txt2=(it?[it.name,it.code].filter(Boolean).join(' · '):'품목을 골라 주세요')+(it&&extra?' · '+extra:'');if(fi.textContent!==txt2)fi.textContent=txt2;
+  const txt2=it?(it.code||''):'품목을 골라 주세요';if(fi.textContent!==txt2)fi.textContent=txt2;
+  let fc=hd.querySelector('.sp-fc');if(!fc){fc=document.createElement('b');fc.className='sp-fc';fi.after(fc);}
+  const ex=it?extra:'';if(fc.textContent!==ex)fc.textContent=ex;fc.hidden=!ex;
   if(single&&qin){const ql=qin.closest('label');let h=ql?.querySelector('.sp-qhint');if(ql&&!h){h=document.createElement('span');h.className='sp-qhint';ql.append(h);qin.addEventListener('input',()=>decorateForm());}
    if(qin.placeholder!=='0')qin.placeholder='0';
    const cur=it&&typeof currentStocks==='function'?(currentStocks()[stockKeyOf({item_id:it.id,color:csel?.value||'',spec:ssel?.value||''})]||0):0;
