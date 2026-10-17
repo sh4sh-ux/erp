@@ -267,6 +267,12 @@ test('수입 정보(신고번호·B/L)·필증 품명·수입부가세 낸 곳�
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declared_on:'2026-13-40'}})]),snap),V);
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({import_vat:{amount:1,payee_id:'없는곳'}})]),snap),V);
 });
+test('줄마다 부가세: 부가세 없는 줄(no_vat:true)은 저장되고, true가 아닌 값은 막는다',()=>{
+ const snap=base();
+ const ok=domestic({lines:[{id:'a',item_id:'jk',color:'BK',spec:'S',qty:1,unit_price:9000},{id:'c1',cost:true,name:'배송비',qty:1,unit_price:3500,no_vat:true}]});
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([ok]),snap));
+ for(const v of [false,'1',1])assert.throws(()=>validatePurchasesChange(doc([]),doc([domestic({lines:[{id:'c1',cost:true,name:'배송비',qty:1,unit_price:3500,no_vat:v}]})]),snap),V);
+});
 test('비용 줄(배송비·직접 적은 비용): 저장되고, 입고에는 넣을 수 없고, 부대비용은 재고 줄에만 나뉜다',()=>{
  const snap=base();
  const withCost=domestic({lines:[{id:'a',item_id:'jk',color:'BK',spec:'S',qty:10,unit_price:10000,quote_id:'q-1'},{id:'c1',cost:true,name:'퀵 비용',qty:1,unit_price:5000,quote_id:'q-1'},{id:'c2',cost:true,item_id:'ap',qty:1,unit_price:3000}]});

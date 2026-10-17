@@ -103,15 +103,8 @@
  }
 
  // ── 진행 탭: 건별 마진(연결된 매입이 있을 때만) ──
- let asked=false;
- function marginCard(form){
-  const flow=form.querySelector('.qp-flow');let e;try{e=qtEditing;}catch{}
-  const old=form.querySelector('.nd-qm');
-  const P=globalThis.NaroPurchases;
-  if(!flow||!e?.id||!P?.byQuote){old?.remove();return;}
-  let links=P.byQuote(e.id);
-  if(links===null){if(!asked&&P.load){asked=true;P.load(false,true).then(()=>{try{marginCard(document.getElementById('qtForm'));}catch{}}).catch(()=>{});}old?.remove();return;}
-  if(!links.length){old?.remove();return;}
+ // 연결된 매입 원가 + 연결 안 된 등록 품목의 매입단가 → 마진. 진행 탭 카드와 품목 탭 '예상 마진'이 같이 쓴다.
+ function calc(e,links){
   let supply=0;try{supply=fn('quoteTotals',e)?.supply||0;}catch{}
   // 원가 = 연결된 매입 + 연결 매입에 없는 등록 품목의 매입단가(재고에서 나간 것). 매입단가 없는 줄(직접 입력·작업)은 0원.
   const linked=new Set(links.flatMap(l=>l.items||[])),named=new Set(links.flatMap(l=>l.names||[]));let extra=0;const zero=[];
@@ -122,6 +115,18 @@
    const buy=it?Number(fn('itemBuy',it,l.spec))||0:0;
    if(buy)extra+=qty*buy;else zero.push((window.naroSplitName?window.naroSplitName(l).name:l.name)||'품목');}
   const cost=links.reduce((s,l)=>s+l.cost,0)+Math.round(extra),margin=supply-cost,rate=supply>0?Math.round(margin/supply*100):null;
+  return {supply,cost,margin,rate,extra,zero};
+ }
+ let asked=false;
+ function marginCard(form){
+  const flow=form.querySelector('.qp-flow');let e;try{e=qtEditing;}catch{}
+  const old=form.querySelector('.nd-qm');
+  const P=globalThis.NaroPurchases;
+  if(!flow||!e?.id||!P?.byQuote){old?.remove();return;}
+  let links=P.byQuote(e.id);
+  if(links===null){if(!asked&&P.load){asked=true;P.load(false,true).then(()=>{try{marginCard(document.getElementById('qtForm'));}catch{}}).catch(()=>{});}old?.remove();return;}
+  if(!links.length){old?.remove();return;}
+  const {supply,cost,margin,rate,extra,zero}=calc(e,links);
   const html=`<div class="nd-qm-k"><div><span>매출 (공급가)</span><b>${won(supply)}</b></div><div><span>원가</span><b>${won(cost)}</b><em>매입 ${links.length}건${extra?' + 재고 품목':''}</em></div><div class="${margin<0?'neg':'pos'}"><span>마진</span><b>${margin<0?'−':''}${won(Math.abs(margin))}</b><em>${rate===null?'—':rate+'%'}</em></div></div>
    <div class="nd-qm-h">원가 내역</div>
    ${links.map(l=>`<button type="button" class="nd-qm-r" data-pu="${esc(l.id)}"><span class="d">${esc((l.date||'').slice(5).replace('-','.'))}</span><span class="n">${esc([l.vendor,l.title].filter(Boolean).join(' · '))}<small>매입 ${esc(l.no)}${l.all===false?` · 이 견적 줄 ${l.lines}개`:''}</small></span><span class="a">${won(l.cost)}</span></button>`).join('')}
@@ -135,7 +140,14 @@
   const b=box.querySelector('.nd-qm-b');if(b.dataset.html!==html){b.innerHTML=html;b.dataset.html=html;}
  }
 
- function enhance(){const form=document.getElementById('qtForm');if(!form||form.classList.contains('hidden'))return;try{noticeToggle(form);}catch(e){console.error('[quote-notice]',e);}try{marginCard(form);}catch(e){console.error('[quote-margin]',e);}}
+ // 품목 탭 합계 아래 '예상 마진'은 원래 품목 매입단가만 본다 — 연결된 매입이 있으면 진행 탭과 같은 숫자로 바꿔 보여 준다.
+ function marginRow(){
+  const el=document.getElementById('fq_margin');let e;try{e=qtEditing;}catch{}
+  const links=e?.id?globalThis.NaroPurchases?.byQuote?.(e.id):null;if(!el||!links?.length)return;
+  const {supply,margin,rate}=calc(e,links),t=`마진 ${margin<0?'−':''}${won(Math.abs(margin))}${rate===null?'':` (${rate}%)`} · 매입 ${links.length}건 기준`;
+  if(supply&&el.textContent!==t)el.textContent=t;
+ }
+ function enhance(){const form=document.getElementById('qtForm');if(!form||form.classList.contains('hidden'))return;try{noticeToggle(form);}catch(e){console.error('[quote-notice]',e);}try{marginCard(form);}catch(e){console.error('[quote-margin]',e);}try{marginRow();}catch(e){console.error('[quote-margin-row]',e);}}
  if(typeof renderQtDetail==='function'){const orig=renderQtDetail;renderQtDetail=function(){const r=orig.apply(this,arguments);enhance();return r;};}
  // 다른 화면 코드가 견적서 폼을 직접 다시 그릴 때도(이 함수를 거치지 않음) 스위치·마진이 다시 붙게 폼을 지켜본다. 붙이는 일은 이미 있으면 아무것도 안 한다.
  let queued=false;const later=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance();});};
