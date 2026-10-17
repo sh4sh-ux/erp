@@ -7,7 +7,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
  const won=n=>num(n)+'원';
- const state={cid:null,quote:null,mobileOpen:false,sig:'',listSig:'',mobileSig:''};
+ const state={cid:null,quote:null,mobileOpen:false,sig:'',listSig:'',mobileSig:'',mo:null,moCid:null};
  let queued=false;
  const data=()=>{try{return db;}catch{return null;}};
  const fn=name=>{try{const f=globalThis[name];return typeof f==='function'?f:null;}catch{return null;}};
@@ -71,7 +71,13 @@
  // 입금을 채울 견적: 견적 탭에서 고른 것, 아니면 가장 오래된 것.
  const pick=r=>r.opens.find(o=>o.q.id===state.quote)||r.opens[0];
  function detailMarkup(r){
-  const pays=(data()?.payments||[]).filter(p=>p.company_id===r.cid&&p.kind==='수금'&&!p.void_at).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,3);
+  const pays=(data()?.payments||[]).filter(p=>p.company_id===r.cid&&p.kind==='수금'&&!p.void_at).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  // 10/17 B안: 최근 입금을 달마다 한 줄(달 · 건수 · 합계 ⌄)로 — 거래처 화면과 같은 부품(.nd-mon). 최근 3개월, 가장 최근 달만 펼침.
+  if(state.moCid!==r.cid){state.moCid=r.cid;state.mo=null;}
+  const ymOf=d=>/^\d{4}-\d{2}/.exec(d||'')?.[0]||'',ymLabel=ym=>{if(!ym)return '날짜 없음';const [y,m]=ym.split('-');return (y!==String(new Date().getFullYear())?`${y}년 `:'')+`${+m}월`;};
+  const mg=[];for(const p of pays){const k=ymOf(p.date);let m=mg[mg.length-1];if(!m||m.ym!==k){m={ym:k,items:[],sum:0};mg.push(m);}m.items.push(p);m.sum+=Number(p.amount)||0;}
+  const months=mg.slice(0,3),monOpen=(m,i)=>state.mo?state.mo.has(m.ym):i===0;state.firstYm=mg[0]?.ym??null;
+  const chev='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
   const qno=id=>(data()?.quotes||[]).find(q=>q.id===id)?.no||'';
   const pct=r.delivered>0?Math.min(100,Math.max(0,r.paid/r.delivered*100)):0,first=pick(r);
   const linked=r.opens.reduce((s,o)=>s+o.open,0),diff=Math.round(linked-Math.max(0,r.open));
@@ -82,8 +88,8 @@
     <div class="pp-section-head"><h4>미수 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
     ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th></tr></thead><tbody>${r.opens.map(o=>`<tr class="${state.quote===o.q.id?'on':''}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">미수 견적이 없어요.</div>'}
     ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
-    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
-    ${pays.length?`<table class="pp-table ap-table"><tbody>${pays.map(p=>`<tr><td class="pp-c-date">${short(p.date)}</td><td><span class="pp-t-nm">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="doc" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span></td><td class="pp-c-num">${num(p.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
+    <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건${mg.length>3?` · 최근 3개월`:''}</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
+    ${months.length?`<div class="nd-mons ap-mons">${months.map((m,i)=>{const on=monOpen(m,i);return `<div class="nd-mon"><button type="button" class="nd-mon-h" data-ap="mon" data-ym="${esc(m.ym)}" aria-expanded="${on}"><b>${esc(ymLabel(m.ym))}</b><span class="n">${m.items.length}건</span><span class="s">${won(m.sum)}</span><span class="cv">${chev}</span></button>${on?`<div class="nd-mon-b">${m.items.map(p=>`<div class="nd-mon-r"><span class="d">${short(p.date)}</span><span class="n">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="qpv" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:''}</div>`;}).join('')}</div>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
    </div>
    <div class="pp-abar"><button type="button" class="pp-btn" data-ap="company">거래처 보기</button><span class="pp-sp"></span><button type="button" class="pp-btn pp-primary" data-ap="pay" data-id="${esc(r.cid)}">${first?`입금 기록 · ${esc(first.q.no||'견적')}부터`:'입금 기록'}</button></div>`;
  }
@@ -149,6 +155,9 @@
     case 'payments':fn('switchView')?.('payments');break;
     case 'export':[...document.querySelectorAll('.nd-nav-act')].find(x=>x.textContent.includes('데이터 내보내기'))?.click();break;
     case 'company':if(state.cid&&fn('switchView')?.('companies')!==false){try{coSel=state.cid;}catch{}fn('renderCoList')?.();fn('renderCoDetail')?.();}break;
+    case 'mon':{const k=b.dataset.ym,mo=state.mo||new Set(state.firstYm!=null?[state.firstYm]:[]);mo.has(k)?mo.delete(k):mo.add(k);state.mo=mo;state.sig='';render();break;}
+    case 'qpv':if(globalThis.NaroQuotePreview?.(b.dataset.q))break;
+    // falls through
     case 'doc':{const id=b.dataset.q;if(fn('switchView')?.('quotes')!==false){try{qtSel=id;}catch{}fn('renderQtList')?.();fn('renderQtDetail')?.();}break;}
    }
   });

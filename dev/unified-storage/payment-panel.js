@@ -61,7 +61,11 @@
  function listMarkup(ids){
   const rows=rowsOf(ids);if(!rows.length)return '<p class="pp-empty">이 기간에 입금·출금 기록이 없어요.</p>';
   const groups=new Map();for(const p of rows){const k=p.date||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(p);}
-  return [...groups].map(([d,items])=>`<div class="pp-dg">${esc(dayLabel(d))}</div>${items.map(p=>{
+  // 10/17: 기간이 두 달 이상이면 달이 바뀌는 곳에 '9월 · 입금 +○ · 출금 −○' 한 줄(목록은 그대로)
+  const ymOf=d=>/^\d{4}-\d{2}/.exec(d||'')?.[0]||'',mons=new Map();for(const p of rows){const k=ymOf(p.date);const m=mons.get(k)||{in:0,out:0};isIn(p)?m.in+=Number(p.amount)||0:m.out+=Number(p.amount)||0;mons.set(k,m);}
+  const ymLabel=ym=>{if(!ym)return '날짜 없음';const [y,m]=ym.split('-');return (y!==String(new Date().getFullYear())?`${y}년 `:'')+`${+m}월`;};
+  let lastYm=null;const monHead=d=>{const k=ymOf(d);if(mons.size<2||k===lastYm)return '';lastYm=k;const m=mons.get(k);return `<div class="pp-mg"><b>${esc(ymLabel(k))}</b><span>${m.in?`<em class="in">입금 +${num(m.in)}</em>`:''}${m.in&&m.out?'<i>·</i>':''}${m.out?`<em>출금 −${num(m.out)}</em>`:''}</span></div>`;};
+  return [...groups].map(([d,items])=>`${monHead(d)}<div class="pp-dg">${esc(dayLabel(d))}</div>${items.map(p=>{
    const meta=[docNo(p)||p.memo||'',p.method||''].filter(Boolean).join(' · ');
    return `<button type="button" class="pp-row${p.id===state.id?' on':''}" data-pp="record" data-id="${esc(p.id)}"${p.id===state.id?' aria-current="true"':''}><span class="pp-row-nm">${esc(coName(p.company_id))}</span><span class="pp-row-am${isIn(p)&&!p.refund?' in':''}">${signedAmount(p)}</span><span class="pp-row-mt"><b class="pp-badge ${isIn(p)?'in':'out'}">${kindWord(p)}</b>${esc(meta)}</span></button>`;}).join('')}`).join('');
  }

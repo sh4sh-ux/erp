@@ -5,10 +5,14 @@
 (()=>{
  if(typeof renderCoDetail!=='function')return;
  const desk=matchMedia('(min-width:1024px)');
- const ui={cid:null,tab:'deal',seg:'open',allPays:false,allDeals:false,open:null};
+ const ui={cid:null,tab:'deal',seg:'open',allPays:false,allDeals:false,open:null,mo:null};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
  const won=n=>money(n)+'원';
+ // 10/17 B안: 최근 입금·출금을 달마다 한 줄(달 · 건수 · 합계 ⌄)로 묶는다. 이번(가장 최근) 달만 펼쳐 두고 나머지는 눌러서.
+ const ymOf=d=>/^\d{4}-\d{2}/.exec(d||'')?.[0]||'';
+ const ymLabel=ym=>{if(!ym)return '날짜 없음';const [y,m]=ym.split('-');return (y!==String(new Date().getFullYear())?`${y}년 `:'')+`${+m}월`;};
+ const byMonth=list=>{const g=[];for(const p of list){const k=ymOf(p.date);let m=g[g.length-1];if(!m||m.ym!==k){m={ym:k,items:[],sum:0};g.push(m);}m.items.push(p);m.sum+=Number(p.amount)||0;}return g;};
  const md=d=>{const m=/^\d{4}-(\d{2})-(\d{2})/.exec(d||'');return m?`${m[1]}.${m[2]}`:'—';};
  const fn=(name,...a)=>{try{const f=globalThis[name];return typeof f==='function'?f(...a):undefined;}catch{return undefined;}};
  const D=()=>{try{return db;}catch{return null;}};
@@ -81,7 +85,7 @@
   const left=Math.max(0,krw.reduce((s,p)=>s+Math.max(0,(p.leftWarn?Number(String(p.leftText).replace(/[^\d]/g,'')):0)),0));
   const recent=[deals[0]?.date,pays[0]?.date].filter(Boolean).sort().slice(-1)[0]||'';
   const pct=due>0?Math.max(0,Math.min(100,Math.round((due-left)/due*100))):0;
-  return {sell,amtLabel:'줄 금액',amt:left,left,pct,verb:'지급',base:due,paid:due-left,money:'줄 금액',payTitle:'최근 출금',payBtn:'출금 추가',dealTitle:'매입 내역',dealBtn:'새 매입',openLabel:'남은 일',
+  return {sell,amtLabel:'줄 금액',amt:left,left,pct,verb:'지급',base:due,paid:due-left,money:'줄 금액',payTitle:'최근 출금',payBtn:'출금 추가',dealTitle:'매입 내역',dealBtn:'새 매입',openLabel:'진행 중',
    line:[['최근 거래',md(recent)],['매입',`${deals.length}건`],['매입 누계',won(due)],['출금 누계',won(paidAll)]],
    pays:pays.map(p=>{const pu=p.purchase_id?globalThis.NaroPurchases?.vendor?.(p.company_id)?.find(x=>x.id===p.purchase_id):null;return {date:p.date,text:[p.method,p.memo].filter(Boolean).join(' · ')||'출금',ref:pu?.no||'',go:pu?pu.id:'',goKind:'purchase',amount:Number(p.amount)||0};}),
    deals,has:deals.length>0||pays.length>0,noPurchases:!globalThis.NaroPurchases?.vendor};
@@ -96,7 +100,9 @@
  }
  function dealHtml(s){
   if(!s.has)return `<div class="cp-empty">${ICON.empty}<b>아직 거래가 없어요</b><span>${s.sell?'첫 견적을 만들면 받을 금액과 거래 내역이 여기에 쌓여요':'매입을 등록하면 줄 금액과 매입 내역이 여기에 쌓여요'}</span><button type="button" class="btn primary" data-cp="new">${s.sell?'첫 견적 만들기':'첫 매입 등록'}</button></div>`;
-  const pays=ui.allPays?s.pays:s.pays.slice(0,3);
+  const mg=byMonth(s.pays),months=ui.allPays?mg:mg.slice(0,3);ui.firstYm=mg[0]?.ym??null;
+  const monOpen=(m,i)=>ui.mo?ui.mo.has(m.ym):i===0;
+  const prRow=p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?(p.go?`<button type="button" class="q cp-qlink" data-cp-go="${esc(p.go)}" data-cp-kind="${p.goKind}" aria-label="${esc(p.ref)} ${p.goKind==='quote'?'견적서':'매입'} 열기">${esc(p.ref)}</button>`:`<span class="q">${esc(p.ref)}</span>`):''}</span><span class="a">${won(p.amount)}</span></div>`;
   const open=s.deals.filter(r=>!r.done),done=s.deals.filter(r=>r.done);
   const list=ui.seg==='open'?open:ui.seg==='done'?done:s.deals,shown=ui.allDeals?list:list.slice(0,5);
   const row=r=>{const on=ui.open===r.id;return `<button type="button" class="cp-qr" data-cp-row="${esc(r.id)}" aria-expanded="${on}"><span class="d">${md(r.date)}</span><span class="m"><span class="t">${esc(r.title)}</span><span class="s"><span class="pill pm ${esc(r.cls)}">${esc(r.st)}</span><span class="sd">${md(r.date)} · </span>${esc(r.sub)}</span></span><span class="pill ${esc(r.cls)}">${esc(r.st)}</span><span class="a">${esc(r.amountText||won(r.amount))}</span><span class="cv">${ICON.chev}</span></button>`+
@@ -108,13 +114,14 @@
     <div class="cp-track"><i style="width:${s.pct}%"></i></div>
     <div class="cp-stats">${s.line.map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>
    </div>
-   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span><span class="sp"></span>${s.pays.length>3?`<button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':'모두 보기'}</button>`:''}</div>
-    ${pays.length?`<div class="cp-list">${pays.map(p=>`<div class="cp-pr"><span class="d">${md(p.date)}</span><span class="n">${esc(p.text)}${p.ref?(p.go?`<button type="button" class="q cp-qlink" data-cp-go="${esc(p.go)}" data-cp-kind="${p.goKind}" aria-label="${esc(p.ref)} ${p.goKind==='quote'?'견적서':'매입'} 열기">${esc(p.ref)}</button>`:`<span class="q">${esc(p.ref)}</span>`):''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
+   <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.payTitle)}</h3><span class="cnt">${s.pays.length}건</span></div>
+    ${months.length?`<div class="cp-list nd-mons">${months.map((m,i)=>{const on=monOpen(m,i);return `<div class="nd-mon"><button type="button" class="nd-mon-h" data-cp-mon="${esc(m.ym)}" aria-expanded="${on}"><b>${esc(ymLabel(m.ym))}</b><span class="n">${m.items.length}건</span><span class="s">${won(m.sum)}</span><span class="cv">${ICON.chev}</span></button>${on?`<div class="nd-mon-b">${m.items.map(prRow).join('')}</div>`:''}</div>`;}).join('')}</div>
+    ${mg.length>3?`<div class="cp-more"><button type="button" class="cp-link" data-cp="pays">${ui.allPays?'접기':`이전 ${mg.length-3}개월 더 보기`}</button></div>`:''}`:`<p class="cp-none">아직 ${s.sell?'입금':'출금'} 기록이 없어요</p>`}
    </section>
    <section class="cp-sec"><div class="cp-sech"><h3>${esc(s.dealTitle)}</h3><span class="sp"></span>
-     <div class="cp-seg" role="group" aria-label="${esc(s.dealTitle)} 보기">${[['open',`${s.openLabel} ${open.length}`],['done',`끝남 ${done.length}`],['all','전체']].map(([v,t])=>`<button type="button" data-cp-seg="${v}" aria-pressed="${ui.seg===v}">${esc(t)}</button>`).join('')}</div>
+     <div class="cp-seg" role="group" aria-label="${esc(s.dealTitle)} 보기">${[['open',`${s.openLabel} ${open.length}`],['done',`완료 ${done.length}`],['all','전체']].map(([v,t])=>`<button type="button" data-cp-seg="${v}" aria-pressed="${ui.seg===v}">${esc(t)}</button>`).join('')}</div>
      <button type="button" class="btn ghost cp-new" data-cp="new">${ICON.plus}${esc(s.dealBtn)}</button></div>
-    ${s.noPurchases?'<p class="cp-none">매입을 등록하면 이곳에 표시됩니다</p>':shown.length?`<div class="cp-list">${shown.map(row).join('')}</div>`:`<p class="cp-none">${ui.seg==='open'?'진행 중인 거래가 없어요':ui.seg==='done'?'끝난 거래가 없어요':'거래가 없어요'}</p>`}
+    ${s.noPurchases?'<p class="cp-none">매입을 등록하면 이곳에 표시됩니다</p>':shown.length?`<div class="cp-list">${shown.map(row).join('')}</div>`:`<p class="cp-none">${ui.seg==='open'?'진행 중인 거래가 없어요':ui.seg==='done'?'완료된 거래가 없어요':'거래가 없어요'}</p>`}
     ${list.length>5?`<div class="cp-more"><button type="button" class="cp-link" data-cp="deals">${ui.allDeals?'접기':`${list.length-5}건 더 보기`}</button></div>`:''}
    </section>`;
  }
@@ -125,7 +132,7 @@
   const form=document.getElementById('coForm');if(!form||form.classList.contains('hidden'))return;
   const d=D();if(!d)return;
   const isNew=sel()==='__new__',c=isNew?null:(d.companies||[]).find(x=>x.id===sel());if(!isNew&&!c)return;
-  if(ui.cid!==sel()){ui.cid=sel();ui.tab=isNew?'info':'deal';ui.seg='open';ui.allPays=false;ui.allDeals=false;ui.open=null;}
+  if(ui.cid!==sel()){ui.cid=sel();ui.tab=isNew?'info':'deal';ui.seg='open';ui.allPays=false;ui.allDeals=false;ui.open=null;ui.mo=null;}
   const actions=form.querySelector('.form-actions'),back=document.getElementById('coBackToList');
   const name=unit('f_name'),typeBiz=unit('f_type'),contact=unit('f_contact'),email=unit('f_email'),addr=unit('f_address'),addr2=unit('f_address_detail'),memo=unit('f_memo'),qmemo=unit('f_qmemo');
   const prices=document.getElementById('coPriceRules')?.closest('section');
@@ -192,6 +199,27 @@
   const box=document.getElementById('payEntry');if(box)box.open=true;
   setTimeout(()=>document.getElementById('payAmt')?.focus(),40);
  }
+ // 견적서 화면으로 이동
+ function goQuote(id){try{qtSel=id;qtEditing=null;qtBaseline='';}catch{}if(fn('switchView','quotes')===false)return;fn('renderQtList');fn('renderQtDetail');fn('scrollToDetail','qtForm');}
+ // 10/17: 입금·출금 줄의 견적번호 = 화면을 옮기지 않고 견적서 미리보기(인쇄 미리보기 창 그대로). 위 줄에 [견적서 열기].
+ function previewQuote(id){
+  const q=(D()?.quotes||[]).find(x=>x.id===id),pq=globalThis.printQuote,op=globalThis.openPrintPreview,cl=globalThis.closePrintPreview;
+  if(!q||typeof pq!=='function'||typeof op!=='function')return false;
+  // printQuote는 사진을 미리 읽느라 비동기(asset-ui)일 수 있다 — 다 그린 뒤 미리보기를 연다. 그동안 PC의 인쇄 창은 막아 둔다.
+  (async()=>{
+   const wp=window.print;window.print=()=>{};
+   try{await pq(q,'견적서');}catch(e){console.error('[quote-preview]',e);window.print=wp;goQuote(id);return;}
+   window.print=wp;
+   const pa=document.getElementById('printArea');if(!pa)return;
+   if(!pa.querySelector('.pv-bar'))op(q,'견적서');
+   const close=document.getElementById('pvCloseBtn');
+   if(close&&!pa.querySelector('.nd-pv-open')){const b=document.createElement('button');b.type='button';b.className='btn ghost nd-pv-open';b.textContent='견적서 열기';b.onclick=()=>{cl?.();goQuote(id);};close.after(b);}
+   const onKey=e=>{if(!pa.classList.contains('preview')){document.removeEventListener('keydown',onKey,true);return;}if(e.key==='Escape'){e.preventDefault();cl?.();document.removeEventListener('keydown',onKey,true);}};
+   document.addEventListener('keydown',onKey,true);close?.focus();
+  })();
+  return true;
+ }
+ globalThis.NaroQuotePreview=previewQuote;
  function bind(form,c,s){
   form.querySelectorAll('[data-cp-tab]').forEach(b=>b.onclick=()=>{ui.tab=b.dataset.cpTab;form.querySelectorAll('[data-cp-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));form.querySelectorAll('[data-cp-panel]').forEach(p=>{p.hidden=p.dataset.cpPanel!==ui.tab;});form.querySelector('.cp-body')?.scrollTo?.(0,0);});
   const deal=form.querySelector('[data-cp-panel="deal"]');if(!deal||!c)return;
@@ -199,9 +227,11 @@
   deal.onclick=ev=>{
    const t=ev.target.closest('button');if(!t||!deal.contains(t))return;
    if(t.dataset.cpRow){ui.open=ui.open===t.dataset.cpRow?null:t.dataset.cpRow;repaint();return;}
+   if(t.dataset.cpMon!=null){const k=t.dataset.cpMon,mo=ui.mo||new Set(ui.firstYm!=null?[ui.firstYm]:[]);mo.has(k)?mo.delete(k):mo.add(k);ui.mo=mo;repaint();return;}
    if(t.dataset.cpSeg){ui.seg=t.dataset.cpSeg;ui.allDeals=false;repaint();return;}
    if(t.dataset.cpGo){if(t.dataset.cpKind==='purchase'){globalThis.NaroPurchases?.open?.(t.dataset.cpGo);return;}
-    try{qtSel=t.dataset.cpGo;qtEditing=null;qtBaseline='';}catch{}if(fn('switchView','quotes')===false)return;fn('renderQtList');fn('renderQtDetail');fn('scrollToDetail','qtForm');return;}
+    if(t.classList.contains('cp-qlink')&&previewQuote(t.dataset.cpGo))return;
+    goQuote(t.dataset.cpGo);return;}
    const a=t.dataset.cp;
    if(a==='pays'){ui.allPays=!ui.allPays;repaint();}
    else if(a==='deals'){ui.allDeals=!ui.allDeals;repaint();}

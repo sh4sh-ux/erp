@@ -237,3 +237,11 @@ html body #appView .pp-detail .pp-meta>*{margin:0!important;align-self:center}
 html body #appView #payEntry .pp-qpick>button>.pp-qpick-am{flex:none;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
 html body #appView #payEntry .pp-qpick>button>.pp-qpick-am b{font-family:var(--nd-number-font);font-variant-numeric:tabular-nums;letter-spacing:-.2px;font-weight:600}
 html body #appView #payEntry .pp-qpick>button>.pp-qpick-am small{font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 10/17: 기간이 두 달 이상일 때 달이 바뀌는 곳의 달 합계 줄 */
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:10px;padding:12px var(--panel-inset,20px) 8px;border-top:1px solid var(--nd-line);background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg:first-child{margin-top:0;border-top:0}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg>b{font:700 13.5px/18px var(--sans);color:var(--nd-ink)}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg>span{display:flex;gap:6px;font:600 12.5px/18px var(--sans);color:var(--nd-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em{font-style:normal}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em.in{color:var(--nd-green)}
+html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:normal;color:var(--nd-ink-3)}
