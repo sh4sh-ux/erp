@@ -10736,6 +10736,11 @@ dialog.nd-pay-sheet.pu-imp .nd-ps-hd,dialog.nd-pay-sheet.pu-imp .nd-ps-act{paddi
  .pu-imp .pu-imp-resume{margin:0 -18px}
  .pu-imp .pu-imp-leave span,.pu-imp .pu-imp-resume span{flex-basis:100%}
 }
+/* 하단 버튼 규칙: ⋮ 안에 하나뿐이면(취소된 매입의 삭제) ⋮ 대신 그 버튼을 바로 — 거래처·품목 [삭제]와 같은 모양 */
+html body #appView #puForm .pu-solo{display:inline-flex;flex:none}
+html body #appView #puForm .pu-solo>.btn{width:auto!important;min-width:72px;height:40px!important;min-height:40px!important;margin:0!important;padding:0 16px!important;border:1px solid var(--nd-line)!important;border-radius:10px!important;background:var(--nd-surface)!important;box-shadow:none!important;font:600 13.5px/1 var(--sans)!important;color:var(--nd-ink)!important}
+html body #appView #puForm .pu-solo>.btn.del{color:var(--nd-red)!important}
+@media screen and (max-width:1023px){html body #appView #puForm .pu-solo>.btn{height:48px!important;min-height:48px!important;border-radius:12px!important;min-width:76px}}
 
 /* 거래처 오른쪽 패널(10/11, 시안 A 흐름형) — company-panel.js. 머리 크기는 견적서 머리와 같게(PC 144+46, 폰 19px 이름). */
 html body #appView #coForm.cp{--cp-x:28px}
@@ -11445,6 +11450,15 @@ html body #appView #view-stock .stock-add.sp-form.sp-single.sp-onecolor.sp-onesp
 }
 html body #appView #view-stock .stock-add.sp-form .sp-fc{flex:none;padding:1px 8px;border-radius:6px;background:var(--nd-fill,rgba(0,0,0,.05));font:600 12.5px/18px var(--sans);color:var(--nd-ink)}
 html body #appView #view-stock .stock-add.sp-form .sp-fc[hidden]{display:none}
+/* 10/17 5차: 품목 · 품목코드와 색상은 항상 칸으로(바꾸기/접기 없음). 첫 줄 = 품목 | 색상, 색상이 하나뿐이어도 보인다 */
+html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label.stock-entry-item{display:flex!important;order:1!important;grid-column:1/2!important}
+html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivColor){display:flex!important;order:2!important;grid-column:2/3!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label.stock-entry-item{grid-column:1/-1!important}
+html body #appView #view-stock .stock-add.sp-form.sp-noitem:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivColor){display:none!important}
+html body #appView #view-stock .stock-add.sp-form.sp-single:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:has(#ivQty){order:4!important}
+@media (max-width:780px){
+ html body #appView #view-stock .stock-add.sp-form:not(.nd-x1):not(.nd-x2):not(.nd-x3)>label:is(.stock-entry-item,:has(#ivColor)){grid-column:1/-1!important}
+}
 </style><script>/* NARO company ledger groups — display only; never persist or infer quote links. */
 const NaroCompanyLedger=(()=>{
  const text=v=>String(v??'');
@@ -12887,7 +12901,7 @@ const NaroCompanyLedger=(()=>{
  // 입금·출금 · 업체 제공 자재 기록도 재고와 같은 규칙: 구분은 맨 위 탭, 저장 버튼 글자·색이 구분을 따라간다.
  function kindSaveLabels(){
   const pk=document.getElementById('payKind'),pb=document.getElementById('payAddBtn');
-  if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록 저장',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
+  if(pk&&pb){const out=pk.value==='지급',t=(out?'출금':'입금')+' 기록',kd=out?'out':'in';if(pb.textContent!==t)pb.textContent=t;if(pb.dataset.kind!==kd)pb.dataset.kind=kd;}
   const mk=document.getElementById('mm_kind'),mb=document.getElementById('mm_save');
   if(mk&&mb){const lab=({'받음':'받음','작업 완료':'사용','반환':'반환','불량/분실':'불량·분실'})[mk.value]||mk.value,t=materialEditingId?(mb.classList.contains('nd-saved')?'저장됨':'수정 내용 저장'):lab+' 기록 저장',kd=mk.value==='받음'?'in':'out';if(mb.textContent!==t)mb.textContent=t;if(mb.dataset.kind!==kd)mb.dataset.kind=kd;}
  }
@@ -15000,19 +15014,18 @@ const NaroOrderImport=(()=>{
   new MutationObserver(()=>{if(add.hidden&&ui.entry)closeEntry(false);}).observe(add,{attributes:true,attributeFilter:['hidden']});};
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&ui.entry&&!document.querySelector('dialog[open]')){ev.preventDefault();document.getElementById('ivCancelBtn')?.click();}});
 
- /* ── 입력 창 모양(10/17 재고 입력 창 시안): 머리 = 제목 + 품목 · 코드 [바꾸기], 사이즈 수에 따라 창 폭(7개 560 · 10개 720 · 그 이상 760 + 표 옆으로) ── */
+ /* ── 입력 창 모양(10/17 재고 입력 창 시안): 머리 = 제목, 품목 · 색상 칸 항상, 사이즈 수에 따라 창 폭(7개 560 · 10개 720 · 그 이상 760 + 표 옆으로) ── */
  const TITLE={in:'입고 기록',out:'출고 기록',adj:'재고 조정'};
  function decorateForm(){
   const add=view()?.querySelector('.stock-add');if(!add)return;
   if(!add.classList.contains('sp-form'))add.classList.add('sp-form');
+  // 10/17 5차: 머리는 제목만(입고 기록 · 출고 기록 · 재고 조정). 품목 · 품목코드와 색상은 항상 칸으로 보인다([바꾸기]/[접기] 없음 — 헷갈렸다).
   let hd=add.querySelector(':scope>.sp-fhd');
-  if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b><span class="sp-fs"><span class="sp-fi"></span><button type="button" class="sp-fpick">바꾸기</button></span>';add.prepend(hd);
-   hd.querySelector('.sp-fpick').addEventListener('click',()=>{add.classList.toggle('sp-pick');decorateForm();if(add.classList.contains('sp-pick'))add.querySelector('label.stock-entry-item button,label.stock-entry-item select')?.focus();});}
+  if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b>';add.prepend(hd);}
+  hd.querySelectorAll('.sp-fs').forEach(x=>x.remove());add.classList.remove('sp-pick');
   const kind=add.querySelector(':scope>.nd-sk-tabs')?.dataset.kind||'in';
-  // 10/17 4차: 무엇을(품목·색상) 먼저 — 제목 = 품목명, 아래 줄 = 코드(+하나뿐인 색상·규격). 입고·출고·조정은 탭과 버튼이 알려 준다.
-  const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi');
-  const t=it?.name||(add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력')),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
-  const pk=hd.querySelector('.sp-fpick'),pt=add.classList.contains('sp-pick')?'접기':it?'바꾸기':'고르기';if(pk.textContent!==pt)pk.textContent=pt;
+  const it=itemOf(document.getElementById('ivItem')?.value||'');
+  const t=add.classList.contains('stock-entry-empty')?'재고 입력':(TITLE[kind]||'재고 입력'),ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
   add.classList.toggle('sp-noitem',!it);
   const cb=document.getElementById('ivCancelBtn');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';
   // 색상·규격이 하나뿐이면 고르는 칸을 숨기고 머리 줄에 적는다. 사이즈 표가 없는 품목(옵션 1개)은 수량 아래에 '현재 → 바뀐 뒤'.
@@ -15020,10 +15033,6 @@ const NaroOrderImport=(()=>{
   const real=sel=>sel?[...sel.options].filter(o=>o.value!==''):[];
   const single=!add.querySelector('#stockQuickEntry .nd-sz'),oneC=real(csel).length<=1,oneS=single&&real(ssel).length<=1;
   add.classList.toggle('sp-single',single);add.classList.toggle('sp-onecolor',oneC);add.classList.toggle('sp-onespec',oneS);
-  const extra=[oneC&&csel?.value?csel.value:'',oneS&&ssel?.value?ssel.value:''].filter(Boolean).join(' · ');
-  const txt2=it?(it.code||''):'품목을 골라 주세요';if(fi.textContent!==txt2)fi.textContent=txt2;
-  let fc=hd.querySelector('.sp-fc');if(!fc){fc=document.createElement('b');fc.className='sp-fc';fi.after(fc);}
-  const ex=it?extra:'';if(fc.textContent!==ex)fc.textContent=ex;fc.hidden=!ex;
   if(single&&qin){const ql=qin.closest('label');let h=ql?.querySelector('.sp-qhint');if(ql&&!h){h=document.createElement('span');h.className='sp-qhint';ql.append(h);qin.addEventListener('input',()=>decorateForm());}
    if(qin.placeholder!=='0')qin.placeholder='0';
    const cur=it&&typeof currentStocks==='function'?(currentStocks()[stockKeyOf({item_id:it.id,color:csel?.value||'',spec:ssel?.value||''})]||0):0;
@@ -15932,6 +15941,33 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg>span{display:fle
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em{font-style:normal;color:var(--nd-ink)}
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em.in{color:var(--nd-green)}
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:normal;color:var(--nd-ink-3)}
+/* ===== 10/17 입력 창(재고 입력과 같은 모양): PC = 가운데 창, 폰 = 아래 창. 제목 · 회색 칸 고르기 [입금|출금] · 두 칸씩 · [닫기][입금 기록] ===== */
+html body #appView dialog.pp-entry-dlg{width:min(560px,calc(100vw - 48px));max-width:none;max-height:calc(100dvh - 48px);margin:auto;padding:20px 24px;border:0;border-radius:16px;background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 24px 64px rgba(15,20,30,.28);overflow:auto}
+dialog.pp-entry-dlg::backdrop{background:rgba(10,12,16,.4)}
+html body #appView dialog.pp-entry-dlg #payEntry{display:block!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry>summary{display:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:none!important;gap:14px 12px!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:none!important;width:auto!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>*{grid-area:auto!important;grid-column:auto!important;min-width:0;margin:0!important;width:auto!important;max-width:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>:is(.pp-et,.pf-kind,.pp-qpick,.pp-edit-note,.pf-btn){grid-column:1/-1!important}
+html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-co{grid-column:1/-1!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pp-et{order:-2;display:block;margin:0!important;padding:0!important;font:700 17px/24px var(--sans);color:var(--nd-ink)}
+html body #appView #payEntry .pp-et{display:none}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pf-kind{order:-1}
+html body #appView dialog.pp-entry-dlg #payEntry .pf>label{display:block;margin:0 0 5px!important;padding:0!important;font:400 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf :is(input,select){width:100%!important;height:40px!important;min-height:40px!important;margin:0!important;border-radius:10px!important;font:400 14px/1 var(--sans)!important;box-sizing:border-box!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf .date-control{height:40px!important;min-height:40px!important;margin:0!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pf-btn{display:flex!important;gap:8px!important;justify-content:stretch!important;margin-top:2px!important;padding:0!important;border:0!important;background:none!important;position:static!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf-btn>#payClose{flex:0 0 96px!important;width:96px!important;min-width:0!important;height:44px!important;border-radius:11px!important;font:600 14px/1 var(--sans)!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf-btn>#payAddBtn{flex:1 1 auto!important;width:auto!important;height:44px!important;border-radius:11px!important;font:600 14px/1 var(--sans)!important}
+/* PC 창 · 폰 창 공통: [입금|출금] = 회색 바탕 칸 고르기(재고 입력 탭과 같음), 기록 버튼은 파랑 */
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind{display:flex!important;gap:0!important;height:auto!important;padding:3px!important;margin:0!important;border:0!important;border-radius:10px!important;background:var(--nd-fill,rgba(0,0,0,.05))!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind::after{display:none!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button[data-v]{flex:1 1 0!important;justify-content:center!important;height:34px!important;margin:0!important;padding:0!important;border:0!important;border-radius:8px!important;background:none!important;color:var(--nd-ink-2)!important;font:500 13.5px/1 var(--sans)!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button[data-v]::before{display:none!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button.on[data-v]{background:var(--nd-surface)!important;color:var(--nd-ink)!important;font-weight:600!important;box-shadow:0 1px 2px rgba(15,20,30,.1)!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) #payAddBtn[data-kind]{background:var(--nd-blue)!important;border-color:var(--nd-blue)!important;color:#fff!important}
+/* 하단 버튼 규칙: ⋮ 안에 하나뿐이면(입금·출금은 삭제만) ⋮ 대신 그 버튼을 바로 — 거래처·품목 [삭제]와 같은 모양 */
+html body #appView #view-payments .pp-abar>.pp-del{color:var(--nd-red)!important;border-color:var(--nd-line)!important}
 </style><script id="naro-payment-panel-script">/* 입금·출금 화면(10/15 시안 확정 — UI-RULES 'Payments'). 입금·출금 = 돈이 실제로 오간 기록.
    기본 앱의 필터·입력 창·저장(addPayment·deletePayment)이 그대로 기준이고, 여기서는 보여 주기와
    '고치기'(새 기록 저장 → 원래 기록 지우기, 견적서 진행 탭과 같은 규칙)만 더한다. */
@@ -16039,7 +16075,7 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:nor
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
     <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
    </div>
-   <div class="pp-abar"><span class="pp-menu-host"><button type="button" class="pp-btn pp-more" data-pp="menu" aria-label="더보기" aria-haspopup="menu" aria-expanded="${state.menu}">⋮</button>${state.menu?'<span class="pp-menu" role="menu"><button type="button" role="menuitem" data-pp="delete">이 기록 삭제</button></span>':''}</span><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
+   <div class="pp-abar"><button type="button" class="pp-btn pp-del" data-pp="delete">삭제</button><button type="button" class="pp-btn" data-pp="edit">수정</button><span class="pp-sp"></span>${q&&rest>0.5&&!p.refund?`<button type="button" class="pp-btn pp-primary" data-pp="rest">남은 ${won(rest)} 입금 기록</button>`:'<button type="button" class="pp-btn pp-primary" data-pp="add">입금·출금 기록</button>'}</div>`;
  }
  const markup=p=>p?detailMarkup(p):overviewMarkup();
  function syncLeft(left,ids){
@@ -16083,15 +16119,15 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:nor
  function render(){
   const v=document.getElementById('view-payments');if(!v)return;
   const ids=records();if(state.id&&!ids.includes(state.id)){state.id=null;state.signature='';state.menu=false;}
-  const entryOpen=!!document.getElementById('payEntry')?.open;
-  v.classList.toggle('pp-entry-open',entryOpen);
+  const entryOpen=!!document.getElementById('payEntry')?.open,inDlg=deskDialog(),docked=entryOpen&&!inDlg;
+  v.classList.toggle('pp-entry-open',docked);
   syncCount(v,ids);
   if(!desk.matches)mobileList(v,ids);
   syncLeft(v.querySelector('.workspace-left'),ids);
   syncEntry();
   const p=get(state.id);
   let host=v.querySelector(':scope>.pp-detail');
-  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!entryOpen;
+  const active=(desk.matches?v.classList.contains('workspace-split'):state.mobileOpen)&&!docked;
   v.classList.toggle('pp-detail-open',active);v.classList.toggle('mobile-record-open',active&&!desk.matches);
   if(!active){if(host)host.hidden=true;return;}
   if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','입출금 상세');v.append(host);}
@@ -16101,6 +16137,19 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:nor
    host.innerHTML=html;host.dataset.for=p?.id||'';if(same){const b=host.querySelector('.pp-body');if(b)b.scrollTop=top;}state.signature=html;
   }
   v.querySelectorAll('#payTbl tbody tr').forEach(r=>r.classList.toggle('panel-b-selected',!!p&&r.querySelector('.rm')?.dataset.id===state.id));
+ }
+ // 10/17: PC 입력 = 재고 입력처럼 지금 화면 위의 창(폰은 naro-design.js의 아래 창). 원래 입력 칸(#payEntry)을 창으로 옮겼다가 닫으면 제자리로 — 저장·확인 처리는 원래 것 그대로.
+ let dlg=null,home=null;
+ function deskDialog(){
+  const v=document.getElementById('view-payments'),entry=document.getElementById('payEntry');if(!v||!entry)return false;
+  if(!dlg){dlg=document.createElement('dialog');dlg.className='pp-entry-dlg';dlg.setAttribute('aria-label','입금·출금 기록');v.append(dlg);
+   const close=()=>document.getElementById('payClose')?.click();
+   dlg.addEventListener('cancel',e=>{e.preventDefault();close();});
+   dlg.addEventListener('click',e=>{if(e.target===dlg)close();});
+   dlg.addEventListener('close',()=>{if(home){home.replaceWith(entry);home=null;}if(entry.open)entry.open=false;schedule();});}
+  if(desk.matches&&entry.open&&!dlg.open){home=document.createComment('pp-entry-home');entry.before(home);dlg.append(entry);dlg.showModal();setTimeout(()=>document.getElementById('payCo')?.focus(),0);}
+  else if((!entry.open||!desk.matches)&&dlg.open)dlg.close();
+  return dlg.open;
  }
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});};
  // ---------- 입력 창: 거래처를 고르면 남은 금액이 있는 견적이 뜨고, 누르면 금액이 채워진다 ----------
@@ -16120,6 +16169,12 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:nor
    const html=`<span class="pp-qpick-k">연결할 견적 · 잔액이 있는 견적</span>${qs.map(q=>{const m=owed(q);return `<button type="button" data-pq="${esc(q.id)}" aria-pressed="${q.id===cur}"><span>${esc(q.no||'견적')}<small>${esc(short(q.date))} · ${esc(q.status||'')}</small></span><span class="pp-qpick-am"><b>${won(m.fill)}</b><small>${esc(m.note)}</small></span></button>`;}).join('')}<button type="button" data-pq="" aria-pressed="${!cur}"><span>건 지정 안 함<small>선입금·기타</small></span></button>`;
    if(pick.innerHTML!==html)pick.innerHTML=html;
   }
+  // 창 제목 · 버튼 글자(재고 입력과 같게): 입금 기록 / 출금 기록 / 입금 기록 수정, [닫기]
+  {const k=value('payKind')==='지급'?'출금':'입금',tt=state.editing?`${k} 기록 수정`:`${k} 기록`,add=entry.querySelector('.pay-add');
+   let et=entry.querySelector('.pp-et');if(add&&!et){et=document.createElement('h3');et.className='pp-et';add.prepend(et);}
+   if(et&&et.textContent!==tt)et.textContent=tt;
+   const ph=document.getElementById('ndPayEntryTitle');if(ph&&ph.textContent!==tt)ph.textContent=tt;
+   const cb=document.getElementById('payClose');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';}
   const head=document.querySelector('#view-payments>.workspace-heading');
   if(head&&entry.open){const cap=head.querySelector('.workspace-caption'),h=head.querySelector('h3'),k=value('payKind')==='지급'?'출금':'입금';const ct='입금·출금',ht=state.editing?`${k} 기록 수정`:`새 ${k} 기록`;if(cap&&cap.textContent!==ct)cap.textContent=ct;if(h&&h.textContent!==ht)h.textContent=ht;}
   let note=entry.querySelector('.pp-edit-note');const orig=state.editing&&(data()?.payments||[]).find(x=>x.id===state.editing);

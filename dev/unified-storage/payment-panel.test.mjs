@@ -52,7 +52,7 @@ test('record detail: quote-linked list, current row marked once, edit and delete
  assert.match(html,/<span>입금액<\/span><strong>100,000원<\/strong>/);
  assert.match(html,/이 견적의 입금·환불 <small>1건<\/small>/);assert.match(html,/>견적서 열기<\/button>/);assert.doesNotMatch(html,/[＋›]/);
  assert.equal((html.match(/aria-current="true"/g)||[]).length,1);
- assert.match(html,/data-pp="edit">수정/);assert.match(html,/data-pp="menu"/);
+ assert.match(html,/data-pp="edit">수정/);assert.match(html,/data-pp="delete">삭제/);assert.doesNotMatch(html,/data-pp="menu"/); // ⋮ 안에 하나뿐이면 바로 버튼(UI-RULES 하단 버튼 규칙)
  assert.doesNotMatch(html,/777,777|888,888|999,999/);
  const refund=api.markup(db.payments[1]);assert.match(refund,/<span class="pp-caption">환불<\/span>/);assert.match(refund,/이 거래처의 입출금/);
 });

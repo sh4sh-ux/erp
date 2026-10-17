@@ -244,3 +244,30 @@ html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg>span{display:fle
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em{font-style:normal;color:var(--nd-ink)}
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg em.in{color:var(--nd-green)}
 html body #appView :is(#view-payments,#view-ar) .pp-list .pp-mg i{font-style:normal;color:var(--nd-ink-3)}
+/* ===== 10/17 입력 창(재고 입력과 같은 모양): PC = 가운데 창, 폰 = 아래 창. 제목 · 회색 칸 고르기 [입금|출금] · 두 칸씩 · [닫기][입금 기록] ===== */
+html body #appView dialog.pp-entry-dlg{width:min(560px,calc(100vw - 48px));max-width:none;max-height:calc(100dvh - 48px);margin:auto;padding:20px 24px;border:0;border-radius:16px;background:var(--nd-surface);color:var(--nd-ink);box-shadow:0 24px 64px rgba(15,20,30,.28);overflow:auto}
+dialog.pp-entry-dlg::backdrop{background:rgba(10,12,16,.4)}
+html body #appView dialog.pp-entry-dlg #payEntry{display:block!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry>summary{display:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:none!important;gap:14px 12px!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:none!important;width:auto!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>*{grid-area:auto!important;grid-column:auto!important;min-width:0;margin:0!important;width:auto!important;max-width:none!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>:is(.pp-et,.pf-kind,.pp-qpick,.pp-edit-note,.pf-btn){grid-column:1/-1!important}
+html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-co{grid-column:1/-1!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pp-et{order:-2;display:block;margin:0!important;padding:0!important;font:700 17px/24px var(--sans);color:var(--nd-ink)}
+html body #appView #payEntry .pp-et{display:none}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pf-kind{order:-1}
+html body #appView dialog.pp-entry-dlg #payEntry .pf>label{display:block;margin:0 0 5px!important;padding:0!important;font:400 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf :is(input,select){width:100%!important;height:40px!important;min-height:40px!important;margin:0!important;border-radius:10px!important;font:400 14px/1 var(--sans)!important;box-sizing:border-box!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf .date-control{height:40px!important;min-height:40px!important;margin:0!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pf-btn{display:flex!important;gap:8px!important;justify-content:stretch!important;margin-top:2px!important;padding:0!important;border:0!important;background:none!important;position:static!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf-btn>#payClose{flex:0 0 96px!important;width:96px!important;min-width:0!important;height:44px!important;border-radius:11px!important;font:600 14px/1 var(--sans)!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pf-btn>#payAddBtn{flex:1 1 auto!important;width:auto!important;height:44px!important;border-radius:11px!important;font:600 14px/1 var(--sans)!important}
+/* PC 창 · 폰 창 공통: [입금|출금] = 회색 바탕 칸 고르기(재고 입력 탭과 같음), 기록 버튼은 파랑 */
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind{display:flex!important;gap:0!important;height:auto!important;padding:3px!important;margin:0!important;border:0!important;border-radius:10px!important;background:var(--nd-fill,rgba(0,0,0,.05))!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind::after{display:none!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button[data-v]{flex:1 1 0!important;justify-content:center!important;height:34px!important;margin:0!important;padding:0!important;border:0!important;border-radius:8px!important;background:none!important;color:var(--nd-ink-2)!important;font:500 13.5px/1 var(--sans)!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button[data-v]::before{display:none!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) .nd-kind.nd-pay-kind>button.on[data-v]{background:var(--nd-surface)!important;color:var(--nd-ink)!important;font-weight:600!important;box-shadow:0 1px 2px rgba(15,20,30,.1)!important}
+html body #appView dialog:is(.pp-entry-dlg,.nd-pay-entry-sheet) #payAddBtn[data-kind]{background:var(--nd-blue)!important;border-color:var(--nd-blue)!important;color:#fff!important}
+/* 하단 버튼 규칙: ⋮ 안에 하나뿐이면(입금·출금은 삭제만) ⋮ 대신 그 버튼을 바로 — 거래처·품목 [삭제]와 같은 모양 */
+html body #appView #view-payments .pp-abar>.pp-del{color:var(--nd-red)!important;border-color:var(--nd-line)!important}
