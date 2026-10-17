@@ -37,7 +37,11 @@ export function capacity(doc){const bytes=purchasesBytes(doc);return {bytes,limi
 
 function line(l,items){
  valid(l&&typeof l==='object'&&id(l.id));
- valid(items.some(i=>i.id===l.item_id));
+ // 비용 줄(10/17, cost:true): 배송비 같은 작업 품목이나 직접 적은 이름(퀵 비용 등). 입고·재고에는 들어가지 않고 금액만 원가·출금에.
+ if(l.cost!==undefined){valid(l.cost===true);valid(l.item_id===undefined?str(l.name,200)&&l.name.trim().length>0:items.some(i=>i.id===l.item_id));valid(l.name===undefined||str(l.name,200));}
+ else{valid(items.some(i=>i.id===l.item_id));valid(l.name===undefined);}
+ // 견적 연결(줄마다): 이 줄이 어느 견적 건의 원가인지. 견적이 지워져도 매입은 그대로.
+ valid(l.quote_id===undefined||id(l.quote_id));
  valid((l.color===undefined||str(l.color,200))&&(l.spec===undefined||str(l.spec,200)));
  valid(int(l.qty)&&l.qty>0&&num(l.unit_price)&&l.unit_price>=0);
  valid(l.weight===undefined||num(l.weight)&&l.weight>=0);
@@ -55,13 +59,13 @@ function cost(c,p,companies){
   const keys=Object.keys(c.direct);valid(keys.length>0&&keys.every(k=>p.lines.some(l=>l.id===k)&&num(c.direct[k])));
   valid(Math.round(keys.reduce((s,k)=>s+c.direct[k],0))===Math.round(c.amount_krw));
  }
- if(c.alloc==='중량')valid(p.lines.every(l=>num(l.weight)&&l.weight>0));
+ if(c.alloc==='중량')valid(p.lines.filter(l=>!l.cost).every(l=>num(l.weight)&&l.weight>0));
  if(c.void_at!==undefined)valid(iso(c.void_at)&&(c.void_reason===undefined||str(c.void_reason,500)));
 }
 function receipt(r,p){
  valid(r&&typeof r==='object'&&id(r.id)&&day(r.date)&&Array.isArray(r.lines)&&r.lines.length>0&&iso(r.planned_at));
  const seen=new Set();
- for(const rl of r.lines){valid(p.lines.some(l=>l.id===rl.line_id)&&!seen.has(rl.line_id)&&int(rl.qty)&&rl.qty>0);seen.add(rl.line_id);}
+ for(const rl of r.lines){valid(p.lines.some(l=>l.id===rl.line_id&&!l.cost)&&!seen.has(rl.line_id)&&int(rl.qty)&&rl.qty>0);seen.add(rl.line_id);} // 비용 줄은 입고하지 않는다
  valid(Array.isArray(r.stock_move_ids)&&same(r.stock_move_ids,r.lines.map(rl=>stockMoveId(r.id,rl.line_id))));
  // 입고할 때의 임시 원가(원/개)는 입고 차수에 고정해 둔다 → 나중 변경이 지난 출고 원가를 바꾸지 않는다.
  valid(r.unit_costs&&typeof r.unit_costs==='object'&&r.lines.every(rl=>num(r.unit_costs[rl.line_id])&&r.unit_costs[rl.line_id]>=0));
@@ -71,7 +75,7 @@ function receipt(r,p){
 function ret(r,p){
  valid(r&&typeof r==='object'&&id(r.id)&&day(r.date)&&Array.isArray(r.lines)&&r.lines.length>0&&iso(r.planned_at)&&str(r.reason||'',500));
  const seen=new Set();
- for(const rl of r.lines){valid(p.lines.some(l=>l.id===rl.line_id)&&!seen.has(rl.line_id)&&int(rl.qty)&&rl.qty>0);seen.add(rl.line_id);}
+ for(const rl of r.lines){valid(p.lines.some(l=>l.id===rl.line_id&&!l.cost)&&!seen.has(rl.line_id)&&int(rl.qty)&&rl.qty>0);seen.add(rl.line_id);}
  valid(Array.isArray(r.stock_move_ids)&&same(r.stock_move_ids,r.lines.map(rl=>returnMoveId(r.id,rl.line_id))));
  valid(r.posted_at===undefined||iso(r.posted_at));
 }
@@ -91,6 +95,7 @@ export function validatePurchase(p,snapshot){
  valid(/^[A-Z]{3}$/.test(p.currency||''));
  valid(Array.isArray(p.lines)&&p.lines.length>0&&p.lines.length<=500);unique(p.lines);
  for(const l of p.lines)line(l,items);
+ if(p.kind==='기초재고')valid(p.lines.every(l=>!l.cost)); // 기초 재고에는 비용 줄이 없다
  if(p.currency!=='KRW')valid(p.fx&&num(p.fx.booking_rate)&&p.fx.booking_rate>0&&(p.fx.customs_rate===undefined||num(p.fx.customs_rate)&&p.fx.customs_rate>0));
  valid(p.costs===undefined||Array.isArray(p.costs));unique(p.costs||[]);for(const c of p.costs||[])cost(c,p,companies);
  valid(p.receipts===undefined||Array.isArray(p.receipts));unique(p.receipts||[]);for(const r of p.receipts||[])receipt(r,p);

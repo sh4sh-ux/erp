@@ -50,16 +50,17 @@
   if(!links.length){old?.remove();return;}
   let supply=0;try{supply=fn('quoteTotals',e)?.supply||0;}catch{}
   // 원가 = 연결된 매입 + 연결 매입에 없는 등록 품목의 매입단가(재고에서 나간 것). 매입단가 없는 줄(직접 입력·작업)은 0원.
-  const linked=new Set(links.flatMap(l=>l.items||[]));let extra=0;const zero=[];
+  const linked=new Set(links.flatMap(l=>l.items||[])),named=new Set(links.flatMap(l=>l.names||[]));let extra=0;const zero=[];
   for(const l of e.lines||[]){const qty=Number(l.qty)||0;if(!(l.name||'').trim()||!qty)continue;
    const it=l.item_id&&l.item_id!=='__free__'?(D()?.items||[]).find(x=>x.id===l.item_id):null;
    if(it&&linked.has(it.id))continue;
+   if(!it&&named.has(String((window.naroSplitName?window.naroSplitName(l).name:l.name)||l.name||'').trim()))continue;
    const buy=it?Number(fn('itemBuy',it,l.spec))||0:0;
-   if(buy)extra+=qty*buy;else if(!links.some(x=>(x.items||[]).includes(l.item_id)))zero.push((window.naroSplitName?window.naroSplitName(l).name:l.name)||'품목');}
+   if(buy)extra+=qty*buy;else zero.push((window.naroSplitName?window.naroSplitName(l).name:l.name)||'품목');}
   const cost=links.reduce((s,l)=>s+l.cost,0)+Math.round(extra),margin=supply-cost,rate=supply>0?Math.round(margin/supply*100):null;
   const html=`<div class="nd-qm-k"><div><span>매출 (공급가)</span><b>${won(supply)}</b></div><div><span>원가</span><b>${won(cost)}</b><em>매입 ${links.length}건${extra?' + 재고 품목':''}</em></div><div class="${margin<0?'neg':'pos'}"><span>마진</span><b>${margin<0?'−':''}${won(Math.abs(margin))}</b><em>${rate===null?'—':rate+'%'}</em></div></div>
    <div class="nd-qm-h">원가 내역</div>
-   ${links.map(l=>`<button type="button" class="nd-qm-r" data-pu="${esc(l.id)}"><span class="d">${esc((l.date||'').slice(5).replace('-','.'))}</span><span class="n">${esc([l.vendor,l.title].filter(Boolean).join(' · '))}<small>매입 ${esc(l.no)}</small></span><span class="a">${won(l.cost)}</span></button>`).join('')}
+   ${links.map(l=>`<button type="button" class="nd-qm-r" data-pu="${esc(l.id)}"><span class="d">${esc((l.date||'').slice(5).replace('-','.'))}</span><span class="n">${esc([l.vendor,l.title].filter(Boolean).join(' · '))}<small>매입 ${esc(l.no)}${l.all===false?` · 이 견적 줄 ${l.lines}개`:''}</small></span><span class="a">${won(l.cost)}</span></button>`).join('')}
    ${extra?`<div class="nd-qm-r is-static"><span class="d">—</span><span class="n">재고 품목<small>등록 매입단가 기준</small></span><span class="a">${won(extra)}</span></div>`:''}
    ${zero.length?`<p class="nd-qm-note">${esc(zero.slice(0,3).join(' · '))}${zero.length>3?` 외 ${zero.length-3}개`:''} · 원가 없음(0원)</p>`:''}`;
   // 진행 탭의 납품 · 입금 · 계산서 카드(.nd-rec-card)와 같은 모양으로 맨 위에

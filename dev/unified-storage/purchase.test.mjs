@@ -267,6 +267,22 @@ test('수입 정보(신고번호·B/L)·필증 품명·수입부가세 낸 곳�
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declared_on:'2026-13-40'}})]),snap),V);
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({import_vat:{amount:1,payee_id:'없는곳'}})]),snap),V);
 });
+test('비용 줄(배송비·직접 적은 비용): 저장되고, 입고에는 넣을 수 없고, 부대비용은 재고 줄에만 나뉜다',()=>{
+ const snap=base();
+ const withCost=domestic({lines:[{id:'a',item_id:'jk',color:'BK',spec:'S',qty:10,unit_price:10000,quote_id:'q-1'},{id:'c1',cost:true,name:'퀵 비용',qty:1,unit_price:5000,quote_id:'q-1'},{id:'c2',cost:true,item_id:'ap',qty:1,unit_price:3000}]});
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([withCost]),snap));
+ // 이름 없는 직접 비용 · cost 값이 true가 아님 · 재고 줄에 name · 줄 견적 id 모양 아님
+ for(const bad of [{id:'x',cost:true,name:'  ',qty:1,unit_price:1},{id:'x',cost:'yes',name:'a',qty:1,unit_price:1},{id:'x',item_id:'jk',name:'a',qty:1,unit_price:1},{id:'x',item_id:'jk',qty:1,unit_price:1,quote_id:'<q>'}])
+  assert.throws(()=>validatePurchasesChange(doc([]),doc([domestic({lines:[bad]})]),snap),V);
+ // 비용 줄을 입고 차수에 넣으면 막는다
+ const rec={id:'r1',date:'2026-10-11',lines:[{line_id:'c1',qty:1}],stock_move_ids:[stockMoveId('r1','c1')],unit_costs:{c1:5000},planned_at:AT};
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([{...withCost,receipts:[rec]}]),snap),V);
+ // 기초 재고에는 비용 줄 없음
+ assert.throws(()=>validatePurchasesChange(doc([]),doc([domestic({kind:'기초재고',vendor_id:undefined,lines:[{id:'c1',cost:true,name:'x',qty:1,unit_price:1}]})]),snap),V);
+ // 부대비용(금액 기준)은 재고 줄에만
+ const fx=imported({lines:[{id:'a',item_id:'ap',qty:100,unit_price:2},{id:'c1',cost:true,name:'포장비',qty:1,unit_price:50}],costs:[{id:'k1',type:'운임',amount_krw:100000,alloc:'금액'}]});
+ const al=allocate(fx);assert.equal(al.c1,0);assert.equal(al.a,100000);
+});
 test('견적 연결(건별 마진): quote_id는 id 모양 글자만, 없거나 지워진 견적이어도 매입은 그대로 저장된다',()=>{
  const snap=base();
  assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([domestic({quote_id:'q-test-1'})]),snap));
