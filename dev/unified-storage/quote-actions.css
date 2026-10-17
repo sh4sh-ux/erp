@@ -491,7 +491,6 @@ html body #appView #qtForm .nd-qn-t small{margin-left:6px;font:400 12px/18px var
 html body #appView #qtForm .nd-qn.is-empty .nd-qn-t small{color:var(--nd-amber,#D97706)}
 html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:600 13px/20px var(--sans);cursor:pointer}
 /* 공급자 정보: 견적서 안내문 */
-html body #appView #view-settings #st_quote_notice{min-height:76px;color:var(--nd-red);line-height:1.6;resize:vertical}
 html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
 html body #appView #view-settings .nd-qn-row .hint{margin:0}
 /* 진행 탭: 건별 마진 */
@@ -518,3 +517,26 @@ html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--
  html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
  html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
 }
+/* 10/17 2차: 안내문 꾸미기 — 색 4가지 · 굵게. 칸은 견적서 종이처럼 늘 흰 바탕(다크 모드에서도 검정 글자가 보이게) */
+#printArea .p-etc .notice .nq-ink{color:#0B1220}#printArea .p-etc .notice .nq-red{color:#D32F2F}#printArea .p-etc .notice .nq-blue{color:#2F54EB}#printArea .p-etc .notice .nq-gray{color:#8A94A6}
+#printArea .p-etc .notice b{font-weight:700}
+html body #appView #view-settings .nd-qn-ed{border:1px solid var(--nd-line);border-radius:10px;overflow:hidden;background:#fff}
+html body #appView #view-settings .nd-qn-ed:focus-within{border-color:var(--nd-blue)}
+html body #appView #view-settings .nd-qn-tb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 8px;border-bottom:1px solid var(--nd-line);background:var(--nd-fill,#F6F7F9)}
+html body #appView #view-settings .nd-qn-tb>button{display:inline-flex;align-items:center;gap:6px;height:30px;min-height:30px;min-width:30px;margin:0;padding:0 9px;border:1px solid transparent;border-radius:7px;background:none;box-shadow:none;color:var(--nd-ink);font:500 13px/1 var(--sans);cursor:pointer}
+html body #appView #view-settings .nd-qn-tb>button:hover{background:var(--nd-surface);border-color:var(--nd-line)}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-bb{font-weight:800}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-clr{color:var(--nd-ink-2)}
+html body #appView #view-settings .nd-qn-tb i{display:inline-block;width:12px;height:12px;border-radius:50%}
+html body #appView #view-settings .nd-qn-sep{width:1px;height:18px;margin:0 4px;background:var(--nd-line)}
+html body #appView #view-settings .nd-qn-area{min-height:84px;padding:12px 14px;outline:none;background:#fff;color:#D32F2F;color-scheme:light;font:400 14px/1.7 var(--sans);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+html body #appView #view-settings .nd-qn-area:empty::before{content:attr(data-placeholder);color:#9AA0AA}
+html body #appView #view-settings .nd-qn-area .nq-ink{color:#0B1220}html body #appView #view-settings .nd-qn-area .nq-red{color:#D32F2F}html body #appView #view-settings .nd-qn-area .nq-blue{color:#2F54EB}html body #appView #view-settings .nd-qn-area .nq-gray{color:#8A94A6}
+html body #appView #view-settings .nd-qn-area b{font-weight:700}
+/* 버튼 줄도 종이처럼 밝게(다크 모드에서 '검정' 점이 묻히지 않게) */
+html body #appView #view-settings .nd-qn-ed{color-scheme:light;border-color:#E2E4E8}
+html body #appView #view-settings .nd-qn-tb{background:#F6F7F9;border-bottom-color:#ECEDF0}
+html body #appView #view-settings .nd-qn-tb>button{color:#16181D}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-clr{color:#5B606B}
+html body #appView #view-settings .nd-qn-tb>button:hover{background:#fff;border-color:#E2E4E8}
+html body #appView #view-settings .nd-qn-sep{background:#E2E4E8}

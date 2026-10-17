@@ -426,18 +426,21 @@ patchFn('printQuote',[
 patchFn('drawQuoteCanvas',[
  ['const NOTICE=["자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.",\n                "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];','const NOTICE=window.naroQuoteNoticeLines?window.naroQuoteNoticeLines(q):[];'],
  ['ctx.fillStyle="#fff"; ctx.font=F(800,26); ctx.textAlign="right";','ctx.fillStyle="#fff"; ctx.font=F(650,24); ctx.textAlign="right";'],
+ // 안내문: 글자 조각마다 굵게·색(quote-extras.js naroNoticeCanvasLines/DrawLine)
+ ['const noticeLs=NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));','const noticeLs=window.naroNoticeCanvasLines?window.naroNoticeCanvasLines(mc,q,CW-26,F):NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));mc.font=F(400,12.5);'],
+ ['noticeLs.forEach(ln=>{ ctx.fillText(ln,MX+13,ey); ey+=21; });','noticeLs.forEach(ln=>{ if(Array.isArray(ln)&&window.naroNoticeDrawLine)window.naroNoticeDrawLine(ctx,ln,MX+13,ey,F); else ctx.fillText(ln,MX+13,ey); ey+=21; });'],
 ]);
 patchFn('renderSettings',[
- ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn)qn.value=window.naroQuoteNoticeText?window.naroQuoteNoticeText():"";'],
+ ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn&&window.naroNoticeToEditor)window.naroNoticeToEditor(qn);'],
 ]);
 patchFn('saveSettings',[
- ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(document.getElementById("st_quote_notice")&&window.naroNormNotice?{quote_notice:window.naroNormNotice(document.getElementById("st_quote_notice").value)}:{}),\n  };'],
+ ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),\n  };'],
 ]);
 {const from='<section class="sup-sec sup-docs">';if(html.split(from).length!==2)throw Error('QUOTE_NOTICE_BOUNDARY');
  html=html.replace(from,`<section class="sup-sec sup-notice">
               <h3 class="sup-sec-t">견적서 안내문</h3>
-              <div class="field"><label for="st_quote_notice">안내문</label><textarea id="st_quote_notice" rows="3" placeholder="비우면 안내문 없이 출력돼요"></textarea>
-                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
+              <div class="field"><label id="st_quote_notice_l">안내문</label><div class="nd-qn-ed"><div class="nd-qn-tb" role="toolbar" aria-label="글자 꾸미기"><button type="button" class="nd-qn-bb" data-qn-b title="굵게" aria-label="굵게">B</button><span class="nd-qn-sep"></span><button type="button" data-qn-c="ink"><i style="background:#0B1220"></i>검정</button><button type="button" data-qn-c="red"><i style="background:#D32F2F"></i>빨강</button><button type="button" data-qn-c="blue"><i style="background:#2F54EB"></i>파랑</button><button type="button" data-qn-c="gray"><i style="background:#8A94A6"></i>회색</button><span class="nd-qn-sep"></span><button type="button" class="nd-qn-clr" data-qn-clear>꾸밈 지우기</button></div><div id="st_quote_notice" class="nd-qn-area" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="st_quote_notice_l" data-placeholder="비우면 안내문 없이 출력돼요"></div></div>
+                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">글자를 고르고 버튼을 누르세요 · 꾸미지 않은 글자는 빨강 · 견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
               </div>
             </section>
 
