@@ -201,7 +201,7 @@
  }
  // 견적서 화면으로 이동
  function goQuote(id){try{qtSel=id;qtEditing=null;qtBaseline='';}catch{}if(fn('switchView','quotes')===false)return;fn('renderQtList');fn('renderQtDetail');fn('scrollToDetail','qtForm');}
- // 10/17: 입금·출금 줄의 견적번호 = 화면을 옮기지 않고 견적서 미리보기(인쇄 미리보기 창 그대로). 위 줄에 [견적서 열기].
+ // 10/17: 입금·출금 줄의 견적번호 = 화면을 옮기지 않고 지금 화면 위에 견적서 종이만 띄운다(바깥·Esc로 닫기).
  function previewQuote(id){
   const q=(D()?.quotes||[]).find(x=>x.id===id),pq=globalThis.printQuote,op=globalThis.openPrintPreview,cl=globalThis.closePrintPreview;
   if(!q||typeof pq!=='function'||typeof op!=='function')return false;
@@ -211,11 +211,16 @@
    try{await pq(q,'견적서');}catch(e){console.error('[quote-preview]',e);window.print=wp;goQuote(id);return;}
    window.print=wp;
    const pa=document.getElementById('printArea');if(!pa)return;
+   // 10/17 2차: 전체 화면이 아니라 지금 화면 위의 창(가운데 · 뒤는 어둡게). 창 폭에 맞춰 축소되도록 클래스를 먼저 붙이고 연다.
+   pa.classList.add('nd-pvm');
+   let bd=document.querySelector('.nd-pvm-bd');if(!bd){bd=document.createElement('div');bd.className='nd-pvm-bd';document.body.append(bd);}
+   bd.onclick=()=>cl?.();
+   if(!pa.dataset.ndPvm){pa.dataset.ndPvm='1';pa.addEventListener('click',e=>{if(pa.classList.contains('nd-pvm')&&!e.target.closest('.pv-sheet'))cl?.();});}
    if(!pa.querySelector('.pv-bar'))op(q,'견적서');
+   const done=new MutationObserver(()=>{if(!pa.classList.contains('preview')){pa.classList.remove('nd-pvm');bd.remove();done.disconnect();}});done.observe(pa,{attributes:true,attributeFilter:['class']});
    const close=document.getElementById('pvCloseBtn');
-   if(close&&!pa.querySelector('.nd-pv-open')){const b=document.createElement('button');b.type='button';b.className='btn ghost nd-pv-open';b.textContent='견적서 열기';b.onclick=()=>{cl?.();goQuote(id);};close.after(b);}
    const onKey=e=>{if(!pa.classList.contains('preview')){document.removeEventListener('keydown',onKey,true);return;}if(e.key==='Escape'){e.preventDefault();cl?.();document.removeEventListener('keydown',onKey,true);}};
-   document.addEventListener('keydown',onKey,true);close?.focus();
+   document.addEventListener('keydown',onKey,true);pa.tabIndex=-1;pa.focus({preventScroll:true});
   })();
   return true;
  }

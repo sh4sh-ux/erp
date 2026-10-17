@@ -81,20 +81,21 @@
  /* List and ledger money, separate from the smaller margin annotations. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
-  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b
+  .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b,
+  .nd-mon-h>.s,.nd-mon-r .a,.pp-mg em
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
  }
  /* Record names and muted list metadata use the same body/label hierarchy. */
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
-  .li-name,.li-nm,.material-record-name,.stock-item>span,.pp-record-name>span,.pp-mobile-row b,.cp-qr .t,.nd-sa-entry-name
+  .li-name,.li-nm,.material-record-name,.stock-item>span,.pp-record-name>span,.pp-mobile-row b,.cp-qr .t,.nd-sa-entry-name,.nd-mon-h>b,.pp-mg>b
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;
  }
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
-  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d
+  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d,.nd-mon-h>.n,.nd-mon-r .d
  ) {
   font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;color:var(--nd-ink-3)!important;
