@@ -671,7 +671,7 @@ html[data-theme="dark"]{--nd-mat-held:#8C94FF;--nd-mat-used:#5D67C9;--nd-mat-ret
 }
 @media screen{
  /* 견적 품목 줄: fits a 13" detail width — flexible columns, no sideways scroll. */
- #appView #qtForm .qline{grid-template-columns:minmax(0,1fr) minmax(112px,176px) 56px minmax(76px,100px) minmax(80px,100px) 24px!important;gap:6px!important}
+ #appView #qtForm .qline{grid-template-columns:minmax(40px,1.6fr) minmax(96px,1fr) 44px minmax(76px,100px) minmax(80px,100px) 24px!important;gap:6px!important}
  #appView #qtForm .qline>*{min-width:0}
  #appView #qtForm .qlines{overflow-x:visible!important}
  /* 재고 · 옵션 표: status badges never squeezed. */
