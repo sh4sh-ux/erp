@@ -2776,6 +2776,13 @@
               <div class="field"><label>계좌번호</label><input id="st_bank" placeholder="예: 신한은행 110-000-000000"></div>
             </section>
 
+            <section class="sup-sec sup-notice">
+              <h3 class="sup-sec-t">견적서 안내문</h3>
+              <div class="field"><label for="st_quote_notice">안내문</label><textarea id="st_quote_notice" rows="3" placeholder="비우면 안내문 없이 출력돼요"></textarea>
+                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
+              </div>
+            </section>
+
             <section class="sup-sec sup-docs">
               <h3 class="sup-sec-t">자료 <span class="sup-sec-h">명함·사업자등록증 이미지 링크</span></h3>
               <div class="field"><label>명함 이미지 링크</label><input id="st_card_url" placeholder="명함 이미지 링크">
@@ -5342,8 +5349,7 @@ function printQuote(q,docType){
       </table>
       <div class="p-etc">
         <div class="k">비고</div>
-        <div class="body">${q.memo?`<div class="memo-text">${escapeHtml(q.memo)}</div>`:""}<div class="notice">자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.
-주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.</div></div>
+        <div class="body">${q.memo?`<div class="memo-text">${escapeHtml(q.memo)}</div>`:""}${window.naroQuoteNoticeHtml?window.naroQuoteNoticeHtml(q):""}</div>
       </div>
       <div class="p-foot">${D.foot(q)}${(D.foot(q)&&s.name)?" · ":""}${escapeHtml(s.name||"")}</div>
     </div>
@@ -5429,8 +5435,7 @@ function drawQuoteCanvas(q,docType){
   const lines=q.lines.filter(l=>(l.name||"").trim());
   const t=quoteTotals({lines});
   const fmtb=v=>Number(v)?fmt(v):"";
-  const NOTICE=["자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.",
-                "주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다."];
+  const NOTICE=window.naroQuoteNoticeLines?window.naroQuoteNoticeLines(q):[];
   const SC=2, PW=794, MX=53, MT=60, MB=60, CW=688;
   const F=(w,px)=>`${w} ${px}px ${QIMG_FONT}`;
   // 컬럼: 품명(가변 202) | 색상 46 | 규격/옵션 112 | 수량 58 | 단가 88 | 공급가액 100 | 세액 82
@@ -5519,7 +5524,7 @@ function drawQuoteCanvas(q,docType){
   ctx.fillStyle="#2F3338"; qimgRR(ctx,MX,gy,CW,52,14); ctx.fill();
   ctx.fillStyle="rgba(255,255,255,.85)"; ctx.font=F(650,13);
   ctx.fillText(D.grand,MX+20,gy+31);
-  ctx.fillStyle="#fff"; ctx.font=F(800,26); ctx.textAlign="right";
+  ctx.fillStyle="#fff"; ctx.font=F(650,24); ctx.textAlign="right";
   ctx.fillText("₩"+fmt(t.total),MX+CW-20,gy+35);
   ctx.textAlign="left";
 
@@ -6813,6 +6818,7 @@ function renderSettings(){
   const cardUrl=(s.business_card_url||DEFAULT_BUSINESS_CARD_URL).trim();
   document.getElementById("st_card_url").value=cardUrl===LEGACY_BUSINESS_CARD_URL ? DEFAULT_BUSINESS_CARD_URL : cardUrl;
   document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();
+  const qn=document.getElementById("st_quote_notice");if(qn)qn.value=window.naroQuoteNoticeText?window.naroQuoteNoticeText():"";
   document.getElementById("bkStat").textContent=
     `현재 데이터 — 거래처 ${db.companies.length} · 품목 ${db.items.length} · 견적서 ${db.quotes.length} · 수금/지급 ${db.payments.length} · 재고기록 ${(db.stock_moves||[]).length}`;
 }
@@ -6831,6 +6837,7 @@ async function saveSettings(){
     address:document.getElementById("st_address").value.trim(),
     business_card_url:businessCardUrl,
     biz_cert_url:document.getElementById("st_cert_url").value.trim(),
+    ...(document.getElementById("st_quote_notice")&&window.naroNormNotice?{quote_notice:window.naroNormNotice(document.getElementById("st_quote_notice").value)}:{}),
   };
   if(!await saveTable("settings",next))return;
   db.settings=next;
@@ -10541,6 +10548,43 @@ html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head) .dual>:is(inpu
 html body #appView :is(#qtForm,#puForm).nd-view .qline:not(.head)>:is([data-f="spec"],[data-f="vspec"]){padding-left:4px!important;padding-right:4px!important;text-overflow:ellipsis}
 /* 색상이 없는 줄(작업·직접 입력)의 규격 칸도 위 비율(1 : 1.4)의 규격 자리와 같은 폭 */
 html body #appView :is(#qtForm,#puForm) .qline:not(.head):not(.nd-x)>:is([data-f="spec"],[data-f="vspec"]){width:calc((100% - 8px) * 1.4 / 2.4)!important} /* :not(.nd-x) = ui-contract.css의 반쪽 폭 규칙보다 앞서게 */
+/* 10/17 견적금액 = 24px · 굵기 650(시안 A) — 이미지 저장(drawQuoteCanvas)과 같은 값 */
+#printArea .p-grand .v{font-size:24px!important;font-weight:650!important}
+/* 견적서 정보 탭: 안내문 넣기 스위치 + 공급자 정보로 */
+html body #appView #qtForm .nd-qn{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--nd-fill,rgba(0,0,0,.03))}
+html body #appView #qtForm .nd-qn-sw{display:flex;align-items:center;gap:10px;margin:0;cursor:pointer;font:500 14px/20px var(--sans);color:var(--nd-ink)}
+html body #appView #qtForm .nd-qn-sw input{width:18px;height:18px;margin:0;accent-color:var(--nd-blue);flex:none}
+html body #appView #qtForm .nd-qn-t small{margin-left:6px;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qn.is-empty .nd-qn-t small{color:var(--nd-amber,#D97706)}
+html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:600 13px/20px var(--sans);cursor:pointer}
+/* 공급자 정보: 견적서 안내문 */
+html body #appView #view-settings #st_quote_notice{min-height:76px;color:var(--nd-red);line-height:1.6;resize:vertical}
+html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+html body #appView #view-settings .nd-qn-row .hint{margin:0}
+/* 진행 탭: 건별 마진 */
+html body #appView #qtForm .nd-qm-b{padding:0 16px 14px}
+html body #appView #qtForm .nd-qm{margin-bottom:14px}
+html body #appView #qtForm .nd-qm-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--nd-line);border-radius:12px;overflow:hidden}
+html body #appView #qtForm .nd-qm-k>div{padding:14px 16px;border-left:1px solid var(--nd-line);min-width:0}
+html body #appView #qtForm .nd-qm-k>div:first-child{border-left:0}
+html body #appView #qtForm .nd-qm-k span{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qm-k em{display:block;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-qm-k .pos b{color:var(--nd-blue)}
+html body #appView #qtForm .nd-qm-k .neg b{color:var(--nd-red)}
+html body #appView #qtForm .nd-qm-h{margin:16px 0 4px;font:600 14px/22px var(--sans);color:var(--nd-ink)}
+html body #appView #qtForm .nd-qm-r{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;min-height:50px;height:auto;margin:0;padding:6px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
+html body #appView #qtForm .nd-qm-r.is-static{cursor:default}
+@media(hover:hover){html body #appView #qtForm button.nd-qm-r:hover .n{color:var(--nd-blue)}}
+html body #appView #qtForm .nd-qm-r .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView #qtForm .nd-qm-r small{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
+@media(max-width:600px){
+ html body #appView #qtForm .nd-qm-k{grid-template-columns:1fr}
+ html body #appView #qtForm .nd-qm-k>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding:11px 14px;border-left:0;border-top:1px solid var(--nd-line)}
+ html body #appView #qtForm .nd-qm-k>div:first-child{border-top:0}
+ html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
+ html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
+}
 
 /* 매입 화면 — 모양은 견적서 규칙을 그대로 복사해 쓴다(purchase-ui.mjs mirrorQuoteStyles). 여기에는 매입에만 있는 것만. */
 /* 마무리 안 된 입고·용량 알림(목록 카드 칩 아래) */
@@ -11758,7 +11802,7 @@ const NaroCompanyLedger=(()=>{
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
  function supplierInfoGroups(view){
-  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌']];
+  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌'],['견적서 안내문','모든 견적서 비고 아래 빨간 글씨 · 줄바꿈 그대로']];
   view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
    if(sec.classList.contains('cp-grp'))return;
    const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
@@ -12632,6 +12676,7 @@ const NaroCompanyLedger=(()=>{
   for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el||el.value.trim()!==String(s[key]||'').trim())return false;}
   const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
   if(address!==String(s.address||'').trim())return false;
+  const qn=document.getElementById('st_quote_notice');if(qn&&window.naroNormNotice&&window.naroQuoteNoticeText&&window.naroNormNotice(qn.value)!==window.naroNormNotice(window.naroQuoteNoticeText()))return false;
   const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
   return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
  }
@@ -13918,6 +13963,87 @@ const NaroOrderImport=(()=>{
   wrapped.__autoOrder=true;window.saveTable=wrapped;
  }
  window.NaroQuoteActions={bar,deliver,pay,removeQuote,chooseCompany:openCoPop,closeCompanyPicker:closeCoPop};
+})();
+
+/* 견적서 안내문 · 건별 마진(10/17 시안 — 사용자 확정).
+   안내문 = 모든 견적서 비고 아래 빨간 글씨. 고치는 곳은 공급자 정보 한 곳(settings.quote_notice, 없으면 기본 문구, 빈 글 = 안내문 없음).
+   견적서 정보 탭에는 '이 견적서에 안내문 넣기' 스위치(quote.no_notice)와 [공급자 정보에서 바꾸기 ›]만 둔다.
+   건별 마진 = 견적에 연결된 매입(purchase.quote_id, 매입 화면 '견적 연결')을 원가로, 진행 탭 맨 위에 매출 − 원가 = 마진. 출력물에는 나오지 않는다. */
+(()=>{
+ const NOTICE_DEFAULT='자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.\n주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
+ const D=()=>{try{return db;}catch{return null;}};
+ const fn=(name,...a)=>{try{const f=globalThis[name];return typeof f==='function'?f(...a):undefined;}catch{return undefined;}};
+ const norm=v=>String(v??'').replace(/\r\n?/g,'\n').split('\n').map(x=>x.trim()).join('\n').replace(/^\n+|\n+$/g,'');
+ const noticeText=()=>{const s=D()?.settings||{};return typeof s.quote_notice==='string'?s.quote_notice:NOTICE_DEFAULT;};
+ const noticeLines=q=>q?.no_notice?[]:noticeText().split('\n').map(x=>x.trim()).filter(Boolean);
+ window.naroQuoteNoticeText=noticeText;
+ window.naroNormNotice=norm;
+ window.naroQuoteNoticeLines=noticeLines;
+ window.naroQuoteNoticeHtml=q=>{const ls=noticeLines(q);return ls.length?`<div class="notice">${ls.map(esc).join('<br>')}</div>`:'';};
+ window.naroQuoteNoticeDefault=NOTICE_DEFAULT;
+
+ // ── 공급자 정보: '견적서 안내문' 칸(값 채우기 · 저장은 build.mjs가 renderSettings/saveSettings에 넣은 몇 줄) ──
+ document.addEventListener('click',e=>{
+  const b=e.target.closest?.('[data-nd-qn-default]');if(!b)return;
+  const t=document.getElementById('st_quote_notice');if(!t)return;t.value=NOTICE_DEFAULT;t.dispatchEvent(new Event('input',{bubbles:true}));t.focus();
+ });
+
+ // ── 견적서 정보 탭: 안내문 넣기 스위치 ──
+ function noticeToggle(form){
+  const memo=form.querySelector('#fq_memo');const field=memo?.closest('.field');if(!field)return;
+  let box=form.querySelector('.nd-qn');
+  if(!box){box=document.createElement('div');box.className='nd-qn';
+   box.innerHTML='<label class="nd-qn-sw"><input type="checkbox" id="fq_notice"><span class="nd-qn-t">안내문 넣기 <small>모든 견적서 공통 · 빨간 글씨</small></span></label><button type="button" class="nd-qn-go">공급자 정보에서 바꾸기 ›</button>';
+   box.querySelector('#fq_notice').addEventListener('change',ev=>{let e;try{e=qtEditing;}catch{}if(!e)return;if(ev.target.checked)delete e.no_notice;else e.no_notice=true;form.dispatchEvent(new Event('input',{bubbles:true}));});
+   box.querySelector('.nd-qn-go').addEventListener('click',()=>{if(fn('switchView','settings')===false)return;setTimeout(()=>{const t=document.getElementById('st_quote_notice');t?.scrollIntoView({block:'center'});t?.focus();},60);});
+   field.after(box);}
+  let e;try{e=qtEditing;}catch{}
+  const cb=box.querySelector('#fq_notice');const on=!e?.no_notice;if(cb.checked!==on)cb.checked=on;
+  const empty=!noticeText().trim();box.classList.toggle('is-empty',empty);
+  const sm=box.querySelector('.nd-qn-t small');const st=empty?'공급자 정보의 안내문이 비어 있어요':'모든 견적서 공통 · 빨간 글씨';if(sm.textContent!==st)sm.textContent=st;
+ }
+
+ // ── 진행 탭: 건별 마진(연결된 매입이 있을 때만) ──
+ let asked=false;
+ function marginCard(form){
+  const flow=form.querySelector('.qp-flow');let e;try{e=qtEditing;}catch{}
+  const old=form.querySelector('.nd-qm');
+  const P=globalThis.NaroPurchases;
+  if(!flow||!e?.id||!P?.byQuote){old?.remove();return;}
+  let links=P.byQuote(e.id);
+  if(links===null){if(!asked&&P.load){asked=true;P.load(false,true).then(()=>{try{marginCard(document.getElementById('qtForm'));}catch{}}).catch(()=>{});}old?.remove();return;}
+  if(!links.length){old?.remove();return;}
+  let supply=0;try{supply=fn('quoteTotals',e)?.supply||0;}catch{}
+  // 원가 = 연결된 매입 + 연결 매입에 없는 등록 품목의 매입단가(재고에서 나간 것). 매입단가 없는 줄(직접 입력·작업)은 0원.
+  const linked=new Set(links.flatMap(l=>l.items||[]));let extra=0;const zero=[];
+  for(const l of e.lines||[]){const qty=Number(l.qty)||0;if(!(l.name||'').trim()||!qty)continue;
+   const it=l.item_id&&l.item_id!=='__free__'?(D()?.items||[]).find(x=>x.id===l.item_id):null;
+   if(it&&linked.has(it.id))continue;
+   const buy=it?Number(fn('itemBuy',it,l.spec))||0:0;
+   if(buy)extra+=qty*buy;else if(!links.some(x=>(x.items||[]).includes(l.item_id)))zero.push((window.naroSplitName?window.naroSplitName(l).name:l.name)||'품목');}
+  const cost=links.reduce((s,l)=>s+l.cost,0)+Math.round(extra),margin=supply-cost,rate=supply>0?Math.round(margin/supply*100):null;
+  const html=`<div class="nd-qm-k"><div><span>매출 (공급가)</span><b>${won(supply)}</b></div><div><span>원가</span><b>${won(cost)}</b><em>매입 ${links.length}건${extra?' + 재고 품목':''}</em></div><div class="${margin<0?'neg':'pos'}"><span>마진</span><b>${margin<0?'−':''}${won(Math.abs(margin))}</b><em>${rate===null?'—':rate+'%'}</em></div></div>
+   <div class="nd-qm-h">원가 내역</div>
+   ${links.map(l=>`<button type="button" class="nd-qm-r" data-pu="${esc(l.id)}"><span class="d">${esc((l.date||'').slice(5).replace('-','.'))}</span><span class="n">${esc([l.vendor,l.title].filter(Boolean).join(' · '))}<small>매입 ${esc(l.no)}</small></span><span class="a">${won(l.cost)}</span></button>`).join('')}
+   ${extra?`<div class="nd-qm-r is-static"><span class="d">—</span><span class="n">재고 품목<small>등록 매입단가 기준</small></span><span class="a">${won(extra)}</span></div>`:''}
+   ${zero.length?`<p class="nd-qm-note">${esc(zero.slice(0,3).join(' · '))}${zero.length>3?` 외 ${zero.length-3}개`:''} · 원가 없음(0원)</p>`:''}`;
+  // 진행 탭의 납품 · 입금 · 계산서 카드(.nd-rec-card)와 같은 모양으로 맨 위에
+  const host=flow.querySelector('.nd-rec')||flow;
+  let box=old;if(!box){box=document.createElement('section');box.className='nd-rec-card nd-qm';box.innerHTML='<div class="nd-rec-hd"><div><h3>마진</h3><span>연결된 매입 기준 · 내부 확인용(출력 안 됨)</span></div></div><div class="nd-qm-b"></div>';
+   box.addEventListener('click',ev=>{const r=ev.target.closest('[data-pu]');if(r)globalThis.NaroPurchases?.open?.(r.dataset.pu);});}
+  if(box.parentElement!==host||host.firstElementChild!==box)host.prepend(box);
+  const b=box.querySelector('.nd-qm-b');if(b.dataset.html!==html){b.innerHTML=html;b.dataset.html=html;}
+ }
+
+ function enhance(){const form=document.getElementById('qtForm');if(!form||form.classList.contains('hidden'))return;try{noticeToggle(form);}catch(e){console.error('[quote-notice]',e);}try{marginCard(form);}catch(e){console.error('[quote-margin]',e);}}
+ if(typeof renderQtDetail==='function'){const orig=renderQtDetail;renderQtDetail=function(){const r=orig.apply(this,arguments);enhance();return r;};}
+ // 다른 화면 코드가 견적서 폼을 직접 다시 그릴 때도(이 함수를 거치지 않음) 스위치·마진이 다시 붙게 폼을 지켜본다. 붙이는 일은 이미 있으면 아무것도 안 한다.
+ let queued=false;const later=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance();});};
+ const watch=()=>{const form=document.getElementById('qtForm');if(!form||form.dataset.ndQx)return;form.dataset.ndQx='1';new MutationObserver(later).observe(form,{childList:true,subtree:true});later();};
+ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',watch):watch();
+ window.NaroQuoteExtras={enhance,noticeText,noticeLines};
 })();
 
 /* 휴지통(10/11): 지우기를 되돌릴 수 있게.
@@ -16516,6 +16642,11 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
   font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
   letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
  }
+ /* 견적서 진행 탭 건별 마진(.nd-qm-k)도 같은 KPI 숫자. */
+ html body #appView[data-layout-system] .shell .main #view-quotes .nd-qm-k b {
+  font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
+  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
+ }
  /* Section headings; preserve smaller, muted count chips next to the heading. */
  html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
   h3,h4,.cp-sech h3,.cp-grph h4,.pp-section-head h4,.nd-db-range-heading h3,
@@ -16528,7 +16659,7 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
   .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b,
-  .nd-mon-h>.s,.nd-mon-r .a,.pp-mg em
+  .nd-mon-h>.s,.nd-mon-r .a,.pp-mg em,.nd-qm-r .a
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
@@ -16541,7 +16672,7 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
   letter-spacing:normal!important;
  }
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
-  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d,.nd-mon-h>.n,.nd-mon-r .d
+  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d,.nd-mon-h>.n,.nd-mon-r .d,.nd-qm-r .d
  ) {
   font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;color:var(--nd-ink-3)!important;

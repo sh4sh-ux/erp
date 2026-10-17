@@ -334,8 +334,17 @@ export function installPurchaseUI({port,features=()=>true}){
     <div class="grid2 nd-ig-pair"><div class="field"><label for="pu_date">매입일</label>${dateHtml}</div>
     ${isFx(p)?`<div class="field"><label for="pu_curView">통화</label><input id="pu_curView" value="${esc(p.currency)}" disabled></div>`:`<div class="field"><label for="pu_vatSel">부가세</label><select id="pu_vatSel" ${lockV?'disabled':''}><option value="1" ${p.vat_on===false?'':'selected'}>10% 별도</option><option value="0" ${p.vat_on===false?'selected':''}>없음</option></select></div>`}</div>`)
    +(isFx(p)?importGroup(p,grp,lockV):'')
+   +quoteGroup(p,grp,lockV)
    +grp('memo','비고','내부 메모(출력 안 됨)',`<div class="field"><textarea id="pu_memo" placeholder="입고 일정, 결제 조건 등">${esc(p.memo||'')}</textarea></div>`)
    +(sv&&g.NaroChangeLog?grp('manage','관리','','<button type="button" class="nd-log-link nd-ig-log" data-act="log">이 매입의 변경 기록 보기</button>'):'');
+ }
+ // 견적 연결(10/17, 건별 마진): 하청에 맡긴 일의 청구서처럼 '어느 견적 건의 원가인지' 고른다 → 견적서 진행 탭에 매출 − 원가 = 마진
+ function quoteGroup(p,grp,lock){
+  const qs=(D()?.quotes||[]).filter(q=>q.status!=='취소'||q.id===p.quote_id).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.no||'').localeCompare(String(a.no||'')));
+  const tot=q=>{try{return typeof g.quoteTotals==='function'?g.quoteTotals(q).total:0;}catch{return 0;}};
+  const opt=q=>`<option value="${esc(q.id)}" ${q.id===p.quote_id?'selected':''}>${esc([q.no,coName(q.company_id),q.date?q.date.slice(5).replace('-','.'):'',tot(q)?money(tot(q)):''].filter(Boolean).join(' · '))}</option>`;
+  const gone=p.quote_id&&!qs.some(q=>q.id===p.quote_id)?`<option value="${esc(p.quote_id)}" selected>지워진 견적</option>`:'';
+  return grp('quote','견적 연결','이 매입이 어느 견적 건의 원가인지(선택) · 견적서 진행 탭에 마진으로 보여요',`<div class="field"><label for="pu_quote">견적</label><select id="pu_quote" ${lock?'disabled':''}><option value="">연결 안 함</option>${gone}${qs.map(opt).join('')}</select></div>`);
  }
  // 수입 정보(10/17 결정 ①②): 수입신고번호 · B/L · 인도조건 · 결제방법 · 신고일 · 수리일 · 매입 환율(기본 = 과세 환율)
  function importGroup(p,grp,lock){
@@ -914,6 +923,7 @@ export function installPurchaseUI({port,features=()=>true}){
   for(const [id,k] of Object.entries(cuMap))f.querySelector('#'+id)?.addEventListener('change',e=>edit(p=>{const c={...(p.customs||{})},v=e.target.value.trim();if(v)c[k]=k==='incoterms'?v.toUpperCase():v;else delete c[k];p.customs=c;}));
   for(const [id,k] of [['pu_rateBook','booking_rate'],['pu_rateCustoms','customs_rate']])f.querySelector('#'+id)?.addEventListener('change',e=>edit(p=>{const v=Number(String(e.target.value).replace(/[^\d.]/g,''));if(v>0)p.fx={...p.fx,[k]:v};}));
   f.querySelector('#pu_vatSel')?.addEventListener('change',e=>edit(p=>{p.vat_on=e.target.value!=='0';}));
+  f.querySelector('#pu_quote')?.addEventListener('change',e=>edit(p=>{const v=e.target.value;if(v)p.quote_id=v;else delete p.quote_id;}));
   f.querySelector('#pu_memo')?.addEventListener('change',e=>{if(st.draft&&st.draft.id===st.sel&&(st.draft.memo||'')===e.target.value)return;edit(p=>{p.memo=e.target.value;});}); // 치는 동안 이미 반영했으면 다시 그리지 않는다(그 사이 누른 [저장]이 사라지지 않게)
   // 글자를 치는 동안에도 '저장'이 켜지게(다시 그리지 않음) — 비고를 쓰고 바로 [저장]을 눌러도 한 번에 저장된다.
   f.querySelector('#pu_memo')?.addEventListener('input',e=>{edit(p=>{p.memo=e.target.value;},false);const b=f.querySelector('#puSaveBtn');if(b){b.classList.toggle('nd-saved',!st.dirty);b.textContent=st.dirty?'저장':'저장됨';b.setAttribute('aria-label',st.dirty?'저장':'저장됨 — 바뀐 내용 없음');}});
@@ -953,6 +963,9 @@ export function installPurchaseUI({port,features=()=>true}){
  // 거래처·품목 삭제 전 확인용: 진행 중(목록에서 빼지 않은) 매입 몇 건이 쓰는지. 매입 권한 없음/매입 안 씀 = 0, 아직 못 읽음 = null
  const uses=(key,id)=>{if(!features()||st.status==='absent'||st.status==='unsupported')return 0;if(st.status!=='ready')return null;
   return rows().filter(p=>!p.removed_at&&(key==='companies'?[p.vendor_id,p.import_vat?.payee_id,...(p.costs||[]).map(c=>c.payee_id)].includes(id):(p.lines||[]).some(l=>l.item_id===id))).length;};
- g.NaroPurchases={render,load,vendor,open,payables,untaxed,uses,state:()=>structuredClone({status:st.status,count:rows().length})};
+ // 견적서 진행 탭의 건별 마진: 그 견적에 연결된(취소·삭제 아닌) 매입과 원가(원화 공급가 · 수입은 부대비용 포함 원가). 불러오기 전이면 null.
+ const byQuote=qid=>st.status!=='ready'?null:rows().filter(p=>p.quote_id===qid&&!p.removed_at&&p.status!=='취소').map(p=>{const t=totals(p),names=p.lines.map(l=>itemOf(l.item_id)?.name||'').filter(Boolean);
+  return {id:p.id,no:p.no,date:p.date,vendor:coName(p.vendor_id)||'',title:names.length?names[0]+(names.length>1?` 외 ${names.length-1}건`:''):'매입',items:p.lines.map(l=>l.item_id),cost:Math.round(isFx(p)?t.landed:t.supply)};});
+ g.NaroPurchases={render,load,vendor,open,payables,untaxed,uses,byQuote,status:()=>st.status,state:()=>structuredClone({status:st.status,count:rows().length})};
  return {onMessage};
 }

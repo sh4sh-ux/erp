@@ -70,6 +70,11 @@
   font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
   letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;color:var(--nd-ink)!important;
  }
+ /* 견적서 진행 탭 건별 마진(.nd-qm-k)도 같은 KPI 숫자. */
+ html body #appView[data-layout-system] .shell .main #view-quotes .nd-qm-k b {
+  font:var(--nd-stat-weight) var(--nd-stat-size)/24px var(--nd-number-font)!important;
+  letter-spacing:var(--nd-stat-spacing)!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
+ }
  /* Section headings; preserve smaller, muted count chips next to the heading. */
  html body #appView[data-layout-system] .shell .main :is(#view-dash,#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar,#view-settings) :is(
   h3,h4,.cp-sech h3,.cp-grph h4,.pp-section-head h4,.nd-db-range-heading h3,
@@ -82,7 +87,7 @@
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
   .li-amt,.cp-pr .a,.cp-qr .a,.cp-ev i,.cp-stats b,.pp-record summary>strong,
   .pp-mobile-row strong,.material-record-qty,.stock-item b,.pbr-amt,.nd-sa-entry-amount,.nd-sa-sale,.nd-cl-number,.material-summary b,.nd-mat-legend b,
-  .nd-mon-h>.s,.nd-mon-r .a,.pp-mg em
+  .nd-mon-h>.s,.nd-mon-r .a,.pp-mg em,.nd-qm-r .a
  ) {
   font:600 var(--nd-body-size)/var(--nd-body-line) var(--nd-number-font)!important;
   letter-spacing:normal!important;font-variant-numeric:tabular-nums;font-feature-settings:normal!important;
@@ -95,7 +100,7 @@
   letter-spacing:normal!important;
  }
  html body #appView[data-layout-system] .shell .main :is(#view-quotes,#view-purchases,#view-companies,#view-items,#view-materials,#view-payments,#view-sales,#view-stock,#view-ar) :is(
-  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d,.nd-mon-h>.n,.nd-mon-r .d
+  .li-date,.li-sub,.material-record-date,.material-record-meta,.nd-sa-entry-note,.pp-record-name small,.pp-mobile-row small,.cp-qr .s,.cp-pr .d,.cp-qr .d,.nd-mon-h>.n,.nd-mon-r .d,.nd-qm-r .d
  ) {
   font:400 var(--nd-label-size)/var(--nd-label-line) var(--nd-ui-font)!important;
   letter-spacing:normal!important;color:var(--nd-ink-3)!important;

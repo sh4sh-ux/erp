@@ -267,6 +267,12 @@ test('수입 정보(신고번호·B/L)·필증 품명·수입부가세 낸 곳�
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declared_on:'2026-13-40'}})]),snap),V);
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({import_vat:{amount:1,payee_id:'없는곳'}})]),snap),V);
 });
+test('견적 연결(건별 마진): quote_id는 id 모양 글자만, 없거나 지워진 견적이어도 매입은 그대로 저장된다',()=>{
+ const snap=base();
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([domestic({quote_id:'q-test-1'})]),snap));
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([domestic()]),snap));
+ for(const bad of ['',' ','<script>',12,{id:'x'}])assert.throws(()=>validatePurchasesChange(doc([]),doc([domestic({quote_id:bad})]),snap),V);
+});
 test('부대비용을 낸 곳에 갚을 돈 = 그곳 비용 + 수입부가세 + 수수료 부가세(원가에는 넣지 않음)',()=>{
  const p=imported({import_vat:{amount:333650,payee_id:'f1',fee_vat:13500}});
  const ps=paymentStatus(p,[]),f1=ps.costs.find(c=>c.payee_id==='f1');
