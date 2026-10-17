@@ -27,12 +27,14 @@ export function split(amount,weights){
  return out;
 }
 // 부대비용 배분(취소 표시된 비용 제외). 기준: 금액(기본)·수량·중량·직접.
+// 비용 줄(배송비 등, 입고 없음)에는 나누지 않는다 — 재고 품목 줄이 하나도 없을 때만 모든 줄에.
 export function allocate(p){
  const base=lineBase(p),sum=Object.fromEntries(p.lines.map(l=>[l.id,0]));
+ const stockOnly=p.lines.some(l=>!l.cost),w=(l,v)=>stockOnly&&l.cost?0:v;
  for(const c of (p.costs||[]).filter(c=>!c.void_at)){
   let part;
   if(c.alloc==='직접')part=Object.fromEntries(p.lines.map(l=>[l.id,won(c.direct?.[l.id]||0)]));
-  else part=split(c.amount_krw,Object.fromEntries(p.lines.map(l=>[l.id,c.alloc==='수량'?l.qty:c.alloc==='중량'?Number(l.weight)||0:base[l.id]])));
+  else part=split(c.amount_krw,Object.fromEntries(p.lines.map(l=>[l.id,w(l,c.alloc==='수량'?l.qty:c.alloc==='중량'?Number(l.weight)||0:base[l.id])])));
   for(const k in part)sum[k]+=part[k];
  }
  return sum;
