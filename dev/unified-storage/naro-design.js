@@ -519,18 +519,18 @@ const NaroCompanyLedger=(()=>{
   const out=()=>kindSel?.value==='출고';
   const n=v=>(typeof fmt==='function'?fmt(v):String(v));
   const wrap=document.createElement('div');wrap.className='nd-sz';
-  const bar=document.createElement('div');bar.className='nd-sz-bar';bar.innerHTML='<b>사이즈별 수량</b><button type="button" data-a="same">모두 같은 수량</button><button type="button" data-a="clear">초기화</button>';
+  const bar=document.createElement('div');bar.className='nd-sz-bar';bar.innerHTML='<b>사이즈별 수량</b><button type="button" data-a="same">모두 같은 수량</button><button type="button" data-a="clear">비우기</button>';
   // Desktop table
   const t=document.createElement('table');t.className='nd-sz-table';
   t.innerHTML=`<thead><tr><th class="k"></th>${specs.map(s=>`<th>${escapeHtml(s)}</th>`).join('')}<th class="sum">합계</th></tr></thead><tbody>
-   <tr class="now"><td class="k">${stockAdj?'장부 수량':'현재'}</td>${specs.map(s=>`<td>${n(now(s))}</td>`).join('')}<td class="sum" data-now></td></tr>
+   <tr class="now"><td class="k">${stockAdj?'장부':'현재'}</td>${specs.map(s=>`<td>${n(now(s))}</td>`).join('')}<td class="sum" data-now></td></tr>
    <tr class="qty"><td class="k" data-kind></td>${specs.map((s,i)=>`<td><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} ${stockAdj?'실제 수량':'수량'}" placeholder="${stockAdj?'그대로':'0'}" value="${escapeAttr(stockQuickValues[s]??'')}"></td>`).join('')}<td class="sum" data-total></td></tr>
    <tr class="after"><td class="k">${stockAdj?'차이':'변경 후'}</td>${specs.map((s,i)=>`<td data-after="${i}"></td>`).join('')}<td class="sum" data-aftersum></td></tr></tbody>`;
   // Phone list
   const list=document.createElement('div');list.className='nd-sz-list';
   list.innerHTML=specs.map((s,i)=>`<div class="nd-sz-row"><span class="sz">${escapeHtml(s)}</span><span class="cur">${stockAdj?'장부':'현재'} ${n(now(s))} ${stockAdj?'· 차이':'→'} <b data-after="${i}"></b></span><span class="step"><button type="button" data-step="-1" data-i="${i}" aria-label="${escapeAttr(s)} 1 빼기">−</button><input data-i="${i}" inputmode="numeric" autocomplete="off" aria-label="${escapeAttr(s)} ${stockAdj?'실제 수량':'수량'}" placeholder="${stockAdj?'그대로':'0'}" value="${escapeAttr(stockQuickValues[s]??'')}"><button type="button" data-step="1" data-i="${i}" aria-label="${escapeAttr(s)} 1 더하기">+</button></span></div>`).join('')+'<div class="nd-sz-total"><span>합계</span><b data-total></b></div>';
   wrap.append(bar,t,list);
-  const tip=document.createElement('p');tip.className='nd-sz-tip';tip.innerHTML='<b>빠르게 입력</b> Enter·Tab 다음 사이즈 · ↑↓ 1씩 · 엑셀에서 한 줄 복사 후 붙여넣으면 사이즈별로 채워져요';wrap.append(tip);
+  const tip=document.createElement('p');tip.className='nd-sz-tip';tip.textContent=(stockAdj?'빈칸 = 장부 그대로, 센 사이즈만 적으면 돼요 · ':'')+'Enter·Tab 다음 사이즈 · ↑↓ 1씩 · 엑셀 한 줄을 붙여넣으면 사이즈별로 채워져요';wrap.append(tip);
   grid.before(wrap);
   const addBtn=document.getElementById('ivAddBtn');if(addBtn&&!addBtn.dataset.ndLabel)addBtn.dataset.ndLabel=addBtn.textContent;
   const set=(el,text,cls)=>{if(el.textContent!==text)el.textContent=text;if(cls!==undefined&&el.className!==cls)el.className=cls;};
@@ -540,9 +540,10 @@ const NaroCompanyLedger=(()=>{
     specs.forEach((s,i)=>{const raw=String(stockQuickValues[s]??'').trim(),has=raw!=='',act=has?Number(raw):now(s),d=act-now(s);nowSum+=now(s);actSum+=act;if(has&&d){changed++;diff+=d;}
      wrap.querySelectorAll(`[data-after="${i}"]`).forEach(el=>set(el,has&&d?(d>0?'+':'−')+n(Math.abs(d)):'·',has&&d?(d>0?'pos':'neg'):'dim'));
      wrap.querySelectorAll(`input[data-i="${i}"]`).forEach(inp=>{const v=String(stockQuickValues[s]??'');if(inp.value!==v&&document.activeElement!==inp)inp.value=v;});});
-    wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,'실제 수량'));if(wrap.dataset.kind!=='adj')wrap.dataset.kind='adj';
+    wrap.querySelectorAll('[data-kind]').forEach(el=>set(el,'실제'));if(wrap.dataset.kind!=='adj')wrap.dataset.kind='adj';
     wrap.querySelectorAll('[data-total]').forEach(el=>set(el,n(actSum)));wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));
     wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,diff?(diff>0?'+':'−')+n(Math.abs(diff)):'·',diff?(diff>0?'pos':'neg'):'dim'));
+    stockSum(changed?`${changed}개 사이즈가 장부와 달라요 · `+specs.map(s=>{const raw=String(stockQuickValues[s]??'').trim();if(raw==='')return '';const a=Number(raw),b=now(s);return a!==b?`${s} ${n(b)} → ${n(a)}`:'';}).filter(Boolean).slice(0,3).join(', ')+` · 합계 ${diff>0?'+':'−'}${n(Math.abs(diff))}`:'');
     stockAdjLabel(changed,diff);return;}
    const sign=out()?-1:1;let total=0,nowSum=0,afterSum=0;
    specs.forEach((s,i)=>{const q=val(s),a=now(s)+sign*q;total+=q;nowSum+=now(s);afterSum+=a;
@@ -552,6 +553,7 @@ const NaroCompanyLedger=(()=>{
    const kd=out()?'out':'in';if(wrap.dataset.kind!==kd)wrap.dataset.kind=kd;
    wrap.querySelectorAll('[data-total]').forEach(el=>set(el,total?n(total)+'개':'0'));
    wrap.querySelectorAll('[data-now]').forEach(el=>set(el,n(nowSum)));wrap.querySelectorAll('[data-aftersum]').forEach(el=>set(el,n(afterSum)));
+   const col=document.getElementById('ivColor')?.value||'';stockSum(total?`${col?col+' ':''}${n(total)}개가 ${out()?'나가요':'들어와요'} · ${col?'이 색상':'합계'} ${n(nowSum)} → ${n(afterSum)}개`:'');
    stockBtnLabel(total);
   }
   const put=(i,v)=>{if(i<0||i>=specs.length)return;stockQuickValues[specs[i]]=v===''||v==null?'':String(v);};
@@ -573,7 +575,8 @@ const NaroCompanyLedger=(()=>{
   if(kindSel&&!kindSel.dataset.ndSz){kindSel.dataset.ndSz='1';kindSel.addEventListener('change',()=>{const w=document.querySelector('#stockQuickEntry .nd-sz');w&&w.dispatchEvent(new Event('nd-update'));});}
   wrap.addEventListener('nd-update',update);
   // Too narrow for one row of comfortable cells (≥56px each) → the list layout with − + (same inputs, same state).
-  const fit=()=>{const c=wrap.clientWidth>0&&wrap.clientWidth<specs.length*56+156;if(wrap.classList.contains('compact')!==c)wrap.classList.toggle('compact',c);};
+  const fit=()=>{const c=!wrap.closest('.sp-form')&&wrap.clientWidth>0&&wrap.clientWidth<specs.length*56+156; // 재고 입력 창(sp-form)은 PC에서 표 한 줄 유지(사이즈 많으면 옆으로) — 10/17
+  if(wrap.classList.contains('compact')!==c)wrap.classList.toggle('compact',c);};
   try{new ResizeObserver(fit).observe(wrap);}catch{}fit();
   update();
  }
@@ -1367,7 +1370,7 @@ const NaroCompanyLedger=(()=>{
  const ADJ_REASONS=['재고 조사','분실','파손·불량','잘못 입력'];
  function stockAdjLabel(changed,diff){
   const b=document.getElementById('ivAddBtn');if(!b)return;
-  const t=changed?`조정 확인 · ${changed}개 사이즈 ${diff>0?'+':diff<0?'−':''}${Math.abs(diff).toLocaleString('ko-KR')}`:'조정 확인';
+  const t=changed?`${changed}개 사이즈 ${diff>0?'+':diff<0?'−':''}${Math.abs(diff).toLocaleString('ko-KR')} 조정`:'조정 기록';
   if(b.textContent!==t)b.textContent=t;if(b.dataset.kind!=='adj')b.dataset.kind='adj';
  }
  function stockAdjEntries(){
@@ -1394,9 +1397,13 @@ const NaroCompanyLedger=(()=>{
   if(e.target.closest?.('#stockAdjust')){e.preventDefault();e.stopImmediatePropagation();document.getElementById('stockRegister')?.click();setStockAdj(true);requestAnimationFrame(()=>document.querySelector('#view-stock .stock-add')?.scrollIntoView({block:'start'}));return;}
   if(e.target.closest?.('#stockRegister,#stockOutbound'))setStockAdj(false);
  },true);
+ // 입력 창 맨 아래(버튼 위) 한 줄 요약(10/17 재고 입력 창 시안) — 비면 숨김
+ function stockSum(text){const add=document.querySelector('#view-stock .stock-add');if(!add)return;let el=add.querySelector(':scope>.nd-sz-sum');
+  if(!el){el=document.createElement('p');el.className='nd-sz-sum';const act=add.querySelector(':scope>.nd-sk-act');act?act.before(el):add.append(el);}
+  if(el.textContent!==text)el.textContent=text;el.hidden=!text;}
  function stockBtnLabel(total){
   const b=document.getElementById('ivAddBtn'),k=document.getElementById('ivKind');if(!b)return;if(stockAdj){stockAdjLabel(0,0);return;}
-  const out=k?.value==='출고',t=`${out?'출고':'입고'} ${total?(Math.round(total).toLocaleString('ko-KR')+'개 '):''}확인`;
+  const out=k?.value==='출고',t=total?`${Math.round(total).toLocaleString('ko-KR')}개 ${out?'출고':'입고'} 기록`:`${out?'출고':'입고'} 기록`;
   if(b.textContent!==t)b.textContent=t;const kd=out?'out':'in';if(b.dataset.kind!==kd)b.dataset.kind=kd;
  }
  function stockKindTabs(){

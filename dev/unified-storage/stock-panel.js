@@ -65,7 +65,7 @@
     return `<td class="${cls}${ui.opt===r.key?' sel':''}"><button type="button" data-sp-opt="${e(r.key)}" aria-label="${e(optLabel(c,s))} ${n0(val(r))}개">${n0(val(r))}<small>${sub||'&nbsp;'}</small></button></td>`;}).join('');
    return `<tr><td class="sp-c">${e(c||'—')}</td>${tds}<td class="sp-sum">${n0(sum)}<small>&nbsp;</small></td></tr>`;}).join('');
   return `<div class="sp-sec"><b>사이즈<em class="sp-hint">${ui.mode==='avail'?'가용 수량':'현재 수량'} · 칸을 누르면 그 옵션 기록</em></b><div class="sp-seg" role="group" aria-label="보기"><button type="button" data-sp-mode="qty" aria-pressed="${ui.mode==='qty'}">현재</button><button type="button" data-sp-mode="avail" aria-pressed="${ui.mode==='avail'}">가용</button></div></div>
-   <div class="sp-mx-wrap"><table class="sp-mx">${head}${body}</table></div>`;
+   <div class="sp-mx-wrap"><table class="sp-mx" style="--sp-n:${specs.length}">${head}${body}</table></div>`;
  }
  const status=r=>r.qty<0?['red','확인 필요']:isOut(r)?['red','품절']:r.shortage>0?['amb','주문 부족']:r.low?['amb','미달']:r.minimum===null?['gray','기준 없음']:['green','여유'];
  function optionsHtml(it,rows){
@@ -152,6 +152,7 @@
   if(host.dataset.html!==html){const sc=host.querySelector('.sp-body')?.scrollTop||0;host.innerHTML=html;host.dataset.html=html;const b=host.querySelector('.sp-body');if(b)b.scrollTop=sc;}
   // 입력 창: 저장되면(기록 수가 바뀜) 닫는다
   if(ui.entry&&(db.stock_moves||[]).length!==ui.entryMoves)closeEntry(true);
+  try{decorateForm();}catch{}
  }
  const orig=renderStock;
  renderStock=function(){const r=orig.apply(this,arguments);try{paint();}catch(err){console.error(err);}return r;};
@@ -165,16 +166,38 @@
    if(!backdrop){backdrop=document.createElement('div');backdrop.className='sp-backdrop';backdrop.addEventListener('click',()=>document.getElementById('ivCancelBtn')?.click());}
    v.append(backdrop);}
   document.getElementById(btnId)?.click();
+  requestAnimationFrame(()=>{try{decorateForm();}catch{}});
   if(PC.matches)requestAnimationFrame(()=>{const add=v.querySelector('.stock-add');if(add&&add.hidden)closeEntry(false);else add?.querySelector('input,select,button')?.focus({preventScroll:true});});
  }
  function closeEntry(saved){
   const v=view();ui.entry=false;v?.classList.remove('sp-entry');backdrop?.remove();
-  if(saved){const add=v?.querySelector('.stock-add');if(add)add.hidden=true;}
+  const add0=v?.querySelector('.stock-add');add0?.classList.remove('sp-pick');
+  if(saved&&add0)add0.hidden=true;
  }
  // 원래 [입력 닫기](확인 후)로 폼이 숨겨지면 창도 닫는다
  const watchAdd=()=>{const add=view()?.querySelector('.stock-add');if(!add||add.dataset.spw)return;add.dataset.spw='1';
   new MutationObserver(()=>{if(add.hidden&&ui.entry)closeEntry(false);}).observe(add,{attributes:true,attributeFilter:['hidden']});};
  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&ui.entry&&!document.querySelector('dialog[open]')){ev.preventDefault();document.getElementById('ivCancelBtn')?.click();}});
+
+ /* ── 입력 창 모양(10/17 재고 입력 창 시안): 머리 = 제목 + 품목 · 코드 [바꾸기], 사이즈 수에 따라 창 폭(7개 560 · 10개 720 · 그 이상 760 + 표 옆으로) ── */
+ const TITLE={in:'입고 기록',out:'출고 기록',adj:'재고 조정'};
+ function decorateForm(){
+  const add=view()?.querySelector('.stock-add');if(!add)return;
+  if(!add.classList.contains('sp-form'))add.classList.add('sp-form');
+  let hd=add.querySelector(':scope>.sp-fhd');
+  if(!hd){hd=document.createElement('div');hd.className='sp-fhd';hd.innerHTML='<b class="sp-ft"></b><span class="sp-fs"><span class="sp-fi"></span><button type="button" class="sp-fpick">바꾸기</button></span>';add.prepend(hd);
+   hd.querySelector('.sp-fpick').addEventListener('click',()=>{add.classList.toggle('sp-pick');decorateForm();if(add.classList.contains('sp-pick'))add.querySelector('label.stock-entry-item button,label.stock-entry-item select')?.focus();});}
+  const kind=add.querySelector(':scope>.nd-sk-tabs')?.dataset.kind||'in';
+  const t=TITLE[kind]||'재고 입력',ft=hd.querySelector('.sp-ft');if(ft.textContent!==t)ft.textContent=t;
+  const it=itemOf(document.getElementById('ivItem')?.value||''),fi=hd.querySelector('.sp-fi'),txt=it?[it.name,it.code].filter(Boolean).join(' · '):'품목을 골라 주세요';
+  if(fi.textContent!==txt)fi.textContent=txt;
+  const pk=hd.querySelector('.sp-fpick'),pt=add.classList.contains('sp-pick')?'접기':it?'바꾸기':'고르기';if(pk.textContent!==pt)pk.textContent=pt;
+  add.classList.toggle('sp-noitem',!it);
+  const cb=document.getElementById('ivCancelBtn');if(cb&&cb.textContent!=='닫기')cb.textContent='닫기';
+  const n=Math.max(0,add.querySelectorAll('.nd-sz-table thead th').length-2),c=n<=7?'s':n<=10?'m':'l';if(add.dataset.spCols!==c)add.dataset.spCols=c;if(add.style.getPropertyValue('--sp-n')!==String(n))add.style.setProperty('--sp-n',String(n));
+  if(!add.dataset.spObs){add.dataset.spObs='1';let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;decorateForm();});}).observe(add,{subtree:true,childList:true,attributes:true,attributeFilter:['data-kind']});
+   document.getElementById('ivItem')?.addEventListener('change',()=>requestAnimationFrame(decorateForm));}
+ }
 
  /* ── 최소 기준 창 ── */
  let sheet=null;
