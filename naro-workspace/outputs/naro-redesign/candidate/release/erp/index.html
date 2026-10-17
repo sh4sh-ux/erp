@@ -2778,8 +2778,8 @@
 
             <section class="sup-sec sup-notice">
               <h3 class="sup-sec-t">견적서 안내문</h3>
-              <div class="field"><label for="st_quote_notice">안내문</label><textarea id="st_quote_notice" rows="3" placeholder="비우면 안내문 없이 출력돼요"></textarea>
-                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
+              <div class="field"><label id="st_quote_notice_l">안내문</label><div class="nd-qn-ed"><div class="nd-qn-tb" role="toolbar" aria-label="글자 꾸미기"><button type="button" class="nd-qn-bb" data-qn-b title="굵게" aria-label="굵게">B</button><span class="nd-qn-sep"></span><button type="button" data-qn-c="ink"><i style="background:#0B1220"></i>검정</button><button type="button" data-qn-c="red"><i style="background:#D32F2F"></i>빨강</button><button type="button" data-qn-c="blue"><i style="background:#2F54EB"></i>파랑</button><button type="button" data-qn-c="gray"><i style="background:#8A94A6"></i>회색</button><span class="nd-qn-sep"></span><button type="button" class="nd-qn-clr" data-qn-clear>꾸밈 지우기</button></div><div id="st_quote_notice" class="nd-qn-area" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="st_quote_notice_l" data-placeholder="비우면 안내문 없이 출력돼요"></div></div>
+                <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">글자를 고르고 버튼을 누르세요 · 꾸미지 않은 글자는 빨강 · 견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
               </div>
             </section>
 
@@ -5471,7 +5471,7 @@ function drawQuoteCanvas(q,docType){
   const tableH=30+rowInfo.reduce((h,r)=>h+r.h,0);
 
   const memoLs=q.memo?qimgWrap(mc,q.memo,CW-26):[];
-  const noticeLs=NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));
+  const noticeLs=window.naroNoticeCanvasLines?window.naroNoticeCanvasLines(mc,q,CW-26,F):NOTICE.flatMap(n=>qimgWrap(mc,n,CW-26));mc.font=F(400,12.5);
   const etcBoxH=Math.max(64,10+memoLs.length*19+(memoLs.length?8:0)+noticeLs.length*21+10);
   const footTxt=D.foot(q)+((D.foot(q)&&s.name)?" · ":"")+(s.name||"");
   const bottomH=34+16+16+7+etcBoxH+(footTxt?14+14:0);
@@ -5579,7 +5579,7 @@ function drawQuoteCanvas(q,docType){
     ey+=8;
   }
   ctx.fillStyle="#D32F2F";
-  noticeLs.forEach(ln=>{ ctx.fillText(ln,MX+13,ey); ey+=21; });
+  noticeLs.forEach(ln=>{ if(Array.isArray(ln)&&window.naroNoticeDrawLine)window.naroNoticeDrawLine(ctx,ln,MX+13,ey,F); else ctx.fillText(ln,MX+13,ey); ey+=21; });
   if(footTxt){
     ctx.fillStyle="#9AA0A8"; ctx.font=F(400,11); ctx.textAlign="center";
     ctx.fillText(footTxt,MX+CW/2,by+etcBoxH+14+11);
@@ -6818,7 +6818,7 @@ function renderSettings(){
   const cardUrl=(s.business_card_url||DEFAULT_BUSINESS_CARD_URL).trim();
   document.getElementById("st_card_url").value=cardUrl===LEGACY_BUSINESS_CARD_URL ? DEFAULT_BUSINESS_CARD_URL : cardUrl;
   document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();
-  const qn=document.getElementById("st_quote_notice");if(qn)qn.value=window.naroQuoteNoticeText?window.naroQuoteNoticeText():"";
+  const qn=document.getElementById("st_quote_notice");if(qn&&window.naroNoticeToEditor)window.naroNoticeToEditor(qn);
   document.getElementById("bkStat").textContent=
     `현재 데이터 — 거래처 ${db.companies.length} · 품목 ${db.items.length} · 견적서 ${db.quotes.length} · 수금/지급 ${db.payments.length} · 재고기록 ${(db.stock_moves||[]).length}`;
 }
@@ -6837,7 +6837,7 @@ async function saveSettings(){
     address:document.getElementById("st_address").value.trim(),
     business_card_url:businessCardUrl,
     biz_cert_url:document.getElementById("st_cert_url").value.trim(),
-    ...(document.getElementById("st_quote_notice")&&window.naroNormNotice?{quote_notice:window.naroNormNotice(document.getElementById("st_quote_notice").value)}:{}),
+    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),
   };
   if(!await saveTable("settings",next))return;
   db.settings=next;
@@ -10558,7 +10558,6 @@ html body #appView #qtForm .nd-qn-t small{margin-left:6px;font:400 12px/18px var
 html body #appView #qtForm .nd-qn.is-empty .nd-qn-t small{color:var(--nd-amber,#D97706)}
 html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0;background:none;box-shadow:none;color:var(--nd-blue);font:600 13px/20px var(--sans);cursor:pointer}
 /* 공급자 정보: 견적서 안내문 */
-html body #appView #view-settings #st_quote_notice{min-height:76px;color:var(--nd-red);line-height:1.6;resize:vertical}
 html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
 html body #appView #view-settings .nd-qn-row .hint{margin:0}
 /* 진행 탭: 건별 마진 */
@@ -10585,6 +10584,29 @@ html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--
  html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
  html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
 }
+/* 10/17 2차: 안내문 꾸미기 — 색 4가지 · 굵게. 칸은 견적서 종이처럼 늘 흰 바탕(다크 모드에서도 검정 글자가 보이게) */
+#printArea .p-etc .notice .nq-ink{color:#0B1220}#printArea .p-etc .notice .nq-red{color:#D32F2F}#printArea .p-etc .notice .nq-blue{color:#2F54EB}#printArea .p-etc .notice .nq-gray{color:#8A94A6}
+#printArea .p-etc .notice b{font-weight:700}
+html body #appView #view-settings .nd-qn-ed{border:1px solid var(--nd-line);border-radius:10px;overflow:hidden;background:#fff}
+html body #appView #view-settings .nd-qn-ed:focus-within{border-color:var(--nd-blue)}
+html body #appView #view-settings .nd-qn-tb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 8px;border-bottom:1px solid var(--nd-line);background:var(--nd-fill,#F6F7F9)}
+html body #appView #view-settings .nd-qn-tb>button{display:inline-flex;align-items:center;gap:6px;height:30px;min-height:30px;min-width:30px;margin:0;padding:0 9px;border:1px solid transparent;border-radius:7px;background:none;box-shadow:none;color:var(--nd-ink);font:500 13px/1 var(--sans);cursor:pointer}
+html body #appView #view-settings .nd-qn-tb>button:hover{background:var(--nd-surface);border-color:var(--nd-line)}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-bb{font-weight:800}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-clr{color:var(--nd-ink-2)}
+html body #appView #view-settings .nd-qn-tb i{display:inline-block;width:12px;height:12px;border-radius:50%}
+html body #appView #view-settings .nd-qn-sep{width:1px;height:18px;margin:0 4px;background:var(--nd-line)}
+html body #appView #view-settings .nd-qn-area{min-height:84px;padding:12px 14px;outline:none;background:#fff;color:#D32F2F;color-scheme:light;font:400 14px/1.7 var(--sans);white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+html body #appView #view-settings .nd-qn-area:empty::before{content:attr(data-placeholder);color:#9AA0AA}
+html body #appView #view-settings .nd-qn-area .nq-ink{color:#0B1220}html body #appView #view-settings .nd-qn-area .nq-red{color:#D32F2F}html body #appView #view-settings .nd-qn-area .nq-blue{color:#2F54EB}html body #appView #view-settings .nd-qn-area .nq-gray{color:#8A94A6}
+html body #appView #view-settings .nd-qn-area b{font-weight:700}
+/* 버튼 줄도 종이처럼 밝게(다크 모드에서 '검정' 점이 묻히지 않게) */
+html body #appView #view-settings .nd-qn-ed{color-scheme:light;border-color:#E2E4E8}
+html body #appView #view-settings .nd-qn-tb{background:#F6F7F9;border-bottom-color:#ECEDF0}
+html body #appView #view-settings .nd-qn-tb>button{color:#16181D}
+html body #appView #view-settings .nd-qn-tb>.nd-qn-clr{color:#5B606B}
+html body #appView #view-settings .nd-qn-tb>button:hover{background:#fff;border-color:#E2E4E8}
+html body #appView #view-settings .nd-qn-sep{background:#E2E4E8}
 
 /* 매입 화면 — 모양은 견적서 규칙을 그대로 복사해 쓴다(purchase-ui.mjs mirrorQuoteStyles). 여기에는 매입에만 있는 것만. */
 /* 마무리 안 된 입고·용량 알림(목록 카드 칩 아래) */
@@ -11841,7 +11863,7 @@ const NaroCompanyLedger=(()=>{
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
  function supplierInfoGroups(view){
-  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌'],['견적서 안내문','모든 견적서 비고 아래 빨간 글씨 · 줄바꿈 그대로']];
+  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌'],['견적서 안내문','모든 견적서 비고 아래 · 글자를 골라 굵게·색을 바꿀 수 있어요']];
   view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
    if(sec.classList.contains('cp-grp'))return;
    const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
@@ -12715,7 +12737,7 @@ const NaroCompanyLedger=(()=>{
   for(const [id,key] of Object.entries(fields)){const el=document.getElementById(id);if(!el||el.value.trim()!==String(s[key]||'').trim())return false;}
   const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
   if(address!==String(s.address||'').trim())return false;
-  const qn=document.getElementById('st_quote_notice');if(qn&&window.naroNormNotice&&window.naroQuoteNoticeText&&window.naroNormNotice(qn.value)!==window.naroNormNotice(window.naroQuoteNoticeText()))return false;
+  if(window.naroNoticeEditorClean&&!window.naroNoticeEditorClean())return false;
   const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
   return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
  }
@@ -14005,43 +14027,107 @@ const NaroOrderImport=(()=>{
 })();
 
 /* 견적서 안내문 · 건별 마진(10/17 시안 — 사용자 확정).
-   안내문 = 모든 견적서 비고 아래 빨간 글씨. 고치는 곳은 공급자 정보 한 곳(settings.quote_notice, 없으면 기본 문구, 빈 글 = 안내문 없음).
+   안내문 = 모든 견적서 비고 아래. 고치는 곳은 공급자 정보 한 곳(settings.quote_notice_runs — 글자 조각마다 굵게·색 4가지, 없으면 기본 문구, 빈 글 = 안내문 없음).
    견적서 정보 탭에는 '이 견적서에 안내문 넣기' 스위치(quote.no_notice)와 [공급자 정보에서 바꾸기 ›]만 둔다.
    건별 마진 = 견적에 연결된 매입(purchase.quote_id, 매입 화면 '견적 연결')을 원가로, 진행 탭 맨 위에 매출 − 원가 = 마진. 출력물에는 나오지 않는다. */
 (()=>{
- const NOTICE_DEFAULT='자수 제품은 주문 제작 상품으로, 제작 진행 후에는 교환·환불·반품이 불가합니다.\n주문 제작 상품은 영업일 기준 약 20일 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.';
+ // 안내문 = 줄마다 조각 [{t:글자, c:색, b:굵게}] — 색은 4가지(검정·빨강·파랑·회색), 꾸미지 않은 글자는 빨강(10/17 2차, 사용자 확정).
+ // settings.quote_notice_runs(꾸민 글) · settings.quote_notice(같은 내용의 글자만 — 옛 버전·검색용). 둘 다 없으면 기본 문구.
+ const COLORS={ink:'#0B1220',red:'#D32F2F',blue:'#2F54EB',gray:'#8A94A6'},CNAME={ink:'검정',red:'빨강',blue:'파랑',gray:'회색'};
+ const R=(t,c='red',b)=>({t,c,...(b?{b:1}:{})});
+ const DEFAULT_RUNS=[[R('자수 제품은 '),R('주문 제작 상품','red',1),R('으로, 제작 진행 후에는 '),R('교환·환불·반품이 불가','red',1),R('합니다.')],
+  [R('주문 제작 상품은 영업일 기준 약 ','ink'),R('20일','blue',1),R(' 정도 소요될 수 있으니 주문 시 참고 부탁드립니다.','ink')]];
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const won=n=>Math.round(Number(n)||0).toLocaleString('ko-KR')+'원';
  const D=()=>{try{return db;}catch{return null;}};
  const fn=(name,...a)=>{try{const f=globalThis[name];return typeof f==='function'?f(...a):undefined;}catch{return undefined;}};
- const norm=v=>String(v??'').replace(/\r\n?/g,'\n').split('\n').map(x=>x.trim()).join('\n').replace(/^\n+|\n+$/g,'');
- const noticeText=()=>{const s=D()?.settings||{};return typeof s.quote_notice==='string'?s.quote_notice:NOTICE_DEFAULT;};
- const noticeLines=q=>q?.no_notice?[]:noticeText().split('\n').map(x=>x.trim()).filter(Boolean);
+ // 조각 정리: 모르는 색 → 빨강, 같은 모양 이웃은 합치고, 글자 없는 줄은 뺀다(최대 40줄 · 2000자)
+ function normRuns(lines){
+  const out=[];let n=0;
+  for(const line of Array.isArray(lines)?lines:[]){const L=[];
+   for(const r of Array.isArray(line)?line:[]){let t=String(r?.t??'').replace(/\r?\n/g,' ');if(!t)continue;if(n+t.length>2000)t=t.slice(0,2000-n);if(!t)break;n+=t.length;
+    const c=COLORS[r.c]?r.c:'red',b=!!r.b,last=L[L.length-1];if(last&&last.c===c&&!!last.b===b)last.t+=t;else L.push(R(t,c,b));}
+   if(L.length&&L.some(r=>r.t.trim())){L[0].t=L[0].t.replace(/^\s+/,'');const z=L[L.length-1];z.t=z.t.replace(/\s+$/,'');out.push(L.filter(r=>r.t));}
+   if(out.length>=40)break;}
+  return out;
+ }
+ const plain=runs=>runs.map(l=>l.map(r=>r.t).join('')).join('\n');
+ function noticeRuns(){const s=D()?.settings||{};
+  if(Array.isArray(s.quote_notice_runs))return normRuns(s.quote_notice_runs);
+  if(typeof s.quote_notice==='string')return normRuns(s.quote_notice.split('\n').map(t=>[R(t.trim())]));
+  return normRuns(DEFAULT_RUNS);}
+ const noticeText=()=>plain(noticeRuns());
+ const runsFor=q=>q?.no_notice?[]:noticeRuns();
+ const runHtml=r=>`<span class="nq-${r.c}">${r.b?'<b>':''}${esc(r.t)}${r.b?'</b>':''}</span>`;
  window.naroQuoteNoticeText=noticeText;
- window.naroNormNotice=norm;
- window.naroQuoteNoticeLines=noticeLines;
- window.naroQuoteNoticeHtml=q=>{const ls=noticeLines(q);return ls.length?`<div class="notice">${ls.map(esc).join('<br>')}</div>`:'';};
- window.naroQuoteNoticeDefault=NOTICE_DEFAULT;
+ window.naroQuoteNoticeLines=q=>runsFor(q).map(l=>l.map(r=>r.t).join(''));
+ window.naroQuoteNoticeHtml=q=>{const ls=runsFor(q);return ls.length?`<div class="notice">${ls.map(l=>l.map(runHtml).join('')).join('<br>')}</div>`:'';};
+ // 견적서 이미지(drawQuoteCanvas): 조각마다 글꼴·색을 바꿔 가며 줄을 나누고 그린다
+ window.naroNoticeCanvasLines=(mc,q,maxW,F)=>{const out=[];
+  for(const line of runsFor(q)){let cur=[],w=0;
+   for(const r of line){mc.font=F(r.b?700:400,12.5);
+    for(const ch of r.t){const cw=mc.measureText(ch).width;
+     if(w+cw>maxW&&w>0){out.push(cur);cur=[];w=0;if(ch===' ')continue;}
+     const last=cur[cur.length-1];if(last&&last.c===r.c&&!!last.b===!!r.b)last.t+=ch;else cur.push(R(ch,r.c,r.b));w+=cw;}}
+   out.push(cur);}
+  return out;};
+ window.naroNoticeDrawLine=(ctx,ln,x,y,F)=>{let cx=x;for(const r of ln){ctx.font=F(r.b?700:400,12.5);ctx.fillStyle=COLORS[r.c]||COLORS.red;ctx.fillText(r.t,cx,y);cx+=ctx.measureText(r.t).width;}ctx.font=F(400,12.5);};
 
- // ── 공급자 정보: '견적서 안내문' 칸(값 채우기 · 저장은 build.mjs가 renderSettings/saveSettings에 넣은 몇 줄) ──
+ // ── 공급자 정보: '견적서 안내문' 꾸미기 칸(굵게 · 색 4가지 · 꾸밈 지우기). 저장은 build.mjs가 renderSettings/saveSettings에 넣은 몇 줄 ──
+ function readEditor(el){
+  const lines=[[]];const cur=()=>lines[lines.length-1];
+  const push=(t,st)=>{if(t)cur().push(R(t,st.c,st.b));};
+  const walk=(node,st)=>{for(const ch of node.childNodes){
+   if(ch.nodeType===3){push(ch.nodeValue.replace(/ /g,' ').replace(/[\r\n]+/g,' '),st);continue;}
+   if(ch.nodeType!==1)continue;const tag=ch.tagName;
+   if(tag==='BR'){lines.push([]);continue;}
+   const block=/^(DIV|P|LI)$/.test(tag);if(block&&cur().length)lines.push([]);
+   const ns={...st},k=[...ch.classList].find(x=>/^nq-(ink|red|blue|gray)$/.test(x));if(k)ns.c=k.slice(3);
+   const fw=ch.style?.fontWeight;if(tag==='B'||tag==='STRONG'||fw==='bold'||Number(fw)>=600)ns.b=true;if(ch.classList.contains('nq-unb'))ns.b=false; // 굵게 풀기 · 꾸밈 지우기 표시
+   walk(ch,ns);if(block)lines.push([]);}};
+  walk(el,{c:'red',b:false});return normRuns(lines);
+ }
+ const editorHtml=runs=>runs.map(l=>l.map(runHtml).join('')).join('<br>');
+ window.naroNoticeToEditor=el=>{if(el)el.innerHTML=editorHtml(noticeRuns());};
+ window.naroNoticeFromEditor=()=>{const el=document.getElementById('st_quote_notice');if(!el)return {};const runs=readEditor(el);return {quote_notice:plain(runs),quote_notice_runs:runs};};
+ window.naroNoticeEditorClean=()=>{const el=document.getElementById('st_quote_notice');return !el||JSON.stringify(readEditor(el))===JSON.stringify(noticeRuns());};
+ window.naroNoticeColors=CNAME;
+ const changed=el=>el.dispatchEvent(new Event('input',{bubbles:true}));
+ function inEditor(){const el=document.getElementById('st_quote_notice'),s=getSelection();if(!el||!s.rangeCount)return null;const r=s.getRangeAt(0);return el.contains(r.commonAncestorContainer)?{el,s,r}:null;}
+ // 고른 글자를 꺼내 새 모양으로 다시 넣는다(안쪽의 옛 색·굵게는 벗긴다)
+ function restyle(fnWrap){const x=inEditor();if(!x||x.r.collapsed)return;const frag=x.r.extractContents();
+  frag.querySelectorAll('span[class^="nq-"]').forEach(n=>n.replaceWith(...n.childNodes));
+  const node=fnWrap(frag);x.r.insertNode(node);x.s.removeAllRanges();const nr=document.createRange();nr.selectNodeContents(node);x.s.addRange(nr);
+  x.el.innerHTML=editorHtml(readEditor(x.el));changed(x.el);}
+ document.addEventListener('mousedown',e=>{if(e.target.closest?.('.nd-qn-tb button'))e.preventDefault();});
  document.addEventListener('click',e=>{
-  const b=e.target.closest?.('[data-nd-qn-default]');if(!b)return;
-  const t=document.getElementById('st_quote_notice');if(!t)return;t.value=NOTICE_DEFAULT;t.dispatchEvent(new Event('input',{bubbles:true}));t.focus();
+  const d=e.target.closest?.('[data-nd-qn-default]');
+  if(d){const el=document.getElementById('st_quote_notice');if(!el)return;el.innerHTML=editorHtml(normRuns(DEFAULT_RUNS));changed(el);el.focus();return;}
+  const b=e.target.closest?.('.nd-qn-tb button');if(!b)return;
+  if(b.hasAttribute('data-qn-b')){const x=inEditor();if(!x||x.r.collapsed)return;
+   const allBold=readEditor((()=>{const w=document.createElement('div');w.append(x.r.cloneContents());return w;})()).every(l=>l.every(r=>r.b));
+   const anc=n=>{for(;n&&n!==x.el;n=n.parentNode)if(n.nodeType===1&&/^(B|STRONG)$/.test(n.tagName))return true;return false;};
+   const insideB=anc(x.r.startContainer)&&anc(x.r.endContainer);
+   restyle(frag=>{frag.querySelectorAll('b,strong').forEach(n=>n.replaceWith(...n.childNodes));if(allBold||insideB){const sp=document.createElement('span');sp.className='nq-unb';sp.append(frag);return sp;}const w=document.createElement('b');w.append(frag);return w;});return;}
+  if(b.dataset.qnC){const c=b.dataset.qnC;restyle(frag=>{const sp=document.createElement('span');sp.className='nq-'+c;sp.append(frag);return sp;});return;}
+  if(b.hasAttribute('data-qn-clear')){restyle(frag=>{const sp=document.createElement('span');sp.className='nq-red nq-unb';sp.textContent=frag.textContent;return sp;});}
  });
+ // 붙여넣기는 글자만(다른 곳의 글꼴·크기·색은 따라오지 않게)
+ document.addEventListener('paste',e=>{const el=e.target.closest?.('#st_quote_notice');if(!el)return;e.preventDefault();const t=(e.clipboardData||window.clipboardData)?.getData('text/plain')||'';document.execCommand('insertText',false,t);});
 
  // ── 견적서 정보 탭: 안내문 넣기 스위치 ──
  function noticeToggle(form){
   const memo=form.querySelector('#fq_memo');const field=memo?.closest('.field');if(!field)return;
   let box=form.querySelector('.nd-qn');
   if(!box){box=document.createElement('div');box.className='nd-qn';
-   box.innerHTML='<label class="nd-qn-sw"><input type="checkbox" id="fq_notice"><span class="nd-qn-t">안내문 넣기 <small>모든 견적서 공통 · 빨간 글씨</small></span></label><button type="button" class="nd-qn-go">공급자 정보에서 바꾸기 ›</button>';
+   box.innerHTML='<label class="nd-qn-sw"><input type="checkbox" id="fq_notice"><span class="nd-qn-t">안내문 넣기 <small>모든 견적서 공통</small></span></label><button type="button" class="nd-qn-go">공급자 정보에서 바꾸기 ›</button>';
    box.querySelector('#fq_notice').addEventListener('change',ev=>{let e;try{e=qtEditing;}catch{}if(!e)return;if(ev.target.checked)delete e.no_notice;else e.no_notice=true;form.dispatchEvent(new Event('input',{bubbles:true}));});
    box.querySelector('.nd-qn-go').addEventListener('click',()=>{if(fn('switchView','settings')===false)return;setTimeout(()=>{const t=document.getElementById('st_quote_notice');t?.scrollIntoView({block:'center'});t?.focus();},60);});
    field.after(box);}
   let e;try{e=qtEditing;}catch{}
   const cb=box.querySelector('#fq_notice');const on=!e?.no_notice;if(cb.checked!==on)cb.checked=on;
   const empty=!noticeText().trim();box.classList.toggle('is-empty',empty);
-  const sm=box.querySelector('.nd-qn-t small');const st=empty?'공급자 정보의 안내문이 비어 있어요':'모든 견적서 공통 · 빨간 글씨';if(sm.textContent!==st)sm.textContent=st;
+  const sm=box.querySelector('.nd-qn-t small');const st=empty?'공급자 정보의 안내문이 비어 있어요':'모든 견적서 공통';if(sm.textContent!==st)sm.textContent=st;
  }
 
  // ── 진행 탭: 건별 마진(연결된 매입이 있을 때만) ──
@@ -14083,7 +14169,7 @@ const NaroOrderImport=(()=>{
  let queued=false;const later=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhance();});};
  const watch=()=>{const form=document.getElementById('qtForm');if(!form||form.dataset.ndQx)return;form.dataset.ndQx='1';new MutationObserver(later).observe(form,{childList:true,subtree:true});later();};
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',watch):watch();
- window.NaroQuoteExtras={enhance,noticeText,noticeLines};
+ window.NaroQuoteExtras={enhance,noticeText,noticeRuns};
 })();
 
 /* 휴지통(10/11): 지우기를 되돌릴 수 있게.
