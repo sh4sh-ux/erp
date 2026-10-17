@@ -718,9 +718,13 @@ test('option columns (색상·규격/옵션) and quantity sit centred under thei
   assert.ok(r.rows.length>=2);
   for(const row of r.rows){if(row.color!==null)assert.ok(Math.abs(row.color-r.head[0])<1,'color '+JSON.stringify(r));assert.ok(Math.abs(row.spec-r.head[1])<1,'spec '+JSON.stringify(r));assert.ok(Math.abs(row.qty-r.head[2])<1,'qty '+JSON.stringify(r));assert.ok(row.ta.every(a=>a==='center'),'centred text '+row.ta);}
   assert.ok(r.rows.some(x=>x.color===null),'colourless line keeps spec under its header');
+  // 재고(10/17 시안 A): 옵션은 색상 × 사이즈 숫자표 — 사이즈 머리와 숫자가 같은 세로선(가운데)
+  await p.evaluate(()=>{db.items[0].variants=[{spec:'S'},{spec:'M'},{spec:'L'}];db.items[0].colors=['WH','BK'];});
   await open(p,'stock');await p.waitForTimeout(150);
-  const t=await p.evaluate(()=>[...document.querySelectorAll('#appView table')].filter(t=>t.getClientRects().length&&[...t.tHead?.rows[0]?.cells||[]].some(th=>/^(색상|규격\/옵션)$/.test(th.textContent.trim()))).map(t=>[...t.querySelectorAll('th,td')].filter(e=>e.classList.contains('nd-opt-col')).map(e=>getComputedStyle(e).textAlign)));
-  assert.ok(t.length,'a stock table with option columns is visible');for(const a of t)assert.ok(a.length&&a.every(x=>x==='center'),JSON.stringify(t));
+  await p.evaluate(()=>{const b=[...document.querySelectorAll('#stockItems [data-stock-id]')].find(x=>x.dataset.stockId);b?.click();});await p.waitForTimeout(200);
+  const t=await p.evaluate(()=>{const tb=document.querySelector('#spDetail .sp-mx');if(!tb||!tb.getClientRects().length)return null;const c=e=>{const r=e.getBoundingClientRect();return r.left+r.width/2;};
+   const heads=[...tb.rows[0].cells].slice(1);return {heads:heads.map(c),rows:[...tb.rows].slice(1).map(r=>[...r.cells].slice(1).map(td=>{const b=td.querySelector('button')||td;return {x:c(b),ta:getComputedStyle(b).textAlign};}))};});
+  assert.ok(t,'stock size grid is visible');for(const row of t.rows)row.forEach((cell,i)=>{assert.ok(Math.abs(cell.x-t.heads[i])<1,'size column '+JSON.stringify(t));assert.equal(cell.ta,'center');});
   await p.close();}finally{await b.close();}
 });
 
