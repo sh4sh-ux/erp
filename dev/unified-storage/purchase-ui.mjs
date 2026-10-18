@@ -62,6 +62,8 @@ export function installPurchaseUI({port,features=()=>true}){
  const coName=id=>companies().find(c=>c.id===id)?.name||(id?'(삭제된 거래처)':''); // 매입이 쓰던 거래처가 지워졌으면 그렇다고 표시
  const itemOf=id=>(D()?.items||[]).find(i=>i.id===id);
  const isWork=i=>i?.type==='작업';
+ // 비용으로 들어가는 품목: 작업 + 하청(10/18, outsourced) — 매입에 넣으면 비용 줄(재고·입고 없음)
+ const costItem=i=>isWork(i)||!!i?.outsourced;
  const specsOf=i=>[...new Set([...(i?.variants||[]).map(v=>v.spec).filter(Boolean),...(i?.spec?[i.spec]:[])])];
  const buyOf=(i,spec)=>{if(!i)return 0;if(typeof g.itemBuy==='function')return Number(g.itemBuy(i,spec))||0;const v=(i.variants||[]).find(x=>x.spec===spec);return Number(v?.buy_price??i.buy_price)||0;};
  const rows=()=>st.doc?.rows||[];
@@ -251,7 +253,7 @@ export function installPurchaseUI({port,features=()=>true}){
   // 부가세 칩: 비용 줄(배송비 등)만, 국내 매입에서. 편집 중이면 눌러서 별도 ↔ 없음
   const canVat=l=>!isFx(p)&&p.vat_on!==false&&(isCost(l)||l.no_vat),tapVat=st.editing||!sv;
   const vatTag=(l,i,live)=>canVat(l)?(live&&tapVat?`<button type="button" class="pu-vat${l.no_vat?' off':''}" data-novat="${i}" aria-pressed="${!!l.no_vat}" title="눌러서 부가세 별도 ↔ 없음">${l.no_vat?'부가세 없음':'부가세 별도'}</button>`:`<span class="pu-vat${l.no_vat?' off':''}">${l.no_vat?'부가세 없음':'부가세 별도'}</span>`):'';
-  const tags=(l,i=-1,live=false)=>{const q=lineQuote(p,l),qq=q?qno(q)||'지워진 견적':'';return (isCost(l)||qq||canVat(l))?`<span class="pu-ltags">${isCost(l)?'<span class="pu-cost">비용 · 재고 안 늘어남</span>':''}${vatTag(l,i,live)}${qq?`<span class="pu-qt">${esc(qq)}</span>`:''}</span>`:'';};
+  const tags=(l,i=-1,live=false)=>{const q=lineQuote(p,l),qq=q?qno(q)||'지워진 견적':'';return (isCost(l)||qq||canVat(l))?`<span class="pu-ltags">${isCost(l)?`<span class="pu-cost">${itemOf(l.item_id)?.outsourced?'하청':'비용'} · 재고 안 늘어남</span>`:''}${vatTag(l,i,live)}${qq?`<span class="pu-qt">${esc(qq)}</span>`:''}</span>`:'';};
   const lines=p.lines.map((l,i)=>{const it=itemOf(l.item_id),colors=it?.colors||[],specs=specsOf(it);
    const head=isCost(l)&&!l.item_id?`<span class="pu-cname"><input type="text" data-f="cname" data-idx="${i}" value="${esc(l.name||'')}" placeholder="비용 이름 (예: 퀵 비용)" aria-label="비용 이름">${tags(l,i,true)}</span>`
     :`<span class="pu-iname"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it,l.item_id)}</button>${tags(l,i,true)}</span>`;
@@ -376,12 +378,14 @@ export function installPurchaseUI({port,features=()=>true}){
  // ── 고치기 ──
  const blank=()=>({id:'l'+uid(),item_id:'',qty:1,unit_price:0});
  const purchaseSnapshot=p=>JSON.stringify({...p,memo:p.memo||'',vat_on:p.vat_on!==false,lines:p.lines.map(l=>{const v={...l};if(!v.color)delete v.color;if(!v.spec)delete v.spec;return v;})},(_key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
- function edit(fn,redraw=true){const base=st.draft&&st.draft.id===st.sel?st.draft:structuredClone(cur());fn(base);st.draft=base;st.dirty=!cur()||purchaseSnapshot(base)!==purchaseSnapshot(cur());if(redraw)render();}
+ // 하청으로 바뀐 품목의 줄은 고칠 때 비용 줄로 맞춘다(입고 전 매입만 고칠 수 있다)
+ const asCost=p=>{if(p.kind==='기초재고'||(p.receipts||[]).length)return;for(const l of p.lines)if(!l.cost&&itemOf(l.item_id)?.outsourced){l.cost=true;delete l.no_vat;}};
+ function edit(fn,redraw=true){const base=st.draft&&st.draft.id===st.sel?st.draft:structuredClone(cur());fn(base);asCost(base);st.draft=base;st.dirty=!cur()||purchaseSnapshot(base)!==purchaseSnapshot(cur());if(redraw)render();}
  function pickItem(i,id){
   // 직접 입력 = 이름을 적는 비용 줄, 작업 품목(배송비 등) = 비용 줄 — 입고·재고 없이 금액만
   if(id==='__free__'){if(p0().kind==='기초재고'){toast('기초 재고에는 비용을 넣을 수 없어요.');return;}edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());const keep={id:l.id,qty:l.qty||1,unit_price:l.unit_price||0,...(l.quote_id?{quote_id:l.quote_id}:{})};p.lines[i]={...keep,cost:true,name:''};});setTimeout(()=>view.querySelector(`.qline [data-f="cname"][data-idx="${i}"]`)?.focus(),0);return;}
   const it=itemOf(id);if(!it)return;
-  if(isWork(it)){if(p0().kind==='기초재고'){toast('기초 재고에는 작업 품목을 넣을 수 없어요.');return;}edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());const keep={id:l.id,qty:l.qty||1,...(l.quote_id?{quote_id:l.quote_id}:{})};p.lines[i]={...keep,cost:true,item_id:it.id,unit_price:isFx(p)?(l.unit_price||0):buyOf(it,specsOf(it)[0])};});return;}
+  if(costItem(it)){if(p0().kind==='기초재고'){toast(`기초 재고에는 ${isWork(it)?'작업':'하청'} 품목을 넣을 수 없어요.`);return;}edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());const keep={id:l.id,qty:l.qty||1,...(l.quote_id?{quote_id:l.quote_id}:{})};p.lines[i]={...keep,cost:true,item_id:it.id,unit_price:isFx(p)?(l.unit_price||0):buyOf(it,specsOf(it)[0])};});return;}
   edit(p=>{const l=p.lines[i]||(p.lines[i]=blank());delete l.cost;delete l.name;delete l.no_vat;l.item_id=it.id;l.color=(it.colors||[])[0];l.spec=specsOf(it)[0];l.unit_price=isFx(p)?(l.unit_price||0):buyOf(it,l.spec);for(const k of ['color','spec'])if(l[k]===undefined)delete l[k];});
  }
  const p0=()=>shown()||{};
@@ -472,7 +476,7 @@ export function installPurchaseUI({port,features=()=>true}){
    const q=qs.find(x=>x.id===qid),ls=live(q);
    if(!pick.has(qid))pick.set(qid,new Set(ls.filter(l=>!elsewhere(q,l)&&!here(q,l)).map(l=>l.id)));
    const on=pick.get(qid),opt=x=>`<option value="${esc(x.id)}" ${x.id===qid?'selected':''}>${esc([x.no,coName(x.company_id),(x.date||'').slice(5).replace('-','.')].filter(Boolean).join(' · '))}</option>`;
-   const row=l=>{const ow=elsewhere(q,l),hi=here(q,l),dis=!!(ow||hi),it=reg(l),cost=!it||isWork(it);
+   const row=l=>{const ow=elsewhere(q,l),hi=here(q,l),dis=!!(ow||hi),it=reg(l),cost=!it||costItem(it);
     const sub=dis?(hi?'이 매입에 이미 있어요':`다른 매입에 있음 · ${esc(ow.no)} ${esc(coName(ow.vendor_id))}`):[[l.color,l.spec].filter(Boolean).map(esc).join(' · '),cost?'비용 줄로 들어가요':'',`${n0(l.qty)}개`].filter(Boolean).join(' · ');
     return `<label class="pu-qi-ln${dis?' is-dim':''}"><input type="checkbox" data-ql="${esc(l.id)}" ${dis?'disabled':on.has(l.id)?'checked':''}><span><b>${esc(it?it.name:nameOf(l))}</b><small>${sub}</small></span><span class="pu-qi-am">견적 ${n0((Number(l.qty)||0)*(Number(l.price)||0))}</span></label>`;};
    const n=ls.filter(l=>on.has(l.id)&&!elsewhere(q,l)&&!here(q,l)).length;
@@ -484,7 +488,7 @@ export function installPurchaseUI({port,features=()=>true}){
    d.querySelector('.nd-qa-go').onclick=()=>{
     const add=ls.filter(l=>on.has(l.id)&&!elsewhere(q,l)&&!here(q,l)).map(l=>{const it=reg(l),qty=Math.max(1,Math.round(Number(l.qty)||1)),base={id:'l'+uid(),qty,quote_id:q.id};
      if(!it)return {...base,cost:true,name:nameOf(l)||'비용',unit_price:0};
-     const ln={...base,item_id:it.id,unit_price:isFx(p)?0:buyOf(it,l.spec)};if(isWork(it))ln.cost=true;if(l.color)ln.color=l.color;if(l.spec)ln.spec=l.spec;return ln;});
+     const ln={...base,item_id:it.id,unit_price:isFx(p)?0:buyOf(it,l.spec)};if(costItem(it))ln.cost=true;if(l.color)ln.color=l.color;if(l.spec)ln.spec=l.spec;return ln;});
     if(!add.length)return;
     edit(x=>{x.lines=x.lines.filter(hasLine).concat(add);},false); // 줄마다 견적이 붙는다 — 매입의 기본 견적은 바꾸지 않는다(다른 줄이 딸려 가지 않게)
     d.close();st.tab='items';st.editing=true;render();toast(`${n0(add.length)}개 줄을 넣었어요 · 단가를 확인해 주세요`);};
@@ -869,10 +873,10 @@ export function installPurchaseUI({port,features=()=>true}){
    if(search){
     lineSheet.innerHTML=`<div class="qp-sheet-head"><h3>품목 검색</h3><button class="naro-sheet-close" type="button" data-close aria-label="닫기">닫기</button></div><input class="qp-search" type="search" placeholder="품목명 / 품목코드 검색" aria-label="품목명 또는 품목코드 검색"><div class="qp-results"></div>`;
     const inp=lineSheet.querySelector('.qp-search'),res=lineSheet.querySelector('.qp-results');
-    const list=()=>{const q=inp.value.trim().toLowerCase();const m=(D()?.items||[]).filter(x=>(p.kind!=='기초재고'||!isWork(x))&&`${x.name||''} ${x.code||''}`.toLowerCase().includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
+    const list=()=>{const q=inp.value.trim().toLowerCase();const m=(D()?.items||[]).filter(x=>(p.kind!=='기초재고'||!costItem(x))&&`${x.name||''} ${x.code||''}`.toLowerCase().includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
      res.innerHTML=m.length?m.map(x=>`<button type="button" class="qp-result" data-pick="${esc(x.id)}"><span><strong>${esc(x.name||'')}</strong><small>${esc(x.code||'')}</small></span><span>${isFx(p)?'':money(buyOf(x,specsOf(x)[0]))}</span></button>`).join(''):'<p>검색 결과가 없습니다.</p>';
      if(p.kind!=='기초재고'){const fb=document.createElement('button');fb.type='button';fb.className='qp-result pu-free-cost';fb.innerHTML='<span><strong>직접 적는 비용</strong><small>퀵 비용·포장비 등 · 재고 안 늘어남</small></span><span></span>';fb.onclick=()=>{w={id:w.id,qty:w.qty||1,unit_price:w.unit_price||0,...(w.quote_id?{quote_id:w.quote_id}:{}),cost:true,name:w.name||''};search=false;draw();};res.prepend(fb);}
-     res.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=itemOf(b.dataset.pick);w.item_id=x.id;delete w.name;if(isWork(x))w.cost=true;else{delete w.cost;delete w.no_vat;}w.color=(x.colors||[])[0];w.spec=specsOf(x)[0];for(const k of ['color','spec'])if(w[k]===undefined)delete w[k];w.unit_price=isFx(p)?(w.unit_price||0):buyOf(x,w.spec);search=false;draw();});};
+     res.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const x=itemOf(b.dataset.pick);w.item_id=x.id;delete w.name;if(costItem(x))w.cost=true;else{delete w.cost;delete w.no_vat;}w.color=(x.colors||[])[0];w.spec=specsOf(x)[0];for(const k of ['color','spec'])if(w[k]===undefined)delete w[k];w.unit_price=isFx(p)?(w.unit_price||0):buyOf(x,w.spec);search=false;draw();});};
     inp.oninput=list;list();setTimeout(()=>inp.focus(),0);
    }else{
     const chips=(f,opts,v)=>opts.length?`<div class="qp-chips option-chip-grid" role="group" aria-label="${f==='color'?'색상':'규격/옵션'}">${opts.map(o=>`<button type="button" data-${f}="${esc(o)}" aria-pressed="${o===v}">${esc(o)}</button>`).join('')}</div>`:'<p class="qp-muted">—</p>';
@@ -950,7 +954,7 @@ export function installPurchaseUI({port,features=()=>true}){
    if(a==='log'){const p=cur();if(p)g.NaroChangeLog?.open({ref:p.id,title:p.no||'매입',noun:'매입'});return;}
    if(a==='save')return save();
    if(a==='revert'){st.draft=null;st.dirty=false;st.editing=false;st.sz=null;if(!cur())st.sel=null;render();return;}
-   if(a==='edit'){st.editing=!st.editing;if(!st.editing)st.sz=null;render();return;}
+   if(a==='edit'){st.editing=!st.editing;if(!st.editing)st.sz=null;else if(cur()?.lines.some(l=>!l.cost&&itemOf(l.item_id)?.outsourced)){edit(()=>{});return;}render();return;}
    if(a==='addline'){if(mob.matches){const p=shown();lineEditor(p.lines.length,true);return;}return edit(p=>p.lines.push(blank()));}
    if(a==='size'){st.sz=st.sz?null:{item:null,color:null};render();return;}
    if(a==='fromquote')return quoteImport();

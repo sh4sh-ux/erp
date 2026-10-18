@@ -436,6 +436,15 @@ patchFn('renderSettings',[
 patchFn('saveSettings',[
  ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),\n  };'],
 ]);
+// 하청 품목(10/18): 단품에 outsourced:true — 재고를 세지 않는다(재고 탭·재고 부족·납품 차감 제외). 유형은 그대로라 저장 규칙(유형 변경 금지)에 걸리지 않는다.
+patchFn('tracksStock',[['!isWork(i)','!isWork(i) && !i.outsourced']]);
+patchFn('renderItList',[
+ ["|| (isWork(i)?\"\uc7ac\uace0 \uc81c\uc678\":\"\u2014\"));","|| (isWork(i)||i.outsourced?\"\uc7ac\uace0 \uc81c\uc678\":\"\u2014\"));"],
+ ["? '<span class=\"pill work\">\uc791\uc5c5</span>'\n        : (","? '<span class=\"pill work\">\uc791\uc5c5</span>'\n        : i.outsourced ? '<span class=\"pill work nd-sub\">\ud558\uccad</span>' : ("]]);
+patchFn('renderItDetail',[
+ ["<option ${isWork(e)?\"selected\":\"\"}>\uc791\uc5c5</option>\n        </select>\n      </div>","<option ${isWork(e)?\"selected\":\"\"}>\uc791\uc5c5</option>\n        </select>\n      </div>\n      ${!isSet(e)&&!isWork(e)?`<label class=\"nd-outsrc\"><input type=\"checkbox\" id=\"fi_outsourced\" ${e.outsourced?\"checked\":\"\"}><span><b>\ud558\uccad</b><small>\uc678\ubd80 \uc5c5\uccb4\uc5d0 \ub9e1\uaca8 \ub9cc\ub4dc\ub294 \ud488\ubaa9 \u00b7 \uc7ac\uace0\ub97c \uc138\uc9c0 \uc54a\uace0 \ub9e4\uc785\uc740 \ube44\uc6a9\uc73c\ub85c</small></span></label>`:\"\"}"],
+ ["document.getElementById(\"fi_type\").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };","document.getElementById(\"fi_type\").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };\n  { const o=document.getElementById(\"fi_outsourced\"); if(o) o.onchange=()=>{ if(o.checked) e.outsourced=true; else delete e.outsourced; }; }"]]);
+patchFn('submitItem',[['e.code=(e.code||"").trim();','e.code=(e.code||"").trim();\n  if(isSet(e)||isWork(e)||!e.outsourced) delete e.outsourced;']]);
 {const from='<section class="sup-sec sup-docs">';if(html.split(from).length!==2)throw Error('QUOTE_NOTICE_BOUNDARY');
  html=html.replace(from,`<section class="sup-sec sup-notice">
               <h3 class="sup-sec-t">견적서 안내문</h3>
