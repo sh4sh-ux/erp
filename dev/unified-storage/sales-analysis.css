@@ -101,6 +101,8 @@
 @media screen and (max-width:1023px){
  #appView{--nd-section-tab-size:14px}
  html body #appView .shell .main #view-sales.nd-sales-ready:not(.hidden){padding:0!important;background:var(--nd-surface);margin:0!important}
+ /* 목록이 짧아도 아래가 회색으로 비지 않게(다른 목록 화면처럼 흰 바탕 끝까지) */
+ html body #appView .shell .main #view-sales.nd-sales-ready:not(.hidden):not(.nd-sa-mobile-detail){background:var(--nd-surface)!important}
  /* Quote list rhythm: eyebrow y16, title y42, search y88/44px, divider y150. */
  html body #appView .shell .main #view-sales.nd-sales-ready>.page-head{background:var(--nd-surface)!important;min-height:0!important;height:auto!important;padding:42px 16px 18px!important;margin:0!important;border-bottom:1px solid var(--nd-line)!important;gap:0!important}
  html body #appView .shell .main #view-sales.nd-sales-ready>.page-head .nd-tools{margin-top:18px!important;gap:8px;height:44px!important}

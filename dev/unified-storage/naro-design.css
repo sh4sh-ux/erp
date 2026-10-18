@@ -2451,10 +2451,12 @@ html body #appView .nd-mon-r .a{white-space:nowrap}
 #printArea.preview.nd-pvm .pv-sheet{border:0;box-shadow:0 24px 64px rgba(15,20,30,.3)}
 @media (max-width:780px){#printArea.preview.nd-pvm{width:calc(100vw - 24px)}}
 /* 10/18 하청 품목: 품목 정보 유형 아래 스위치 · 목록 표시 */
-html body #appView .nd-outsrc{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px;padding:10px 12px;border:1px solid var(--nd-line,#E2E4E8);border-radius:10px;cursor:pointer;grid-column:1/-1}
+html body #appView .nd-outsrc{display:flex;align-items:flex-start;gap:10px;margin:2px 0 12px;padding:10px 12px;border:1px solid var(--nd-line,#E2E4E8);border-radius:10px;cursor:pointer;grid-column:1/-1}
 html body #appView .nd-outsrc>input{width:18px;height:18px;min-height:0;margin:1px 0 0;flex:none;accent-color:var(--nd-blue)}
 html body #appView .nd-outsrc>span{display:flex;flex-direction:column;gap:2px;min-width:0}
 html body #appView .nd-outsrc b{font:600 13.5px/18px var(--sans);color:var(--nd-ink,inherit)}
 html body #appView .nd-outsrc small{font:400 12px/17px var(--sans);color:var(--nd-ink-3,#9AA0AA)}
 html body #appView .nd-outsrc:has(input:checked){border-color:var(--nd-blue-line,rgba(67,85,232,.4));background:var(--nd-blue-soft,rgba(67,85,232,.06))}
 html body #appView .pill.work.nd-sub{color:var(--nd-blue)!important;background:var(--nd-blue-soft,rgba(67,85,232,.08))!important;border-color:transparent!important}
+/* 10/18 폰 업체 제공 자재: ‹ 줄은 견적서처럼 함께 스크롤 — 붙어 있으면 아래 제목·부제가 그 밑에 잘려 겹쳐 보였다 */
+@media (max-width:1023px){html body #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{position:static!important}}

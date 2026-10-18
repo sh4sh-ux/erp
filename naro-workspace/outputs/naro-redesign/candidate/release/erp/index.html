@@ -9771,13 +9771,15 @@ html body #appView .nd-mon-r .a{white-space:nowrap}
 #printArea.preview.nd-pvm .pv-sheet{border:0;box-shadow:0 24px 64px rgba(15,20,30,.3)}
 @media (max-width:780px){#printArea.preview.nd-pvm{width:calc(100vw - 24px)}}
 /* 10/18 하청 품목: 품목 정보 유형 아래 스위치 · 목록 표시 */
-html body #appView .nd-outsrc{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px;padding:10px 12px;border:1px solid var(--nd-line,#E2E4E8);border-radius:10px;cursor:pointer;grid-column:1/-1}
+html body #appView .nd-outsrc{display:flex;align-items:flex-start;gap:10px;margin:2px 0 12px;padding:10px 12px;border:1px solid var(--nd-line,#E2E4E8);border-radius:10px;cursor:pointer;grid-column:1/-1}
 html body #appView .nd-outsrc>input{width:18px;height:18px;min-height:0;margin:1px 0 0;flex:none;accent-color:var(--nd-blue)}
 html body #appView .nd-outsrc>span{display:flex;flex-direction:column;gap:2px;min-width:0}
 html body #appView .nd-outsrc b{font:600 13.5px/18px var(--sans);color:var(--nd-ink,inherit)}
 html body #appView .nd-outsrc small{font:400 12px/17px var(--sans);color:var(--nd-ink-3,#9AA0AA)}
 html body #appView .nd-outsrc:has(input:checked){border-color:var(--nd-blue-line,rgba(67,85,232,.4));background:var(--nd-blue-soft,rgba(67,85,232,.06))}
 html body #appView .pill.work.nd-sub{color:var(--nd-blue)!important;background:var(--nd-blue-soft,rgba(67,85,232,.08))!important;border-color:transparent!important}
+/* 10/18 폰 업체 제공 자재: ‹ 줄은 견적서처럼 함께 스크롤 — 붙어 있으면 아래 제목·부제가 그 밑에 잘려 겹쳐 보였다 */
+@media (max-width:1023px){html body #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{position:static!important}}
 
 /* Sales: existing rail + master list + detail. Read-only presentation layer. */
 @media screen{
@@ -9882,6 +9884,8 @@ html body #appView .pill.work.nd-sub{color:var(--nd-blue)!important;background:v
 @media screen and (max-width:1023px){
  #appView{--nd-section-tab-size:14px}
  html body #appView .shell .main #view-sales.nd-sales-ready:not(.hidden){padding:0!important;background:var(--nd-surface);margin:0!important}
+ /* 목록이 짧아도 아래가 회색으로 비지 않게(다른 목록 화면처럼 흰 바탕 끝까지) */
+ html body #appView .shell .main #view-sales.nd-sales-ready:not(.hidden):not(.nd-sa-mobile-detail){background:var(--nd-surface)!important}
  /* Quote list rhythm: eyebrow y16, title y42, search y88/44px, divider y150. */
  html body #appView .shell .main #view-sales.nd-sales-ready>.page-head{background:var(--nd-surface)!important;min-height:0!important;height:auto!important;padding:42px 16px 18px!important;margin:0!important;border-bottom:1px solid var(--nd-line)!important;gap:0!important}
  html body #appView .shell .main #view-sales.nd-sales-ready>.page-head .nd-tools{margin-top:18px!important;gap:8px;height:44px!important}
@@ -11129,7 +11133,7 @@ html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans)
  html body #appView #view-materials .mp-g6.mp-main .mp-b{grid-area:b}
  html body #appView #view-materials .mp-g6.mp-main .mp-pct{grid-area:pct}
  html body #appView #view-materials .mp-g6.mp-main .mp-act{grid-area:act;margin-right:0}
- html body #appView #view-materials .mp-g5.mp-hrow{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "meta meta act";row-gap:2px;padding:10px 0 10px var(--quote-table-pad-x)}
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "meta meta .";row-gap:2px;padding:10px 0 10px var(--quote-table-pad-x)}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nm{grid-area:nm}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-b{grid-area:b}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-act{grid-area:act;margin-right:0}
@@ -11189,7 +11193,9 @@ html body #appView #view-materials .mp-hrow:not(.gone):hover{background:var(--nd
 html body #appView #view-materials .mp-month{display:flex;align-items:baseline;gap:6px;padding:18px var(--quote-table-pad-x) 6px;font:700 13px/18px var(--sans);color:var(--nd-ink)}
 html body #appView #view-materials .mp-month span{margin-left:0;font:400 12px/18px var(--nd-number-font);color:var(--nd-ink-3)}
 @media (max-width:780px){
- html body #appView #view-materials .mp-g5.mp-hrow{grid-template-areas:"nm b act" "meta meta act" "memo memo act"}
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-areas:"nm b act" "meta meta ." "memo memo ."}
+ /* ⋮는 첫 줄(자재 이름 · 수량)과 같은 높이에 — 줄 높이는 키우지 않는다 */
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-act{align-self:center;margin-block:-8px}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc{grid-area:nm}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc .mp-nm{max-width:none}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-memo{grid-area:memo;font-size:12px;color:var(--nd-ink-3);white-space:normal}
@@ -13173,7 +13179,7 @@ const NaroSalesAnalysis=(()=>{
  'use strict';
  const view=document.getElementById('view-sales'),source=document.getElementById('slBody');if(!view||!source)return;
  const model=NaroSalesAnalysis,e=model.escape,n=v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2});
- const money=v=>`<span class="nd-sa-num">${Math.round(v).toLocaleString('ko-KR')}</span><small class="nd-sa-currency">원</small>`;
+ const money=v=>`<span class="nd-sa-num">${Math.round(v).toLocaleString('ko-KR')}원</span>`; // 숫자 규칙: 원은 숫자에 붙여 같은 글자로
  const margin=g=>`<span class="nd-sa-margin${g.unknownCost?' is-unknown':g.margin<0?' is-negative':''}" title="현재 등록 매입단가 기준 예상 마진 · 부가세 제외${g.unknownCost?' · 원가 미등록 항목이 있어 계산하지 않습니다':''}">${e(model.marginLabel(g))}</span>`;
  const labels={company:'거래처',item:'품목',category:'카테고리'};
  const state={mode:'company',selected:null,query:'',sort:'amount',leftQuery:'',mobileDetail:false};
@@ -16701,7 +16707,8 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
   head(form);
   const photo=fb.querySelector(':scope>.nd-photo-itembox,.nd-photo-itembox');
   if(fb.classList.contains('nd-info')&&fb.querySelector(':scope>.nd-ig-basic')){
-   const pm=fb.querySelector(':scope>.nd-ig-media>.cp-grpb');if(photo&&pm&&pm.firstElementChild!==photo)pm.prepend(photo); // 사진 먼저, 메모 다음(asset-ui는 메모가 있는 묶음 안이면 옮기지 않는다)
+   const pm=fb.querySelector(':scope>.nd-ig-media>.cp-grpb');if(photo&&pm&&pm.firstElementChild!==photo)pm.prepend(photo);
+   {const a=fb.querySelector('.cp-grpb>.form-actions');if(a)fb.append(a);const os=fb.querySelector('.nd-ig-opts .nd-outsrc'),g1b=fb.querySelector(':scope>.nd-ig-basic>.cp-grpb');if(os&&g1b)g1b.append(os);} // 사진 먼저, 메모 다음(asset-ui는 메모가 있는 묶음 안이면 옮기지 않는다)
    logLink(fb,'item');return;
   }
   const $=id=>document.getElementById(id);
@@ -16718,14 +16725,16 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
   const g1=grp('basic','기본 정보','견적서·거래명세서 표시'),g2=grp('price','가격',set?'미입력 시 구성품 합계 적용':'옵션 단가 미입력 시 적용');
   const g3=set?grp('opts','구성품','세트 구성 품목'):grp('opts','옵션','견적서에서 선택'),g4=grp('media','사진 · 메모','');
   if(note)body(g1).append(note);
-  body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));if(cat)body(g1).append(cat);
+  body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));{const os=fb.querySelector('.nd-outsrc');if(os)body(g1).append(os);}if(cat)body(g1).append(cat);
   body(g2).append(pair(buy,sell));if(margin&&!set)body(g2).append(margin);
   [comps,colors,opts,spec].forEach(n=>n&&body(g3).append(n));
   if(photo)body(g4).append(photo);if(memo)body(g4).append(memo);
   // 위에서 옮기지 않은 칸은 버리지 않고 옵션(구성품) 묶음 끝에 둔다. 빈 줄·옛 소제목만 지운다.
   const keep=[...fb.children].filter(n=>n.matches?.('.workspace-record-heading,.back-btn,.panel-b-back,[data-keep]'));
-  for(const n of [...fb.children]){if(keep.includes(n))continue;if(n.matches('.ops-section-title')||(n.matches('.grid2')&&!n.querySelector('input,select,textarea,button')))continue;body(g3).append(n);}
-  fb.replaceChildren(...keep,g1,g2,g3,g4);
+  // 저장 버튼 줄은 묶음 안에 넣지 않는다 — 넣으면 sticky가 그 묶음 안에서만 붙어 폰에서 화면 가운데로 올라간다
+  const acts=fb.querySelector(':scope>.form-actions');
+  for(const n of [...fb.children]){if(keep.includes(n)||n===acts)continue;if(n.matches('.ops-section-title')||(n.matches('.grid2')&&!n.querySelector('input,select,textarea,button')))continue;body(g3).append(n);}
+  fb.replaceChildren(...keep,g1,g2,g3,g4,...(acts?[acts]:[]));
   fb.classList.add('nd-info');form.classList.add('nd-info-form');
   logLink(fb,'item');
  }
@@ -16736,7 +16745,8 @@ html body #appView :is(#itForm.nd-info,#itForm .nd-info) .cp-grpb .field{align-c
   if(!it||!window.NaroChangeLog){g?.remove();return;}
   if(!g){g=grp('manage','관리','');body(g).innerHTML='<button type="button" class="nd-log-link nd-ig-log">이 품목의 변경 기록 보기</button>';fb.append(g);}
   const b=g.querySelector('.nd-ig-log');if(b.dataset.ref!==it.id){b.dataset.ref=it.id;b.onclick=()=>window.NaroChangeLog.open({ref:it.id,title:it.name||'품목',noun:'품목'});}
-  if(g.nextElementSibling)fb.append(g);
+  const acts=fb.querySelector(':scope>.form-actions');
+  if(acts){if(g.nextElementSibling!==acts)fb.insertBefore(g,acts);}else if(g.nextElementSibling)fb.append(g);
  }
  function head(form){
   const h=form.querySelector('.workspace-record-heading');if(!h)return;

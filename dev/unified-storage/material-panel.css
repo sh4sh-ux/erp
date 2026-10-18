@@ -157,7 +157,7 @@ html body #appView #view-materials .mp-blank span{font:400 14px/22px var(--sans)
  html body #appView #view-materials .mp-g6.mp-main .mp-b{grid-area:b}
  html body #appView #view-materials .mp-g6.mp-main .mp-pct{grid-area:pct}
  html body #appView #view-materials .mp-g6.mp-main .mp-act{grid-area:act;margin-right:0}
- html body #appView #view-materials .mp-g5.mp-hrow{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "meta meta act";row-gap:2px;padding:10px 0 10px var(--quote-table-pad-x)}
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"nm b act" "meta meta .";row-gap:2px;padding:10px 0 10px var(--quote-table-pad-x)}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nm{grid-area:nm}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-b{grid-area:b}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-act{grid-area:act;margin-right:0}
@@ -217,7 +217,9 @@ html body #appView #view-materials .mp-hrow:not(.gone):hover{background:var(--nd
 html body #appView #view-materials .mp-month{display:flex;align-items:baseline;gap:6px;padding:18px var(--quote-table-pad-x) 6px;font:700 13px/18px var(--sans);color:var(--nd-ink)}
 html body #appView #view-materials .mp-month span{margin-left:0;font:400 12px/18px var(--nd-number-font);color:var(--nd-ink-3)}
 @media (max-width:780px){
- html body #appView #view-materials .mp-g5.mp-hrow{grid-template-areas:"nm b act" "meta meta act" "memo memo act"}
+ html body #appView #view-materials .mp-g5.mp-hrow{grid-template-areas:"nm b act" "meta meta ." "memo memo ."}
+ /* ⋮는 첫 줄(자재 이름 · 수량)과 같은 높이에 — 줄 높이는 키우지 않는다 */
+ html body #appView #view-materials .mp-g5.mp-hrow .mp-act{align-self:center;margin-block:-8px}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc{grid-area:nm}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-nmc .mp-nm{max-width:none}
  html body #appView #view-materials .mp-g5.mp-hrow .mp-memo{grid-area:memo;font-size:12px;color:var(--nd-ink-3);white-space:normal}
