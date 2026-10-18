@@ -64,7 +64,7 @@ const NaroSalesAnalysis=(()=>{
  'use strict';
  const view=document.getElementById('view-sales'),source=document.getElementById('slBody');if(!view||!source)return;
  const model=NaroSalesAnalysis,e=model.escape,n=v=>Number(v).toLocaleString('ko-KR',{maximumFractionDigits:2});
- const money=v=>`<span class="nd-sa-num">${Math.round(v).toLocaleString('ko-KR')}</span><small class="nd-sa-currency">원</small>`;
+ const money=v=>`<span class="nd-sa-num">${Math.round(v).toLocaleString('ko-KR')}원</span>`; // 숫자 규칙: 원은 숫자에 붙여 같은 글자로
  const margin=g=>`<span class="nd-sa-margin${g.unknownCost?' is-unknown':g.margin<0?' is-negative':''}" title="현재 등록 매입단가 기준 예상 마진 · 부가세 제외${g.unknownCost?' · 원가 미등록 항목이 있어 계산하지 않습니다':''}">${e(model.marginLabel(g))}</span>`;
  const labels={company:'거래처',item:'품목',category:'카테고리'};
  const state={mode:'company',selected:null,query:'',sort:'amount',leftQuery:'',mobileDetail:false};

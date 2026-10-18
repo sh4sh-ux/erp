@@ -41,7 +41,8 @@
   head(form);
   const photo=fb.querySelector(':scope>.nd-photo-itembox,.nd-photo-itembox');
   if(fb.classList.contains('nd-info')&&fb.querySelector(':scope>.nd-ig-basic')){
-   const pm=fb.querySelector(':scope>.nd-ig-media>.cp-grpb');if(photo&&pm&&pm.firstElementChild!==photo)pm.prepend(photo); // 사진 먼저, 메모 다음(asset-ui는 메모가 있는 묶음 안이면 옮기지 않는다)
+   const pm=fb.querySelector(':scope>.nd-ig-media>.cp-grpb');if(photo&&pm&&pm.firstElementChild!==photo)pm.prepend(photo);
+   {const a=fb.querySelector('.cp-grpb>.form-actions');if(a)fb.append(a);const os=fb.querySelector('.nd-ig-opts .nd-outsrc'),g1b=fb.querySelector(':scope>.nd-ig-basic>.cp-grpb');if(os&&g1b)g1b.append(os);} // 사진 먼저, 메모 다음(asset-ui는 메모가 있는 묶음 안이면 옮기지 않는다)
    logLink(fb,'item');return;
   }
   const $=id=>document.getElementById(id);
@@ -58,14 +59,16 @@
   const g1=grp('basic','기본 정보','견적서·거래명세서 표시'),g2=grp('price','가격',set?'미입력 시 구성품 합계 적용':'옵션 단가 미입력 시 적용');
   const g3=set?grp('opts','구성품','세트 구성 품목'):grp('opts','옵션','견적서에서 선택'),g4=grp('media','사진 · 메모','');
   if(note)body(g1).append(note);
-  body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));if(cat)body(g1).append(cat);
+  body(g1).append(pair(name,code));if(codeHint)body(g1).append(codeHint);body(g1).append(pair(type,unit));{const os=fb.querySelector('.nd-outsrc');if(os)body(g1).append(os);}if(cat)body(g1).append(cat);
   body(g2).append(pair(buy,sell));if(margin&&!set)body(g2).append(margin);
   [comps,colors,opts,spec].forEach(n=>n&&body(g3).append(n));
   if(photo)body(g4).append(photo);if(memo)body(g4).append(memo);
   // 위에서 옮기지 않은 칸은 버리지 않고 옵션(구성품) 묶음 끝에 둔다. 빈 줄·옛 소제목만 지운다.
   const keep=[...fb.children].filter(n=>n.matches?.('.workspace-record-heading,.back-btn,.panel-b-back,[data-keep]'));
-  for(const n of [...fb.children]){if(keep.includes(n))continue;if(n.matches('.ops-section-title')||(n.matches('.grid2')&&!n.querySelector('input,select,textarea,button')))continue;body(g3).append(n);}
-  fb.replaceChildren(...keep,g1,g2,g3,g4);
+  // 저장 버튼 줄은 묶음 안에 넣지 않는다 — 넣으면 sticky가 그 묶음 안에서만 붙어 폰에서 화면 가운데로 올라간다
+  const acts=fb.querySelector(':scope>.form-actions');
+  for(const n of [...fb.children]){if(keep.includes(n)||n===acts)continue;if(n.matches('.ops-section-title')||(n.matches('.grid2')&&!n.querySelector('input,select,textarea,button')))continue;body(g3).append(n);}
+  fb.replaceChildren(...keep,g1,g2,g3,g4,...(acts?[acts]:[]));
   fb.classList.add('nd-info');form.classList.add('nd-info-form');
   logLink(fb,'item');
  }
@@ -76,7 +79,8 @@
   if(!it||!window.NaroChangeLog){g?.remove();return;}
   if(!g){g=grp('manage','관리','');body(g).innerHTML='<button type="button" class="nd-log-link nd-ig-log">이 품목의 변경 기록 보기</button>';fb.append(g);}
   const b=g.querySelector('.nd-ig-log');if(b.dataset.ref!==it.id){b.dataset.ref=it.id;b.onclick=()=>window.NaroChangeLog.open({ref:it.id,title:it.name||'품목',noun:'품목'});}
-  if(g.nextElementSibling)fb.append(g);
+  const acts=fb.querySelector(':scope>.form-actions');
+  if(acts){if(g.nextElementSibling!==acts)fb.insertBefore(g,acts);}else if(g.nextElementSibling)fb.append(g);
  }
  function head(form){
   const h=form.querySelector('.workspace-record-heading');if(!h)return;
