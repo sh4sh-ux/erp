@@ -493,30 +493,16 @@ html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0
 /* 공급자 정보: 견적서 안내문 */
 html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
 html body #appView #view-settings .nd-qn-row .hint{margin:0}
-/* 진행 탭: 건별 마진 */
-html body #appView #qtForm .nd-qm-b{padding:0 16px 14px}
-html body #appView #qtForm .nd-qm{margin-bottom:14px}
-html body #appView #qtForm .nd-qm-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--nd-line);border-radius:12px;overflow:hidden}
-html body #appView #qtForm .nd-qm-k>div{padding:14px 16px;border-left:1px solid var(--nd-line);min-width:0}
-html body #appView #qtForm .nd-qm-k>div:first-child{border-left:0}
-html body #appView #qtForm .nd-qm-k span{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-qm-k em{display:block;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-2)}
-html body #appView #qtForm .nd-qm-k .pos b{color:var(--nd-blue)}
-html body #appView #qtForm .nd-qm-k .neg b{color:var(--nd-red)}
-html body #appView #qtForm .nd-qm-h{margin:16px 0 4px;font:600 14px/22px var(--sans);color:var(--nd-ink)}
-html body #appView #qtForm .nd-qm-r{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;min-height:50px;height:auto;margin:0;padding:6px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
-html body #appView #qtForm .nd-qm-r.is-static{cursor:default}
-@media(hover:hover){html body #appView #qtForm button.nd-qm-r:hover .n{color:var(--nd-blue)}}
-html body #appView #qtForm .nd-qm-r .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html body #appView #qtForm .nd-qm-r small{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-@media(max-width:600px){
- html body #appView #qtForm .nd-qm-k{grid-template-columns:1fr}
- html body #appView #qtForm .nd-qm-k>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding:11px 14px;border-left:0;border-top:1px solid var(--nd-line)}
- html body #appView #qtForm .nd-qm-k>div:first-child{border-top:0}
- html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
- html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
-}
+/* 진행 탭: 건별 마진 — 납품·입금·계산서와 같은 평평한 칸(nd-record-section · nd-pl-row). 여기는 요약 색 · 누르는 줄 · 합계 줄만 */
+html body #appView #qtForm .nd-qm .nd-qm-pos{color:var(--nd-blue);font-weight:600}
+html body #appView #qtForm .nd-qm .nd-qm-neg{color:var(--nd-red);font-weight:600}
+html body #appView #qtForm .nd-qm .qt-sec-t{cursor:default;pointer-events:none}
+html body #appView #qtForm .nd-qm [data-pu]{cursor:pointer}
+@media(hover:hover){html body #appView #qtForm .nd-qm [data-pu]:hover .nd-pl-nm{color:var(--nd-blue)}}
+html body #appView #qtForm .nd-qm .nd-pl-act .nd-qm-go{color:var(--nd-ink-3);font-size:16px}
+html body #appView #qtForm .nd-qm .nd-qm-sum .nd-pl-nm{color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-qm .nd-qm-sum,html body #appView #qtForm .nd-qm .nd-pl-rec:has(.nd-qm-sum){border-bottom:0}
+html body #appView #qtForm .nd-qm .nd-pl-empty.nd-qm-note{padding-top:4px}
 /* 10/17 2차: 안내문 꾸미기 — 색 4가지 · 굵게. 칸은 견적서 종이처럼 늘 흰 바탕(다크 모드에서도 검정 글자가 보이게) */
 #printArea .p-etc .notice .nq-ink{color:#0B1220}#printArea .p-etc .notice .nq-red{color:#D32F2F}#printArea .p-etc .notice .nq-blue{color:#2F54EB}#printArea .p-etc .notice .nq-gray{color:#8A94A6}
 #printArea .p-etc .notice b{font-weight:700}

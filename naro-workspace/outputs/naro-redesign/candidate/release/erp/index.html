@@ -10575,30 +10575,16 @@ html body #appView #qtForm .nd-qn-go{height:auto;min-height:0;padding:0;border:0
 /* 공급자 정보: 견적서 안내문 */
 html body #appView #view-settings .nd-qn-row{display:flex;align-items:center;gap:12px;margin-top:8px;flex-wrap:wrap}
 html body #appView #view-settings .nd-qn-row .hint{margin:0}
-/* 진행 탭: 건별 마진 */
-html body #appView #qtForm .nd-qm-b{padding:0 16px 14px}
-html body #appView #qtForm .nd-qm{margin-bottom:14px}
-html body #appView #qtForm .nd-qm-k{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--nd-line);border-radius:12px;overflow:hidden}
-html body #appView #qtForm .nd-qm-k>div{padding:14px 16px;border-left:1px solid var(--nd-line);min-width:0}
-html body #appView #qtForm .nd-qm-k>div:first-child{border-left:0}
-html body #appView #qtForm .nd-qm-k span{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-qm-k em{display:block;font:400 12px/18px var(--sans);font-style:normal;color:var(--nd-ink-2)}
-html body #appView #qtForm .nd-qm-k .pos b{color:var(--nd-blue)}
-html body #appView #qtForm .nd-qm-k .neg b{color:var(--nd-red)}
-html body #appView #qtForm .nd-qm-h{margin:16px 0 4px;font:600 14px/22px var(--sans);color:var(--nd-ink)}
-html body #appView #qtForm .nd-qm-r{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;min-height:50px;height:auto;margin:0;padding:6px 0;border:0;border-top:1px solid var(--nd-line);border-radius:0;background:none;box-shadow:none;color:var(--nd-ink);font:400 14px/20px var(--sans);text-align:left;cursor:pointer}
-html body #appView #qtForm .nd-qm-r.is-static{cursor:default}
-@media(hover:hover){html body #appView #qtForm button.nd-qm-r:hover .n{color:var(--nd-blue)}}
-html body #appView #qtForm .nd-qm-r .n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html body #appView #qtForm .nd-qm-r small{display:block;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-html body #appView #qtForm .nd-qm-note{margin:10px 0 0;font:400 12px/18px var(--sans);color:var(--nd-ink-3)}
-@media(max-width:600px){
- html body #appView #qtForm .nd-qm-k{grid-template-columns:1fr}
- html body #appView #qtForm .nd-qm-k>div{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;align-items:baseline;padding:11px 14px;border-left:0;border-top:1px solid var(--nd-line)}
- html body #appView #qtForm .nd-qm-k>div:first-child{border-top:0}
- html body #appView #qtForm .nd-qm-k>div>b{grid-column:2;grid-row:1}
- html body #appView #qtForm .nd-qm-k>div>em{grid-column:1/-1;text-align:right}
-}
+/* 진행 탭: 건별 마진 — 납품·입금·계산서와 같은 평평한 칸(nd-record-section · nd-pl-row). 여기는 요약 색 · 누르는 줄 · 합계 줄만 */
+html body #appView #qtForm .nd-qm .nd-qm-pos{color:var(--nd-blue);font-weight:600}
+html body #appView #qtForm .nd-qm .nd-qm-neg{color:var(--nd-red);font-weight:600}
+html body #appView #qtForm .nd-qm .qt-sec-t{cursor:default;pointer-events:none}
+html body #appView #qtForm .nd-qm [data-pu]{cursor:pointer}
+@media(hover:hover){html body #appView #qtForm .nd-qm [data-pu]:hover .nd-pl-nm{color:var(--nd-blue)}}
+html body #appView #qtForm .nd-qm .nd-pl-act .nd-qm-go{color:var(--nd-ink-3);font-size:16px}
+html body #appView #qtForm .nd-qm .nd-qm-sum .nd-pl-nm{color:var(--nd-ink-2)}
+html body #appView #qtForm .nd-qm .nd-qm-sum,html body #appView #qtForm .nd-qm .nd-pl-rec:has(.nd-qm-sum){border-bottom:0}
+html body #appView #qtForm .nd-qm .nd-pl-empty.nd-qm-note{padding-top:4px}
 /* 10/17 2차: 안내문 꾸미기 — 색 4가지 · 굵게. 칸은 견적서 종이처럼 늘 흰 바탕(다크 모드에서도 검정 글자가 보이게) */
 #printArea .p-etc .notice .nq-ink{color:#0B1220}#printArea .p-etc .notice .nq-red{color:#D32F2F}#printArea .p-etc .notice .nq-blue{color:#2F54EB}#printArea .p-etc .notice .nq-gray{color:#8A94A6}
 #printArea .p-etc .notice b{font-weight:700}
@@ -14179,17 +14165,22 @@ const NaroOrderImport=(()=>{
   if(links===null){if(!asked&&P.load){asked=true;P.load(false,true).then(()=>{try{marginCard(document.getElementById('qtForm'));}catch{}}).catch(()=>{});}old?.remove();return;}
   if(!links.length){old?.remove();return;}
   const {supply,cost,margin,rate,extra,zero}=calc(e,links);
-  const html=`<div class="nd-qm-k"><div><span>매출 (공급가)</span><b>${won(supply)}</b></div><div><span>원가</span><b>${won(cost)}</b><em>매입 ${links.length}건${extra?' + 재고 품목':''}</em></div><div class="${margin<0?'neg':'pos'}"><span>마진</span><b>${margin<0?'−':''}${won(Math.abs(margin))}</b><em>${rate===null?'—':rate+'%'}</em></div></div>
-   <div class="nd-qm-h">원가 내역</div>
-   ${links.map(l=>`<button type="button" class="nd-qm-r" data-pu="${esc(l.id)}"><span class="d">${esc((l.date||'').slice(5).replace('-','.'))}</span><span class="n">${esc([l.vendor,l.title].filter(Boolean).join(' · '))}<small>매입 ${esc(l.no)}${l.all===false?` · 이 견적 줄 ${l.lines}개`:''}</small></span><span class="a">${won(l.cost)}</span></button>`).join('')}
-   ${extra?`<div class="nd-qm-r is-static"><span class="d">—</span><span class="n">재고 품목<small>등록 매입단가 기준</small></span><span class="a">${won(extra)}</span></div>`:''}
-   ${zero.length?`<p class="nd-qm-note">${esc(zero.slice(0,3).join(' · '))}${zero.length>3?` 외 ${zero.length-3}개`:''} · 원가 없음(0원)</p>`:''}`;
-  // 진행 탭의 납품 · 입금 · 계산서 카드(.nd-rec-card)와 같은 모양으로 맨 위에
+  // 납품 · 입금 · 계산서 칸과 같은 모양: 제목 옆 요약 한 줄 + 표 머리 + 원가 줄 + 원가 합계(10/18 시안 A)
+  const neg=margin<0,sum=`<b class="${neg?'nd-qm-neg':'nd-qm-pos'}">${neg?'−':''}${won(Math.abs(margin))}${rate===null?'':` · ${rate}%`}</b> · 매출 ${won(supply)} − 원가 ${won(cost)}`;
+  const md=d=>esc((d||'').slice(5).replace('-','.'));
+  const row=(d,name,sub,amt,attrs='',act='',cls='')=>`<div class="nd-pl-rec"><div class="nd-rec-row nd-pl-row nd-pl-pl nd-pl-main${cls}" ${attrs}><span class="nd-pl-d num">${d}</span><span class="nd-pl-nm nd-pl-plain">${name}${sub?`<small>${sub}</small>`:''}</span><span class="num nd-pl-q">${amt}</span><span class="nd-pl-act">${act}</span></div></div>`;
+  const rows=links.map(l=>row(md(l.date),esc([l.vendor,l.title].filter(Boolean).join(' · ')),`매입 ${esc(l.no)}${l.all===false?` · 이 견적 줄 ${l.lines}개`:''}`,won(l.cost),`data-pu="${esc(l.id)}" role="button" tabindex="0"`,'<span class="nd-qm-go" aria-hidden="true">›</span>')).join('')
+   +(extra?row('—','재고 품목','등록 매입단가 기준',won(extra)):'')
+   +row('','원가 합계','',won(cost),'','',' nd-qm-sum');
+  const note=`연결된 매입 기준 · 내부 확인용(출력 안 됨)${zero.length?` · ${esc(zero.slice(0,3).join(' · '))}${zero.length>3?` 외 ${zero.length-3}개`:''} 원가 없음(0원)`:''}`;
+  const html=`<div class="nd-record-heading"><button type="button" class="qt-sec-t nd-record-toggle nd-qm-h" tabindex="-1" aria-disabled="true">마진<span class="cnt">${sum}</span></button></div><div><div class="nd-pl-row nd-pl-th nd-pl-pl" aria-hidden="true"><span>날짜</span><span>원가 내역</span><span class="num">금액</span><span></span></div>${rows}<p class="nd-pl-empty nd-qm-note">${note}</p></div>`;
+  // 진행 탭 맨 위에(납품 칸 앞)
   const host=flow.querySelector('.nd-rec')||flow;
-  let box=old;if(!box){box=document.createElement('section');box.className='nd-rec-card nd-qm';box.innerHTML='<div class="nd-rec-hd"><div><h3>마진</h3><span>연결된 매입 기준 · 내부 확인용(출력 안 됨)</span></div></div><div class="nd-qm-b"></div>';
-   box.addEventListener('click',ev=>{const r=ev.target.closest('[data-pu]');if(r)globalThis.NaroPurchases?.open?.(r.dataset.pu);});}
+  let box=old;if(!box){box=document.createElement('section');box.className='nd-record-section nd-pl nd-qm';
+   const go=ev=>{const r=ev.target.closest('[data-pu]');if(r)globalThis.NaroPurchases?.open?.(r.dataset.pu);};
+   box.addEventListener('click',go);box.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){if(ev.target.closest('[data-pu]')){ev.preventDefault();go(ev);}}});}
   if(box.parentElement!==host||host.firstElementChild!==box)host.prepend(box);
-  const b=box.querySelector('.nd-qm-b');if(b.dataset.html!==html){b.innerHTML=html;b.dataset.html=html;}
+  if(box.dataset.html!==html){box.innerHTML=html;box.dataset.html=html;}
  }
 
  // 품목 탭 합계 아래 '예상 마진'은 원래 품목 매입단가만 본다 — 연결된 매입이 있으면 진행 탭과 같은 숫자로 바꿔 보여 준다.
