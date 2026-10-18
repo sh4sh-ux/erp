@@ -3595,7 +3595,7 @@ let itSel=null, itFilter="", itEditing=null;
 
 function isSet(i){ return i && i.type==="세트"; }
 function isWork(i){ return i && i.type==="작업"; }
-function tracksStock(i){ return i && !isSet(i) && !isWork(i); }
+function tracksStock(i){ return i && !isSet(i) && !isWork(i) && !i.outsourced; }
 /* 품목코드 — 이카운트처럼 코드와 품명을 분리해서 관리하되,
    출력물에는 지금까지 쓰던 "품명 [코드]" 표기를 그대로 유지한다 */
 function itemLabel(name,code){
@@ -3722,13 +3722,13 @@ function renderItList(){
     const sub = isSet(i)
       ? `구성 ${(i.components||[]).length}종 · ${setSpecSummary(i)||"—"}`
       : (parts.length ? parts.join("  |  ")
-          : [i.spec,i.unit].filter(Boolean).join(" · ") || (isWork(i)?"재고 제외":"—"));
+          : [i.spec,i.unit].filter(Boolean).join(" · ") || (isWork(i)||i.outsourced?"재고 제외":"—"));
     const price = itemSell(i);
     const typeMark = isSet(i)
       ? '<span class="pill set">세트</span>'
       : isWork(i)
         ? '<span class="pill work">작업</span>'
-        : (i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"");
+        : i.outsourced ? '<span class="pill work nd-sub">하청</span>' : (i.variants&&i.variants.length?`<div class="li-sub">${i.variants.length}옵션</div>`:"");
     return `
     <div class="list-item ${i.id===itSel?'on':''}" data-id="${i.id}">
       <div class="li-body">
@@ -3875,6 +3875,7 @@ function renderItDetail(){
           <option ${isWork(e)?"selected":""}>작업</option>
         </select>
       </div>
+      ${!isSet(e)&&!isWork(e)?`<label class="nd-outsrc"><input type="checkbox" id="fi_outsourced" ${e.outsourced?"checked":""}><span><b>하청</b><small>외부 업체에 맡겨 만드는 품목 · 재고를 세지 않고 매입은 비용으로</small></span></label>`:""}
     </div>
     <div class="field"><label for="fi_category">카테고리 <span class="hint">(선택)</span></label><input id="fi_category" list="itemCategories" value="${escapeAttr(itemCategory(e))}" placeholder="기존 분류 선택 또는 새 카테고리 입력"><datalist id="itemCategories">${itemCategories().map(c=>`<option value="${escapeAttr(c)}"></option>`).join('')}</datalist><div class="hint">이 품목의 분류를 직접 입력·변경할 수 있습니다. 비우면 미분류로 표시됩니다.</div></div>
     <h3 class="ops-section-title">옵션 및 가격</h3>
@@ -3890,6 +3891,7 @@ function renderItDetail(){
   document.getElementById("fi_code").oninput=ev=>{ e.code=ev.target.value.trim(); refreshCodeHint(e); };
   bindCodeSplit(e);
   document.getElementById("fi_type").onchange=ev=>{ e.type=ev.target.value; renderItDetail(); };
+  { const o=document.getElementById("fi_outsourced"); if(o) o.onchange=()=>{ if(o.checked) e.outsourced=true; else delete e.outsourced; }; }
   document.getElementById("fi_memo").oninput=ev=>{ e.memo=ev.target.value; };
   document.getElementById('fi_category').oninput=ev=>{e.category=ev.target.value.trim();};
   // Price fields use the existing comma-input convention; stored prices stay numeric.
@@ -4056,6 +4058,7 @@ async function submitItem(isNew){
   if(!(e.name||"").trim()){ toast("품명을 입력하세요"); return; }
   e.name=e.name.trim();
   e.code=(e.code||"").trim();
+  if(isSet(e)||isWork(e)||!e.outsourced) delete e.outsourced;
   const dup=db.items.find(x=>x.id!==e.id && e.code && (x.code||"")===e.code);
   if(dup){ toast(`품목코드 ${e.code}는 이미 "${dup.name}"에 쓰이고 있습니다`); return; }
   if(isSet(e)){
@@ -9767,6 +9770,14 @@ html body #appView .nd-mon-r .a{white-space:nowrap}
 #printArea.preview.nd-pvm :is(.pv-bar,.pv-hint){display:none!important}
 #printArea.preview.nd-pvm .pv-sheet{border:0;box-shadow:0 24px 64px rgba(15,20,30,.3)}
 @media (max-width:780px){#printArea.preview.nd-pvm{width:calc(100vw - 24px)}}
+/* 10/18 하청 품목: 품목 정보 유형 아래 스위치 · 목록 표시 */
+html body #appView .nd-outsrc{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px;padding:10px 12px;border:1px solid var(--nd-line,#E2E4E8);border-radius:10px;cursor:pointer;grid-column:1/-1}
+html body #appView .nd-outsrc>input{width:18px;height:18px;min-height:0;margin:1px 0 0;flex:none;accent-color:var(--nd-blue)}
+html body #appView .nd-outsrc>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+html body #appView .nd-outsrc b{font:600 13.5px/18px var(--sans);color:var(--nd-ink,inherit)}
+html body #appView .nd-outsrc small{font:400 12px/17px var(--sans);color:var(--nd-ink-3,#9AA0AA)}
+html body #appView .nd-outsrc:has(input:checked){border-color:var(--nd-blue-line,rgba(67,85,232,.4));background:var(--nd-blue-soft,rgba(67,85,232,.06))}
+html body #appView .pill.work.nd-sub{color:var(--nd-blue)!important;background:var(--nd-blue-soft,rgba(67,85,232,.08))!important;border-color:transparent!important}
 
 /* Sales: existing rail + master list + detail. Read-only presentation layer. */
 @media screen{
