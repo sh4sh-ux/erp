@@ -132,7 +132,7 @@ function describePurchase(before,after,co){
  if(!same(a.lines,b.lines))changes.push(`품목 ${(b.lines||[]).length}건 → ${(a.lines||[]).length}건 · 수량 ${num(qty(b.lines||[]))} → ${num(qty(a.lines||[]))}`);
  if(a.vendor_id!==b.vendor_id)changes.push(`매입처 ${co(b.vendor_id)} → ${co(a.vendor_id)}`);
  if(a.date!==b.date)changes.push(`매입일 ${b.date} → ${a.date}`);
- if(!same(a.tax_invoice,b.tax_invoice))changes.push(`세금계산서 ${a.tax_invoice?.received?'받음':'안 받음'}`);
+ if(!same(a.tax_invoice,b.tax_invoice))changes.push(a.tax_invoice?.received?`${a.tax_invoice.kind==='없음'?'증빙 필요 없음':(a.tax_invoice.kind||'세금계산서')+' 받음'}`:'증빙 안 받음');
  if((a.memo||'')!==(b.memo||''))changes.push(`메모 ${short(b.memo)} → ${short(a.memo)}`);
  if(!changes.length)changes.push('세부 내용 변경');
  // 매입 '삭제'(보관: removed_at)와 그 복원

@@ -85,6 +85,11 @@ export function installPurchaseUI({port,features=()=>true}){
  const costLeft=ps=>(ps.costs||[]).reduce((s,c)=>s+Math.max(0,c.due-c.paid),0);
  const payState=p=>paymentStatus(p,D()?.payments||[]);
  const pays=p=>(D()?.payments||[]).filter(x=>x.purchase_id===p.id);
+ // 증빙(10/22): 매입처에 낸 출금이 모두 카드면 카드사 기록이 증빙 — 계산서를 따로 받지 않아도 완료(홈택스 사업용 카드로 조회). 수입은 세관 계산서라 제외.
+ const cardPaid=p=>{if(isFx(p))return '';const v=pays(p).filter(x=>x.kind==='지급'&&!x.refund&&x.company_id===p.vendor_id);return v.length&&v.every(x=>x.method==='카드')?v.map(x=>x.date||'').sort().pop():'';};
+ const EVK={'세금계산서':'계산서 받음','현금영수증':'현금영수증 받음','없음':'증빙 필요 없음'};
+ const evid=p=>{const t=p.tax_invoice||{};if(t.received)return {done:true,label:EVK[t.kind]||EVK['세금계산서'],date:t.date||'',kind:t.kind||'세금계산서'};
+  const c=cardPaid(p);return c?{done:true,auto:true,label:'카드 결제',date:c,kind:'카드'}:{done:false,label:'계산서 미수취'};};
  const toast=t=>typeof g.toast==='function'?g.toast(t):null;
  const saved=p=>rows().some(x=>x.id===p.id);
  const editable=p=>p.status!=='취소'&&!(p.receipts||[]).length&&!(p.returns||[]).length;
@@ -227,7 +232,7 @@ export function installPurchaseUI({port,features=()=>true}){
  function next(p,sv){
   if(p.removed_at)return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>삭제됨</b><span>${mdShort(p.removed_at.slice(0,10))} 삭제 · 재고·지급할 금액에서 빠졌어요</span></div><button type="button" class="btn ghost" data-act="restore">복원</button></div>`;
   if(p.status==='취소')return `<div class="nd-next nd-cancelled"><div class="nd-cx"><b>취소됨</b><span>재고·지급할 금액에서 빠졌어요</span></div></div>`;
-  const q=qtyOf(p),got=gotOf(p),ps=sv?payState(p):{due:totals(p).total,paid:0},left=Math.max(0,ps.due-ps.paid),tax=!!p.tax_invoice?.received;
+  const q=qtyOf(p),got=gotOf(p),ps=sv?payState(p):{due:totals(p).total,paid:0},left=Math.max(0,ps.due-ps.paid),ev=evid(p),tax=ev.done;
   const allIn=sv&&q>0&&got>=q,fxp=isFx(p),cDue=(ps.costs||[]).reduce((s,c)=>s+c.due,0),cPaid=(ps.costs||[]).reduce((s,c)=>s+c.paid,0),cLeft=fxp?costLeft(ps):0;
   const list=[
    {t:'발주',st:sv?'done':'cur'},
@@ -235,13 +240,13 @@ export function installPurchaseUI({port,features=()=>true}){
    fxp?{t:`출금 ${fxs(ps.paid)} / ${fxs(ps.due)} ${p.currency}`,st:sv&&ps.due>0&&left<0.005?'done':allIn?'cur':'todo',tab:'flow'}
     :{t:`출금 ${n0(ps.paid)} / ${n0(ps.due)}원`,st:sv&&ps.due>0&&!left?'done':allIn?'cur':'todo',tab:'flow'},
    ...(fxp?[{t:cLeft>0.5?`부대비용 ${n0(cLeft)}원 남음`:cDue>0&&sv?'부대비용 완료':'부대비용',st:sv&&cDue>0&&cLeft<0.5?'done':sv?'cur':'todo',tab:'flow'}]:[]),
-   {t:tax?'계산서 받음':'계산서 미수취',st:tax?'done':'todo',tab:'flow'}];
+   {t:ev.label,st:tax?'done':'todo',tab:'flow'}];
   const acts=[];
   if(sv&&!st.dirty){
    if(left>(fxp?0.005:0)||cLeft>0.5)acts.push(`<button type="button" class="nd-next-b${got<q?'':' pri'}" data-act="pay">출금 기록</button>`);
    if(got<q)acts.push('<button type="button" class="nd-next-b pri" data-act="receive">입고 처리</button>');
   }
-  const sum=sv?{t:`입고 ${n0(got)} / ${n0(q)}개`,s:fxp?`출금 ${fx(ps.paid,p.currency)} · 부대비용 ${n0(cPaid)}원`:`출금 ${n0(ps.paid)}원 · ${tax?'계산서 받음':'계산서 미수취'}`}:{t:'작성 중',s:'저장하면 입고 처리를 할 수 있어요'};
+  const sum=sv?{t:`입고 ${n0(got)} / ${n0(q)}개`,s:fxp?`출금 ${fx(ps.paid,p.currency)} · 부대비용 ${n0(cPaid)}원`:`출금 ${n0(ps.paid)}원 · ${ev.label}`}:{t:'작성 중',s:'저장하면 입고 처리를 할 수 있어요'};
   return `<div class="nd-next"><button type="button" class="nd-sum" data-tab="flow"><b>${esc(sum.t)}</b><span>${esc(sum.s)}</span></button><ol class="nd-steps">${list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?OK:''}</i>${esc(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${acts.length?`<div class="nd-next-act">${acts.join('')}</div>`:''}</div>`;
  }
  const editBtn=p=>saved(p)&&editable(p)?`<button type="button" class="nd-edit-b" data-act="edit">${st.editing?'완료':'편집'}</button>`:'';
@@ -338,7 +343,7 @@ export function installPurchaseUI({port,features=()=>true}){
    ${fxp?section('cost','부대비용',`${n0(cSum)}원 · 원가에 포함`,live?action('비용 추가','cost'):'',costRows?head([['날짜'],['구분 · 낸 곳'],['금액',true],['']])+costRows:empty('운임·관세·통관수수료 같은 비용을 더하면 개당 원가에 나눠 들어가요.')):''}
    ${fxp?section('unit','개당 원가',`환율 ${esc(String(p.fx?.booking_rate??''))} · 부대비용 금액 비율`,'',head([[''],['품목'],['개당',true],['']])+unitRows):''}
    ${section('return','반품',retQty?`${n0(retQty)}개 돌려보냄`:'없음',canReturn?action('반품','return'):'',retRows?dlHead([['날짜'],['품목'],['사유'],['수량',true],['']])+retRows:empty('입고된 것 중 매입처로 돌려보낸 수량을 기록해요.'))}
-   ${section('tax','계산서',tax.received?'받음':warn('미수취'),action(tax.received?'수정':'받음 기록','tax'),tax.received?head([['날짜'],['구분'],['합계',true],['']])+row(tax.date||'','수취','',amtOf(p,ps.due)):empty('계산서를 받으면 받은 날을 남겨 두세요.'))}
+   ${(()=>{const ev=evid(p);return section('tax','증빙',ev.done?esc(ev.label):warn('미수취'),action(ev.done?'바꾸기':'받음 기록','tax'),ev.done?head([['날짜'],['구분'],['합계',true],['']])+row(ev.date,esc(ev.label),ev.auto?'카드사 기록으로 증빙돼요 · 계산서 따로 안 받아도 돼요':'',amtOf(p,ps.due)):empty('계산서(또는 현금영수증)를 받으면 받은 날을 남겨 두세요. 카드로 내면 저절로 완료돼요.'));})()}
   </div>`;
  }
  function basic(p,sv){
@@ -806,13 +811,16 @@ export function installPurchaseUI({port,features=()=>true}){
   d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{await voidReceipt(io,p.id,rid,{reason:d.querySelector('#puQaMemo').value.trim()||'입고 취소',at:nowIso()});toast('입고를 취소했어요 · 재고에서 되돌림');});
  }
  function taxSheet(){
-  const p=cur();if(!p)return;const t=p.tax_invoice||{};
-  const d=qa(`${head(t.received?'계산서 바꾸기':'계산서 받음',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body">
+  const p=cur();if(!p)return;const t=p.tax_invoice||{},card=!t.received&&cardPaid(p);let kind=t.kind||'세금계산서';
+  const d=qa(`${head(t.received?'증빙 바꾸기':'증빙 받음',`${esc(coName(p.vendor_id))} · ${esc(p.no)}`)}<div class="nd-qa-body">
+    ${card?'<p class="nd-qa-after"><b>카드로 낸 매입</b>이라 카드사 기록이 증빙이에요. 계산서를 따로 받았을 때만 기록하세요.</p>':''}
+    <div class="nd-qa-chips" role="group" aria-label="증빙">${['세금계산서','현금영수증','없음'].map(k=>`<button type="button" data-kd="${k}" aria-pressed="${k===kind}">${k==='없음'?'증빙 필요 없음':k}</button>`).join('')}</div>
     <div class="nd-qa-fields"><label>받은 날<input type="date" id="puQaDate" value="${esc(t.date||today())}"></label></div>
-    ${t.received?'<div class="nd-qa-chips" role="group" aria-label="계산서"><button type="button" data-undo aria-pressed="false">아직 안 받음으로 되돌리기</button></div>':''}</div>${acts(t.received?'받은 날 바꾸기':'받음으로 기록')}`);
+    ${t.received?'<div class="nd-qa-chips" role="group" aria-label="되돌리기"><button type="button" data-undo aria-pressed="false">아직 안 받음으로 되돌리기</button></div>':''}</div>${acts(t.received?'바꾸기':'받음으로 기록')}`);
+  d.querySelectorAll('[data-kd]').forEach(b=>b.onclick=()=>{kind=b.dataset.kd;d.querySelectorAll('[data-kd]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));});
   const put=async tax=>{const np={...structuredClone(p),tax_invoice:tax,updated_at:nowIso()};await savePurchase({...st.doc,rows:st.doc.rows.map(x=>x.id===p.id?np:x)});};
-  d.querySelector('[data-undo]')?.addEventListener('click',()=>go(d,async()=>{await put({received:false});toast('계산서를 미수취로 되돌렸어요');}));
-  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{await put({received:true,date:d.querySelector('#puQaDate').value||today()});toast('계산서를 받음으로 기록했어요');});
+  d.querySelector('[data-undo]')?.addEventListener('click',()=>go(d,async()=>{await put({received:false});toast('증빙을 미수취로 되돌렸어요');}));
+  d.querySelector('.nd-qa-go').onclick=()=>go(d,async()=>{await put({received:true,date:d.querySelector('#puQaDate').value||today(),...(kind!=='세금계산서'?{kind}:{})});toast(`${EVK[kind]}으로 기록했어요`);});
  }
  function cancelSheet(){
   const p=cur();if(!p)return;const live=(p.receipts||[]).filter(r=>!r.void_at);
@@ -1029,7 +1037,7 @@ export function installPurchaseUI({port,features=()=>true}){
  }));
  const open=(id,tab)=>{if(typeof g.switchView==='function'&&g.switchView('purchases')===false)return;select(id);if(tab&&st.sel===id){st.tab=tab;render();}};
  // 대시보드 '계산서 미수취'(10/17): 입고가 시작됐는데 계산서(수입은 세관 수입세금계산서)를 아직 안 받은 매입. 불러오기 전이면 null.
- const untaxed=()=>!features()?undefined:st.status!=='ready'?null:rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고'&&(gotOf(p)>0||!qtyOf(p))&&!p.tax_invoice?.received)
+ const untaxed=()=>!features()?undefined:st.status!=='ready'?null:rows().filter(p=>!p.removed_at&&p.status!=='취소'&&p.kind!=='기초재고'&&(gotOf(p)>0||!qtyOf(p))&&!evid(p).done)
   .map(p=>{const first=(p.receipts||[]).filter(r=>!r.void_at).map(r=>r.date).sort()[0]||'';return {id:p.id,no:p.no,vendor_id:p.vendor_id,kind:p.kind,received:first};})
   .sort((a,b)=>a.received.localeCompare(b.received));
  // 입금·출금 화면의 '아직 안 준 돈': 목록의 '미출금'과 같은 기준(입고된 원화 매입 중 줄 돈이 남은 것). 불러오기 전이면 null.
