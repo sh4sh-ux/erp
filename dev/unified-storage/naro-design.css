@@ -2460,3 +2460,41 @@ html body #appView .nd-outsrc:has(input:checked){border-color:var(--nd-blue-line
 html body #appView .pill.work.nd-sub{color:var(--nd-blue)!important;background:var(--nd-blue-soft,rgba(67,85,232,.08))!important;border-color:transparent!important}
 /* 10/18 폰 업체 제공 자재: ‹ 줄은 견적서처럼 함께 스크롤 — 붙어 있으면 아래 제목·부제가 그 밑에 잘려 겹쳐 보였다 */
 @media (max-width:1023px){html body #appView #view-materials.nd-mm-open .material-detail>.nd-mm-bar{position:static!important}}
+
+/* ════════ 10/19 폰 통일 규칙 (≤780px) — 위의 'A. 섹션 카드형'을 대신한다 ════════
+   목록·상세·대시보드·설정 모두 같은 틀: 화면 끝까지 흰 바탕(카드 상자·바깥 12px 없음), 좌우 여백 16px 한 가지,
+   묶음은 얇은 구분선으로 나눈다(대시보드처럼 서로 다른 덩어리 사이만 8px 회색 띠). 상세 안의 기록 줄도 제목과 같은 16px에서 시작.
+   전엔 견적·매입·거래처·품목·매출 집계·공급자 정보는 떠 있는 카드(글자 28px), 입금·출금·자재는 평평(28px), 목록은 16px, 대시보드 33px였다. */
+@media screen and (max-width:780px){
+ html body #appView#appView#appView .shell .main>.view{padding-left:0!important;padding-right:0!important;background:var(--nd-surface)!important}
+ html body #appView#appView#appView .shell .main>.view>.page-head,html body #appView#appView#appView .shell .main>.view>.nd-chips-m{margin-left:0!important;margin-right:0!important;background:var(--nd-surface)!important}
+ html body #appView#appView#appView .shell .main>.view>.card,html body #appView#appView#appView .shell .main>.view>.cols>.card,html body #appView#appView#appView .shell .main>.view>.ops-summary,html body #appView#appView#appView .shell .main>.view>.stats,
+ html body #appView#appView#appView .shell .main>.view .quote-detail-card,html body #appView#appView#appView .shell .main>.view .nd-sales-analysis{margin:0!important;border-radius:0!important;border:0!important;box-shadow:none!important;background:var(--nd-surface)!important;width:auto!important}
+ html body #appView#appView#appView .shell .main>.view>.cols{margin:0!important;padding:0!important;gap:0!important}
+ html body #appView#appView#appView .shell .main>.view .nd-sales-analysis{padding-left:16px!important;padding-right:16px!important}
+ /* 상세 안: 기록 줄(진행 탭 납품·입금·출금·계산서·마진 · 자재 기록)은 제목과 같은 자리에서 */
+ html body #appView#appView#appView .shell .main .nd-pl-row,html body #appView#appView#appView .shell .main .nd-pl-empty{padding-left:0!important;padding-right:0!important}
+ html body #appView#appView#appView #view-materials .mp-g5.mp-hrow,html body #appView#appView#appView #view-materials .mp-row-t{padding-left:0!important;padding-right:0!important}
+ html body #appView#appView#appView #view-materials .mp-rec,html body #appView#appView#appView #view-materials .mp-rec.on{background:transparent!important;border-radius:0!important}
+ html body #appView#appView#appView #view-materials .mp-rec>.mp-main{padding-left:0!important;padding-right:0!important}
+ /* 대시보드: 덩어리마다 흰 판 + 사이 8px 회색 띠, 안쪽 16px */
+ html body #appView#appView#appView #view-dash.nd-dashboard .nd-db-card{margin:0!important;border:0!important;border-radius:0!important;border-bottom:8px solid var(--nd-page)!important;box-shadow:none!important}
+ html body #appView#appView#appView #view-dash.nd-dashboard .nd-db-card>*{padding-left:16px!important;padding-right:16px!important}
+ html body #appView#appView#appView #view-materials:not(.nd-mm-open) .material-owners{margin-left:0!important;margin-right:0!important}
+ /* 내용이 짧아도 아래 버튼 줄은 화면 맨 아래(견적·매입 상세 — 거래처·품목·입금·출금·자재는 이미 그렇다) */
+ html body #appView#appView#appView :is(#qtCols,#puCols).detail-open{display:flex!important;flex-direction:column!important}
+ html body #appView#appView#appView :is(#qtCols,#puCols).detail-open>.quote-detail-card:not(.hidden){flex:1 0 auto!important;display:flex!important;flex-direction:column!important}
+ html body #appView#appView#appView :is(#qtCols,#puCols).detail-open :is(#qtForm,#puForm):not(.hidden){flex:1 0 auto!important;display:flex!important;flex-direction:column!important;padding-bottom:0!important}
+ html body #appView#appView#appView :is(#qtForm,#puForm)>.form-actions{margin-top:auto!important}
+ /* 거래처 거래 탭 월별 묶음: 회색 상자 대신 다른 줄처럼 평평하게 */
+ html body #appView#appView#appView .nd-mon-b{padding:0!important;background:transparent!important}
+ html body #appView#appView#appView #view-dash.nd-dashboard{gap:0!important;padding-left:0!important;padding-right:0!important}
+ html body #appView#appView#appView #view-dash.nd-dashboard .dash-brief{padding:0 0 16px!important;gap:0!important}
+ html body #appView#appView#appView .shell .main #view-sales.nd-sa-mobile-detail .nd-sales-analysis{border-radius:0!important;min-height:0!important}
+}
+/* 탭 밑줄은 구분선 위에 얹는다(1px 띄워 '떠 보이던' 것) — 버튼 안쪽 그림자 대신 1px 아래로 내린 2px 막대(줄 높이는 그대로). 견적·매입·거래처·자재 상세 탭, PC·폰 공통 */
+html body #appView#appView#appView .shell .main :is(.qp-tabs,.cp-tabs,.nd-material-tabs)>button[aria-selected=true]{box-shadow:none!important;position:relative}
+html body #appView#appView#appView .shell .main :is(.qp-tabs,.cp-tabs,.nd-material-tabs)>button[aria-selected=true]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--nd-section-underline-color,var(--nd-blue));pointer-events:none;z-index:1}
+html body #appView#appView#appView .shell .main :is(.qp-tabs,.cp-tabs,.nd-material-tabs)>button{border-bottom-width:0!important}
+/* PC 견적·매입: 탭 머리(.panel-b-work-header)는 넘침을 자르고 아래 테두리를 가져서 막대가 선에 닿지 못했다 → 선을 안쪽 그림자로 그리고 막대는 그 위에 */
+html body #appView#appView#appView .shell .main .panel-b-work-header{border-bottom-width:0!important;box-shadow:inset 0 -1px 0 var(--nd-line)!important}
