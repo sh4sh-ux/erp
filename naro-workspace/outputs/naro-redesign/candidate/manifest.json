@@ -11,7 +11,7 @@
     },
     {
       "path": "access-control.mjs",
-      "sha256": "d73e452345c0794b2c2416cd54bdfba3f042ebb852865408cb918abb4d7f9f69"
+      "sha256": "180eec44a11ac5e3c24263b1b29ec62964d55443b4cc6471392c0ef6905b9600"
     },
     {
       "path": "app.mjs",
@@ -139,7 +139,7 @@
     },
     {
       "path": "erp/log-ui.mjs",
-      "sha256": "cbc83dc0e1582f7cb3f8b33bca64d163a27d11bbfec6999030dddf9344cc8168"
+      "sha256": "0490c7bb62a2202ca0d3b116bb98553402a824693bdabde124acf494a103fa3c"
     },
     {
       "path": "erp/mail-ui.mjs",
@@ -163,7 +163,7 @@
     },
     {
       "path": "erp/purchase-ui.mjs",
-      "sha256": "9d0f0fb0c07354f32c0710c2107ec66853ae9afdbc1b678c8d6e27e771f06991"
+      "sha256": "650f8ffb6b9f65e55146fe1ba367c6f548fe32fbd040984d70ac271b15630f5b"
     },
     {
       "path": "erp/quote-presentation.css",
@@ -215,7 +215,7 @@
     },
     {
       "path": "google-backend.mjs",
-      "sha256": "5cb3059898a41fcfc61e75156aff77489a5b8529b2fc50291af11dc0cecb5529"
+      "sha256": "63157aab337b1531dd0ced6073dc5a0732958f3ba6a063e4cb96d91c30b8171e"
     },
     {
       "path": "google-oauth.mjs",
@@ -287,7 +287,7 @@
     },
     {
       "path": "storage.mjs",
-      "sha256": "fb93ea4931ee3b2683367b592e92527b7d5a98b3d79ef7039d5bd3aba40f3424"
+      "sha256": "ea907aebea8767fc12fe1ef8de1d767daa08435f04895bd97644c92b19e119ca"
     },
     {
       "path": "style.css",
@@ -302,7 +302,7 @@
       "sha256": "6072d0c934ebd870210f9d3690bf24613b7cb3ade6da064bb59d3fe46eb0824c"
     }
   ],
-  "aggregate": "7f4dd29c7e1731a2c189a600c9136c23f9458543ead67dc564743a2c3c50e6c0",
+  "aggregate": "7b93c8a4ede6005fb269908dad63af41efdf71bc5ebf577b04ba9d3a20cc9b28",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

@@ -177,7 +177,7 @@ test('매입 파일이 없어도 기존 기능 정상: 상태 absent, 7개 저�
  assert.ok(!fake.writes.some(p=>/purchases/.test(p)));
  await assert.rejects(repo.saveTable('stock_moves',[...repo.loadCollection('stock_moves'),{id:'m2',item_id:'jk',kind:'입고',qty:1,purchase_id:'p1'}]),V);
 });
-test('Google Drive(매입 미지원): unsupported, 시작·저장 거절, 7개 기능 그대로',async()=>{
+test('매입 기능이 없는 백엔드: unsupported, 시작·저장 거절, 7개 기능 그대로',async()=>{
  const fake=fakeDropbox({...emptyData(),...base()}),{repo}=await open(fake,{drive:true});
  assert.equal((await repo.loadPurchases()).status,'unsupported');
  await assert.rejects(repo.startPurchases(),{code:'UNAVAILABLE'});

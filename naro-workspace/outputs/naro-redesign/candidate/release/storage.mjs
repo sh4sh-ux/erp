@@ -136,7 +136,7 @@ export function createStorageRepository(provider,{companiesCreate=false,business
  let snapshot=null,identities=null,closed=false,generation=0;
  let saving=false;
  let pending=null;
- // 매입 파일(10/10, 1단계): 7개 데이터와 따로 있는 선택 파일. 상태: unknown · unsupported(Drive 등) · absent(시작 전) · ready · error.
+ // 매입 파일(10/10, 1단계): 7개 데이터와 따로 있는 선택 파일. 상태: unknown · unsupported(백엔드에 매입 기능이 없을 때) · absent(시작 전) · ready · error.
  // 이 상태는 7개 데이터 읽기·저장에 영향을 주지 않는다(실패해도 기존 기능은 그대로).
  let purchases={status:'unknown',doc:null,identity:null,pending:null,error:null};
  const purchaseState=()=>({status:purchases.status,count:purchases.doc?.rows.length??0,capacity:purchases.doc?capacity(purchases.doc):null,unfinishedSave:!!purchases.pending,error:purchases.error,detail:purchases.detail||''});
@@ -151,7 +151,7 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const g=generation;check(g);if(!businessWrite||!extendedWrite||!snapshot||!Object.values(snapshot.settings.assets||{}).includes(path))throw fault('WRITE_BLOCKED');
    const bytes=await provider.backend.downloadAsset(path);check(g);return bytes;
   },
-  // 변경 기록(10/9): 데이터 저장과 따로(실패해도 저장은 그대로). Dropbox만 지원 — Drive는 UNAVAILABLE.
+  // 변경 기록(10/9): 데이터 저장과 따로(실패해도 저장은 그대로). Dropbox·Drive(10/22) 모두 — 백엔드에 없으면 UNAVAILABLE.
   async readLog(month){const g=generation;check(g);if(!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.readLog)throw fault('UNAVAILABLE');const rows=await provider.backend.readLog(month);check(g);return rows;},
   async appendLog(entry){const g=generation;check(g);if(!businessWrite||!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.appendLog)throw fault('UNAVAILABLE');await provider.backend.appendLog(entry);check(g);return true;},
   async loadAll(discoveredPaths){

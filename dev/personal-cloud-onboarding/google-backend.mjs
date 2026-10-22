@@ -5,7 +5,11 @@ import {writableDatasets} from './business-contract.mjs';
 import {extendedDatasets} from './extended-contract.mjs';
 import {createAssetStore} from './asset-store.mjs';
 const filePaths=[...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`);
-const allowed=new Set([...folders,...filePaths]);
+// 7개 데이터 밖의 선택 파일(10/22, Dropbox와 같은 자리): 매입 파일 · 변경 기록(NARO Biz/Logs/YYYY-MM.json). 처음 쓸 때만 만든다.
+export const PURCHASES_PATH='NARO Biz/Data/purchases.json';
+const LOG_DIR='NARO Biz/Logs';
+const allowed=new Set([...folders,...filePaths,PURCHASES_PATH]);
+const isData=path=>filePaths.includes(path)||path===PURCHASES_PATH;
 const folderMime='application/vnd.google-apps.folder';
 const marker={naroPersonalCloud:'1'};
 const api='https://www.googleapis.com/drive/v3/';
@@ -40,9 +44,11 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
  const check=()=>{if(disposed||signal?.aborted)throw fault('CANCELLED');if(!token||now()>=expires)throw fault('RECONNECT_REQUIRED');accountBinding?.assertCurrent();};
  const assets=createAssetStore({provider:'drive',auth:()=>{check();return token;},folderId:path=>nodes.get(path),fetcher,signal,enabled:businessWrite&&extendedWrite,now});
  const validPath=path=>{if(!allowed.has(path))throw fault('WRITE_BLOCKED');};
- async function request(route,{method='GET',body,upload=false,companyPatch=false,datasetPatch=false,etag,version=3,onDispatch,bootstrap=false}={}){
+ async function request(route,{method='GET',body,upload=false,companyPatch=false,datasetPatch=false,etag,version=3,onDispatch,bootstrap=false,sideCreate=false}={}){
   const initialCreate=initializeNew&&bootstrap&&method==='POST'&&version===3;
-  if(readOnly&&method!=='GET'&&!initialCreate&&!((companiesCreate&&companyPatch||businessWrite&&datasetPatch)&&method==='PUT'&&version===2)){metrics.blockedWrites++;throw fault('WRITE_BLOCKED');}
+  // 선택 파일(매입·변경 기록)을 처음 만들 때만: 업무 저장이 켜진 경우의 v3 POST(새 파일·폴더). 있는 파일을 덮는 데는 쓰지 않는다.
+  const createSide=businessWrite&&sideCreate&&method==='POST'&&version===3;
+  if(readOnly&&method!=='GET'&&!initialCreate&&!createSide&&!((companiesCreate&&companyPatch||businessWrite&&datasetPatch)&&method==='PUT'&&version===2)){metrics.blockedWrites++;throw fault('WRITE_BLOCKED');}
   check();
   if(businessWrite){
    if(now()-windowStart>=60000){windowStart=now();windowRequests=0;}
@@ -105,6 +111,35 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
   if(node.id!==nodes.get(path)||node.name!==path.split('/').pop()||node.trashed||!node.parents?.includes(nodes.get('NARO Biz/Data'))||!/^\d+$/.test(node.version||''))throw fault('STORAGE_CONFLICT');
   return Object.freeze({provider:'drive',logicalKey:path.split('/').pop().replace(/\.json$/,''),fileId:node.id,path,revision:node.version,revisionKind:'drive.version',headRevisionId:node.headRevisionId||null,etag:null});
  }
+ // 선택 파일·폴더 찾기: 같은 이름이 둘 이상이면 멈춘다(덮어쓰거나 고르지 않는다).
+ async function sideChild(parent,name,isFolder=false){
+  const q=`'${escapeQuery(parent)}' in parents and name = '${escapeQuery(name)}' and trashed = false`;
+  const data=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'10',fields:'nextPageToken,incompleteSearch,files(id,name,mimeType,appProperties,parents,trashed,version,headRevisionId)'}));
+  if(!Array.isArray(data.files)||data.nextPageToken||data.incompleteSearch||data.files.length>1)throw fault('STORAGE_CONFLICT');
+  const node=data.files[0]||null;if(node){validateNode(node,isFolder);if(node.trashed||!node.parents?.includes(parent))throw fault('STORAGE_CONFLICT');}
+  return node;
+ }
+ const multipart=(metadata,value)=>'--naro_bootstrap_boundary\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(metadata)+'\r\n--naro_bootstrap_boundary\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify(value)+'\r\n--naro_bootstrap_boundary--\r\n';
+ // 없을 때만 만든다: 미리 받은 id로 만들고, 응답을 못 받았거나 겹쳤으면(409) 다시 찾아 확인한다 — 같은 요청을 다시 보내지 않는다.
+ async function createSideNode(parent,name,isFolder,value){
+  const gen=await request('files/generateIds?count=1&space=drive&type=files');const id=gen?.ids?.[0];
+  if(typeof id!=='string'||!id)throw fault('STORAGE_INVALID');
+  const metadata={id,name,mimeType:isFolder?folderMime:'application/json',parents:[parent],appProperties:marker};
+  let dispatched=false;
+  try{const res=isFolder?await request('files?fields=id',{method:'POST',body:metadata,sideCreate:true,onDispatch:()=>{dispatched=true;}})
+   :await request('files?uploadType=multipart&fields=id',{method:'POST',body:multipart(metadata,value),upload:true,sideCreate:true,onDispatch:()=>{dispatched=true;}});
+   if(res?.id!==id)throw fault('STORAGE_INVALID');}
+  catch(e){if(!dispatched||e.writeRejected)throw e;}
+  const node=await sideChild(parent,name,isFolder);if(!node)throw fault('SAVE_UNCONFIRMED');
+  return {node,created:node.id===id};
+ }
+ async function logFolder(create){
+  if(nodes.has(LOG_DIR))return nodes.get(LOG_DIR);
+  const root=nodes.get('NARO Biz');if(!root)throw fault('STORAGE_CONFLICT');
+  let node=await sideChild(root,'Logs',true);
+  if(!node&&create)node=(await createSideNode(root,'Logs',true)).node;
+  if(node)nodes.set(LOG_DIR,node.id);return node?.id||null;
+ }
  async function acquire(){
   if(!locks?.request)throw fault('UNAVAILABLE');
   await new Promise((resolve,reject)=>{
@@ -114,7 +149,7 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
    }).catch(()=>reject(fault('UNAVAILABLE')));
   });
  }
- async function load(path){validPath(path);if(!filePaths.includes(path)||!nodes.has(path))throw fault('STORAGE_CONFLICT');return request('files/'+encodeURIComponent(nodes.get(path))+'?alt=media');}
+ async function load(path){validPath(path);if(!isData(path)||!nodes.has(path))throw fault('STORAGE_CONFLICT');return request('files/'+encodeURIComponent(nodes.get(path))+'?alt=media');}
  const strongEtag=value=>typeof value==='string'&&/^"[^"\r\n]+"$/.test(value);
  async function companyValidator(expected){
   if(!readOnly||!companiesCreate)throw fault('WRITE_BLOCKED');
@@ -150,10 +185,12 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
   metrics(){return {...metrics};},
   async checkCompanyWrite(expected){await companyValidator(expected);return {ready:true};},
   async updateDataset(key,before,next,expected,{recoveryOnly=false}={}){
-   if(!readOnly||!businessWrite||!(extendedWrite?extendedDatasets:writableDatasets).includes(key))throw fault('WRITE_BLOCKED');
-   const path=`NARO Biz/Data/${key}.json`,id=nodes.get(path);
+   const side=key==='purchases';
+   if(!readOnly||!businessWrite||!(side||(extendedWrite?extendedDatasets:writableDatasets).includes(key)))throw fault('WRITE_BLOCKED');
+   const path=side?PURCHASES_PATH:`NARO Biz/Data/${key}.json`,id=nodes.get(path);
    if(!id||expected?.provider!=='drive'||expected.logicalKey!==key||expected.fileId!==id)throw fault('STORAGE_CONFLICT');
-   if((key==='settings'?(!before||!next||Array.isArray(before)||Array.isArray(next)||next.schema!==3):(!Array.isArray(before)||!Array.isArray(next)))||JSON.stringify(next).length>1048576)throw fault('STORAGE_INVALID');
+   const doc=v=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Array.isArray(v.rows);
+   if((side?(!doc(before)||!doc(next)):key==='settings'?(!before||!next||Array.isArray(before)||Array.isArray(next)||next.schema!==3):(!Array.isArray(before)||!Array.isArray(next)))||JSON.stringify(next).length>1048576)throw fault('STORAGE_INVALID');
    if(!locks?.request)throw fault('UNAVAILABLE');
    return locks.request('naro-dataset:'+id,{mode:'exclusive',ifAvailable:true},async lock=>{
     if(!lock)throw fault('BUSY');check();
@@ -220,6 +257,52 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
     }catch(e){e.stage=stage;e.transport=transport;throw e;}
    });
   },
+  // 매입 파일(10/22): Dropbox와 같은 약속 — 있으면 식별 정보, 없으면 null(=매입 시작 전).
+  async purchasesIdentity(){
+   check();const parent=nodes.get('NARO Biz/Data');if(!parent)throw fault('STORAGE_CONFLICT');
+   const node=await sideChild(parent,'purchases.json');if(!node){nodes.delete(PURCHASES_PATH);return null;}
+   nodes.set(PURCHASES_PATH,node.id);return fileIdentity(PURCHASES_PATH,node);
+  },
+  loadPurchases:()=>load(PURCHASES_PATH),
+  // [매입 시작하기]: 빈 매입 파일을 '없을 때만' 만든다. 이미 있으면 그대로 쓴다.
+  async createPurchases(value){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');check();
+   if(JSON.stringify(value).length>1048576)throw fault('STORAGE_INVALID');
+   if(!locks?.request)throw fault('UNAVAILABLE');
+   return locks.request('naro-drive:purchases-create',{mode:'exclusive'},async()=>{
+    const parent=nodes.get('NARO Biz/Data');if(!parent)throw fault('STORAGE_CONFLICT');
+    let node=await sideChild(parent,'purchases.json'),created=false;
+    if(!node)({node,created}=await createSideNode(parent,'purchases.json',false,value));
+    nodes.set(PURCHASES_PATH,node.id);
+    return {created,identity:fileIdentity(PURCHASES_PATH,node),value:await load(PURCHASES_PATH)};
+   });
+  },
+  // 변경 기록: 읽기(없으면 빈 목록) · 한 줄 더하기(그 달 파일을 ETag 조건으로 다시 올림, 겹치면 다시 읽어 최대 3번 · 같은 id는 한 번만).
+  async readLog(month){
+   if(!/^\d{4}-\d{2}$/.test(String(month)))throw fault('VALIDATION');check();
+   const dir=await logFolder(false);if(!dir)return [];
+   const file=await sideChild(dir,month+'.json');if(!file)return [];
+   const rows=await request('files/'+encodeURIComponent(file.id)+'?alt=media');return Array.isArray(rows)?rows:[];
+  },
+  async appendLog(entry){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');check();
+   const month=String(entry?.at||'').slice(0,7);if(!/^\d{4}-\d{2}$/.test(month))throw fault('VALIDATION');
+   if(!locks?.request)throw fault('UNAVAILABLE');
+   return locks.request('naro-drive-log',{mode:'exclusive'},async()=>{
+    const dir=await logFolder(true);
+    for(let attempt=0;;attempt++){
+     const file=await sideChild(dir,month+'.json');
+     if(!file){if(JSON.stringify([entry]).length>1048576)throw fault('QUOTA_LIMIT');const {created}=await createSideNode(dir,month+'.json',false,[entry]);if(created)return;continue;} // 다른 기기가 먼저 만들었으면 다시 읽어 더한다
+     const v=await request('files/'+encodeURIComponent(file.id)+'?'+new URLSearchParams({fields:'id,version,etag'}),{version:2});
+     if(v.id!==file.id||!strongEtag(v.etag))throw fault('CONCURRENCY_UNAVAILABLE');
+     const rows=await request('files/'+encodeURIComponent(file.id)+'?alt=media'),list=Array.isArray(rows)?rows:[];
+     if(list.some(r=>r?.id===entry.id))return;
+     const next=[...list,entry];if(JSON.stringify(next).length>1048576)throw fault('QUOTA_LIMIT');
+     try{await request('files/'+encodeURIComponent(file.id)+'?uploadType=media&fields=id,version',{version:2,method:'PUT',body:JSON.stringify(next),upload:true,datasetPatch:true,etag:v.etag});return;}
+     catch(e){if(e.code!=='STORAGE_CONFLICT'||attempt>=2)throw e;}
+    }
+   });
+  },
   async createCompany(record,expected,{recoveryOnly=false}={}){
    if(!readOnly||!companiesCreate)throw fault('WRITE_BLOCKED');
    const row=validateCompany(record),path='NARO Biz/Data/companies.json';check();
@@ -247,7 +330,7 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
    });
   },
   async identity(path){
-   validPath(path);check();if(!filePaths.includes(path)||!nodes.has(path))throw fault('STORAGE_CONFLICT');
+   validPath(path);check();if(!isData(path)||!nodes.has(path))throw fault('STORAGE_CONFLICT');
    const node=await request('files/'+encodeURIComponent(nodes.get(path))+'?'+new URLSearchParams({fields:'id,name,mimeType,appProperties,parents,trashed,version,headRevisionId,modifiedTime,md5Checksum'}));
    return fileIdentity(path,node);
   },
