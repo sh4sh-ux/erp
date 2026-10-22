@@ -7,6 +7,9 @@ const logPath=month=>`NARO Biz/Logs/${month}.json`,isLog=path=>/^NARO Biz\/Logs\
 // 매입 파일(10/10, 1단계): 7개 데이터 파일 목록(paths)에 넣지 않는 '선택' 파일 — 목록·7개 구조 확인·작업 공간 만들기는 그대로.
 export const PURCHASES_PATH='NARO Biz/Data/purchases.json';
 const isSide=path=>path===PURCHASES_PATH;
+// 자동 백업(10/22, 5단계): NARO Biz/Backups/YYYY-MM-DD.json — 하루 한 번, 없을 때만 만든다(지우거나 덮지 않는다).
+const BACKUP_DIR='NARO Biz/Backups',BACKUP_MAX=7*1048576,backupPath=day=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(day)))throw fault('VALIDATION');return `${BACKUP_DIR}/${day}.json`;};
+const isBackup=path=>path===BACKUP_DIR||/^NARO Biz\/Backups\/\d{4}-\d{2}-\d{2}\.json$/.test(path);
 const api='https://api.dropboxapi.com/2/files/';
 const content='https://content.dropboxapi.com/2/files/';
 // Dropbox content_hash: 4MB 블록마다 SHA-256, 이어 붙여 다시 SHA-256 (hex). 저장 응답과 비교해 다시 내려받지 않고 확인한다.
@@ -28,8 +31,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  const onVisible=()=>{if(globalThis.document?.visibilityState==='visible'&&token&&now()>=expires-300000)renewNow();};
  const fresh=async()=>{if(oauth.renew&&token&&!disposed&&now()>=expires-60000)await renewNow();};
  const assets=createAssetStore({provider:'dropbox',auth:()=>{check();return token;},fetcher,signal,enabled:businessWrite,now});
- const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path)&&!isSide(path))throw fault('WRITE_BLOCKED');return '/'+path;};
- async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch,withResult=false}={}){
+ const pathArg=path=>{if(!paths.has(path)&&!folders.includes(path)&&!isLog(path)&&!isSide(path)&&!isBackup(path))throw fault('WRITE_BLOCKED');return '/'+path;};
+ async function request(url,arg,{upload,download=false,allowMissing=false,onDispatch,withResult=false,maxBytes=1048576}={}){
   await fresh();check();let response;
   if(now()-windowStart>=60000){windowStart=now();requests=0;}if(++requests>120)throw fault('QUOTA_LIMIT');
   if(upload!==undefined){metrics.businessWriteRequests++;if(arg.mode==='add')metrics.datasetCreateRequests++;}else metrics.readRequests++;
@@ -48,8 +51,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
    throw Object.assign(fault(code),{writeRejected:response.status<500||response.status===507,...(tag?{detail:tag}:{})});
   }
   // Bootstrap JSON only. Reject oversized content before parsing where possible.
-  if(download&&Number(response.headers?.get('content-length'))>1048576)throw fault('STORAGE_INVALID');
-  let data;try{const text=await response.text();if(text.length>1048576)throw Error();data=JSON.parse(text);}catch{throw fault('STORAGE_INVALID');}
+  if(download&&Number(response.headers?.get('content-length'))>maxBytes)throw fault('STORAGE_INVALID');
+  let data;try{const text=await response.text();if(text.length>maxBytes)throw Error();data=JSON.parse(text);}catch{throw fault('STORAGE_INVALID');}
   check();return withResult?{data,result:response.headers?.get?.('dropbox-api-result')||null}:data;
  }
  async function load(path){return request(content+'download',{path:pathArg(path)},{download:true});}
@@ -63,6 +66,8 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
  }
  return {
   async connect(){if(disposed)throw fault('CANCELLED');const result=await oauth.authorize(signal);if(disposed||signal?.aborted)throw fault('CANCELLED');token=result.accessToken;expires=result.expiresAt;schedule();globalThis.document?.addEventListener('visibilitychange',onVisible);},
+  // 남은 연결 시간(10/22). Dropbox는 기억된 기기면 스스로 새로 받으므로 화면이 따로 갱신하지 않는다(renewable:false).
+  session(){return {provider:'dropbox',expiresAt:token?expires:0,renewable:false};},
   async disconnect(){disposed=true;token=null;expires=0;prepared=false;clearTimeout(timer);globalThis.document?.removeEventListener('visibilitychange',onVisible);oauth.close();},
   async exists(path){return !!await request(api+'get_metadata',{path:pathArg(path)},{allowMissing:true});},
   load,identity,metrics:()=>({...metrics}),
@@ -91,6 +96,23 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
    if(!/^\d{4}-\d{2}$/.test(String(month)))throw fault('VALIDATION');
    // 한 번에 내려받는다(없으면 Dropbox가 409 not_found → 빈 목록). 확인 요청을 따로 하지 않아 창이 빨리 뜬다.
    const rows=await request(content+'download',{path:pathArg(logPath(month))},{download:true,allowMissing:true});return Array.isArray(rows)?rows:[];
+  },
+  // 자동 백업: 목록(최근 것부터) · 하루 한 번 만들기(mode add — 이미 있으면 그대로) · 읽기.
+  async listBackups(){
+   const r=await request(api+'list_folder',{path:pathArg(BACKUP_DIR),limit:2000},{allowMissing:true});
+   const entries=Array.isArray(r?.entries)?r.entries:[];
+   const name=e=>String(e?.name||e?.path_display||'').split('/').pop();
+   return entries.filter(e=>e?.['.tag']==='file'&&String(e.path_lower||'').startsWith('/naro biz/backups/')&&/^\d{4}-\d{2}-\d{2}\.json$/.test(name(e))).map(e=>({day:name(e).slice(0,10),size:Number(e.size)||0})).sort((a,b)=>b.day.localeCompare(a.day));
+  },
+  async createBackup(day,value){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');const path=backupPath(day);
+   if(!value||typeof value!=='object'||value.app!=='erp'||JSON.stringify(value).length>BACKUP_MAX)throw fault('VALIDATION');
+   try{await request(content+'upload',{path:pathArg(path),mode:'add',autorename:false,strict_conflict:true,mute:true},{upload:value});return {created:true};}
+   catch(e){if(e.code==='STORAGE_CONFLICT')return {created:false};throw e;}
+  },
+  async readBackup(day){
+   const value=await request(content+'download',{path:pathArg(backupPath(day))},{download:true,maxBytes:BACKUP_MAX});
+   if(!value||typeof value!=='object'||value.app!=='erp')throw fault('STORAGE_INVALID');return value;
   },
   async appendLog(entry){
    if(!businessWrite)throw fault('WRITE_BLOCKED');

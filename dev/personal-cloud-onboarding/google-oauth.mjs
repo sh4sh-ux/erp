@@ -46,6 +46,24 @@ export function createGoogleOAuth({identity,origin=window.location.origin,client
    const abort=()=>close();signal?.addEventListener('abort',abort,{once:true});
    try{if(signal?.aborted)throw fault('CANCELLED');const value=await item.promise;if(signal?.aborted)throw fault('CANCELLED');return value;}
    finally{signal?.removeEventListener('abort',abort);if(pending===item)pending=null;clearTimeout(item.timer);}
+  },
+  // 3단계(10/22) 로그인 유지: 1시간 열쇠가 끝나기 전에 같은 계정으로 새 열쇠를 받는다. 이미 허락한 계정이면 Google 창이 잠깐 떴다 닫힌다(prompt:'').
+  // 창을 여는 일이라 반드시 사용자의 누름 안에서 '바로'(await 전에) 부른다. 다른 계정 확인은 받는 쪽(google-backend renew)이 한다.
+  refresh({loginHint}={}){
+   if(!driveOrigins.includes(origin)||!identity?.initTokenClient)return Promise.reject(fault('OAUTH_SETUP_REQUIRED'));
+   return new Promise((resolve,reject)=>{
+    let settled=false;const finish=(error,value)=>{if(settled)return;settled=true;clearTimeout(timer);error?reject(error):resolve(value);};
+    const timer=setTimeout(()=>finish(fault('CANCELLED')),120000);
+    const callback=response=>{
+     if(response?.error)return finish(fault(response.error==='access_denied'?'CANCELLED':'RECONNECT_REQUIRED'));
+     const granted=(response?.scope||'').trim().split(/\s+/),seconds=Number(response?.expires_in);
+     if(granted.length!==1||granted[0]!==driveScope||typeof response?.access_token!=='string'||!response.access_token||!Number.isFinite(seconds)||seconds<=60)return finish(fault('OAUTH_SETUP_REQUIRED'));
+     finish(null,{accessToken:response.access_token,expiresAt:now()+(Math.min(seconds,3600)-30)*1000});
+    };
+    try{identity.initTokenClient({client_id:clientId,scope:driveScope,include_granted_scopes:false,prompt:'',...(loginHint?{login_hint:loginHint}:{}),callback,
+     error_callback:error=>finish(fault(error?.type==='popup_failed_to_open'?'POPUP_BLOCKED':error?.type==='popup_closed'?'CANCELLED':'UNAVAILABLE'))}).requestAccessToken();}
+    catch{finish(fault('UNAVAILABLE'));}
+   });
   },close
  };
 }

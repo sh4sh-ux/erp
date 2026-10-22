@@ -2,6 +2,7 @@ import {createMergeImport} from './merge-import.mjs';
 import {createGmailSender} from './gmail-send.mjs';
 import {activeAccess,FEATURES,ACCENTS} from './access-control.mjs';
 import {logEntry} from './change-log.mjs';
+import {installSessionKeeper} from './session-keeper.mjs';
 let gmail=null;
 // Only fixed diagnostic labels cross into the UI; never forward provider messages.
 export function safeStorageFailure(error){
@@ -13,7 +14,9 @@ export function safeStorageDiagnostic(error){
  const transports=['FETCH_REJECTED','HTTP_5XX','HTTP_REJECTED'];
  return {code:safeStorageFailure(error),stage:stages.includes(error?.stage)?error.stage:'',transport:transports.includes(error?.transport)?error.transport:'',...(typeof error?.reason==='string'&&/^[A-Z][A-Z_0-9]{0,30}(_[a-z_]{1,24})?$/.test(error.reason)?{reason:error.reason}:{})};
 }
-let frame=null,port=null,ready=null;
+let frame=null,port=null,ready=null,keeper=null;
+const BACKUP_MARK='naro.backup.day.v1:';
+const localDay=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 let preparedFrame=null,preparedListener=null,preparedReady=false;
 function detachPreparation(){if(preparedListener)window.removeEventListener('message',preparedListener);preparedListener=null;}
 // 매입 저장(응답을 잃은 저장 복구 포함). 표 저장(SAVE_TABLE)과 같은 원칙: 결과를 모르면 읽기만으로 한 번 확인하고, 다시 쓰지 않는다.
@@ -35,7 +38,7 @@ export function prepareWorkspace(){
  preparedListener=e=>{if(e.origin!==location.origin||e.source!==target.contentWindow||e.data?.type!=='NARO_READ_READY')return;preparedReady=true;detachPreparation();};
  window.addEventListener('message',preparedListener);target.src='./erp/index.html';document.body.append(target);
 }
-export function closeWorkspace(){detachPreparation();preparedFrame?.remove();preparedFrame=null;preparedReady=false;if(ready)window.removeEventListener('message',ready);ready=null;port?.close();port=null;frame?.remove();frame=null;document.querySelector('main.onboarding').hidden=false;document.title='NARO Biz · 로그인';}
+export function closeWorkspace(){keeper?.stop();keeper=null;detachPreparation();preparedFrame?.remove();preparedFrame=null;preparedReady=false;if(ready)window.removeEventListener('message',ready);ready=null;port?.close();port=null;frame?.remove();frame=null;document.querySelector('main.onboarding').hidden=false;document.title='NARO Biz · 로그인';}
 export function openWorkspace(data,logout,repository){
  const warmed=preparedFrame,wasReady=preparedReady;detachPreparation();preparedFrame=null;preparedReady=false;
  closeWorkspace();document.querySelector('main.onboarding').hidden=true;
@@ -47,19 +50,22 @@ export function openWorkspace(data,logout,repository){
   window.removeEventListener('message',ready);ready=null;
   const channel=new MessageChannel();port=channel.port1;const current=port;let busy=false;
   const importer=createMergeImport(repository);
+  keeper?.stop();keeper=installSessionKeeper({repository});
   let logQueue=Promise.resolve();
   port.onmessage=async e=>{
    const m=e.data;
+   // 업무 화면에서 버튼을 눌렀다(로그인 유지): 끝나 가면 그 누름 안에서 조용히 열쇠를 새로 받는다.
+   if(m?.type==='ACTIVITY'){keeper?.activity();return;}
    if(m?.type==='WORKSPACE_RENDERED'){document.documentElement.dataset.workspaceRenderMs=String(Math.round(performance.now()-workspaceStarted));return;}
    if(m?.type==='LOGOUT'&&!busy&&!importer.active()){closeWorkspace();void logout();return;}
    if(m?.type==='MERGE_PREVIEW'&&!busy&&!importer.active()){
     if(!repository?.capabilities?.merge)return;
-    try{current.postMessage({type:'MERGE_PREVIEW',requestId:m.requestId,...importer.preview(m.backup)});}catch(error){current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}return;
+    try{current.postMessage({type:'MERGE_PREVIEW',requestId:m.requestId,...importer.preview(m.backup,{keepExisting:m.keep===true})});}catch(error){current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}return;
    }
    if(m?.type==='MERGE_IMPORT'&&!busy){
     if(!repository?.capabilities?.merge)return;
     busy=true;
-    try{const result=await importer.run(m.backup,(done,total)=>{if(port===current)current.postMessage({type:'MERGE_PROGRESS',requestId:m.requestId,done,total});});Object.assign(data,result.data);if(port===current)current.postMessage({type:'MERGE_DONE',requestId:m.requestId,...result});}
+    try{const result=await importer.run(m.backup,(done,total)=>{if(port===current)current.postMessage({type:'MERGE_PROGRESS',requestId:m.requestId,done,total});},{keepExisting:m.keep===true});Object.assign(data,result.data);if(port===current)current.postMessage({type:'MERGE_DONE',requestId:m.requestId,...result});}
     catch(error){if(port===current)current.postMessage({type:'MERGE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error),progress:error.importProgress,active:importer.active()});}
     finally{busy=false;}return;
    }
@@ -120,6 +126,19 @@ export function openWorkspace(data,logout,repository){
     finally{busy=false;}
     return;
    }
+   // 자동 백업(10/22, 5단계): 목록·읽기는 저장 중에도 읽기만. [지금 백업]은 저장과 겹치지 않게 차례를 기다린다. 백업을 지우는 명령은 없다.
+   if(typeof m?.type==='string'&&m.type.startsWith('BACKUP_')){
+    const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
+    const fail=error=>reply({type:'BACKUP_ERROR',...safeStorageDiagnostic(error)});
+    try{
+     if(m.type==='BACKUP_LIST')reply({type:'BACKUP_LIST',backups:(await repository.listBackups()).slice(0,30),today:localDay()});
+     else if(m.type==='BACKUP_READ')reply({type:'BACKUP_DATA',backup:await repository.readBackup(m.day)});
+     else if(m.type==='BACKUP_EXPORT'){if(!busy&&!importer.active())await purchasesForBackup();reply({type:'BACKUP_DATA',backup:repository.backupSnapshot()});}
+     else if(m.type==='BACKUP_NOW'){reply({type:'BACKUP_DONE',...await backupNow(true)});}
+     else fail({code:'VALIDATION'});
+    }catch(error){fail(error);}
+    return;
+   }
    // 변경 기록 읽기(10/9): 저장과 따로, 저장 중에도 읽기만 한다.
    if(m?.type==='LOG_READ'){
     const reply=o=>{if(port===current)current.postMessage({requestId:m.requestId,...o});};
@@ -146,10 +165,24 @@ export function openWorkspace(data,logout,repository){
     if(port===current)current.postMessage({type:'TABLE_SAVED',requestId:m.requestId,...result});
     // 저장이 확인된 뒤에만 기록 한 줄(실패해도 저장은 그대로 — 기록은 따로 다시 시도하지 않는다).
     if(!m.recover){const entry=logEntry(result.key,before,result.rows,{who:activeAccess()?.who?.()||'',ref:{companies:data.companies,items:data.items}});if(entry)logQueue=logQueue.then(()=>repository.appendLog(entry)).catch(()=>{});}
-   }catch(error){if(port===current)current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
+   }catch(error){if(error?.code==='RECONNECT_REQUIRED')keeper?.tick();if(port===current)current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}
    finally{busy=false;}
   };
   const provider=repository.identities()[0]?.provider;
+  // 백업에 매입도 넣는다: 아직 안 읽었으면 한 번 읽는다(없거나 못 읽으면 매입 없이 백업).
+  async function purchasesForBackup(){try{if(repository.loadPurchases&&['unknown','error'].includes(repository.purchasesState().status))await repository.loadPurchases();}catch{}}
+  async function backupNow(manual){
+   const until=Date.now()+30000;while((busy||importer.active())&&Date.now()<until&&port===current)await new Promise(r=>setTimeout(r,150));
+   if(busy||importer.active())throw Object.assign(Error('BUSY'),{code:'BUSY'});
+   busy=true;
+   try{await purchasesForBackup();const day=localDay(),r=await repository.createBackup(day,repository.backupSnapshot());try{localStorage.setItem(BACKUP_MARK+provider,day);}catch{}return {day,created:r.created,manual};}
+   finally{busy=false;}
+  }
+  // 그날 처음 열 때 한 번(이 기기 기준) — 오늘 고치기 전 상태가 남는다. 실패해도 업무는 그대로(다음에 다시 시도).
+  if(repository.createBackup&&repository.capabilities?.merge){
+   let mark='';try{mark=localStorage.getItem(BACKUP_MARK+provider)||'';}catch{}
+   if(mark!==localDay())setTimeout(()=>{if(port===current)backupNow(false).catch(()=>{});},6000);
+  }
   const prof=activeAccess()?.profile?.()||{features:[],accent:''};
   target.contentWindow.postMessage({type:'NARO_READ_SNAPSHOT',data,provider,admin:activeAccess()?.isAdmin()===true,features:prof.features,accent:prof.accent},location.origin,[channel.port2]);
  };

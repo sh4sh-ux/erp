@@ -8,6 +8,9 @@ const filePaths=[...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`);
 // 7개 데이터 밖의 선택 파일(10/22, Dropbox와 같은 자리): 매입 파일 · 변경 기록(NARO Biz/Logs/YYYY-MM.json). 처음 쓸 때만 만든다.
 export const PURCHASES_PATH='NARO Biz/Data/purchases.json';
 const LOG_DIR='NARO Biz/Logs';
+// 자동 백업(10/22, 5단계): NARO Biz/Backups/YYYY-MM-DD.json — 하루 한 번, 없을 때만 만든다(지우거나 덮지 않는다).
+const BACKUP_DIR='NARO Biz/Backups',BACKUP_MAX=7*1048576;
+export const backupName=day=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(day)))throw fault('VALIDATION');return day+'.json';};
 const allowed=new Set([...folders,...filePaths,PURCHASES_PATH]);
 const isData=path=>filePaths.includes(path)||path===PURCHASES_PATH;
 const folderMime='application/vnd.google-apps.folder';
@@ -36,6 +39,8 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
  // 마지막 저장 응답의 버전·ETag(파일별). 다음 저장은 이 ETag를 조건으로 바로 올린다(빠른 저장).
  const savedEtags=new Map();
  let token=null,expires=0,disposed=false,prepared=false,requests=0,releaseLock=null,accountBinding=null;
+ // 로그인 유지(10/22): 처음 연결한 Drive 계정(권한 id·주소). 새 열쇠는 이 계정일 때만 받아들인다.
+ let owner=null,renewing=null;
  let windowStart=now(),windowRequests=0;
  const nodes=new Map(),reserved=new Map(),attempted=new Set();
  let discoveryIdentities=null;const discoveryMetadata=new Map();
@@ -44,7 +49,7 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
  const check=()=>{if(disposed||signal?.aborted)throw fault('CANCELLED');if(!token||now()>=expires)throw fault('RECONNECT_REQUIRED');accountBinding?.assertCurrent();};
  const assets=createAssetStore({provider:'drive',auth:()=>{check();return token;},folderId:path=>nodes.get(path),fetcher,signal,enabled:businessWrite&&extendedWrite,now});
  const validPath=path=>{if(!allowed.has(path))throw fault('WRITE_BLOCKED');};
- async function request(route,{method='GET',body,upload=false,companyPatch=false,datasetPatch=false,etag,version=3,onDispatch,bootstrap=false,sideCreate=false}={}){
+ async function request(route,{method='GET',body,upload=false,companyPatch=false,datasetPatch=false,etag,version=3,onDispatch,bootstrap=false,sideCreate=false,maxBytes=1048576}={}){
   const initialCreate=initializeNew&&bootstrap&&method==='POST'&&version===3;
   // 선택 파일(매입·변경 기록)을 처음 만들 때만: 업무 저장이 켜진 경우의 v3 POST(새 파일·폴더). 있는 파일을 덮는 데는 쓰지 않는다.
   const createSide=businessWrite&&sideCreate&&method==='POST'&&version===3;
@@ -65,7 +70,7 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
    if(response.status===409||response.status===412)throw fault('STORAGE_CONFLICT');
    throw Object.assign(providerFailure(response.status,error?.error?.errors?.[0]?.reason),{transport:response.status>=500?'HTTP_5XX':'HTTP_REJECTED',writeRejected:[400,401,403,404,405,413,415,422,429].includes(response.status)});
   }
-  try{if(Number(response.headers?.get('content-length'))>1048576)throw Error();const text=await response.text();if(text.length>1048576)throw Error();const data=JSON.parse(text);check();return data;}
+  try{if(Number(response.headers?.get('content-length'))>maxBytes)throw Error();const text=await response.text();if(text.length>maxBytes)throw Error();const data=JSON.parse(text);check();return data;}
   catch(e){if(e?.code)throw e;throw fault('STORAGE_INVALID');}
  }
  async function children(parent,name){
@@ -140,6 +145,13 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
   if(!node&&create)node=(await createSideNode(root,'Logs',true)).node;
   if(node)nodes.set(LOG_DIR,node.id);return node?.id||null;
  }
+ async function backupFolder(create){
+  if(nodes.has(BACKUP_DIR))return nodes.get(BACKUP_DIR);
+  const root=nodes.get('NARO Biz');if(!root)throw fault('STORAGE_CONFLICT');
+  let node=await sideChild(root,'Backups',true);
+  if(!node&&create)node=(await createSideNode(root,'Backups',true)).node;
+  if(node)nodes.set(BACKUP_DIR,node.id);return node?.id||null;
+ }
  async function acquire(){
   if(!locks?.request)throw fault('UNAVAILABLE');
   await new Promise((resolve,reject)=>{
@@ -178,9 +190,34 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
     const about=await request('about?fields=user(permissionId,emailAddress)');
     await result.accountBinding.verify(about.user?.permissionId,signal,about.user?.emailAddress);check();
     accountBinding=result.accountBinding;accountBinding.assertCurrent();
-   }catch(e){token=null;expires=0;accountBinding=null;throw e;}}
+    owner={permissionId:about.user.permissionId,email:typeof about.user?.emailAddress==='string'?about.user.emailAddress:''};
+   }catch(e){token=null;expires=0;accountBinding=null;owner=null;throw e;}}
   },
-  async disconnect(){disposed=true;token=null;expires=0;accountBinding=null;savedEtags.clear();nodes.clear();reserved.clear();discoveryIdentities=null;discoveryMetadata.clear();releaseLock?.();releaseLock=null;oauth.close();},
+  // 남은 연결 시간. 화면(shell)이 끝나기 전에 [연결 유지]를 띄우는 데만 쓴다 — 열쇠 자체는 밖으로 내보내지 않는다.
+  session(){return {provider:'drive',expiresAt:token?expires:0,renewable:!disposed&&!!token&&!!owner&&typeof oauth.refresh==='function'};},
+  // 같은 계정으로 열쇠 새로 받기. 사용자의 누름 안에서 바로 부른다(oauth.refresh가 창을 연다). 다른 계정이면 받지 않고 지금 열쇠를 그대로 둔다.
+  renew(){
+   if(renewing)return renewing;
+   if(disposed||signal?.aborted)return Promise.reject(fault('CANCELLED'));
+   if(!owner||typeof oauth.refresh!=='function')return Promise.reject(fault('RECONNECT_REQUIRED'));
+   const pending=oauth.refresh({loginHint:owner.email||undefined});
+   renewing=(async()=>{
+    try{
+     const next=await pending;if(disposed||signal?.aborted)throw fault('CANCELLED');
+     let response;try{response=await fetcher(api+'about?fields=user(permissionId)',{headers:{Authorization:'Bearer '+next.accessToken},signal,credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer'});}
+     catch{throw fault(signal?.aborted?'CANCELLED':'NETWORK_ERROR');}
+     if(!response.ok)throw fault(response.status===401?'RECONNECT_REQUIRED':'UNAVAILABLE');
+     let about;try{about=await response.json();}catch{throw fault('STORAGE_INVALID');}
+     if(disposed)throw fault('CANCELLED');
+     if(about?.user?.permissionId!==owner.permissionId)throw fault('DRIVE_ACCOUNT_MISMATCH');
+     accountBinding?.assertCurrent();
+     token=next.accessToken;expires=next.expiresAt;
+     return {expiresAt:expires};
+    }finally{renewing=null;}
+   })();
+   return renewing;
+  },
+  async disconnect(){disposed=true;token=null;expires=0;accountBinding=null;owner=null;savedEtags.clear();nodes.clear();reserved.clear();discoveryIdentities=null;discoveryMetadata.clear();releaseLock?.();releaseLock=null;oauth.close();},
   async exists(path){validPath(path);check();return nodes.has(path);},load,
   metrics(){return {...metrics};},
   async checkCompanyWrite(expected){await companyValidator(expected);return {ready:true};},
@@ -283,6 +320,30 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
    const dir=await logFolder(false);if(!dir)return [];
    const file=await sideChild(dir,month+'.json');if(!file)return [];
    const rows=await request('files/'+encodeURIComponent(file.id)+'?alt=media');return Array.isArray(rows)?rows:[];
+  },
+  // 자동 백업: 목록(최근 것부터) · 하루 한 번 만들기(있으면 그대로) · 읽기. 백업은 업무 파일과 따로라 저장 규칙 검사를 거치지 않는다(만들기만, 덮지 않음).
+  async listBackups(){
+   check();const dir=await backupFolder(false);if(!dir)return [];
+   const q=`'${escapeQuery(dir)}' in parents and trashed = false`;
+   const data=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'1000',fields:'nextPageToken,files(id,name,mimeType,appProperties,size)'}));
+   const files=Array.isArray(data.files)?data.files:[];
+   return files.filter(f=>f.appProperties?.naroPersonalCloud==='1'&&f.mimeType==='application/json'&&/^\d{4}-\d{2}-\d{2}\.json$/.test(f.name||'')).map(f=>({day:f.name.slice(0,10),size:Number(f.size)||0})).sort((a,b)=>b.day.localeCompare(a.day));
+  },
+  async createBackup(day,value){
+   if(!businessWrite)throw fault('WRITE_BLOCKED');check();const name=backupName(day);
+   if(!value||typeof value!=='object'||value.app!=='erp'||JSON.stringify(value).length>BACKUP_MAX)throw fault('VALIDATION');
+   if(!locks?.request)throw fault('UNAVAILABLE');
+   return locks.request('naro-drive-backup',{mode:'exclusive'},async()=>{
+    const dir=await backupFolder(true);
+    if(await sideChild(dir,name))return {created:false};
+    const {created}=await createSideNode(dir,name,false,value);return {created};
+   });
+  },
+  async readBackup(day){
+   check();const name=backupName(day),dir=await backupFolder(false);if(!dir)throw fault('STORAGE_INVALID');
+   const file=await sideChild(dir,name);if(!file)throw fault('STORAGE_INVALID');
+   const value=await request('files/'+encodeURIComponent(file.id)+'?alt=media',{maxBytes:BACKUP_MAX});
+   if(!value||typeof value!=='object'||value.app!=='erp')throw fault('STORAGE_INVALID');return value;
   },
   async appendLog(entry){
    if(!businessWrite)throw fault('WRITE_BLOCKED');check();
