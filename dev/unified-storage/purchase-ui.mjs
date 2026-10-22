@@ -5,7 +5,7 @@ import {paymentStatus,lineBase,unitCosts} from './purchase-ledger.mjs';
 import {IMPORT_PROMPT,parseImportPaste,checkImport,importDraft,rememberedMap,rememberedTypes,costTypeOf} from './import-paste.mjs';
 import {postReceipt,resume,postReturn,voidReceipt,unfinished,receiptState,stockMoveId,voidMoveId} from './purchase-saga.mjs';
 
-const MSG={BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_CONFLICT:'다른 기기에서 먼저 바뀌었어요. 최신 내용으로 다시 불러왔어요.',VALIDATION:'입력 내용을 확인해 주세요(수량·금액·이미 처리된 기록).',WRITE_BLOCKED:'이 작업은 지금 할 수 없어요.',UNAVAILABLE:'Google Drive에서는 아직 매입을 쓸 수 없어요. Dropbox에서 쓸 수 있어요.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했어요. [저장 결과 확인]을 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',QUOTA_LIMIT:'저장 공간이 부족해요.'};
+const MSG={BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_CONFLICT:'다른 기기에서 먼저 바뀌었어요. 최신 내용으로 다시 불러왔어요.',VALIDATION:'입력 내용을 확인해 주세요(수량·금액·이미 처리된 기록).',WRITE_BLOCKED:'이 작업은 지금 할 수 없어요.',UNAVAILABLE:'지금 연결된 클라우드에서는 매입을 쓸 수 없어요.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했어요. [저장 결과 확인]을 눌러 주세요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끊겼어요. 다시 연결해 주세요.',QUOTA_LIMIT:'저장 공간이 부족해요.'};
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const n0=v=>Math.round(Number(v)||0).toLocaleString('ko-KR');
 const money=v=>n0(v)+'원';
@@ -188,7 +188,7 @@ export function installPurchaseUI({port,features=()=>true}){
  function emptyCard(hide=false){
   const box=(t,b,act='')=>`<div class="detail-empty pu-empty${hide?' hidden':''}" id="puEmpty">${ICON.cart}<div><b>${t}</b><br>${b}</div>${act}</div>`;
   if(st.status==='loading'||st.status==='unknown')return box('불러오는 중…','');
-  if(st.status==='unsupported')return box('Google Drive에서는 아직 매입을 쓸 수 없어요','매입 기록은 지금 Dropbox에서만 저장돼요. 다른 기능은 그대로 쓸 수 있어요.');
+  if(st.status==='unsupported')return box('지금 연결된 클라우드에서는 매입을 쓸 수 없어요','매입 기록은 Dropbox·Google Drive에서 저장돼요. 다른 기능은 그대로 쓸 수 있어요.');
   if(st.status==='error')return box('매입을 불러오지 못했어요',esc(st.note||'잠시 뒤 다시 시도해 주세요.'),'<button type="button" class="btn ghost" data-act="reload">다시 불러오기</button>');
   if(st.status==='absent')return box('매입을 시작할까요?','매입처·품목·수량·단가를 적고 [입고 처리]를 하면 재고에 더해지고, 미지급으로 잡혀요.<br>기존 재고·입출금 기록은 바뀌지 않아요.','<button type="button" class="btn save" data-act="start">매입 시작하기</button>');
   return box('왼쪽에서 매입을 고르거나','<b>+</b> 버튼으로 새로 적으세요.');
