@@ -737,7 +737,7 @@ test('purchase progress uses the quote progress list and header numbers stay ins
   await open(p,'purchases');await p.locator('#puForm').waitFor();
   await p.locator('#pp-tab-flow').click();await p.waitForTimeout(150);
   const r=await p.evaluate(()=>{const f=document.querySelector('#puForm');return {sections:[...f.querySelectorAll('.nd-record-section.nd-pl .nd-record-toggle')].map(x=>x.firstChild.textContent.trim()),cards:f.querySelectorAll('.nd-rec-card').length,dots:getComputedStyle(f.querySelector('.qp-metadata>.pu-no')||document.body,'::before').content};});
-  assert.deepEqual(r.sections,['입고','출금','반품','계산서'],width+' '+JSON.stringify(r));assert.equal(r.cards,0,'no boxed cards');
+  assert.deepEqual(r.sections,['입고','출금','반품','증빙'],width+' '+JSON.stringify(r));assert.equal(r.cards,0,'no boxed cards');
   await p.close();}}finally{await b.close();}
 });
 

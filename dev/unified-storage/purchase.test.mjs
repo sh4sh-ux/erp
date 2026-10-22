@@ -267,6 +267,12 @@ test('수입 정보(신고번호·B/L)·필증 품명·수입부가세 낸 곳�
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({customs:{declared_on:'2026-13-40'}})]),snap),V);
  assert.throws(()=>validatePurchasesChange(doc([]),doc([imported({import_vat:{amount:1,payee_id:'없는곳'}})]),snap),V);
 });
+test('증빙 종류: 세금계산서·현금영수증·없음만 저장되고 다른 값은 막는다',()=>{
+ const snap=base();
+ for(const kind of ['세금계산서','현금영수증','없음'])assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([domestic({tax_invoice:{received:true,date:'2026-10-20',kind}})]),snap));
+ assert.doesNotThrow(()=>validatePurchasesChange(doc([]),doc([domestic({tax_invoice:{received:true,date:'2026-10-20'}})]),snap));
+ for(const kind of ['카드','',1])assert.throws(()=>validatePurchasesChange(doc([]),doc([domestic({tax_invoice:{received:true,kind}})]),snap),V);
+});
 test('줄마다 부가세: 부가세 없는 줄(no_vat:true)은 저장되고, true가 아닌 값은 막는다',()=>{
  const snap=base();
  const ok=domestic({lines:[{id:'a',item_id:'jk',color:'BK',spec:'S',qty:1,unit_price:9000},{id:'c1',cost:true,name:'배송비',qty:1,unit_price:3500,no_vat:true}]});
