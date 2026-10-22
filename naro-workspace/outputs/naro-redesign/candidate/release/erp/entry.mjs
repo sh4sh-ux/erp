@@ -5,8 +5,9 @@ import {installMailUI} from './mail-ui.mjs';
 import {installAccessUI} from './access-ui.mjs';
 import {installLogUI} from './log-ui.mjs';
 import {installPurchaseUI} from './purchase-ui.mjs';
+import {installBackupUI} from './backup-ui.mjs';
 export function start(bridge,build){
- let mail=null,accessUI=null,logUI=null,purchaseUI=null;
+ let mail=null,accessUI=null,logUI=null,purchaseUI=null,backupUI=null;
  let snapshot=null,port=null,pending=null,locked=false,recovering=false,uncertainKey=null,lastFailure='',providerLabel='개인 클라우드';
  const messages={VALIDATION:'입력값과 연결된 거래처·품목을 확인해 주세요.',WRITE_BLOCKED:'이 작업은 아직 지원하지 않습니다.',BUSY:'저장이 진행 중입니다.',STORAGE_CONFLICT:'다른 변경이 발견되어 덮어쓰지 않았습니다.',CONCURRENCY_UNAVAILABLE:'안전한 저장 버전을 확인할 수 없습니다.',SAVE_UNCONFIRMED:'저장 결과를 확인하지 못했습니다. 다른 저장을 중단했습니다.',QUOTA_LIMIT:'무료 사용 한도에 도달했습니다. 잠시 후 다시 시도해주세요.',RECONNECT_REQUIRED:'저장소 연결이 만료되었습니다.'};
  const status=document.createElement('div');status.setAttribute('role','status');status.style.cssText='position:fixed;bottom:12px;left:24px;z-index:9999;background:white;padding:10px;border:1px solid #d6def0;border-radius:8px;max-width:85vw';status.hidden=true;document.body.append(status);
@@ -44,6 +45,9 @@ export function start(bridge,build){
   if(el&&!status.contains(el)&&!el.closest('.nd-theme,.rail-tools>summary,.nd-mail,.nd-photo-view,.nd-photo-error-dismiss')&&((pending&&!(readingImage&&navigation))||locked||recovering||el.closest(denied))){e.preventDefault();e.stopImmediatePropagation();}
  },true);
  window.addEventListener('beforeunload',e=>{if(pending||locked){e.preventDefault();e.returnValue='';}});
+ // 로그인 유지(10/22): 버튼을 누를 때(click — 폰 터치도 이때 '사용자 누름'으로 인정된다)(최대 15초에 한 번) 바깥 페이지에 알린다 — 연결이 끝나 가면 그 누름 안에서 조용히 새로 받는다.
+ let lastActivity=0;
+ window.addEventListener('click',e=>{if(!port||!e.isTrusted||!e.target?.closest?.('button,[role="button"],a'))return;const t=Date.now();if(t-lastActivity<15000)return;lastActivity=t;port.postMessage({type:'ACTIVITY'});},true);
  const reconcile=()=>new Promise((resolve,reject)=>{
   if(!uncertainKey){resolve();return;}
   const requestId=crypto.randomUUID();pending={requestId,key:uncertainKey,resolve,reject};
@@ -68,9 +72,9 @@ export function start(bridge,build){
    catch{uncertainRecovery();}finally{recovering=false;}
   };
  };
- const mergeRequest=(type,backup)=>new Promise((resolve,reject)=>{
+ const mergeRequest=(type,backup,keep=false)=>new Promise((resolve,reject)=>{
   if(pending||!port){reject(Error('저장이 진행 중입니다.'));return;}
-  const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,backup});
+  const requestId=crypto.randomUUID();pending={requestId,resolve,reject};port.postMessage({type,requestId,backup,keep});
  });
  const mergeResume=()=>{
   locked=true;const button=document.createElement('button');button.textContent='가져오기 이어서 확인';status.append(button);
@@ -88,7 +92,7 @@ export function start(bridge,build){
     document.documentElement.dataset.ndF=f.join(' ');if(accent)document.documentElement.dataset.ndAccent=accent;else delete document.documentElement.dataset.ndAccent;
     window.ndHas=key=>f.includes('*')||f.includes(key);}
    port.onmessage=async e=>{
-    const m=e.data;if(mail?.onMessage(m)||accessUI?.onMessage(m)||logUI?.onMessage(m)||purchaseUI?.onMessage(m))return;
+    const m=e.data;if(mail?.onMessage(m)||accessUI?.onMessage(m)||logUI?.onMessage(m)||purchaseUI?.onMessage(m)||backupUI?.onMessage(m))return;
     if(!pending||m?.requestId!==pending.requestId)return;
     // Each record is saved and read back one by one; show where it is so a long import doesn't look frozen.
     if(m.type==='MERGE_PROGRESS'){status.hidden=false;status.textContent=`가져오는 중… ${m.done} / ${m.total}건 저장 (창을 닫지 마세요)`;return;}
@@ -122,6 +126,17 @@ export function start(bridge,build){
     installAssets({db:bridge.db,request:assetRequest,save:bridge.Table.save,notify:text=>notifyAsset(text,message=>{status.hidden=false;status.textContent=message;setTimeout(()=>{if(status.textContent===message&&!status.querySelector('button')&&!pending&&!locked)status.hidden=true;},5000);})});
     mail=installMailUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});
     logUI=installLogUI({port:()=>port});
+    // 자동 백업·되살리기·클라우드 옮기기(10/22, 5단계): 되살리기는 가져오기와 같은 길이되 지금 있는 항목은 그대로 둔다(keep).
+    const sayLine=text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text);
+    // 백업 칸이 실패해도 나머지(매입·사용자 승인 등) 설치는 이어지게 따로 감싼다.
+    try{backupUI=installBackupUI({port:()=>port,say:sayLine,restore:async(backup,day)=>{
+     try{
+      const count=await mergeRequest('MERGE_PREVIEW',backup,true);
+      if(!count){sayLine(`${day} 백업에만 있는 항목이 없어요 — 되살릴 것이 없어요.`);return;}
+      if(!confirm(`${day} 백업에서 지금 없는 항목 ${count}건을 되살릴까요? 지금 있는 항목과 공급자 설정은 그대로 둡니다. 한 건씩 저장하므로 중간에 멈춰도 저장된 항목은 남습니다.`))return;
+      locked=true;status.hidden=false;status.textContent=`${day} 백업에서 되살리는 중…`;await mergeRequest('MERGE_IMPORT',backup,true);
+     }catch(error){if(!locked){status.hidden=false;status.textContent=error.message||'되살리지 못했어요.';}}
+    }});}catch(error){console.error('backup UI',error);}
     // 매입(2단계): '매입' 권한이 있는 사람만 메뉴가 보인다(관리자는 모든 기능).
     purchaseUI=installPurchaseUI({port:()=>port,features:()=>typeof window.ndHas==='function'&&window.ndHas('purchases')});
     if(e.data.admin===true)accessUI=installAccessUI({port:()=>port,say:text=>typeof window.toast==='function'?window.toast(text):(status.hidden=false,status.textContent=text)});

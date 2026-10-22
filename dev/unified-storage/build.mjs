@@ -177,6 +177,7 @@ await writeFile(resolve(release,'app.mjs'),app);
 await copyFile(resolve(here,'access-control.mjs'),resolve(release,'access-control.mjs'));
 if(business)await copyFile(resolve(here,'business-workspace.mjs'),resolve(release,'workspace.mjs'));
 if(business)await copyFile(resolve(here,'change-log.mjs'),resolve(release,'change-log.mjs'));
+if(business)await copyFile(resolve(here,'session-keeper.mjs'),resolve(release,'session-keeper.mjs'));
 // Reuse sanitized v1.186 renderers, not the original private-data artifact.
 const erp=resolve(root,'outputs/privacy-safe-companies-pilot/source/app');
 for(const name of await readdir(erp))if(/\.(css|js|png|webmanifest)$/.test(name))await copyFile(resolve(erp,name),resolve(release,'erp',name));
@@ -531,6 +532,7 @@ if(business){
  await writeFile(resolve(release,'erp/asset-ui.mjs'),(await readFile(resolve(here,'asset-ui.mjs'),'utf8')).replace('../personal-cloud-onboarding/asset-store.mjs','../asset-store.mjs'));
  await copyFile(resolve(here,'mail-ui.mjs'),resolve(release,'erp/mail-ui.mjs'));
  await copyFile(resolve(here,'access-ui.mjs'),resolve(release,'erp/access-ui.mjs'));
+ await copyFile(resolve(here,'backup-ui.mjs'),resolve(release,'erp/backup-ui.mjs'));
  await writeFile(resolve(release,'erp/log-ui.mjs'),(await readFile(resolve(here,'log-ui.mjs'),'utf8')).replace("from './change-log.mjs'","from '../change-log.mjs'"));
  // 매입 화면(2단계): 업무 화면 모듈은 erp/ 안, 규칙·원가 계산은 저장소와 같은 파일(release 맨 위)을 함께 쓴다.
  await copyFile(resolve(here,'import-paste.mjs'),resolve(release,'erp/import-paste.mjs'));

@@ -151,9 +151,18 @@ export function createStorageRepository(provider,{companiesCreate=false,business
    const g=generation;check(g);if(!businessWrite||!extendedWrite||!snapshot||!Object.values(snapshot.settings.assets||{}).includes(path))throw fault('WRITE_BLOCKED');
    const bytes=await provider.backend.downloadAsset(path);check(g);return bytes;
   },
+  // 로그인 유지(10/22): 남은 연결 시간 · 같은 계정으로 열쇠 새로 받기(Drive). renew는 사용자의 누름 안에서 바로 부른다(await 없이 백엔드까지).
+  session(){return provider.backend.session?.()??null;},
+  renew(){if(typeof provider.backend.renew!=='function')return Promise.reject(fault('RECONNECT_REQUIRED'));return provider.backend.renew();},
   // 변경 기록(10/9): 데이터 저장과 따로(실패해도 저장은 그대로). Dropbox·Drive(10/22) 모두 — 백엔드에 없으면 UNAVAILABLE.
   async readLog(month){const g=generation;check(g);if(!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.readLog)throw fault('UNAVAILABLE');const rows=await provider.backend.readLog(month);check(g);return rows;},
   async appendLog(entry){const g=generation;check(g);if(!businessWrite||!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.appendLog)throw fault('UNAVAILABLE');await provider.backend.appendLog(entry);check(g);return true;},
+  // 자동 백업(10/22, 5단계): 지금 읽어 둔 7개 데이터(+ 매입 파일을 읽었으면 매입)를 가져오기와 같은 형식으로. 업무 파일은 건드리지 않는다.
+  backupSnapshot(){if(!snapshot)throw fault('WRITE_BLOCKED');const out={app:'erp',format:1,source:'naro-cloud-backup',exportedAt:new Date().toISOString(),settings:structuredClone(snapshot.settings)};
+   for(const k of tables)out[k]=structuredClone(snapshot[k]);if(purchases.status==='ready'&&purchases.doc)out.purchases=structuredClone(purchases.doc);return out;},
+  async listBackups(){const g=generation;check(g);if(!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.listBackups)throw fault('UNAVAILABLE');const list=await provider.backend.listBackups();check(g);return list;},
+  async createBackup(day,value){const g=generation;check(g);if(!businessWrite||!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.createBackup)throw fault('UNAVAILABLE');const r=await provider.backend.createBackup(day,value);check(g);return r;},
+  async readBackup(day){const g=generation;check(g);if(!snapshot)throw fault('WRITE_BLOCKED');if(!provider.backend.readBackup)throw fault('UNAVAILABLE');const v=await provider.backend.readBackup(day);check(g);return v;},
   async loadAll(discoveredPaths){
    if(saving||pending)throw fault('BUSY');
    const g=++generation;check(g);

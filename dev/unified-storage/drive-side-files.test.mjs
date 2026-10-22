@@ -25,7 +25,8 @@ async function drive({lostCreate=false}={}){
    return Response.json({id:n.id});
   }
   if(u.pathname.endsWith('/files')){const q=u.searchParams.get('q');
-   return Response.json({files:nodes.filter(n=>!n.trashed&&q.includes("name = '"+n.name+"'")&&(!q.includes(' in parents')||q.includes("'"+n.parents[0]+"' in parents")))});}
+   const named=q.includes("name = '");
+   return Response.json({files:nodes.filter(n=>!n.trashed&&(!named||q.includes("name = '"+n.name+"'"))&&(!q.includes(' in parents')||q.includes("'"+n.parents[0]+"' in parents"))).map(n=>({...n,size:String(JSON.stringify(content.get(n.id)??'').length)}))});}
   const n=nodes.find(x=>u.pathname.endsWith('/'+x.id));if(!n)return new Response('{}',{status:404});
   if(method==='PUT'){calls.push('PUT:'+n.name);if(o.headers['If-Match']!==n.etag)return new Response('{}',{status:412});
    content.set(n.id,JSON.parse(o.body));n.version=String(+n.version+1);n.etag=`"e${n.version}"`;
@@ -95,4 +96,17 @@ test('Drive 변경 기록: 다른 기기가 같은 달 파일에 먼저 썼으�
  // 다음 더하기는 최신 확인값으로 다시 읽어 붙인다
  await f.repo.appendLog({id:'log3',at:'2026-10-22T03:00:00.000Z',text:'3'});
  assert.deepEqual((await f.repo.readLog('2026-10')).map(r=>r.id),['log1','other','log3']);
+});
+
+test('Drive 자동 백업: Backups 폴더·그날 파일을 만들고, 같은 날 다시 만들어도 하나 · 목록·읽기',async()=>{
+ const f=await drive();
+ assert.deepEqual(await f.repo.listBackups(),[]);assert.equal(f.find('Backups').length,0,'목록만 볼 때는 만들지 않는다');
+ const snap=f.repo.backupSnapshot();
+ assert.deepEqual(await f.repo.createBackup('2026-10-22',snap),{created:true});
+ assert.deepEqual(await f.repo.createBackup('2026-10-22',{...snap,companies:[]}),{created:false});
+ assert.equal(f.find('2026-10-22.json').length,1);assert.equal(f.find('Backups').length,1);
+ await f.repo.createBackup('2026-10-20',snap);
+ const list=await f.repo.listBackups();assert.deepEqual(list.map(b=>b.day),['2026-10-22','2026-10-20']);assert.ok(list[0].size>0);
+ assert.deepEqual((await f.repo.readBackup('2026-10-22')).companies,snap.companies,'처음 만든 내용 그대로');
+ await assert.rejects(f.repo.readBackup('2026-10-01'),e=>e.code==='STORAGE_INVALID');
 });

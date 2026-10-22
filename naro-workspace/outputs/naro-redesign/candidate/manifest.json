@@ -63,7 +63,7 @@
     },
     {
       "path": "dropbox-backend.mjs",
-      "sha256": "f6a95dc4cb0cbd0dc5eef0e9556c50475baad3e4cf44a48b79cb1af6c6f3e20e"
+      "sha256": "4daa7d0afee8dfcb336c3e24d3ec6b3421839be47e355c10cb22100cdbbabe14"
     },
     {
       "path": "dropbox-callback.html",
@@ -98,8 +98,12 @@
       "sha256": "1a04d37aedf11775e0ec981044511b751502f2686bb088bab8ebfaf2d7d5102f"
     },
     {
+      "path": "erp/backup-ui.mjs",
+      "sha256": "df29cfdf480ad0832102ec5a97c299639828496ae4ac53463a57257da61fe739"
+    },
+    {
       "path": "erp/entry.mjs",
-      "sha256": "99a14e250d6c36149307f16303cd2945403b80b60d8e44faee499538d44521e9"
+      "sha256": "88931540909b562ef108c2d39b66f5cb756739fc0c8948b743277f67cdafc4c3"
     },
     {
       "path": "erp/favicon.png",
@@ -203,7 +207,7 @@
     },
     {
       "path": "extended-contract.mjs",
-      "sha256": "9ba2ae151f66ee33335e7b29b3a42070d990d207fb23fcd8095d08056b26934d"
+      "sha256": "ba604ded6da65cbaff45c097a4c41d11326b4110b5a14c9e727f98e31a58d1ee"
     },
     {
       "path": "firebase-auth.mjs",
@@ -215,15 +219,15 @@
     },
     {
       "path": "google-backend.mjs",
-      "sha256": "63157aab337b1531dd0ced6073dc5a0732958f3ba6a063e4cb96d91c30b8171e"
+      "sha256": "abdbccedef23fb64752857a7c5a82edd773ce5421a1f09d6c079f501c35540c0"
     },
     {
       "path": "google-oauth.mjs",
-      "sha256": "2c1375a6bf250fd57ed1a9ae3debddac8d717277b6f5b67f61c113f66e3b609e"
+      "sha256": "136c6bbafaadc5f82ab6701119273b87a3d769ec96781bb6aca48c0d84e17ce8"
     },
     {
       "path": "index.html",
-      "sha256": "31ca970a43ae7269a33fbe8d47448f4c04623dccbafa98fbeacc40cf33d3ca35"
+      "sha256": "6ccde0218604c5a4b5678e193b31421f51699eb0ac7ed02ac998f32fd138ce52"
     },
     {
       "path": "manifest.webmanifest",
@@ -231,7 +235,7 @@
     },
     {
       "path": "merge-import.mjs",
-      "sha256": "4a57159f2c30f60d2302570a3e868e56815810da408fcfb9fa19be45245631a4"
+      "sha256": "b446791af1fd4be4fac637fe495d5920205313a726e9812d0b3c635f85f11913"
     },
     {
       "path": "naro-symbol.png",
@@ -263,7 +267,7 @@
     },
     {
       "path": "privacy.html",
-      "sha256": "fe0455809fbe5be3b5fab899172bc6317f09e42fd4146b2cf69fb39d083ff68a"
+      "sha256": "d5a67bfdacb27839402f002893e5807b4f234c1a40fbab9141dd977382f156e4"
     },
     {
       "path": "providers.mjs",
@@ -286,8 +290,12 @@
       "sha256": "0d8f59b5184ad7f9281b42bbf751e5aa27448b800ed7826c0376196f932ab05e"
     },
     {
+      "path": "session-keeper.mjs",
+      "sha256": "2835e64ff6529aadca91fb00d4615bdf4d9036836cb90b35ae4fdc3fe12693f2"
+    },
+    {
       "path": "storage.mjs",
-      "sha256": "ea907aebea8767fc12fe1ef8de1d767daa08435f04895bd97644c92b19e119ca"
+      "sha256": "b5916b1baa0c090aa85941d69c5e2289e90e5f7b7851e848917d6e052e1435af"
     },
     {
       "path": "style.css",
@@ -299,10 +307,10 @@
     },
     {
       "path": "workspace.mjs",
-      "sha256": "6072d0c934ebd870210f9d3690bf24613b7cb3ade6da064bb59d3fe46eb0824c"
+      "sha256": "52b218aab895e00406a3cd45c7bd3744f26990443a82ed26b7ad427801ff6313"
     }
   ],
-  "aggregate": "7b93c8a4ede6005fb269908dad63af41efdf71bc5ebf577b04ba9d3a20cc9b28",
+  "aggregate": "af69dbef7918ae9fd1e5f5cbbd92ba1423d11ca7dc7339792e0a8dd1c6c37f14",
   "previousPublicAggregate": "8dbad392efacbd02631f22c9d70bd2f8f5be5f4cdf11622e16d0c297881e23ce",
   "cloudWrites": 0,
   "liveNewFeatureVerification": false

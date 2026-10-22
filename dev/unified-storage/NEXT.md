@@ -21,6 +21,7 @@
 1. **[완료 10/22] 백엔드 약속 정리** — `personal-cloud-onboarding/backend-contract.mjs`(기능 묶음: core·save·purchases·log·assets) + Dropbox·Drive가 모두 갖췄는지 시험.
 2. **[완료 10/22] Drive 동시 저장 안전장치·빠진 기능** — 7개 데이터는 이미 ETag(If-Match) 조건부 저장·끊김 확인이 있었다. 이번에 **매입 파일(없을 때만 만들기·조건부 저장)**과 **변경 기록(Logs/YYYY-MM.json, 더하기만·같은 id 한 번)**을 Drive에 추가(`drive-side-files.test.mjs`).
    남은 것: 실제 Google 계정으로 매입·변경 기록 한 번 확인(운영 데이터 말고 시험 계정).
-3. **[다음] 구글 로그인 유지** — 1시간 토큰: 조용한 재연결(prompt:'') 시도, 실패할 때만 '다시 연결' 버튼. 서버(유료) 없이.
-4. **[다음] 구글 앱 공개 준비** — 시험 상태(등록 계정만·7일마다 끊김) → 개인정보처리방침 페이지·도메인 확인 문서 준비, 제출은 사용자.
-5. **[다음] 처음 쓰는 분 안전망** — 설치 직후 자동 백업, 백업에서 되살리기, 클라우드 옮기기(Dropbox ↔ Drive).
+3. **[완료 10/22] 구글 로그인 유지** — 서버 없이: 끝나기 10분 전부터 업무 화면 버튼 누름(ACTIVITY) 안에서 같은 계정으로 조용히 새 열쇠(`google-oauth refresh`, prompt:'' + login_hint), 받은 열쇠는 처음 계정(permissionId)과 같을 때만 사용(`google-backend renew`). 안 되면 위쪽 [연결 유지]/[다시 연결] 띠(`session-keeper.mjs`). Dropbox는 원래대로 스스로 갱신, 끝났을 때만 [다시 로그인].
+4. **[완료 10/22] 구글 앱 공개 준비** — Drive는 이미 External/Production(drive.file 비민감). 남은 것은 `PUBLISHING.md`: Gmail 보내기(gmail.send, 민감) 심사·도메인 확인 파일·시연 영상, Dropbox Production 신청 — **제출은 사용자**. 개인정보처리방침 10/22 개정.
+5. **[완료 10/22] 처음 쓰는 분 안전망** — 매일 첫 열기에 `NARO Biz/Backups/YYYY-MM-DD.json`(7개 데이터 + 매입, 만들기만 — 지우거나 덮지 않음). 설정 → '클라우드 자동 백업'(목록·받기·되살리기 = 없어진 것만 다시 넣기, keepExisting) · '다른 클라우드로 옮기기'(전체 백업 받기(매입 포함) → 다른 클라우드 연결 → 가져오기, 가져오기가 매입도 넣음). 시험 `backup-restore.test.mjs`·`drive-side-files.test.mjs`·`session-renew.test.mjs`.
+   남은 것: 실제 시험 계정으로 1시간 넘긴 갱신·다음 날 자동 백업 확인. 큰 백업(수천 건) 가져오기는 한 건씩 저장이라 느림 — 빈 클라우드로 옮길 때 표 단위 한 번 저장은 다음 후보.

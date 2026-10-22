@@ -71,12 +71,13 @@ export function validateExtendedChange(key,before,next,snapshot){
 }
 // Add-only merge: existing IDs must be identical. No overwrite, deletion or
 // settings replacement is hidden inside an import operation.
-export function planMerge(snapshot,backup){
+// keepExisting(10/22 백업에서 되살리기): 같은 id가 이미 있으면 지금 것을 그대로 둔다(다르더라도 멈추지 않음) — 없어진 것만 되살린다.
+export function planMerge(snapshot,backup,{keepExisting=false}={}){
  valid(backup?.app==='erp'&&backup.format===1);
  const merged=structuredClone(snapshot),steps=[];
  for(const key of tables){
   if(backup[key]===undefined)continue;records(backup[key]);
-  for(const row of backup[key]){const old=merged[key].find(r=>r.id===row.id);if(old){if(!equal(old,row))throw fault('STORAGE_CONFLICT');continue;}
+  for(const row of backup[key]){const old=merged[key].find(r=>r.id===row.id);if(old){if(!keepExisting&&!equal(old,row))throw fault('STORAGE_CONFLICT');continue;}
    merged[key]=[...merged[key],structuredClone(row)];steps.push({key,row:structuredClone(row)});
   }
  }
