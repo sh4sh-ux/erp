@@ -41,6 +41,7 @@ async function drive({lostCreate=false}={}){
  const find=name=>nodes.filter(n=>n.name===name&&!n.trashed);
  return {repo,backend,calls,content,find,
   // 다른 기기가 매입 파일을 바꾼 것처럼
+  addNode(meta,value){make(meta,value);},
   touch(name,value){const n=find(name)[0];content.set(n.id,value);n.version=String(+n.version+1);n.etag=`"e${n.version}"`;}};
 }
 
@@ -109,4 +110,11 @@ test('Drive 자동 백업: Backups 폴더·그날 파일을 만들고, 같은 �
  const list=await f.repo.listBackups();assert.deepEqual(list.map(b=>b.day),['2026-10-22','2026-10-20']);assert.ok(list[0].size>0);
  assert.deepEqual((await f.repo.readBackup('2026-10-22')).companies,snap.companies,'처음 만든 내용 그대로');
  await assert.rejects(f.repo.readBackup('2026-10-01'),e=>e.code==='STORAGE_INVALID');
+ // 두 기기가 같은 날 동시에 만들어 같은 이름이 둘이어도 읽기·다시 만들기가 막히지 않는다
+ const dir=f.find('Backups')[0];await f.backend.createBackup('2026-10-21',snap);
+ const twin=await (await import('node:crypto')).randomUUID();
+ f.addNode({id:'twin-'+twin,name:'2026-10-21.json',mimeType:'application/json',appProperties:{naroPersonalCloud:'1'},parents:[dir.id]},snap);
+ assert.equal(f.find('2026-10-21.json').length,2);
+ assert.deepEqual((await f.repo.readBackup('2026-10-21')).companies,snap.companies);
+ assert.deepEqual(await f.repo.createBackup('2026-10-21',snap),{created:false});
 });

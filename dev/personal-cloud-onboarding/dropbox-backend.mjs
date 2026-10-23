@@ -106,7 +106,7 @@ export function createDropboxBackend({oauth,signal,fetcher=fetch,now=Date.now,bu
   },
   async createBackup(day,value){
    if(!businessWrite)throw fault('WRITE_BLOCKED');const path=backupPath(day);
-   if(!value||typeof value!=='object'||value.app!=='erp'||JSON.stringify(value).length>BACKUP_MAX)throw fault('VALIDATION');
+   if(!value||typeof value!=='object'||value.app!=='erp'||new TextEncoder().encode(JSON.stringify(value)).length>BACKUP_MAX)throw fault('VALIDATION');
    try{await request(content+'upload',{path:pathArg(path),mode:'add',autorename:false,strict_conflict:true,mute:true},{upload:value});return {created:true};}
    catch(e){if(e.code==='STORAGE_CONFLICT')return {created:false};throw e;}
   },

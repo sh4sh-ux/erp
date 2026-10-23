@@ -18,6 +18,8 @@ test('Dropbox 자동 백업: 하루 한 파일, 같은 날 다시 만들면 덮�
  await assert.rejects(repo.createBackup('../x',first),e=>e.code==='VALIDATION');
  await assert.rejects(repo.createBackup('2026-10-23',{app:'other'}),e=>e.code==='VALIDATION');
  await assert.rejects(backend.readBackup('2026-1-1'),e=>e.code==='VALIDATION');
+ // 크기는 글자 수가 아니라 실제 바이트로 잰다(한글은 3바이트) — 올린 백업을 다시 읽을 수 있게
+ await assert.rejects(repo.createBackup('2026-10-24',{...first,memo:'가'.repeat(2500000)}),e=>e.code==='VALIDATION');
 });
 
 test('백업에 매입도 들어가고, 빈 새 클라우드로 가져오면 거래처·품목·매입이 모두 옮겨진다(클라우드 옮기기)',async()=>{

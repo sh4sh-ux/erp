@@ -2,7 +2,7 @@
 //  ① 클라우드 자동 백업 — 매일 처음 열 때 위 페이지가 NARO Biz/Backups/YYYY-MM-DD.json을 만든다(지우거나 덮지 않음). 여기서는 목록·받기·되살리기.
 //     되살리기 = 지금 데이터는 그대로 두고 백업에만 있는(없어진) 항목만 다시 넣는다(가져오기와 같은 길, keep).
 //  ② 다른 클라우드로 옮기기 — 전체 백업(매입 포함) 받기 → 다른 클라우드로 연결 → 가져오기. 원래 클라우드의 파일은 그대로 남는다.
-const MSG={UNAVAILABLE:'지금 연결된 클라우드에서는 자동 백업을 쓸 수 없어요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끝났어요. 다시 연결한 뒤 눌러 주세요.',RATE_LIMIT:'잠시 후 다시 시도해 주세요.',BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_INVALID:'백업 파일을 읽지 못했어요.',QUOTA_LIMIT:'클라우드 저장 공간이 부족해요.'};
+const MSG={VALIDATION:'데이터가 커서 클라우드 자동 백업(최대 7MB)을 만들 수 없어요. [전체 백업 받기]로 이 기기에 보관해 주세요.',UNAVAILABLE:'지금 연결된 클라우드에서는 자동 백업을 쓸 수 없어요.',NETWORK_ERROR:'연결을 확인한 뒤 다시 시도해 주세요.',RECONNECT_REQUIRED:'저장소 연결이 끝났어요. 다시 연결한 뒤 눌러 주세요.',RATE_LIMIT:'잠시 후 다시 시도해 주세요.',BUSY:'저장이 끝난 뒤 다시 눌러 주세요.',STORAGE_INVALID:'백업 파일을 읽지 못했어요.',QUOTA_LIMIT:'클라우드 저장 공간이 부족해요.'};
 export function installBackupUI({port,restore,say}){
  const wait=new Map();
  const ask=(type,body={})=>new Promise(resolve=>{const requestId=crypto.randomUUID();wait.set(requestId,resolve);port().postMessage({type,requestId,...body});setTimeout(()=>{if(wait.has(requestId)){wait.delete(requestId);resolve({type:'BACKUP_ERROR',code:'NETWORK_ERROR'});}},60000);});
@@ -36,7 +36,7 @@ export function installBackupUI({port,restore,say}){
  const ensure=()=>{const card=document.querySelector('#view-settings .settings-util-backup'),host=card?.querySelector(':scope>.detail')||card;if(host&&(auto.parentElement!==host||move.parentElement!==host))host.append(auto,move);};
  ensure();new MutationObserver(ensure).observe(document.getElementById('appView')||document.body,{childList:true,subtree:true});
  const kb=n=>n>=1048576?(n/1048576).toFixed(1)+'MB':Math.max(1,Math.round(n/1024))+'KB';
- const save=(backup,name)=>{const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+ const save=(backup,name)=>{const url=URL.createObjectURL(new Blob([JSON.stringify(backup)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  const fail=r=>say(MSG[r.code]||'백업 작업을 마치지 못했어요. 다시 눌러 주세요.');
  async function read(day){const r=await ask('BACKUP_READ',{day});if(r.type!=='BACKUP_DATA'){fail(r);return null;}return r.backup;}
  async function load(){

@@ -9,7 +9,7 @@ const filePaths=[...tables,'settings'].map(k=>`NARO Biz/Data/${k}.json`);
 export const PURCHASES_PATH='NARO Biz/Data/purchases.json';
 const LOG_DIR='NARO Biz/Logs';
 // 자동 백업(10/22, 5단계): NARO Biz/Backups/YYYY-MM-DD.json — 하루 한 번, 없을 때만 만든다(지우거나 덮지 않는다).
-const BACKUP_DIR='NARO Biz/Backups',BACKUP_MAX=7*1048576;
+const BACKUP_DIR='NARO Biz/Backups',BACKUP_MAX=7*1048576,byteSize=v=>new TextEncoder().encode(JSON.stringify(v)).length;
 export const backupName=day=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(day)))throw fault('VALIDATION');return day+'.json';};
 const allowed=new Set([...folders,...filePaths,PURCHASES_PATH]);
 const isData=path=>filePaths.includes(path)||path===PURCHASES_PATH;
@@ -325,23 +325,28 @@ export function createGoogleBackend({oauth,signal,fetcher=fetch,now=Date.now,loc
   async listBackups(){
    check();const dir=await backupFolder(false);if(!dir)return [];
    const q=`'${escapeQuery(dir)}' in parents and trashed = false`;
-   const data=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'1000',fields:'nextPageToken,files(id,name,mimeType,appProperties,size)'}));
+   const data=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'1000',orderBy:'name desc',fields:'nextPageToken,files(id,name,mimeType,appProperties,size)'}));
    const files=Array.isArray(data.files)?data.files:[];
    return files.filter(f=>f.appProperties?.naroPersonalCloud==='1'&&f.mimeType==='application/json'&&/^\d{4}-\d{2}-\d{2}\.json$/.test(f.name||'')).map(f=>({day:f.name.slice(0,10),size:Number(f.size)||0})).sort((a,b)=>b.day.localeCompare(a.day));
   },
   async createBackup(day,value){
    if(!businessWrite)throw fault('WRITE_BLOCKED');check();const name=backupName(day);
-   if(!value||typeof value!=='object'||value.app!=='erp'||JSON.stringify(value).length>BACKUP_MAX)throw fault('VALIDATION');
+   if(!value||typeof value!=='object'||value.app!=='erp'||byteSize(value)>BACKUP_MAX)throw fault('VALIDATION');
    if(!locks?.request)throw fault('UNAVAILABLE');
    return locks.request('naro-drive-backup',{mode:'exclusive'},async()=>{
     const dir=await backupFolder(true);
-    if(await sideChild(dir,name))return {created:false};
+    const q=`'${escapeQuery(dir)}' in parents and name = '${escapeQuery(name)}' and trashed = false`;
+    const have=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'10',fields:'files(id)'}));
+    if(Array.isArray(have.files)&&have.files.length)return {created:false};
     const {created}=await createSideNode(dir,name,false,value);return {created};
    });
   },
   async readBackup(day){
    check();const name=backupName(day),dir=await backupFolder(false);if(!dir)throw fault('STORAGE_INVALID');
-   const file=await sideChild(dir,name);if(!file)throw fault('STORAGE_INVALID');
+   // 두 기기가 같은 날 동시에 처음 열어 같은 이름이 둘 생겼어도 읽을 수 있게(백업은 내용이 같은 날의 사본) — 이 앱이 만든 첫 파일을 읽는다.
+   const q=`'${escapeQuery(dir)}' in parents and name = '${escapeQuery(name)}' and trashed = false`;
+   const found=await request('files?'+new URLSearchParams({q,spaces:'drive',pageSize:'10',orderBy:'createdTime',fields:'files(id,name,mimeType,appProperties)'}));
+   const file=(Array.isArray(found.files)?found.files:[]).find(f=>f.appProperties?.naroPersonalCloud==='1'&&f.mimeType==='application/json');if(!file)throw fault('STORAGE_INVALID');
    const value=await request('files/'+encodeURIComponent(file.id)+'?alt=media',{maxBytes:BACKUP_MAX});
    if(!value||typeof value!=='object'||value.app!=='erp')throw fault('STORAGE_INVALID');return value;
   },
