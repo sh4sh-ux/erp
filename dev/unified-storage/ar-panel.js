@@ -47,8 +47,11 @@
   // 표 안(받을 금액 미수 견적): 품목 금액이 '남은 금액' 칸에 오른쪽으로 맞도록 표의 줄로 그린다(칸 수는 fitQx가 화면에 맞춘다).
   if(rows){
    const it=(a,b,c)=>`<tr class="nd-qx nd-qx-it"><td data-qx-span="lead"><span class="a">${a}</span><span class="b">${b}</span></td><td class="pp-c-num nd-qx-amt">${c}</td><td></td><td></td></tr>`;
-   return `<tr class="nd-qx nd-qx-hd"><td data-qx-span="all"><h5>품목 <small>${lines.length}개</small></h5></td></tr>`
-    +(lines.length?shown.map(l=>it(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">외 ${more}개</td></tr>`:''):`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">품목이 없어요.</td></tr>`)
+   // 품목 금액 칸 이름은 '소계'(위 견적 줄의 '남은 금액'과 헷갈리지 않게), 끝에 견적 전체 '합계'(사용자 10/23).
+   let total=0;try{total=fn('quoteTotals')({...q,lines}).total||0;}catch{total=lines.reduce((s,l)=>s+amt(l),0);}
+   const sum=lines.length?`<tr class="nd-qx nd-qx-it nd-qx-sum"><td data-qx-span="lead"><span class="a">합계</span></td><td class="pp-c-num nd-qx-amt">${num(total)}</td><td></td><td></td></tr>`:'';
+   return `<tr class="nd-qx nd-qx-hd"><td data-qx-span="lead"><h5>품목 <small>${lines.length}개</small></h5></td><td class="pp-c-num nd-qx-lbl">${lines.length?'소계':''}</td><td></td><td></td></tr>`
+    +(lines.length?shown.map(l=>it(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">외 ${more}개</td></tr>`:'')+sum:`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">품목이 없어요.</td></tr>`)
     +`<tr class="nd-qx nd-qx-ft"><td data-qx-span="all">${foot}</td></tr>`;
   }
   return `<div class="nd-qx-b">
