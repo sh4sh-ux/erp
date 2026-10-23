@@ -9828,7 +9828,7 @@ html body #appView .nd-qx-cv>.cv{display:inline-flex;color:var(--nd-ink-3);trans
 html body #appView .nd-qx-row[aria-expanded="true"] .nd-qx-cv>.cv{transform:rotate(180deg)}
 html body #appView .nd-qx-row[aria-expanded="true"]>td{border-bottom-color:transparent}
 html body #appView tr.nd-qx>td{padding:0!important;background:color-mix(in srgb,var(--nd-fill,#F2F3F5) 40%,transparent)}
-html body #appView .nd-qx-b{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 24px;padding:14px 16px 12px;text-align:left;white-space:normal}
+html body #appView .nd-qx-b{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 24px;padding:14px 16px 12px;text-align:left;white-space:normal}
 html body #appView .nd-qx-s{min-width:0}
 html body #appView .nd-qx-s>h5{margin:0 0 4px;font:600 12px/18px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-qx-s>h5 small{font-weight:400;color:var(--nd-ink-3);margin-left:4px}
@@ -16288,7 +16288,7 @@ html body #appView #view-payments .pp-abar>.pp-del{color:var(--nd-red)!important
   const docLink=q?'<button type="button" data-pp="doc">견적서 열기</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기</button>':'';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">${word}</span><h3 title="${esc(co?.name||'거래처 없음')}">${esc(co?.name||'거래처 없음')}</h3></div><div class="pp-amount"><span>${word}액</span><strong>${won(p.amount)}</strong></div><div class="pp-meta">${docBtn}<span>${esc(p.date||'날짜 없음')}</span><span>${esc(p.method||'방법 미기록')}</span>${chip}</div></header>
-   <div class="pp-body" id="pp-body">${prog}${q&&globalThis.NaroQuoteBrief?`<div class="nd-qx-fold"><button type="button" class="nd-qx-h" data-pp="qx" aria-expanded="${qxOpen===q.id}"><b>견적 내용</b><span class="n">${esc(q.no||'견적')} · 품목 · 납품 · 계산서</span><span class="cv">${globalThis.NaroQuoteChevron||''}</span></button>${qxOpen===q.id?globalThis.NaroQuoteBrief(q.id,{payButton:false,docButton:false,attr:'pp'}):''}</div>`:''}
+   <div class="pp-body" id="pp-body">${prog}${q&&globalThis.NaroQuoteBrief?`<div class="nd-qx-fold"><button type="button" class="nd-qx-h" data-pp="qx" aria-expanded="${qxOpen===q.id}"><b>견적 내용</b><span class="n">${esc(q.no||'견적')} · 품목 · 계산서</span><span class="cv">${globalThis.NaroQuoteChevron||''}</span></button>${qxOpen===q.id?globalThis.NaroQuoteBrief(q.id,{payButton:false,docButton:false,attr:'pp'}):''}</div>`:''}
     <div class="pp-section-head"><h4>${esc(title)} <small>${list.length}건</small></h4>${docLink}</div>
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
     <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
@@ -16555,7 +16555,7 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
   let left=paid,oldest=null;for(const d of ds){if(left>=d.amt-0.5){left-=d.amt;continue;}oldest=d.date;break;}
   return {q,delivered,paid,open,oldest,age:open>0.5?days(oldest):null,last:ds.at(-1)?.date||''};
  }
- // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목 · 납품 기록 · 입금 · 계산서를 한눈에(번호는 그대로 견적서로 이동).
+ // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목과 계산서를 한눈에(납품·입금은 표의 칸과 '최근 입금'에 이미 있어 넣지 않는다 — 사용자 10/23)(번호는 그대로 견적서로 이동).
  // 다른 화면(거래처 등)도 같은 모양을 쓰도록 NaroQuoteBrief로 내보낸다. 계산만 하고 저장하지 않는다.
  const CHEV='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
  function quoteBrief(qid,{payButton=true,docButton=true,attr='ap'}={}){
@@ -16565,17 +16565,12 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
   // 납품·남은 금액과 같은 기준(부가세 포함)으로 — 견적의 합계 계산(quoteTotals)을 줄 하나에 그대로 쓴다.
   const amt=l=>{try{return fn('quoteTotals')({...q,lines:[l]}).total||0;}catch{return (Number(l.qty)||0)*(Number(l.price)||0);}};
   const shown=lines.slice(0,5),more=lines.length-shown.length;
-  const dels=live(q).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
-  const dq=d=>{try{return fn('deliveryRecordQty')?.(q,d)??0;}catch{return 0;}};
-  const pays=(data()?.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   let taxed=false,noTax=false;try{taxed=!!fn('isTaxed')?.(q);noTax=!!fn('noTax')?.(q);}catch{}
   const tax=taxed?`발행 ${short(q.tax_at)||''}`.trim():noTax?'발행 안 함':'<b class="nd-qx-warn">미발행</b>';
   const row=(a,b,c,cls='')=>`<div class="nd-qx-r${cls}"><span class="a">${a}</span><span class="b">${b}</span><span class="c">${c}</span></div>`;
   const sec=(title,body)=>`<div class="nd-qx-s"><h5>${title}</h5>${body}</div>`;
   return `<div class="nd-qx-b">
    ${sec(`품목 <small>${lines.length}개</small>`,lines.length?shown.map(l=>row(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<div class="nd-qx-more">외 ${more}개</div>`:''):'<p class="nd-qx-none">품목이 없어요.</p>')}
-   ${sec(`납품 <small>${dels.length}번</small>`,dels.length?dels.map(d=>row(short(d.date||q.delivered_at)||'—',`${num(dq(d))}개`,num(delAmt(q,d)))).join(''):'<p class="nd-qx-none">아직 납품하지 않았어요.</p>')}
-   ${sec(`입금 <small>${pays.length}건</small>`,pays.length?pays.map(p=>row(short(p.date)||'—',esc(p.kind==='지급'?'환불':(p.method||'입금')),`${p.kind==='지급'?'-':''}${num(p.amount)}`,p.kind==='지급'?' neg':'')).join(''):'<p class="nd-qx-none">아직 입금이 없어요.</p>')}
    <div class="nd-qx-foot"><span>계산서 ${tax}</span><span class="sp"></span>${docButton?`<button type="button" class="pp-btn" data-${at}="doc" data-q="${esc(q.id)}">견적서 열기</button>`:''}${payButton?`<button type="button" class="pp-btn pp-primary" data-${at}="pay" data-id="${esc(q.company_id)}" data-q="${esc(q.id)}">이 견적 입금 기록</button>`:''}</div>
   </div>`;
  }

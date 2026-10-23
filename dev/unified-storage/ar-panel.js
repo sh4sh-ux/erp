@@ -29,7 +29,7 @@
   let left=paid,oldest=null;for(const d of ds){if(left>=d.amt-0.5){left-=d.amt;continue;}oldest=d.date;break;}
   return {q,delivered,paid,open,oldest,age:open>0.5?days(oldest):null,last:ds.at(-1)?.date||''};
  }
- // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목 · 납품 기록 · 입금 · 계산서를 한눈에(번호는 그대로 견적서로 이동).
+ // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목과 계산서를 한눈에(납품·입금은 표의 칸과 '최근 입금'에 이미 있어 넣지 않는다 — 사용자 10/23)(번호는 그대로 견적서로 이동).
  // 다른 화면(거래처 등)도 같은 모양을 쓰도록 NaroQuoteBrief로 내보낸다. 계산만 하고 저장하지 않는다.
  const CHEV='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
  function quoteBrief(qid,{payButton=true,docButton=true,attr='ap'}={}){
@@ -39,17 +39,12 @@
   // 납품·남은 금액과 같은 기준(부가세 포함)으로 — 견적의 합계 계산(quoteTotals)을 줄 하나에 그대로 쓴다.
   const amt=l=>{try{return fn('quoteTotals')({...q,lines:[l]}).total||0;}catch{return (Number(l.qty)||0)*(Number(l.price)||0);}};
   const shown=lines.slice(0,5),more=lines.length-shown.length;
-  const dels=live(q).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
-  const dq=d=>{try{return fn('deliveryRecordQty')?.(q,d)??0;}catch{return 0;}};
-  const pays=(data()?.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   let taxed=false,noTax=false;try{taxed=!!fn('isTaxed')?.(q);noTax=!!fn('noTax')?.(q);}catch{}
   const tax=taxed?`발행 ${short(q.tax_at)||''}`.trim():noTax?'발행 안 함':'<b class="nd-qx-warn">미발행</b>';
   const row=(a,b,c,cls='')=>`<div class="nd-qx-r${cls}"><span class="a">${a}</span><span class="b">${b}</span><span class="c">${c}</span></div>`;
   const sec=(title,body)=>`<div class="nd-qx-s"><h5>${title}</h5>${body}</div>`;
   return `<div class="nd-qx-b">
    ${sec(`품목 <small>${lines.length}개</small>`,lines.length?shown.map(l=>row(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<div class="nd-qx-more">외 ${more}개</div>`:''):'<p class="nd-qx-none">품목이 없어요.</p>')}
-   ${sec(`납품 <small>${dels.length}번</small>`,dels.length?dels.map(d=>row(short(d.date||q.delivered_at)||'—',`${num(dq(d))}개`,num(delAmt(q,d)))).join(''):'<p class="nd-qx-none">아직 납품하지 않았어요.</p>')}
-   ${sec(`입금 <small>${pays.length}건</small>`,pays.length?pays.map(p=>row(short(p.date)||'—',esc(p.kind==='지급'?'환불':(p.method||'입금')),`${p.kind==='지급'?'-':''}${num(p.amount)}`,p.kind==='지급'?' neg':'')).join(''):'<p class="nd-qx-none">아직 입금이 없어요.</p>')}
    <div class="nd-qx-foot"><span>계산서 ${tax}</span><span class="sp"></span>${docButton?`<button type="button" class="pp-btn" data-${at}="doc" data-q="${esc(q.id)}">견적서 열기</button>`:''}${payButton?`<button type="button" class="pp-btn pp-primary" data-${at}="pay" data-id="${esc(q.company_id)}" data-q="${esc(q.id)}">이 견적 입금 기록</button>`:''}</div>
   </div>`;
  }
