@@ -2508,7 +2508,7 @@ html body #appView .nd-qx-cv>.cv{display:inline-flex;color:var(--nd-ink-3);trans
 html body #appView .nd-qx-row[aria-expanded="true"] .nd-qx-cv>.cv{transform:rotate(180deg)}
 html body #appView .nd-qx-row[aria-expanded="true"]>td{border-bottom-color:transparent}
 html body #appView tr.nd-qx>td{padding:0!important;background:color-mix(in srgb,var(--nd-fill,#F2F3F5) 40%,transparent)}
-html body #appView .nd-qx-b{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 24px;padding:14px 16px 12px;text-align:left;white-space:normal}
+html body #appView .nd-qx-b{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 24px;padding:14px 16px 12px;text-align:left;white-space:normal}
 html body #appView .nd-qx-s{min-width:0}
 html body #appView .nd-qx-s>h5{margin:0 0 4px;font:600 12px/18px var(--sans);color:var(--nd-ink-2)}
 html body #appView .nd-qx-s>h5 small{font-weight:400;color:var(--nd-ink-3);margin-left:4px}
