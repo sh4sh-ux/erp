@@ -110,3 +110,9 @@ test('quote picker amount: receivable (delivered − paid) first, quote remainde
  delivered=0;assert.deepEqual({...api.owed(q)},{fill:200000,note:'견적 남은 · 납품 전'});
  delivered=230000;assert.deepEqual({...api.owed(q)},{fill:200000,note:'받을 금액'});
 });
+test('입금 기록 창: 견적 고르기(.pp-has-pick)여도 넓은 화면의 이름 칸 규칙이 창 안 격자를 깨지 않는다(10/23 겹침 버그)',()=>{
+ assert.match(css,/dialog\.pp-entry-dlg #payEntry\.pp-has-pick \.pay-add>\*\{grid-area:auto!important\}/);
+ for(const [k,n] of [['pf-co',1],['pp-qpick',2],['pf-amt',3],['pf-btn',7]])assert.match(css,new RegExp(`dialog\\.pp-entry-dlg #payEntry\\.pp-has-pick \\.pay-add>\\.${k}\\{order:${n}!important\\}`));
+ // 덮는 규칙이 넓은 화면 규칙보다 뒤에 있어야 한다
+ assert.ok(css.indexOf('dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>*{grid-area:auto')>css.indexOf('#payEntry.pp-has-pick .pay-add>.pp-qpick{grid-area:pick'));
+});

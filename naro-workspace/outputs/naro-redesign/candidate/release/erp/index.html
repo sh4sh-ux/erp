@@ -9873,6 +9873,10 @@ html body #appView .pp-table tr.nd-qx-ft+tr>td,html body #appView .pp-table tr.n
 html body #appView .nd-qx-r>.c{font-weight:400;color:var(--nd-ink-2)}
 @media(max-width:1023px){html body #appView .pp-table tr.nd-qx-ft>td{padding:0 8px 12px!important}}
 @media(max-width:1023px){html body #appView .pp-table tr.nd-qx-it>td:first-child{white-space:normal}html body #appView .pp-table tr.nd-qx-it .b{display:block;margin-left:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+/* 펼친 품목: 금액 칸 이름 '소계'(작은 회색) · 끝에 '합계' 한 줄 */
+html body #appView .pp-table tr.nd-qx-hd>td.nd-qx-lbl{font:400 11.5px/18px var(--sans);color:var(--nd-ink-3);vertical-align:bottom}
+html body #appView .pp-table tr.nd-qx-sum>td{font-weight:600!important;color:var(--nd-ink)!important}
+html body #appView .pp-table tr.nd-qx-sum>td.nd-qx-amt{font-weight:600!important;color:var(--nd-ink)!important}
 
 /* Sales: existing rail + master list + detail. Read-only presentation layer. */
 @media screen{
@@ -16180,6 +16184,10 @@ html body #appView dialog.pp-entry-dlg #payEntry{display:block!important;margin:
 html body #appView dialog.pp-entry-dlg #payEntry>summary{display:none!important}
 html body #appView dialog.pp-entry-dlg #payEntry .pay-add{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:none!important;gap:14px 12px!important;margin:0!important;padding:0!important;border:0!important;background:none!important;max-width:none!important;width:auto!important}
 html body #appView dialog.pp-entry-dlg #payEntry .pay-add>*{grid-area:auto!important;grid-column:auto!important;min-width:0;margin:0!important;width:auto!important;max-width:none!important}
+/* 10/23 고침: 견적 고르기(.pp-has-pick)일 때 넓은 화면 규칙의 이름 칸(kind·co·pick…)이 창 안에서도 이겨, 이름 없는 격자에 모든 칸이 한 줄에 겹쳤다(입금 기록 창이 깨짐). 창 안에서는 이름 칸을 쓰지 않는다. */
+html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>*{grid-area:auto!important}
+html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-co{order:1!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pp-qpick{order:2!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-amt{order:3!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-date{order:4!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-method{order:5!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-memo{order:6!important}html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-btn{order:7!important}
+html body #appView dialog.pp-entry-dlg #payEntry .pp-qpick>.pp-qpick-k{padding-left:0!important;text-align:left;font:400 12px/16px var(--sans)!important;color:var(--nd-ink-2)!important}
 html body #appView dialog.pp-entry-dlg #payEntry .pay-add>:is(.pp-et,.pf-kind,.pp-qpick,.pp-edit-note,.pf-btn){grid-column:1/-1!important}
 html body #appView dialog.pp-entry-dlg #payEntry.pp-has-pick .pay-add>.pf-co{grid-column:1/-1!important}
 html body #appView dialog.pp-entry-dlg #payEntry .pay-add>.pp-et{order:-2;display:block;margin:0!important;padding:0!important;font:700 17px/24px var(--sans);color:var(--nd-ink)}
@@ -16589,8 +16597,11 @@ html body #appView #view-ar .pp-detail .pp-table .ap-c-age{display:table-cell}
   // 표 안(받을 금액 미수 견적): 품목 금액이 '남은 금액' 칸에 오른쪽으로 맞도록 표의 줄로 그린다(칸 수는 fitQx가 화면에 맞춘다).
   if(rows){
    const it=(a,b,c)=>`<tr class="nd-qx nd-qx-it"><td data-qx-span="lead"><span class="a">${a}</span><span class="b">${b}</span></td><td class="pp-c-num nd-qx-amt">${c}</td><td></td><td></td></tr>`;
-   return `<tr class="nd-qx nd-qx-hd"><td data-qx-span="all"><h5>품목 <small>${lines.length}개</small></h5></td></tr>`
-    +(lines.length?shown.map(l=>it(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">외 ${more}개</td></tr>`:''):`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">품목이 없어요.</td></tr>`)
+   // 품목 금액 칸 이름은 '소계'(위 견적 줄의 '남은 금액'과 헷갈리지 않게), 끝에 견적 전체 '합계'(사용자 10/23).
+   let total=0;try{total=fn('quoteTotals')({...q,lines}).total||0;}catch{total=lines.reduce((s,l)=>s+amt(l),0);}
+   const sum=lines.length?`<tr class="nd-qx nd-qx-it nd-qx-sum"><td data-qx-span="lead"><span class="a">합계</span></td><td class="pp-c-num nd-qx-amt">${num(total)}</td><td></td><td></td></tr>`:'';
+   return `<tr class="nd-qx nd-qx-hd"><td data-qx-span="lead"><h5>품목 <small>${lines.length}개</small></h5></td><td class="pp-c-num nd-qx-lbl">${lines.length?'소계':''}</td><td></td><td></td></tr>`
+    +(lines.length?shown.map(l=>it(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">외 ${more}개</td></tr>`:'')+sum:`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">품목이 없어요.</td></tr>`)
     +`<tr class="nd-qx nd-qx-ft"><td data-qx-span="all">${foot}</td></tr>`;
   }
   return `<div class="nd-qx-b">

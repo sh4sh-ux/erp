@@ -2553,3 +2553,7 @@ html body #appView .pp-table tr.nd-qx-ft+tr>td,html body #appView .pp-table tr.n
 html body #appView .nd-qx-r>.c{font-weight:400;color:var(--nd-ink-2)}
 @media(max-width:1023px){html body #appView .pp-table tr.nd-qx-ft>td{padding:0 8px 12px!important}}
 @media(max-width:1023px){html body #appView .pp-table tr.nd-qx-it>td:first-child{white-space:normal}html body #appView .pp-table tr.nd-qx-it .b{display:block;margin-left:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+/* 펼친 품목: 금액 칸 이름 '소계'(작은 회색) · 끝에 '합계' 한 줄 */
+html body #appView .pp-table tr.nd-qx-hd>td.nd-qx-lbl{font:400 11.5px/18px var(--sans);color:var(--nd-ink-3);vertical-align:bottom}
+html body #appView .pp-table tr.nd-qx-sum>td{font-weight:600!important;color:var(--nd-ink)!important}
+html body #appView .pp-table tr.nd-qx-sum>td.nd-qx-amt{font-weight:600!important;color:var(--nd-ink)!important}
