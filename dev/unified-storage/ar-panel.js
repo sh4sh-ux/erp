@@ -32,7 +32,7 @@
  // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목과 계산서를 한눈에(납품·입금은 표의 칸과 '최근 입금'에 이미 있어 넣지 않는다 — 사용자 10/23)(번호는 그대로 견적서로 이동).
  // 다른 화면(거래처 등)도 같은 모양을 쓰도록 NaroQuoteBrief로 내보낸다. 계산만 하고 저장하지 않는다.
  const CHEV='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
- function quoteBrief(qid,{payButton=true,docButton=true,attr='ap'}={}){
+ function quoteBrief(qid,{payButton=true,docButton=true,attr='ap',rows=false}={}){
   const at=attr==='pp'?'pp':'ap';
   const q=(data()?.quotes||[]).find(x=>x.id===qid);if(!q)return '<div class="nd-qx-b"><p class="nd-qx-none">견적을 찾을 수 없어요.</p></div>';
   const lines=(q.lines||[]).filter(l=>(l.name||'').trim()),opt=l=>[l.color,l.spec].filter(Boolean).join(' · ');
@@ -43,6 +43,14 @@
   const tax=taxed?`발행 ${short(q.tax_at)||''}`.trim():noTax?'발행 안 함':'<b class="nd-qx-warn">미발행</b>';
   const row=(a,b,c,cls='')=>`<div class="nd-qx-r${cls}"><span class="a">${a}</span><span class="b">${b}</span><span class="c">${c}</span></div>`;
   const sec=(title,body)=>`<div class="nd-qx-s"><h5>${title}</h5>${body}</div>`;
+  const foot=`<div class="nd-qx-foot"><span>계산서 ${tax}</span><span class="sp"></span>${docButton?`<button type="button" class="pp-btn" data-${at}="doc" data-q="${esc(q.id)}">견적서 열기</button>`:''}${payButton?`<button type="button" class="pp-btn pp-primary" data-${at}="pay" data-id="${esc(q.company_id)}" data-q="${esc(q.id)}">이 견적 입금 기록</button>`:''}</div>`;
+  // 표 안(받을 금액 미수 견적): 품목 금액이 '남은 금액' 칸에 오른쪽으로 맞도록 표의 줄로 그린다(칸 수는 fitQx가 화면에 맞춘다).
+  if(rows){
+   const it=(a,b,c)=>`<tr class="nd-qx nd-qx-it"><td data-qx-span="lead"><span class="a">${a}</span><span class="b">${b}</span></td><td class="pp-c-num nd-qx-amt">${c}</td><td></td><td></td></tr>`;
+   return `<tr class="nd-qx nd-qx-hd"><td data-qx-span="all"><h5>품목 <small>${lines.length}개</small></h5></td></tr>`
+    +(lines.length?shown.map(l=>it(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">외 ${more}개</td></tr>`:''):`<tr class="nd-qx nd-qx-it nd-qx-more-r"><td data-qx-span="all">품목이 없어요.</td></tr>`)
+    +`<tr class="nd-qx nd-qx-ft"><td data-qx-span="all">${foot}</td></tr>`;
+  }
   return `<div class="nd-qx-b">
    ${sec(`품목 <small>${lines.length}개</small>`,lines.length?shown.map(l=>row(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<div class="nd-qx-more">외 ${more}개</div>`:''):'<p class="nd-qx-none">품목이 없어요.</p>')}
    <div class="nd-qx-foot"><span>계산서 ${tax}</span><span class="sp"></span>${docButton?`<button type="button" class="pp-btn" data-${at}="doc" data-q="${esc(q.id)}">견적서 열기</button>`:''}${payButton?`<button type="button" class="pp-btn pp-primary" data-${at}="pay" data-id="${esc(q.company_id)}" data-q="${esc(q.id)}">이 견적 입금 기록</button>`:''}</div>
@@ -105,7 +113,7 @@
    <div class="pp-body" id="ap-body">
     <section class="pp-prog"><div><span>납품 ${won(r.delivered)} 중 ${won(r.paid)} 받음</span><b>${Math.round(pct)}%</b></div><div class="pp-pbar"><span style="width:${pct.toFixed(1)}%"></span></div></section>
     <div class="pp-section-head"><h4>미수 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
-    ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th><th class="nd-qx-cv" aria-label="펼치기"></th></tr></thead><tbody>${r.opens.map(o=>{const x=state.qx===o.q.id;return `<tr class="nd-qx-row${state.quote===o.q.id?' on':''}" data-ap="qx" data-q="${esc(o.q.id)}" tabindex="0" aria-expanded="${x}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td><td class="nd-qx-cv"><span class="cv">${CHEV}</span></td></tr>${x?`<tr class="nd-qx"><td colspan="7">${quoteBrief(o.q.id)}</td></tr>`:''}`;}).join('')}</tbody></table>`:'<div class="pp-empty">미수 견적이 없어요.</div>'}
+    ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th><th class="nd-qx-cv" aria-label="펼치기"></th></tr></thead><tbody>${r.opens.map(o=>{const x=state.qx===o.q.id;return `<tr class="nd-qx-row${state.quote===o.q.id?' on':''}" data-ap="qx" data-q="${esc(o.q.id)}" tabindex="0" aria-expanded="${x}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td><td class="nd-qx-cv"><span class="cv">${CHEV}</span></td></tr>${x?quoteBrief(o.q.id,{rows:true}):''}`;}).join('')}</tbody></table>`:'<div class="pp-empty">미수 견적이 없어요.</div>'}
     ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
     <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건${mg.length>3?` · 최근 3개월`:''}</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
     ${months.length?`<div class="nd-mons ap-mons">${months.map((m,i)=>{const on=monOpen(m,i);return `<div class="nd-mon"><button type="button" class="nd-mon-h" data-ap="mon" data-ym="${esc(m.ym)}" aria-expanded="${on}"><b>${esc(ymLabel(m.ym))}</b><span class="n">${m.items.length}건</span><span class="s">${won(m.sum)}</span><span class="cv">${chev}</span></button>${on?`<div class="nd-mon-b">${m.items.map(p=>`<div class="nd-mon-r"><span class="d">${short(p.date)}</span><span class="n">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="qpv" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:''}</div>`;}).join('')}</div>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
@@ -147,7 +155,7 @@
   fitQx(host);
  }
  // 펼친 줄은 보이는 칸 수만큼만 차지한다(폰·좁은 화면에서 숨긴 칸까지 걸치면 표의 칸 폭이 어긋난다).
- function fitQx(root){for(const td of root.querySelectorAll('tr.nd-qx>td')){const n=[...(td.parentElement.previousElementSibling?.children||[])].filter(c=>getComputedStyle(c).display!=='none').length;if(n&&td.colSpan!==n)td.colSpan=n;}}
+ function fitQx(root){for(const td of root.querySelectorAll('tr.nd-qx>td[data-qx-span]')){let head=td.parentElement;while(head&&head.classList.contains('nd-qx'))head=head.previousElementSibling;const n=[...(head?.children||[])].filter(c=>getComputedStyle(c).display!=='none').length,want=td.dataset.qxSpan==='lead'?n-3:n;if(want>0&&td.colSpan!==want)td.colSpan=want;}}
  window.NaroFitQx=fitQx;
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;try{render();}catch(e){console.error(e);}});};
  const set=(id,val)=>{const el=document.getElementById(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}));};
