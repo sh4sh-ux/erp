@@ -16,7 +16,8 @@ export function createMergeImport(repository){
  }
  function build(backup,options){
   const base=planMerge(snapshot(),backup,options),rows=purchaseRows(backup);
-  if(!rows.length)return {steps:base.steps};
+  // 매입 기능이 없는 저장소면 매입은 건너뛴다(나머지는 그대로 가져온다).
+  if(!rows.length||!repository.loadPurchases||repository.purchasesState?.().status==='unsupported')return {steps:base.steps};
   const have=new Set(repository.purchasesState?.().status==='ready'?repository.loadPurchasesDoc().rows.map(r=>r.id):[]);
   const adds=rows.filter(r=>r&&typeof r==='object'&&!have.has(r.id)).map(row=>({purchase:true,row:structuredClone(row)}));
   const at=tables.indexOf(PURCHASE_AFTER),cut=base.steps.findIndex(s=>tables.indexOf(s.key)>at);
@@ -29,7 +30,7 @@ export function createMergeImport(repository){
   async run(backup,onProgress,options={}){
    if(busy)throw fault('BUSY');busy=true;
    try{
-    if(!plan){if(purchaseRows(backup).length)await purchasesReady();plan=build(backup,options);index=0;}
+    if(!plan){if(purchaseRows(backup).length&&repository.loadPurchases)await purchasesReady();plan=build(backup,options);index=0;}
     for(;index<plan.steps.length;index++){
      const step=plan.steps[index];
      if(step.purchase){

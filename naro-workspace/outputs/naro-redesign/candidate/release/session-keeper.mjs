@@ -18,7 +18,7 @@ const MSG={
 export function installSessionKeeper({repository,doc=globalThis.document,now=()=>Date.now(),every=30000,reload=()=>globalThis.location?.reload()}={}){
  if(!repository?.session)return {tick(){},activity(){},stop(){},element:null};
  const bar=doc.createElement('div');bar.id='naroSessionBar';bar.setAttribute('role','status');bar.hidden=true;
- bar.style.cssText='position:fixed;z-index:101;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);max-width:calc(100vw - 32px);box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;border-radius:12px;background:#16181D;color:#fff;font:500 13.5px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.18)';
+ bar.style.cssText='position:fixed;z-index:101;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;border-radius:12px;background:#16181D;color:#fff;font:500 13.5px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.18)';
  const text=doc.createElement('span');const button=doc.createElement('button');button.type='button';
  button.style.cssText='flex:none;height:32px;padding:0 14px;border:0;border-radius:9px;background:#4355E8;color:#fff;font:600 13px/1 inherit;font-family:inherit;cursor:pointer';
  bar.append(text,button);doc.body.append(bar);

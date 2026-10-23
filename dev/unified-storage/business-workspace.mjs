@@ -60,6 +60,8 @@ export function openWorkspace(data,logout,repository){
    if(m?.type==='LOGOUT'&&!busy&&!importer.active()){closeWorkspace();void logout();return;}
    if(m?.type==='MERGE_PREVIEW'&&!busy&&!importer.active()){
     if(!repository?.capabilities?.merge)return;
+    // 백업에 매입이 있으면 지금 매입을 먼저 읽어 둔다 — 안 그러면 이미 있는 매입까지 '새 항목'으로 세어 확인 창 숫자가 틀린다.
+    if(m.backup?.purchases&&repository.loadPurchases&&['unknown','error'].includes(repository.purchasesState().status)){busy=true;try{await repository.loadPurchases();}catch{}finally{busy=false;}}
     try{current.postMessage({type:'MERGE_PREVIEW',requestId:m.requestId,...importer.preview(m.backup,{keepExisting:m.keep===true})});}catch(error){current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,...safeStorageDiagnostic(error)});}return;
    }
    if(m?.type==='MERGE_IMPORT'&&!busy){
@@ -145,7 +147,10 @@ export function openWorkspace(data,logout,repository){
     try{reply({type:'LOG_ROWS',month:m.month,rows:await repository.readLog(m.month),provider});}catch(error){reply({type:'LOG_ERROR',...safeStorageDiagnostic(error)});}
     return;
    }
-   if(m?.type!=='SAVE_TABLE'||busy||!repository)return;
+   if(m?.type!=='SAVE_TABLE'||!repository)return;
+   // 다른 일(매입·사진·백업 준비)이 끝나길 최대 30초 기다린다 — 예전엔 조용히 버려져 화면이 저장 결과를 끝없이 기다렸다.
+   if(busy||importer.active()){const until=Date.now()+30000;while((busy||importer.active())&&Date.now()<until&&port===current)await new Promise(r=>setTimeout(r,120));
+    if(busy||importer.active()){if(port===current)current.postMessage({type:'TABLE_ERROR',requestId:m.requestId,code:'BUSY'});return;}}
    busy=true;
    const before=structuredClone(data[m.key]);
    try{
@@ -174,9 +179,10 @@ export function openWorkspace(data,logout,repository){
   async function backupNow(manual){
    const until=Date.now()+30000;while((busy||importer.active())&&Date.now()<until&&port===current)await new Promise(r=>setTimeout(r,150));
    if(busy||importer.active())throw Object.assign(Error('BUSY'),{code:'BUSY'});
-   busy=true;
-   try{await purchasesForBackup();const day=localDay(),r=await repository.createBackup(day,repository.backupSnapshot());try{localStorage.setItem(BACKUP_MARK+provider,day);}catch{}return {day,created:r.created,manual};}
-   finally{busy=false;}
+   // 매입을 읽고 내용을 찍어 두는 동안만 다른 일을 멈춘다. 클라우드에 올리는 동안에는 저장을 막지 않는다.
+   let snapshot;busy=true;
+   try{await purchasesForBackup();snapshot=repository.backupSnapshot();}finally{busy=false;}
+   const day=localDay(),r=await repository.createBackup(day,snapshot);try{localStorage.setItem(BACKUP_MARK+provider,day);}catch{}return {day,created:r.created,manual};
   }
   // 그날 처음 열 때 한 번(이 기기 기준) — 오늘 고치기 전 상태가 남는다. 실패해도 업무는 그대로(다음에 다시 시도).
   if(repository.createBackup&&repository.capabilities?.merge){
