@@ -7,7 +7,7 @@
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
  const won=n=>num(n)+'원';
- const state={cid:null,quote:null,mobileOpen:false,sig:'',listSig:'',mobileSig:'',mo:null,moCid:null};
+ const state={cid:null,quote:null,mobileOpen:false,sig:'',listSig:'',mobileSig:'',mo:null,moCid:null,qx:null};
  let queued=false;
  const data=()=>{try{return db;}catch{return null;}};
  const fn=name=>{try{const f=globalThis[name];return typeof f==='function'?f:null;}catch{return null;}};
@@ -28,6 +28,30 @@
   const delivered=ds.reduce((s,d)=>s+d.amt,0),paid=qPaid(q),open=delivered-paid;
   let left=paid,oldest=null;for(const d of ds){if(left>=d.amt-0.5){left-=d.amt;continue;}oldest=d.date;break;}
   return {q,delivered,paid,open,oldest,age:open>0.5?days(oldest):null,last:ds.at(-1)?.date||''};
+ }
+ // 10/23 견적 펼치기: 줄을 누르면 그 견적의 품목 · 납품 기록 · 입금 · 계산서를 한눈에(번호는 그대로 견적서로 이동).
+ // 다른 화면(거래처 등)도 같은 모양을 쓰도록 NaroQuoteBrief로 내보낸다. 계산만 하고 저장하지 않는다.
+ const CHEV='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+ function quoteBrief(qid,{payButton=true,docButton=true,attr='ap'}={}){
+  const at=attr==='pp'?'pp':'ap';
+  const q=(data()?.quotes||[]).find(x=>x.id===qid);if(!q)return '<div class="nd-qx-b"><p class="nd-qx-none">견적을 찾을 수 없어요.</p></div>';
+  const lines=(q.lines||[]).filter(l=>(l.name||'').trim()),opt=l=>[l.color,l.spec].filter(Boolean).join(' · ');
+  // 납품·남은 금액과 같은 기준(부가세 포함)으로 — 견적의 합계 계산(quoteTotals)을 줄 하나에 그대로 쓴다.
+  const amt=l=>{try{return fn('quoteTotals')({...q,lines:[l]}).total||0;}catch{return (Number(l.qty)||0)*(Number(l.price)||0);}};
+  const shown=lines.slice(0,5),more=lines.length-shown.length;
+  const dels=live(q).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  const dq=d=>{try{return fn('deliveryRecordQty')?.(q,d)??0;}catch{return 0;}};
+  const pays=(data()?.payments||[]).filter(p=>p.quote_id===q.id&&!p.void_at&&(p.kind==='수금'||(p.kind==='지급'&&p.refund))).sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  let taxed=false,noTax=false;try{taxed=!!fn('isTaxed')?.(q);noTax=!!fn('noTax')?.(q);}catch{}
+  const tax=taxed?`발행 ${short(q.tax_at)||''}`.trim():noTax?'발행 안 함':'<b class="nd-qx-warn">미발행</b>';
+  const row=(a,b,c,cls='')=>`<div class="nd-qx-r${cls}"><span class="a">${a}</span><span class="b">${b}</span><span class="c">${c}</span></div>`;
+  const sec=(title,body)=>`<div class="nd-qx-s"><h5>${title}</h5>${body}</div>`;
+  return `<div class="nd-qx-b">
+   ${sec(`품목 <small>${lines.length}개</small>`,lines.length?shown.map(l=>row(esc(l.name),`${esc(opt(l))}${opt(l)?' · ':''}${num(l.qty)}${esc(l.unit||'')}`,num(amt(l)))).join('')+(more>0?`<div class="nd-qx-more">외 ${more}개</div>`:''):'<p class="nd-qx-none">품목이 없어요.</p>')}
+   ${sec(`납품 <small>${dels.length}번</small>`,dels.length?dels.map(d=>row(short(d.date||q.delivered_at)||'—',`${num(dq(d))}개`,num(delAmt(q,d)))).join(''):'<p class="nd-qx-none">아직 납품하지 않았어요.</p>')}
+   ${sec(`입금 <small>${pays.length}건</small>`,pays.length?pays.map(p=>row(short(p.date)||'—',esc(p.kind==='지급'?'환불':(p.method||'입금')),`${p.kind==='지급'?'-':''}${num(p.amount)}`,p.kind==='지급'?' neg':'')).join(''):'<p class="nd-qx-none">아직 입금이 없어요.</p>')}
+   <div class="nd-qx-foot"><span>계산서 ${tax}</span><span class="sp"></span>${docButton?`<button type="button" class="pp-btn" data-${at}="doc" data-q="${esc(q.id)}">견적서 열기</button>`:''}${payButton?`<button type="button" class="pp-btn pp-primary" data-${at}="pay" data-id="${esc(q.company_id)}" data-q="${esc(q.id)}">이 견적 입금 기록</button>`:''}</div>
+  </div>`;
  }
  // 거래처: 받을 금액은 받을 금액 화면과 같은 계산(arData). 경과일 = 남은 견적 중 가장 오래된 것.
  function companies(){
@@ -73,7 +97,7 @@
  function detailMarkup(r){
   const pays=(data()?.payments||[]).filter(p=>p.company_id===r.cid&&p.kind==='수금'&&!p.void_at).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   // 10/17 B안: 최근 입금을 달마다 한 줄(달 · 건수 · 합계 ⌄)로 — 거래처 화면과 같은 부품(.nd-mon). 최근 3개월, 가장 최근 달만 펼침.
-  if(state.moCid!==r.cid){state.moCid=r.cid;state.mo=null;}
+  if(state.moCid!==r.cid){state.moCid=r.cid;state.mo=null;state.qx=null;}
   const ymOf=d=>/^\d{4}-\d{2}/.exec(d||'')?.[0]||'',ymLabel=ym=>{if(!ym)return '날짜 없음';const [y,m]=ym.split('-');return (y!==String(new Date().getFullYear())?`${y}년 `:'')+`${+m}월`;};
   const mg=[];for(const p of pays){const k=ymOf(p.date);let m=mg[mg.length-1];if(!m||m.ym!==k){m={ym:k,items:[],sum:0};mg.push(m);}m.items.push(p);m.sum+=Number(p.amount)||0;}
   const months=mg.slice(0,3),monOpen=(m,i)=>state.mo?state.mo.has(m.ym):i===0;state.firstYm=mg[0]?.ym??null;
@@ -86,7 +110,7 @@
    <div class="pp-body" id="ap-body">
     <section class="pp-prog"><div><span>납품 ${won(r.delivered)} 중 ${won(r.paid)} 받음</span><b>${Math.round(pct)}%</b></div><div class="pp-pbar"><span style="width:${pct.toFixed(1)}%"></span></div></section>
     <div class="pp-section-head"><h4>미수 견적 <small>${r.opens.length}건 · 오래된 순</small></h4></div>
-    ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th></tr></thead><tbody>${r.opens.map(o=>`<tr class="${state.quote===o.q.id?'on':''}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td></tr>`).join('')}</tbody></table>`:'<div class="pp-empty">미수 견적이 없어요.</div>'}
+    ${r.opens.length?`<table class="pp-table ap-table"><thead><tr><th>견적</th><th class="pp-c-method">납품일</th><th class="pp-c-num ap-c-wide">납품액</th><th class="pp-c-num ap-c-wide">받음</th><th class="pp-c-num">남은 금액</th><th class="pp-c-method ap-c-age">경과</th><th class="nd-qx-cv" aria-label="펼치기"></th></tr></thead><tbody>${r.opens.map(o=>{const x=state.qx===o.q.id;return `<tr class="nd-qx-row${state.quote===o.q.id?' on':''}" data-ap="qx" data-q="${esc(o.q.id)}" tabindex="0" aria-expanded="${x}"><td><button type="button" class="pp-link" data-ap="doc" data-q="${esc(o.q.id)}">${esc(o.q.no||'견적')}</button></td><td class="pp-c-method">${short(o.oldest)}</td><td class="pp-c-num ap-c-wide">${num(o.delivered)}</td><td class="pp-c-num ap-c-wide">${num(o.paid)}</td><td class="pp-c-num">${num(o.open)}</td><td class="pp-c-method ap-c-age">${ageChip(o.age)}</td><td class="nd-qx-cv"><span class="cv">${CHEV}</span></td></tr>${x?`<tr class="nd-qx"><td colspan="7">${quoteBrief(o.q.id)}</td></tr>`:''}`;}).join('')}</tbody></table>`:'<div class="pp-empty">미수 견적이 없어요.</div>'}
     ${diff>0?`<p class="pp-note">견적에 연결하지 않은 입금 ${won(diff)}이 있어요. 견적별 남은 금액의 합이 받을 금액보다 그만큼 커요.</p>`:''}
     <div class="pp-section-head"><h4>최근 입금 <small>${pays.length}건${mg.length>3?` · 최근 3개월`:''}</small></h4><button type="button" data-ap="payments">입금·출금에서 모두 보기</button></div>
     ${months.length?`<div class="nd-mons ap-mons">${months.map((m,i)=>{const on=monOpen(m,i);return `<div class="nd-mon"><button type="button" class="nd-mon-h" data-ap="mon" data-ym="${esc(m.ym)}" aria-expanded="${on}"><b>${esc(ymLabel(m.ym))}</b><span class="n">${m.items.length}건</span><span class="s">${won(m.sum)}</span><span class="cv">${chev}</span></button>${on?`<div class="nd-mon-b">${m.items.map(p=>`<div class="nd-mon-r"><span class="d">${short(p.date)}</span><span class="n">${esc(p.method||'입금')}${p.quote_id&&qno(p.quote_id)?` <button type="button" class="pp-link ap-qlink" data-ap="qpv" data-q="${esc(p.quote_id)}">${esc(qno(p.quote_id))}</button>`:''}</span><span class="a">${won(p.amount)}</span></div>`).join('')}</div>`:''}</div>`;}).join('')}</div>`:'<div class="pp-empty">아직 입금 기록이 없어요.</div>'}
@@ -125,15 +149,19 @@
   if(!host){host=document.createElement('section');host.className='pp-detail';host.setAttribute('aria-label','받을 금액 상세');v.append(host);}
   host.hidden=false;const html=r?detailMarkup(r):overviewMarkup(all);
   if(html!==state.sig||!host.firstChild){host.innerHTML=html;state.sig=html;}
+  fitQx(host);
  }
+ // 펼친 줄은 보이는 칸 수만큼만 차지한다(폰·좁은 화면에서 숨긴 칸까지 걸치면 표의 칸 폭이 어긋난다).
+ function fitQx(root){for(const td of root.querySelectorAll('tr.nd-qx>td')){const n=[...(td.parentElement.previousElementSibling?.children||[])].filter(c=>getComputedStyle(c).display!=='none').length;if(n&&td.colSpan!==n)td.colSpan=n;}}
+ window.NaroFitQx=fitQx;
  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;try{render();}catch(e){console.error(e);}});};
  const set=(id,val)=>{const el=document.getElementById(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('change',{bubbles:true}));};
  // 입금 기록: 입금·출금 화면의 입력 창을 열고, 가장 오래된 견적과 그 남은 금액을 채운다.
- function pay(cid){
+ function pay(cid,qid){
   const sv=fn('switchView');if(sv&&sv('payments')===false)return;
   const open=fn('openPaymentEntry');if(open)open('수금');
   if(!cid)return;
-  const r=companies().find(x=>x.cid===cid),first=r&&pick(r);
+  const r=companies().find(x=>x.cid===cid),first=r&&(r.opens.find(o=>o.q.id===qid)||pick(r));
   setTimeout(()=>{set('payCo',cid);setTimeout(()=>{
    const s=document.getElementById('payQuote');
    if(first&&s){if(![...s.options].some(o=>o.value===first.q.id)){const o=document.createElement('option');o.value=first.q.id;o.textContent=first.q.no||'견적';s.append(o);}set('payQuote',first.q.id);}
@@ -151,7 +179,8 @@
     case 'overview':state.cid=null;state.quote=null;state.mobileOpen=true;state.sig='';render();break;
     case 'back':state.mobileOpen=false;if(desk.matches){state.cid=null;state.quote=null;}render();break;
     case 'mode':set('arView',b.dataset.mode);break;
-    case 'pay':pay(b.dataset.id||state.cid);break;
+    case 'pay':pay(b.dataset.id||state.cid,b.dataset.q);break;
+    case 'qx':state.qx=state.qx===b.dataset.q?null:b.dataset.q;state.sig='';render();break;
     case 'payments':fn('switchView')?.('payments');break;
     case 'export':[...document.querySelectorAll('.nd-nav-act')].find(x=>x.textContent.includes('데이터 내보내기'))?.click();break;
     case 'company':if(state.cid&&fn('switchView')?.('companies')!==false){try{coSel=state.cid;}catch{}fn('renderCoList')?.();fn('renderCoDetail')?.();}break;
@@ -161,12 +190,13 @@
     case 'doc':{const id=b.dataset.q;if(fn('switchView')?.('quotes')!==false){try{qtSel=id;}catch{}fn('renderQtList')?.();fn('renderQtDetail')?.();}break;}
    }
   });
-  v.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('tr[data-ap="co"]')){ev.preventDefault();ev.target.click();}});
+  v.addEventListener('keydown',ev=>{if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches?.('tr[data-ap="co"],tr[data-ap="qx"]')){ev.preventDefault();ev.target.click();}});
   v.addEventListener('change',schedule);v.addEventListener('input',schedule);
   document.addEventListener('change',e=>{if(e.target?.id==='arView'||e.target?.id==='arFilter'){state.sig='';schedule();}},true);
   new MutationObserver(schedule).observe(v,{childList:true,subtree:true});
-  desk.addEventListener('change',schedule);schedule();
+  desk.addEventListener('change',schedule);addEventListener('resize',()=>{const h=v.querySelector(':scope>.pp-detail');if(h)fitQx(h);});schedule();
  }
  window.NaroArPanel={render:schedule,companies};
+ window.NaroQuoteBrief=quoteBrief;window.NaroQuoteChevron=CHEV;
  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',mount):mount();
 })();

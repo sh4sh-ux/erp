@@ -2498,3 +2498,42 @@ html body #appView#appView#appView .shell .main :is(.qp-tabs,.cp-tabs,.nd-materi
 html body #appView#appView#appView .shell .main :is(.qp-tabs,.cp-tabs,.nd-material-tabs)>button{border-bottom-width:0!important}
 /* PC 견적·매입: 탭 머리(.panel-b-work-header)는 넘침을 자르고 아래 테두리를 가져서 막대가 선에 닿지 못했다 → 선을 안쪽 그림자로 그리고 막대는 그 위에 */
 html body #appView#appView#appView .shell .main .panel-b-work-header{border-bottom-width:0!important;box-shadow:inset 0 -1px 0 var(--nd-line)!important}
+
+/* ── 10/23 견적 펼치기(받을 금액 미수 견적 · 거래처 견적 표): 번호 = 견적서로 이동, 줄의 나머지 = 펼치기. 화살표는 '최근 입금' 달 줄과 같은 오른쪽 ⌄ ── */
+html body #appView .nd-qx-row{cursor:pointer}
+@media(hover:hover){html body #appView .nd-qx-row:hover>td{background:var(--nd-fill)}}
+html body #appView .nd-qx-row:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView .pp-table .nd-qx-cv{width:28px;padding-left:0;padding-right:8px;text-align:right}
+html body #appView .nd-qx-cv>.cv{display:inline-flex;color:var(--nd-ink-3);transition:transform .15s;vertical-align:middle}
+html body #appView .nd-qx-row[aria-expanded="true"] .nd-qx-cv>.cv{transform:rotate(180deg)}
+html body #appView .nd-qx-row[aria-expanded="true"]>td{border-bottom-color:transparent}
+html body #appView tr.nd-qx>td{padding:0!important;background:color-mix(in srgb,var(--nd-fill,#F2F3F5) 40%,transparent)}
+html body #appView .nd-qx-b{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 24px;padding:14px 16px 12px;text-align:left;white-space:normal}
+html body #appView .nd-qx-s{min-width:0}
+html body #appView .nd-qx-s>h5{margin:0 0 4px;font:600 12px/18px var(--sans);color:var(--nd-ink-2)}
+html body #appView .nd-qx-s>h5 small{font-weight:400;color:var(--nd-ink-3);margin-left:4px}
+html body #appView .nd-qx-r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:6px 0;border-top:1px solid var(--nd-line);font:400 13px/19px var(--sans);color:var(--nd-ink)}
+html body #appView .nd-qx-r>.a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .nd-qx-r>.b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--nd-ink-3);font-size:12.5px}
+html body #appView .nd-qx-r>.c{font-weight:600;white-space:nowrap;text-align:right}
+html body #appView .nd-qx-r.neg>.c{color:var(--nd-red)}
+html body #appView .nd-qx-more,html body #appView .nd-qx-none{margin:0;padding:6px 0;border-top:1px solid var(--nd-line);font:400 12.5px/19px var(--sans);color:var(--nd-ink-3)}
+html body #appView .nd-qx-warn{color:var(--nd-amber);font-weight:600}
+html body #appView .nd-qx-foot{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:10px;border-top:1px solid var(--nd-line);font:400 12.5px/19px var(--sans);color:var(--nd-ink-2)}
+html body #appView .nd-qx-foot>.sp{flex:1}
+html body #appView .nd-qx-foot>.pp-btn{height:34px;padding:0 12px;font-size:13px}
+@media(max-width:1023px){
+ html body #appView .nd-qx-b{grid-template-columns:minmax(0,1fr);gap:10px;padding:12px 12px 10px}
+ html body #appView .nd-qx-foot>.sp{display:none}
+ html body #appView .nd-qx-foot>span:first-child{flex:1 0 100%}
+ html body #appView .nd-qx-foot>.pp-btn{flex:1}
+}
+/* 입금·출금 상세: '견적 내용 ⌄' 한 줄(받을 금액 '최근 입금' 달 줄과 같은 모양) */
+html body #appView .nd-qx-fold{margin:4px 0 8px;border-top:1px solid var(--nd-line);border-bottom:1px solid var(--nd-line)}
+html body #appView .nd-qx-h{display:grid;grid-template-columns:auto minmax(0,1fr) 20px;gap:12px;align-items:center;width:100%;min-height:48px;margin:0;padding:0;border:0;border-radius:0;background:none;color:var(--nd-ink);font:400 13px/19px var(--sans);text-align:left;cursor:pointer}
+html body #appView .nd-qx-h>b{font-weight:600;font-size:14px}
+html body #appView .nd-qx-h>.n{color:var(--nd-ink-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #appView .nd-qx-h>.cv{display:flex;color:var(--nd-ink-3);transition:transform .15s}
+html body #appView .nd-qx-h[aria-expanded="true"]>.cv{transform:rotate(180deg)}
+html body #appView .nd-qx-h:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+html body #appView .nd-qx-fold>.nd-qx-b{border-top:1px solid var(--nd-line);background:color-mix(in srgb,var(--nd-fill,#F2F3F5) 40%,transparent)}

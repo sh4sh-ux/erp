@@ -15,6 +15,8 @@
  const won=n=>num(n)+'원';
  const state={id:null,mobileOpen:false,signature:'',listSig:'',mobileSig:'',editing:null,menu:false};
  let queued=false;
+ // 10/23 견적 내용 펼치기(받을 금액과 같은 부품 NaroQuoteBrief): 펼친 견적 id. 다른 기록을 열면 접힌다.
+ let qxOpen=null;
  const data=()=>{try{return db;}catch{return null;}};
  const value=id=>document.getElementById(id)?.value||'';
  const records=()=>[...document.querySelectorAll('#payTbl tbody tr .rm')].map(b=>b.dataset.id);
@@ -100,7 +102,7 @@
   const docLink=q?'<button type="button" data-pp="doc">견적서 열기</button>':p.purchase_id?'<button type="button" data-pp="doc">매입 열기</button>':'';
   return `<button type="button" class="pp-back" data-pp="back">‹ <span>${paymentLabel('입금·출금')}</span></button>
    <header class="pp-head"><div class="pp-title"><span class="pp-caption">${word}</span><h3 title="${esc(co?.name||'거래처 없음')}">${esc(co?.name||'거래처 없음')}</h3></div><div class="pp-amount"><span>${word}액</span><strong>${won(p.amount)}</strong></div><div class="pp-meta">${docBtn}<span>${esc(p.date||'날짜 없음')}</span><span>${esc(p.method||'방법 미기록')}</span>${chip}</div></header>
-   <div class="pp-body" id="pp-body">${prog}
+   <div class="pp-body" id="pp-body">${prog}${q&&globalThis.NaroQuoteBrief?`<div class="nd-qx-fold"><button type="button" class="nd-qx-h" data-pp="qx" aria-expanded="${qxOpen===q.id}"><b>견적 내용</b><span class="n">${esc(q.no||'견적')} · 품목 · 납품 · 계산서</span><span class="cv">${globalThis.NaroQuoteChevron||''}</span></button>${qxOpen===q.id?globalThis.NaroQuoteBrief(q.id,{payButton:false,docButton:false,attr:'pp'}):''}</div>`:''}
     <div class="pp-section-head"><h4>${esc(title)} <small>${list.length}건</small></h4>${docLink}</div>
     <table class="pp-table pp-table-rec"><thead><tr><th class="pp-c-date">날짜</th><th>내용</th><th class="pp-c-method">방법</th><th class="pp-c-num">금액</th></tr></thead><tbody>${list.map(x=>`<tr data-pp="record" data-id="${esc(x.id)}" tabindex="0"${x.id===p.id?' class="on" aria-current="true"':''}><td class="pp-c-date">${esc(short(x.date))}</td><td><span class="pp-t-nm">${esc(x.memo||kindWord(x))}</span>${!q&&!p.purchase_id?`<small>${esc(kindWord(x))}${docNo(x)?' · '+esc(docNo(x)):''}</small>`:''}</td><td class="pp-c-method">${esc(x.method||'—')}</td><td class="pp-c-num${isIn(x)&&!x.refund?' in':''}">${isIn(x)?'':'−'}${num(x.amount)}</td></tr>`).join('')}</tbody></table>
     <dl class="pp-kv"><dt>메모</dt><dd>${esc(p.memo||'메모 없음')}</dd><dt>거래처</dt><dd>${co?`<button type="button" class="pp-link" data-pp="company">${esc(co.name)}</button>`:'거래처 없음'}</dd><dt>기록</dt><dd>${created?esc(created)+' 기록':'기록일 없음'}</dd></dl>
@@ -267,6 +269,7 @@
     case 'overview':state.id=null;state.mobileOpen=true;render();break;
     case 'back':state.mobileOpen=false;render();break;
     case 'menu':state.menu=!state.menu;state.signature='';render();break;
+    case 'qx':{const q=quoteOf(p);qxOpen=q&&qxOpen!==q.id?q.id:null;state.signature='';render();break;}
     case 'delete':if(p&&fn('deletePayment'))deletePayment(p.id);break;
     case 'edit':if(p){state.editing=p.id;openEntry(p.kind==='지급'?'지급':'수금',{company_id:p.company_id,quote_id:p.quote_id||'',date:p.date,method:p.method,amount:p.amount,memo:p.memo});}break;
     case 'rest':{const q=quoteOf(p);if(q)openEntry('수금',{company_id:q.company_id,quote_id:q.id,amount:Math.max(0,amountOf(q)-paidOf(q))});break;}
