@@ -20,7 +20,9 @@ test('직접 정한 순서가 우선, 모르는 이름은 빼고 빠진 택배�
  const o=order(db);assert.deepEqual(o.slice(0,2),['kd','post']);assert.equal(o.length,13);assert.ok(o.includes('lotte'));
 });
 test('송장 목록·기본값·공급자 정보 저장이 같은 순서를 쓴다',()=>{
- assert.match(src,/o=carrierOrder\(\);if\(p\.carrier&&!all\[p\.carrier\]\)o\.push\(p\.carrier\);return o\.map\(k=>`<option value="\$\{e\(k\)\}"/);
+ assert.match(src,/o=carrierOrder\(\);if\(p\.carrier&&!all\[p\.carrier\]\)o\.push\(p\.carrier\);const opt=k=>`<option value="\$\{e\(k\)\}"/);
+ // 주로 쓰는 5곳만 먼저, 나머지는 '그 외 택배사' 묶음(10/26)
+ assert.match(src,/const TOP_CARRIERS=5;/);assert.match(src,/o\.slice\(0,TOP_CARRIERS\)\.map\(opt\)[^\n]*<optgroup label="그 외 택배사">/);
  assert.match(src,/carrier:v\.carrier\|\|defCarrier\(\)/);
  assert.match(build,/naroCarrierFromSettings\?window\.naroCarrierFromSettings\(\):\{\}/);
  assert.match(build,/naroCarrierToSettings\)window\.naroCarrierToSettings\(\)/);
