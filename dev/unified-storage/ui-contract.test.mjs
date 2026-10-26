@@ -628,7 +628,7 @@ test('parcel lookup supports added carriers before saving and in saved records w
  try{const p=await b.newPage({viewport:{width:1440,height:1000}});await prepare(p);await open(p,'quotes');
  await p.evaluate(()=>{const q=db.quotes[0];q.status='수주';q.deliveries=[];q.delivered_at='';window.shippingWrites=0;Table.save=async()=>{shippingWrites++;};renderQtDetail();});await p.locator('#qp-tab-flow').click();await p.locator('[data-rec=part]').click();await p.locator('#ndShipMethod').selectOption('택배');
  assert.equal(await p.locator('#ndShipCarrier').inputValue(),'cj');
- const urls={logen:'https://www.ilogen.com/web/personal/trace/',lotte:'https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=',kd:'https://kdexp.com/basicNewDelivery.kd?barcode='};
+ const urls={logen:'https://www.ilogen.com/web/personal/trace/',lotte:'https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo=',kd:'https://kdexp.com/service/delivery/etc/delivery.do?barcode='};
  for(const [carrier,url] of Object.entries(urls)){await p.locator('#ndShipCarrier').selectOption(carrier);await p.locator('#ndShipTracking').fill('1234-5678 9012');assert.equal(await p.locator('#ndShipLookup').getAttribute('href'),url+'123456789012');}
  await p.locator('#ndShipTracking').fill('abc');assert.equal(await p.locator('#ndShipLookup').getAttribute('href'),null);
  await p.locator('#ndShipTracking').fill('123456789012');await p.locator('#ndShipCarrier').selectOption('lotte');
