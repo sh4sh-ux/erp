@@ -586,3 +586,4 @@ measures it at 1440 and 390.
 ## 택배사 순서 (10/26)
 - 송장 택배사 목록은 `carrierOrder()`(quote-actions.js): 공급자 정보에서 직접 정한 `settings.carrier_order`가 있으면 그 순서, 없으면 납품 기록의 송장이 많은 순(자동). 맨 앞이 새 송장의 기본값.
 - 공급자 정보 → 택배사 순서: [자동 · 많이 쓴 순 | 직접 정하기] + ↑↓, 공급자 정보 [저장]으로 함께 저장(자동으로 되돌리면 키를 지운다).
+- 택배사 목록: 기본 6곳 + 네이버 택배조회에서 많이 쓰는 7곳(대신·일양·합동·건영·천일·CU·GS25, 공식 조회 주소 미확인 → 네이버 검색으로 조회) + 직접 추가(`settings.carriers_custom`, 조회 주소는 https만, 없으면 네이버 검색). 경동 조회 주소는 2023 리뉴얼 뒤 주소(service/delivery/etc/delivery.do?barcode=).
