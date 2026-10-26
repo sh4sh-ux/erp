@@ -561,3 +561,7 @@ html body #appView #view-settings .nd-qn-sep{background:#E2E4E8}
 #appView .nd-cr-fold[aria-expanded="true"] svg{transform:rotate(180deg)}
 #appView .nd-cr-fold:hover{color:var(--nd-blue)}
 #appView .nd-cr-list>li[hidden]{display:none}
+
+/* 10/26 단계 줄의 '발송'은 눌러서 기록(앱 밖에서 보냈을 때) */
+#appView .nd-steps .nd-step>button[data-st]{cursor:pointer}
+@media(hover:hover){#appView .nd-steps .nd-step>button[data-st]:hover{color:var(--nd-blue)}#appView .nd-steps .nd-step>button[data-st]:hover>i{border-color:var(--nd-blue)}}
