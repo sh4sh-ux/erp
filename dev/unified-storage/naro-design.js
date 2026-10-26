@@ -355,7 +355,7 @@ const NaroCompanyLedger=(()=>{
 
  // Reuse the company Information group anatomy, moving native supplier fields intact.
  function supplierInfoGroups(view){
-  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌'],['견적서 안내문','모든 견적서 비고 아래 · 글자를 골라 굵게·색을 바꿀 수 있어요']];
+  const titles=[['기본 정보','견적서·거래명세서 표시'],['연락처','견적서 발송용'],['계좌정보','견적서·거래명세서에 표시할 입금 계좌'],['견적서 안내문','모든 견적서 비고 아래 · 글자를 골라 굵게·색을 바꿀 수 있어요'],['택배사 순서','납품 송장의 택배사 목록 · 맨 위가 미리 선택돼요']];
   view.querySelectorAll('.sup-sec:not(.sup-docs)').forEach((sec,i)=>{
    if(sec.classList.contains('cp-grp'))return;
    const h=sec.querySelector(':scope>.sup-sec-t');if(!h)return;
@@ -1230,6 +1230,7 @@ const NaroCompanyLedger=(()=>{
   const address=[document.getElementById('st_address')?.value.trim(),document.getElementById('nd_address_detail')?.value.trim()].filter(Boolean).join(' ');
   if(address!==String(s.address||'').trim())return false;
   if(window.naroNoticeEditorClean&&!window.naroNoticeEditorClean())return false;
+  if(window.naroCarrierClean&&!window.naroCarrierClean())return false;
   const card=v=>{v=String(v||DEFAULT_BUSINESS_CARD_URL).trim();return v===LEGACY_BUSINESS_CARD_URL?DEFAULT_BUSINESS_CARD_URL:v;};
   return card(document.getElementById('st_card_url')?.value)===card(s.business_card_url)&&(document.getElementById('st_cert_url')?.value.trim()||'')===String(s.biz_cert_url||'').trim();
  }
