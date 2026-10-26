@@ -526,3 +526,18 @@ html body #appView #view-settings .nd-qn-tb>button{color:#16181D}
 html body #appView #view-settings .nd-qn-tb>.nd-qn-clr{color:#5B606B}
 html body #appView #view-settings .nd-qn-tb>button:hover{background:#fff;border-color:#E2E4E8}
 html body #appView #view-settings .nd-qn-sep{background:#E2E4E8}
+
+/* 10/26 공급자 정보 → 택배사 순서 */
+#appView .nd-cr{display:flex;flex-direction:column;gap:10px}
+#appView .nd-cr-mode{display:inline-flex;align-self:flex-start;gap:2px;padding:3px;border-radius:10px;background:var(--nd-fill)}
+#appView .nd-cr-mode>button{height:32px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--nd-ink-2);font:500 13px/1 var(--sans);cursor:pointer}
+#appView .nd-cr-mode>button[aria-pressed="true"]{background:var(--nd-surface);color:var(--nd-ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+#appView .nd-cr-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--nd-line)}
+#appView .nd-cr-list>li{display:flex;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--nd-line);font:400 14px/20px var(--sans);color:var(--nd-ink)}
+#appView .nd-cr-n{width:20px;color:var(--nd-ink-3);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+#appView .nd-cr-nm{flex:1;min-width:0}
+#appView .nd-cr-nm em{margin-left:8px;padding:0 6px;border-radius:5px;background:var(--nd-blue-soft);color:var(--nd-blue);font:600 11px/18px var(--sans);font-style:normal}
+#appView .nd-cr-use{color:var(--nd-ink-3);font-size:12.5px}
+#appView .nd-cr-list>li>button{width:32px;height:32px;padding:0;border:1px solid var(--nd-line);border-radius:8px;background:var(--nd-surface);color:var(--nd-ink);font:600 14px/1 var(--sans);cursor:pointer}
+#appView .nd-cr-list>li>button:disabled{opacity:.35;cursor:default}
+#appView .nd-cr-list.is-auto .nd-cr-nm{color:var(--nd-ink)}

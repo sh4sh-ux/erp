@@ -432,10 +432,10 @@ patchFn('drawQuoteCanvas',[
  ['noticeLs.forEach(ln=>{ ctx.fillText(ln,MX+13,ey); ey+=21; });','noticeLs.forEach(ln=>{ if(Array.isArray(ln)&&window.naroNoticeDrawLine)window.naroNoticeDrawLine(ctx,ln,MX+13,ey,F); else ctx.fillText(ln,MX+13,ey); ey+=21; });'],
 ]);
 patchFn('renderSettings',[
- ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn&&window.naroNoticeToEditor)window.naroNoticeToEditor(qn);'],
+ ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn&&window.naroNoticeToEditor)window.naroNoticeToEditor(qn);\n  if(window.naroCarrierToSettings)window.naroCarrierToSettings();'],
 ]);
 patchFn('saveSettings',[
- ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),\n  };'],
+ ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),\n    ...(window.naroCarrierFromSettings?window.naroCarrierFromSettings():{}),\n  };'],
 ]);
 // 하청 품목(10/18): 단품에 outsourced:true — 재고를 세지 않는다(재고 탭·재고 부족·납품 차감 제외). 유형은 그대로라 저장 규칙(유형 변경 금지)에 걸리지 않는다.
 patchFn('tracksStock',[['!isWork(i)','!isWork(i) && !i.outsourced']]);
@@ -452,6 +452,11 @@ patchFn('submitItem',[['e.code=(e.code||"").trim();','e.code=(e.code||"").trim()
               <div class="field"><label id="st_quote_notice_l">안내문</label><div class="nd-qn-ed"><div class="nd-qn-tb" role="toolbar" aria-label="글자 꾸미기"><button type="button" class="nd-qn-bb" data-qn-b title="굵게" aria-label="굵게">B</button><span class="nd-qn-sep"></span><button type="button" data-qn-c="ink"><i style="background:#0B1220"></i>검정</button><button type="button" data-qn-c="red"><i style="background:#D32F2F"></i>빨강</button><button type="button" data-qn-c="blue"><i style="background:#2F54EB"></i>파랑</button><button type="button" data-qn-c="gray"><i style="background:#8A94A6"></i>회색</button><span class="nd-qn-sep"></span><button type="button" class="nd-qn-clr" data-qn-clear>꾸밈 지우기</button></div><div id="st_quote_notice" class="nd-qn-area" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="st_quote_notice_l" data-placeholder="비우면 안내문 없이 출력돼요"></div></div>
                 <div class="nd-qn-row"><button type="button" class="btn ghost" data-nd-qn-default>기본 문구로</button><span class="hint">글자를 고르고 버튼을 누르세요 · 꾸미지 않은 글자는 빨강 · 견적서마다 '안내문 넣기'로 뺄 수 있어요.</span></div>
               </div>
+            </section>
+
+            <section class="sup-sec sup-carrier">
+              <h3 class="sup-sec-t">택배사 순서</h3>
+              <div class="field"><label>송장 택배사 목록</label><div id="st_carriers" class="nd-cr"></div><span class="hint">맨 위 택배사가 새 송장에 미리 선택돼요. 자동이면 지금까지 많이 쓴 순서예요.</span></div>
             </section>
 
             `+from);}
