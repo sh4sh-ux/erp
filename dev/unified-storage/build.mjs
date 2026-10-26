@@ -327,9 +327,11 @@ function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,'NOT
 // 저장되는 상태(status)는 그대로 '납품' — 보이는 것과 필터만 바뀐다. '납품' 칩은 아직 끝나지 않은 납품만.
 {
  const P=(from,to,code)=>{if(!html.includes(from))throw Error(code);html=html.replace(from,()=>to);};
- P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,`function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }
+ P(`function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }`,`/* 10/26: 삭제(취소)한 견적 · 삭제(숨김)한 거래처의 견적은 계산서 미발행 할 일에서 뺀다. */
+function needsTax(q){ const hid=db.settings&&db.settings.hidden&&Array.isArray(db.settings.hidden.companies)?db.settings.hidden.companies:[]; return !!q && q.status!=="취소" && !hid.includes(q.company_id) && isDelivered(q) && !isTaxed(q) && !noTax(q); }
 function quoteNetPaid(q){ return (db.payments||[]).filter(p=>p.quote_id===q.id).reduce((s,p)=>s+(p.kind==="수금"?1:p.refund?-1:0)*(Number(p.amount)||0),0); }
 function quoteDone(q){ return !!q && q.status==="납품" && (isTaxed(q)||noTax(q)) && quoteAmount(q)-quoteNetPaid(q)<=0.5; }`,'DONE_DEF');
+ P(`if(!isTaxed(q)&&!noTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,`if(needsTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }`,'AR_UNTAXED_SAME_RULE');
  P(`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>`,`\${quoteDone(x)?'<span class="pill st-complete">완료</span>':\`<span class="pill \${QT_STATUS_CLASS[x.status]||'st-draft'}">\${escapeHtml(x.status)}</span>\`}`,'DONE_PILL');
  P(`<option>납품</option><option>취소</option>`,`<option>납품</option><option>완료</option><option>취소</option>`,'DONE_OPTION');
 }

@@ -4160,7 +4160,8 @@ function isDelivered(q){ return !!(q && (quoteDeliveredQty(q)>0 || q.delivered_a
    납품했는데 아직 발행 안 한 건이 누락되지 않도록 추적한다 */
 function isTaxed(q){ return !!(q && q.tax_at); }
 function noTax(q){ if(!q) return false; const c=(db.companies||[]).find(c=>c.id===q.company_id); return !!(q.no_tax || c?.no_tax || /^(naver|coupang):/.test(q.order_ref||'') || /스마트스토어|쿠팡|네이버/.test(c?.name||'')); }
-function needsTax(q){ return isDelivered(q) && !isTaxed(q) && !noTax(q); }
+/* 10/26: 삭제(취소)한 견적 · 삭제(숨김)한 거래처의 견적은 계산서 미발행 할 일에서 뺀다. */
+function needsTax(q){ const hid=db.settings&&db.settings.hidden&&Array.isArray(db.settings.hidden.companies)?db.settings.hidden.companies:[]; return !!q && q.status!=="취소" && !hid.includes(q.company_id) && isDelivered(q) && !isTaxed(q) && !noTax(q); }
 function quoteNetPaid(q){ return (db.payments||[]).filter(p=>p.quote_id===q.id).reduce((s,p)=>s+(p.kind==="수금"?1:p.refund?-1:0)*(Number(p.amount)||0),0); }
 function quoteDone(q){ return !!q && q.status==="납품" && (isTaxed(q)||noTax(q)) && quoteAmount(q)-quoteNetPaid(q)<=0.5; }
 /* 견적 1건의 금액·수금·잔액 — 수금에 quote_id를 달면 건별로 남은 금액을 알 수 있다 */
@@ -6687,7 +6688,7 @@ function arData(){
     if(isDelivered(q)){
       r.delivered+=deliveredAmount(q); r.delivers++;
       if(q.delivered_at>r.lastDeliver) r.lastDeliver=q.delivered_at;
-      if(!isTaxed(q)&&!noTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }
+      if(needsTax(q)){ r.untaxed+=deliveredAmount(q); r.untaxedCount++; }
     }
   });
   (db.payments||[]).forEach(p=>{
