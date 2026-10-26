@@ -190,11 +190,13 @@
   if(Array.isArray(s)&&s.length){const pick=s.filter(k=>keys.includes(k));return [...new Set([...pick,...keys])];}
   const n=carrierUsage();return keys.slice().sort((a,b)=>(n[b]||0)-(n[a]||0)||keys.indexOf(a)-keys.indexOf(b));}
  const defCarrier=()=>carrierOrder()[0]||'cj';
+ // 주로 쓰는 5곳만 먼저 보이고 나머지는 접는다(송장 목록은 '그 외 택배사' 묶음, 공급자 정보는 [나머지 N개 보기]) — 10/26 사용자.
+ const TOP_CARRIERS=5;
  // 고친 기록: 실제로 바뀐 것만(수량·날짜·배송·메모). 수량이 같으면 '250개 → 250개'처럼 쓰지 않는다.
  function fixText(o,d){const a=recQty(o),b=recQty(d),parts=[];if(a!==b)parts.push(`수량 ${won(a)}개 → ${won(b)}개`);if((o.date||'')!==(d.date||''))parts.push(`날짜 ${md(o.date)} → ${md(d.date)}`);if(JSON.stringify(shipNorm(o.shipping||{method:''}))!==JSON.stringify(shipNorm(d.shipping||{method:''})))parts.push('배송 정보 수정');if((o.memo||'')!==(d.memo||''))parts.push('메모 수정');return `${md(String(d.created_at||'').slice(0,10)||d.date)} 고침 · ${parts.join(' · ')||'내용 그대로'}`;}
  function parcelsOf(v){if(!v||v.method!=='택배')return [];if(Array.isArray(v.parcels)&&v.parcels.length)return v.parcels;return v.carrier||v.tracking?[{carrier:v.carrier,tracking:v.tracking||''}]:[];}
  function shipNorm(v){if(!v||v.method!=='택배')return {method:v?.method||''};const all=parcelsOf(v),list=all.filter(p=>p.tracking);const first=list[0]||all[0]||{carrier:'cj',tracking:''};const out={method:'택배',carrier:first.carrier,tracking:list[0]?.tracking||''};if(list.length>1)out.parcels=list.map(p=>({carrier:p.carrier,tracking:p.tracking}));return out;}
- function parcelRow(p,i,n){const first=!i;return `<div class="nd-qa-parcel" data-pr><label><span class="nd-qa-sr">택배사</span><select ${first?'id="ndShipCarrier"':''} data-pc aria-label="송장 ${i+1} 택배사">${(()=>{const all=carriers(),o=carrierOrder();if(p.carrier&&!all[p.carrier])o.push(p.carrier);return o.map(k=>`<option value="${e(k)}" ${p.carrier===k?'selected':''}>${e(all[k]?.[0]||'택배('+k+')')}</option>`).join('');})()}</select></label><label><span class="nd-qa-sr">송장번호</span><input ${first?'id="ndShipTracking"':''} data-pt inputmode="numeric" value="${e(p.tracking||'')}" placeholder="숫자만 입력" aria-label="송장 ${i+1} 번호"><a ${first?'id="ndShipLookup"':''} class="nd-qa-look" target="_blank" rel="noopener noreferrer" aria-disabled="true">조회 ↗</a></label>${n>1?`<button type="button" class="nd-qa-prm" data-prm aria-label="송장 ${i+1} 삭제">×</button>`:''}</div>`;}
+ function parcelRow(p,i,n){const first=!i;return `<div class="nd-qa-parcel" data-pr><label><span class="nd-qa-sr">택배사</span><select ${first?'id="ndShipCarrier"':''} data-pc aria-label="송장 ${i+1} 택배사">${(()=>{const all=carriers(),o=carrierOrder();if(p.carrier&&!all[p.carrier])o.push(p.carrier);const opt=k=>`<option value="${e(k)}" ${p.carrier===k?'selected':''}>${e(all[k]?.[0]||'택배('+k+')')}</option>`;return o.slice(0,TOP_CARRIERS).map(opt).join('')+(o.length>TOP_CARRIERS?`<optgroup label="그 외 택배사">${o.slice(TOP_CARRIERS).map(opt).join('')}</optgroup>`:'');})()}</select></label><label><span class="nd-qa-sr">송장번호</span><input ${first?'id="ndShipTracking"':''} data-pt inputmode="numeric" value="${e(p.tracking||'')}" placeholder="숫자만 입력" aria-label="송장 ${i+1} 번호"><a ${first?'id="ndShipLookup"':''} class="nd-qa-look" target="_blank" rel="noopener noreferrer" aria-disabled="true">조회 ↗</a></label>${n>1?`<button type="button" class="nd-qa-prm" data-prm aria-label="송장 ${i+1} 삭제">×</button>`:''}</div>`;}
  function shippingFields(v={},lead=''){const ps=parcelsOf(v),list=ps.length?ps:[{carrier:v.carrier||defCarrier(),tracking:v.tracking||''}];return `<div class="nd-qa-fields nd-qa-ship">${lead}<label>전달 방법<select id="ndShipMethod"><option value="" ${v.method?'':'selected'}>미기록</option>${['택배','직접 전달','방문 수령'].map(k=>`<option ${v.method===k?'selected':''}>${k}</option>`).join('')}</select></label><div class="nd-qa-parcels" id="ndShipParcels"><span class="nd-qa-pcount">송장 <b>${list.length}</b>개</span>${list.map((p,i)=>parcelRow(p,i,list.length)).join('')}<button type="button" class="nd-qa-padd" data-padd ${list.length>=MAX_PARCELS?'hidden':''}>송장 추가</button></div></div>`;}
  // final=true(저장): 빈 송장은 빼고 저장 모양으로. final=false(입력 중): 빈 줄도 남겨 다시 그릴 때 사라지지 않게.
  function readShipping(d,final=true){const method=d.querySelector('#ndShipMethod').value;if(method!=='택배')return {method};const rows=[...d.querySelectorAll('#ndShipParcels [data-pr]')].map(r=>({carrier:r.querySelector('[data-pc]').value,tracking:r.querySelector('[data-pt]').value.replace(/[\s-]/g,'')}));
@@ -572,7 +574,7 @@
  window.NaroQuoteActions={bar,deliver,pay,removeQuote,chooseCompany:openCoPop,closeCompanyPicker:closeCoPop};
 
  // ── 공급자 정보 → 택배사 순서(10/26): [자동(많이 쓴 순) | 직접 정하기] + 위·아래 버튼. 저장은 공급자 정보 [저장]과 함께(settings.carrier_order). ──
- let crDraft,crCustom;
+ let crDraft,crCustom,crMore=false;
  function crSaved(){let s;try{s=db.settings?.carrier_order;}catch{}const all=carriers();return Array.isArray(s)&&s.length?s.filter(k=>all[k]):null;}
  const crSavedCustom=()=>customCarriers().map(x=>({id:x.id,name:x.name.trim(),...(safeUrl(x.url)?{url:safeUrl(x.url)}:{})}));
  function crPaint(){
@@ -580,13 +582,14 @@
   if(crDraft===undefined)crDraft=crSaved();if(crCustom===undefined)crCustom=crSavedCustom();
   const all=carriers(crCustom),manual=Array.isArray(crDraft),order=carrierOrder(manual?crDraft:null,crCustom),use=carrierUsage(),mine=new Set(crCustom.map(x=>x.id));
   const adding=box.querySelector('.nd-cr-add')?.open;
-  box.innerHTML=`<div class="nd-cr-mode" role="group" aria-label="택배사 순서 정하는 방법"><button type="button" data-cr-mode="auto" aria-pressed="${!manual}">자동 · 많이 쓴 순</button><button type="button" data-cr-mode="manual" aria-pressed="${manual}">직접 정하기</button></div><ol class="nd-cr-list${manual?'':' is-auto'}">${order.map((k,i)=>`<li><span class="nd-cr-n">${i+1}</span><span class="nd-cr-nm">${e(all[k][0])}${i===0?'<em>기본 선택</em>':''}${mine.has(k)?'<small>직접 추가</small>':''}${all[k][1]?'':'<small>조회: 네이버</small>'}</span><span class="nd-cr-use">${use[k]?`${use[k]}번 사용`:''}</span>${mine.has(k)?`<button type="button" class="nd-cr-x" data-cr-del="${e(k)}" aria-label="${e(all[k][0])} 지우기" title="지우기">×</button>`:''}${manual?`<button type="button" data-cr-up="${e(k)}" aria-label="${e(all[k][0])} 위로" ${i?'':'disabled'}>↑</button><button type="button" data-cr-down="${e(k)}" aria-label="${e(all[k][0])} 아래로" ${i<order.length-1?'':'disabled'}>↓</button>`:''}</li>`).join('')}</ol>
+  box.innerHTML=`<div class="nd-cr-mode" role="group" aria-label="택배사 순서 정하는 방법"><button type="button" data-cr-mode="auto" aria-pressed="${!manual}">자동 · 많이 쓴 순</button><button type="button" data-cr-mode="manual" aria-pressed="${manual}">직접 정하기</button></div><ol class="nd-cr-list${manual?'':' is-auto'}">${order.map((k,i)=>`<li data-cr-k="${e(k)}"${i>=TOP_CARRIERS&&!crMore?' hidden':''}><span class="nd-cr-grip" role="button" tabindex="0" data-cr-grip="${e(k)}" aria-label="${e(all[k][0])} 순서 옮기기 — 끌어서 옮기거나 ↑↓ 키" title="끌어서 순서 바꾸기"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="5.5" cy="4" r="1.3"/><circle cx="10.5" cy="4" r="1.3"/><circle cx="5.5" cy="8" r="1.3"/><circle cx="10.5" cy="8" r="1.3"/><circle cx="5.5" cy="12" r="1.3"/><circle cx="10.5" cy="12" r="1.3"/></svg></span><span class="nd-cr-n">${i+1}</span><span class="nd-cr-nm">${e(all[k][0])}${i===0?'<em>기본 선택</em>':''}${mine.has(k)?'<small>직접 추가</small>':''}${all[k][1]?'':'<small>조회: 네이버</small>'}</span><span class="nd-cr-use">${use[k]?`${use[k]}번 사용`:''}</span>${mine.has(k)?`<button type="button" class="nd-cr-x" data-cr-del="${e(k)}" aria-label="${e(all[k][0])} 지우기" title="지우기">×</button>`:''}</li>`).join('')}</ol>${order.length>TOP_CARRIERS?`<button type="button" class="nd-cr-fold" data-cr-more aria-expanded="${crMore}">${crMore?'접기':`나머지 ${order.length-TOP_CARRIERS}개 보기`}<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`:''}
   <details class="nd-cr-add"${adding?' open':''}><summary>+ 택배사 추가</summary><div class="nd-cr-form"><input id="nd_cr_name" maxlength="40" placeholder="택배사 이름 (예: 한덕택배)" autocomplete="off"><input id="nd_cr_url" maxlength="300" inputmode="url" placeholder="조회 주소 (선택) — https://…송장번호 앞까지" autocomplete="off"><button type="button" class="btn ghost" data-cr-add>추가</button></div><p class="nd-cr-tip">조회 주소를 비우면 [조회 ↗]가 네이버에서 '택배사 이름 + 송장번호'로 찾아요.</p></details>`;
  }
  function crChanged(){crPaint();document.getElementById('st_carriers')?.dispatchEvent(new Event('input',{bubbles:true}));}
  const crSay=t=>typeof window.toast==='function'?window.toast(t):alert(t);
  document.addEventListener('click',ev=>{
   const t=ev.target.closest?.('#st_carriers button');if(!t)return;
+  if(t.hasAttribute('data-cr-more')){crMore=!crMore;crPaint();return;}
   if(t.dataset.crMode){crDraft=t.dataset.crMode==='manual'?carrierOrder(undefined,crCustom):null;crChanged();return;}
   if(t.hasAttribute('data-cr-add')){
    const name=(document.getElementById('nd_cr_name')?.value||'').trim(),url=(document.getElementById('nd_cr_url')?.value||'').trim();
@@ -597,9 +600,22 @@
    crCustom=[...crCustom,{id,name,...(url?{url:safeUrl(url)}:{})}];if(Array.isArray(crDraft))crDraft=[...carrierOrder(crDraft,crCustom)];
    crChanged();const d=document.querySelector('#st_carriers .nd-cr-add');if(d)d.open=false;return;}
   if(t.dataset.crDel){const k=t.dataset.crDel;crCustom=crCustom.filter(x=>x.id!==k);if(Array.isArray(crDraft))crDraft=crDraft.filter(x=>x!==k);crChanged();return;}
-  const k=t.dataset.crUp||t.dataset.crDown;if(!k||!Array.isArray(crDraft))return;
-  const o=carrierOrder(crDraft,crCustom),i=o.indexOf(k),j=t.dataset.crUp?i-1:i+1;if(i<0||j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];crDraft=o;crChanged();
-  setTimeout(()=>document.querySelector(`#st_carriers [data-cr-${t.dataset.crUp?'up':'down'}="${k}"]:not([disabled])`)?.focus());
+
+ });
+ // 10/26 끌어서 옮기기(마우스·손가락 모두): 손잡이(⋮⋮)를 잡고 위아래로. 자동 순서에서 옮기면 그 자리에서 '직접 정하기'로 바뀐다.
+ // 끄는 동안은 줄을 DOM에서 옮기지 않고 translateY로만 보여 준다(옮기면 pointer capture가 풀린다). 키보드는 손잡이에서 ↑↓.
+ function crMove(k,to){const o=carrierOrder(Array.isArray(crDraft)?crDraft:null,crCustom),i=o.indexOf(k);if(i<0)return;to=Math.max(0,Math.min(o.length-1,to));if(to===i&&Array.isArray(crDraft))return;o.splice(i,1);o.splice(to,0,k);crDraft=o;crChanged();}
+ document.addEventListener('keydown',ev=>{const g=ev.target.closest?.('#st_carriers [data-cr-grip]');if(!g||!['ArrowUp','ArrowDown'].includes(ev.key))return;ev.preventDefault();const k=g.dataset.crGrip,o=carrierOrder(Array.isArray(crDraft)?crDraft:null,crCustom);crMove(k,o.indexOf(k)+(ev.key==='ArrowUp'?-1:1));setTimeout(()=>document.querySelector(`#st_carriers [data-cr-grip="${CSS.escape(k)}"]`)?.focus());});
+ document.addEventListener('pointerdown',ev=>{
+  const g=ev.target.closest?.('#st_carriers [data-cr-grip]');if(!g||ev.button>0)return;ev.preventDefault();
+  const li=g.closest('li'),list=li.parentElement,items=[...list.children].filter(x=>!x.hidden),from=items.indexOf(li),h=li.getBoundingClientRect().height,y0=ev.clientY;let to=from;
+  li.classList.add('is-drag');list.classList.add('is-dragging');try{g.setPointerCapture(ev.pointerId);}catch{}
+  const move=e=>{const dy=e.clientY-y0;li.style.transform=`translateY(${dy}px)`;to=Math.max(0,Math.min(items.length-1,from+Math.round(dy/h)));
+   items.forEach((x,i)=>{if(x===li)return;const shift=from<to&&i>from&&i<=to?-h:from>to&&i<from&&i>=to?h:0;x.style.transform=shift?`translateY(${shift}px)`:'';});};
+  const end=()=>{g.removeEventListener('pointermove',move);g.removeEventListener('pointerup',end);g.removeEventListener('pointercancel',end);
+   items.forEach(x=>{x.style.transform='';});li.classList.remove('is-drag');list.classList.remove('is-dragging');
+   if(to!==from)crMove(li.dataset.crK,to);};
+  g.addEventListener('pointermove',move);g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);
  });
  document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.isComposing&&ev.target.closest?.('#st_carriers .nd-cr-form input')){ev.preventDefault();document.querySelector('#st_carriers [data-cr-add]')?.click();}});
  window.naroCarrierToSettings=()=>{crDraft=crSaved();crCustom=crSavedCustom();crPaint();};

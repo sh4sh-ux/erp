@@ -550,3 +550,14 @@ html body #appView #view-settings .nd-qn-sep{background:#E2E4E8}
 #appView .nd-cr-form .btn{height:40px}
 #appView .nd-cr-tip{margin:6px 0 0;color:var(--nd-ink-3);font:400 12px/18px var(--sans)}
 @media(max-width:780px){#appView .nd-cr-form{grid-template-columns:minmax(0,1fr)}#appView .nd-cr-list>li{flex-wrap:wrap;row-gap:0}#appView .nd-cr-use{order:3;width:100%;padding-left:30px;margin-top:-6px;padding-bottom:6px}}
+/* 끌어서 옮기기 손잡이 */
+#appView .nd-cr-grip{display:inline-flex;align-items:center;justify-content:center;width:28px;height:36px;margin-left:-4px;border-radius:8px;color:var(--nd-ink-3);fill:currentColor;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+#appView .nd-cr-grip:hover{color:var(--nd-ink);background:var(--nd-fill)}
+#appView .nd-cr-grip:focus-visible{outline:2px solid var(--nd-blue);outline-offset:-2px}
+#appView .nd-cr-list>li{transition:transform .15s ease;background:var(--nd-surface)}
+#appView .nd-cr-list.is-dragging,#appView .nd-cr-list.is-dragging *{cursor:grabbing!important}
+#appView .nd-cr-list>li.is-drag{position:relative;z-index:2;transition:none;box-shadow:0 6px 18px rgba(0,0,0,.14);border-radius:10px}
+#appView .nd-cr-fold{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;height:32px;margin-top:-4px;padding:0 4px;border:0;background:none;color:var(--nd-ink-2);font:500 13px/1 var(--sans);cursor:pointer}
+#appView .nd-cr-fold[aria-expanded="true"] svg{transform:rotate(180deg)}
+#appView .nd-cr-fold:hover{color:var(--nd-blue)}
+#appView .nd-cr-list>li[hidden]{display:none}
