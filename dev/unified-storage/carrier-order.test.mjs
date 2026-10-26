@@ -39,3 +39,8 @@ test('많이 쓰는 택배사(대신·일양·합동·건영·천일·CU·GS25)�
  assert.equal(url('kd'),'https://kdexp.com/service/delivery/etc/delivery.do?barcode=123456789012','경동 새 조회 주소');
  assert.equal(url('cj','abc'),'');
 });
+
+test('계산서 미발행: 삭제(취소)한 견적 · 삭제(숨김)한 거래처는 빼고, 받을 금액 화면도 같은 규칙(10/26)',()=>{
+ assert.match(build,/function needsTax\(q\)\{ const hid=db\.settings&&db\.settings\.hidden[^\n]*q\.status!=="취소" && !hid\.includes\(q\.company_id\)/);
+ assert.match(build,/if\(needsTax\(q\)\)\{ r\.untaxed\+=deliveredAmount\(q\); r\.untaxedCount\+\+; \}/);
+});
