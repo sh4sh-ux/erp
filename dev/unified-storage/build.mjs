@@ -434,6 +434,12 @@ patchFn('drawQuoteCanvas',[
 patchFn('renderSettings',[
  ['  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();','  document.getElementById("st_cert_url").value=(s.biz_cert_url||"").trim();\n  const qn=document.getElementById("st_quote_notice");if(qn&&window.naroNoticeToEditor)window.naroNoticeToEditor(qn);\n  if(window.naroCarrierToSettings)window.naroCarrierToSettings();'],
 ]);
+// 10/26 견적서를 공유(공유 시트·복사·파일 저장)하면 작성중 → 발송(quote-actions.js naroMarkSent). 취소(AbortError)는 그대로.
+patchFn('shareQuote',[
+ ['try{ await navigator.share({files:[file]}); return; }','try{ await navigator.share({files:[file]}); window.naroMarkSent?.(q,docType); return; }'],
+ ['  toast(`${DOC_TYPES[docType]?docType:"견적서"} 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요`);\n      return;','  toast(`${DOC_TYPES[docType]?docType:"견적서"} 이미지를 클립보드에 복사했습니다 — 붙여넣기(⌘V)로 보내세요`);\n      window.naroMarkSent?.(q,docType);\n      return;'],
+ ['  toast("공유를 지원하지 않는 브라우저라 파일로 저장했습니다");','  toast("공유를 지원하지 않는 브라우저라 파일로 저장했습니다");\n  window.naroMarkSent?.(q,docType);'],
+]);
 patchFn('saveSettings',[
  ['    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n  };','    biz_cert_url:document.getElementById("st_cert_url").value.trim(),\n    ...(window.naroNoticeFromEditor?window.naroNoticeFromEditor():{}),\n    ...(window.naroCarrierFromSettings?window.naroCarrierFromSettings():{}),\n  };'],
 ]);

@@ -27,12 +27,12 @@
  const taxedOf=q=>typeof isTaxed==='function'?isTaxed(q):!!q.tax_at;
  const noTaxOf=q=>typeof noTax==='function'?noTax(q):!!q.no_tax;
  const ok='<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M2.5 6.5l2.5 2.5 4.5-6"/></svg>';
- // 머리 단계 줄(10/8 시안): 작성중·발송 = [발송함][수주 확정], 수주 뒤 = 수주 · 납품 · 입금 · 계산서 + 지금 할 일 버튼 하나
+ // 머리 단계 줄(10/8 시안, 10/26 [발송함] 버튼 뺌): 작성중·발송 = [수주 확정] 하나(공유·이메일로 보내면 저절로 발송, 앱 밖에서 보냈으면 단계 줄의 '발송'을 누른다), 수주 뒤 = 수주 · 납품 · 입금 · 계산서 + 지금 할 일 버튼 하나
  function steps(q){
   if(!committed(q)){
    const sent=q.status==='발송',days=sent&&q.sent_at&&typeof daysSince==='function'?daysSince(q.sent_at):0;
-   return {key:q.status+'|'+days,sum:sent?{t:days>0?`회신 대기 · ${days}일째`:'회신 대기',s:'거래처가 확정하면 수주 확정을 누르세요'}:{t:'작성중',s:'보냈으면 발송함, 확정됐으면 수주 확정'},list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo'},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
-    acts:(sent?'':'<button type="button" class="nd-next-b" data-st="발송">발송함</button>')+'<button type="button" class="nd-next-b pri" data-st="수주">수주 확정</button>'};
+   return {key:q.status+'|'+days,sum:sent?{t:days>0?`회신 대기 · ${days}일째`:'회신 대기',s:'거래처가 확정하면 수주 확정을 누르세요'}:{t:'작성중',s:'공유·이메일로 보내면 발송으로 바뀌어요 · 확정되면 수주 확정'},list:[{t:sent?'작성':'작성중',st:sent?'done':'cur'},{t:sent?(days>0?`발송 · ${days}일째 회신 대기`:'발송'):'발송',st:sent?'cur':'todo',...(sent?{}:{act:'발송',hint:'앱 밖(카카오톡 등)에서 보냈으면 눌러서 발송으로 기록'})},{t:'수주',st:'todo'},{t:'납품',st:'todo'}],
+    acts:'<button type="button" class="nd-next-b pri" data-st="수주">수주 확정</button>'};
   }
   const s=state(work(q)),dDone=s.left<=0,pDone=s.balance<=0,taxed=taxedOf(q),nt=noTaxOf(q);
   const list=[{t:'수주',st:'done'},{t:`납품 ${won(s.delivered)}/${won(s.ordered)}개`,st:dDone?'done':'cur',tab:'flow'},
@@ -68,7 +68,7 @@
   if(el&&el.dataset.key===key&&el.nextElementSibling===anchor)return;
   if(!el){el=document.createElement('div');el.className='nd-next';}
   el.dataset.key=key;
-  el.innerHTML=`<button type="button" class="nd-sum" data-tab="flow"><b>${e(S.sum.t)}</b><span>${e(S.sum.s)}</span></button><ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
+  el.innerHTML=`<button type="button" class="nd-sum" data-tab="flow"><b>${e(S.sum.t)}</b><span>${e(S.sum.s)}</span></button><ol class="nd-steps">${S.list.map((x,i)=>`${i?`<li class="nd-step-ln ${x.st==='todo'?'':'on'}" aria-hidden="true"></li>`:''}<li class="nd-step ${x.st}">${x.act?`<button type="button" data-st="${e(x.act)}" title="${e(x.hint||'')}">`:x.tab?`<button type="button" data-tab="${x.tab}">`:'<span>'}<i>${x.st==='done'?ok:''}</i>${e(x.t)}${x.act||x.tab?'</button>':'</span>'}</li>`).join('')}</ol>${S.acts?`<div class="nd-next-act">${S.acts}</div>`:''}`;
   if(el.nextElementSibling!==anchor)anchor.before(el);
  }
  // 품목: 작성중이 아니면 보기 모드(입력칸 테두리·행 삭제·행 추가 숨김) + [편집]
@@ -622,4 +622,11 @@
  window.naroCarrierFromSettings=()=>({carrier_order:Array.isArray(crDraft)?carrierOrder(crDraft,crCustom):undefined,carriers_custom:crCustom?.length?crCustom:undefined});
  window.naroCarrierClean=()=>{if(crDraft===undefined)return true;return JSON.stringify(crCustom||[])===JSON.stringify(crSavedCustom())&&JSON.stringify(Array.isArray(crDraft)?carrierOrder(crDraft,crCustom):null)===JSON.stringify(crSaved()?carrierOrder(crSaved()):null);};
  window.naroCarrierOrder=carrierOrder;
+ // 10/26 공유·이메일로 견적서를 보내면 저절로 '발송'(보낸 날 기록) — 작성중일 때만, 지금 열린 견적만. 저장은 단계 버튼과 같은 길([저장]).
+ window.naroMarkSent=(q,docType)=>{
+  try{if(docType&&docType!=='견적서')return;if(typeof qtEditing==='undefined'||!qtEditing||!q||qtEditing.id!==q.id||qtEditing.status!=='작성중')return;
+   qtEditing.status='발송';const sel=document.getElementById('fq_status');if(sel)sel.value='발송';
+   setTimeout(()=>{document.getElementById('qtSaveBtn')?.click();if(typeof window.toast==='function')setTimeout(()=>window.toast('보냈으니 발송으로 바꿨어요 · 회신 대기 날짜를 세요'),400);},0);
+  }catch(err){console.error('[mark-sent]',err);}
+ };
 })();

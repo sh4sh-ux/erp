@@ -69,7 +69,7 @@ export function installMailUI({port,say}){
    const bytes=part?new Uint8Array(await part.blob.arrayBuffer()):null;
    const r=await ask('MAIL_SEND',{to:toIn.value,subject:subIn.value,body:bodyIn.value,filename:part?.fname||'',bytes});
    busy=false;send.disabled=app.disabled=false;send.textContent='Gmail로 보내기';
-   if(r.type==='MAIL_DONE'){gmailFrom=r.from||gmailFrom;close();say(`${toIn.value.trim()}로 메일을 보냈어요${gmailFrom?' · '+gmailFrom:''}`);return;}
+   if(r.type==='MAIL_DONE'){gmailFrom=r.from||gmailFrom;close();window.naroMarkSent?.(q,docType);say(`${toIn.value.trim()}로 메일을 보냈어요${gmailFrom?' · '+gmailFrom:''}`);return;}
    msg.textContent=MSG[r.code]||MSG.MAIL_FAILED;if(r.code==='BAD_RECIPIENT')toIn.focus();
   };
   app.onclick=async()=>{
@@ -77,7 +77,7 @@ export function installMailUI({port,say}){
    if(part){const file=new File([part.blob],part.fname,{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:subjectV,text:bodyV});close();say(toV?`메일 앱에서 받는 사람 ${toV}를 입력해 보내세요`:'메일 앱을 선택해 보내세요');return;}catch(e){if(e?.name==='AbortError')return;}}
     downloadBlob(part.blob,part.fname);}
-   close();location.href=`mailto:${encodeURIComponent(toV)}?subject=${encodeURIComponent(subjectV)}&body=${encodeURIComponent(bodyV)}`;
+   close();window.naroMarkSent?.(q,docType);location.href=`mailto:${encodeURIComponent(toV)}?subject=${encodeURIComponent(subjectV)}&body=${encodeURIComponent(bodyV)}`;
    say(part?'메일 앱을 열었어요 — 저장된 견적서 이미지를 첨부해 보내세요':'메일 앱을 열었어요');
   };
  }
