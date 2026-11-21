@@ -252,6 +252,8 @@ export function installPurchaseUI({port,features=()=>true}){
  const editBtn=p=>saved(p)&&editable(p)?`<button type="button" class="nd-edit-b" data-act="edit">${st.editing?'완료':'편집'}</button>`:'';
  function itemsPanel(p,sv){
   const t=totals(p),cnt=`${p.lines.filter(hasLine).length}건 · 총 ${n0(p.lines.filter(hasLine).reduce((a,l)=>a+(l.qty||0),0))}개`;
+  // 줄의 현재 색상·규격이 품목 등록 목록에 없어도(견적 뒤에 옵션이 바뀐 경우 등) 그 값을 그대로 보여 준다 — 안 그러면 브라우저가 첫 항목을 대신 보여 줘서 견적과 다르게 보인다
+  const optList=(list,cur)=>(cur&&!list.includes(cur)?[cur,...list]:list).map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('');
   const optLabel=l=>[l.color,l.spec].filter(Boolean).map(esc).join(' · ');
   const name=(it,id)=>it?`${esc(it.name||'')}<span class="cd">${esc(it.code||'')}</span>`:id?'<span class="ph">(삭제된 품목)</span>':'<span class="ph">품목 선택</span>';
   const qno=id=>(D()?.quotes||[]).find(q=>q.id===id)?.no||'';
@@ -263,7 +265,7 @@ export function installPurchaseUI({port,features=()=>true}){
    const head=isCost(l)&&!l.item_id?`<span class="pu-cname"><input type="text" data-f="cname" data-idx="${i}" value="${esc(l.name||'')}" placeholder="비용 이름 (예: 퀵 비용)" aria-label="비용 이름">${tags(l,i,true)}</span>`
     :`<span class="pu-iname"><button type="button" class="ip-btn" data-f="item" data-idx="${i}" aria-label="${esc(it?.name||'')} 품목">${name(it,l.item_id)}</button>${tags(l,i,true)}</span>`;
    return `<div class="qline${isCost(l)?' pu-costline':''}${tags(l)?' pu-tagged':''}" data-idx="${i}">${head}
-    <div class="dual"><select data-f="lcolor" data-idx="${i}" aria-label="색상">${colors.length?colors.map(c=>`<option ${c===l.color?'selected':''}>${esc(c)}</option>`).join(''):'<option value="">—</option>'}</select><select data-f="vspec" data-idx="${i}" aria-label="규격/옵션">${specs.length?specs.map(s=>`<option ${s===l.spec?'selected':''}>${esc(s)}</option>`).join(''):'<option value="">—</option>'}</select></div>
+    <div class="dual"><select data-f="lcolor" data-idx="${i}" aria-label="색상">${colors.length||l.color?optList(colors,l.color):'<option value="">—</option>'}</select><select data-f="vspec" data-idx="${i}" aria-label="규격/옵션">${specs.length||l.spec?optList(specs,l.spec):'<option value="">—</option>'}</select></div>
     <input type="text" inputmode="numeric" class="num" data-f="qty" data-idx="${i}" value="${l.qty?n0(l.qty):''}" aria-label="수량">
     <input type="text" inputmode="${isFx(p)?'decimal':'numeric'}" class="num" data-f="price" data-idx="${i}" value="${l.unit_price?(isFx(p)?fx(l.unit_price):n0(l.unit_price)):''}" placeholder="0" aria-label="단가">
     <span class="amt" data-amt="${i}">${isFx(p)?fx((l.qty||0)*(l.unit_price||0)):n0((l.qty||0)*(l.unit_price||0))}</span>
